@@ -350,12 +350,24 @@ function genStageSegs(type, dist, variant) {
     const monts = variant === 'monts';
     const n = monts ? rint(7, 10) : rint(11, 15);
     for (let i = 0; i < n; i++)
-      F.push({ at: dist * (0.42 + (0.53 * i) / n) + rf(-2, 2), kind: 'paves', len: rf(1, 3.2) });
+      F.push({
+        at: dist * (0.42 + (0.53 * i) / n) + rf(-2, 2),
+        kind: 'paves',
+        len: rf(1, 3.2),
+        avg: undefined,
+        desc: undefined,
+      });
     if (monts) {
       const m = rint(8, 12);
       for (let i = 0; i < m; i++) {
         const len = rf(0.6, 1.8);
-        F.push({ at: dist * (0.45 + (0.5 * i) / m) + rf(-3, 3), kind: 'mur', len, avg: rf(5.5, 10.5) });
+        F.push({
+          at: dist * (0.45 + (0.5 * i) / m) + rf(-3, 3),
+          kind: 'mur',
+          len,
+          avg: rf(5.5, 10.5),
+          desc: undefined,
+        });
       }
     }
     climb(dist * rf(0.25, 0.4), rf(1, 2), rf(4, 6), 1.5);

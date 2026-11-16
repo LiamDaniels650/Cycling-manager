@@ -100,8 +100,8 @@ function finaleTrend(sim) {
     const kmCatch = last.gap / -slope;
     proj =
       kmCatch < last.km
-        ? { catchAt: Math.max(0, last.km - kmCatch) }
-        : { keep: Math.round(last.gap + slope * last.km) };
-  } else proj = { keep: Math.round(last.gap + slope * last.km) };
+        ? { catchAt: Math.max(0, last.km - kmCatch), keep: undefined }
+        : { catchAt: undefined, keep: Math.round(last.gap + slope * last.km) };
+  } else proj = { catchAt: undefined, keep: Math.round(last.gap + slope * last.km) };
   return { slope, gap: last.gap, km: last.km, ...proj };
 }

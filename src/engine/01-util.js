@@ -1,4 +1,5 @@
 /* Utilitaires : hasard reproductible, formats */
+/** @type {any} */
 var S = null; // état de la partie (sérialisable)
 var _sd = 987654321; // graine RNG
 function rnd() {

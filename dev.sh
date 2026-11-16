@@ -17,6 +17,8 @@
 set -e
 cd "$(dirname "$0")"
 build() { python3 build.py >/dev/null; }
+# lance une vérification, n'affiche que sa dernière ligne, mais garde son code de retour (sh n'a pas pipefail)
+last() { rc=0; out=$("$@" 2>&1) || rc=$?; printf '%s\n' "$out" | tail -1; return $rc; }
 fp_check() {
   now=$(node tests/fingerprint.js 17 | tail -1)
   ref=$(cat tests/baseline/fingerprint.txt)
@@ -26,7 +28,12 @@ fp_check() {
 }
 case "$1" in
   build) build; echo "dist/ à jour." ;;
-  check) build; bash tests/lint.sh | tail -1; bash tests/typecheck.sh | tail -1; fp_check ;;
+  check)
+    build; st=0
+    last bash tests/lint.sh || st=1
+    last bash tests/typecheck.sh || st=1
+    fp_check || st=1
+    exit $st ;;
   test)
     build; bash tests/lint.sh | tail -1; bash tests/typecheck.sh | tail -1
     fp_check || true
