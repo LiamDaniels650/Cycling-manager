@@ -1,11 +1,12 @@
 // Test d'invariance : le résultat d'une saison ne doit dépendre ni des numéros internes des coureurs ni de
 // l'ordre des équipes dans la liste. Pour plusieurs graines, on joue la même saison :
 //   A) normale ; B) coureurs du joueur renumérotés en dernier ; C) équipes IA dans l'ordre inverse.
+// (10 graines par défaut : avec 6, le bruit dépassait parfois la tolérance de corrélation sans vrai biais)
 // Les écarts B−A (rang UCI du joueur) et C−A (lien entre position dans la liste et gain de points) doivent
-// rester du niveau du bruit.  Usage : node tests/bias.js [graines=6] [départ=400]
+// rester du niveau du bruit.  Usage : node tests/bias.js [graines=10] [départ=400]
 const fs = require('fs');
 const { execFileSync } = require('child_process');
-const NS = +(process.argv[2] || 6),
+const NS = +(process.argv[2] || 10),
   S0 = +(process.argv[3] || 400);
 
 if (process.env.BIAS_CHILD) {
@@ -17,13 +18,30 @@ if (process.env.BIAS_CHILD) {
   newGame('B', seed);
   if (mode === 'B') {
     const P = S.teams[0];
+    const map = {};
     P.riders = P.riders.map(id => {
       const r = S.riders[id];
       delete S.riders[id];
       r.id = _rid++;
       S.riders[r.id] = r;
+      map[id] = r.id;
       return r.id;
     });
+    // l'état indexé par numéro de coureur suit la renumérotation (relations entre coéquipiers, connaissance) :
+    // sans cela, B perdrait les complicités et tensions de départ et ne jouerait pas la même équipe que A
+    const remapPairs = o => {
+      const out = {};
+      for (const k in o || {}) {
+        const [a, b] = k.split('-').map(n => map[n] || +n);
+        out[relKey(a, b)] = o[k];
+      }
+      return out;
+    };
+    if (S.rel) S.rel = remapPairs(S.rel);
+    if (S.relSeen) S.relSeen = remapPairs(S.relSeen);
+    const know = {};
+    for (const k in S.know || {}) know[map[k] || k] = S.know[k];
+    S.know = know;
     S.plan = {};
   }
   if (mode === 'C') S.teams = [S.teams[0], ...S.teams.slice(1).reverse()];
