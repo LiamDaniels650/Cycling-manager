@@ -237,6 +237,7 @@ function endStageSim(sim) {
         I: x.st.n ? +(x.st.Is / x.st.n).toFixed(2) : 0,
         cv: x.st.cv,
         e: Math.round(x.energy),
+        drop: x.st.drop,
       };
   }
   const kb = sim.runners.filter(x => !x.dnf).sort((a, b) => b.st.kf + b.st.att * 8 - (a.st.kf + a.st.att * 8))[0];

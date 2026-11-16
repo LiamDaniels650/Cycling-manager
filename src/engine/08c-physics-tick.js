@@ -17,6 +17,10 @@ function tickPhysics(sim) {
     const capsDesc = () => capsD || (capsD = [...capM.values()].sort((a, b) => b - a));
     const ws = G.riders.filter(x => x.work > 0);
     let L;
+    // origine du rythme (lecture seule, pour expliquer les lâchés au joueur) : attaque, tempo d'équipe, sélection…
+    let paceSrc = G.burst > 0 ? 'att' : ws.length ? 'tempo' : 'calme';
+    const att0 = G.burst > 0 ? G.attacker : null;
+    let L0 = 0;
     if (G.burst > 0) {
       L = G.burstL;
       G.burst--;
@@ -34,19 +38,25 @@ function tickPhysics(sim) {
     if (surf && n >= 6 && G.burst <= 0 && sim.dist - G.pos < sim.dist * 0.55) {
       const caps = capsDesc();
       // secteur pavé dans la seconde moitié de course : les spécialistes roulent à bloc, plus encore dans les monts
+      L0 = L;
       L = Math.max(L, caps[Math.floor(n * 0.12)] * (g >= 3 ? 0.95 : 0.91));
       // final d'une classique pavée (derniers 35 %) : les meilleurs spécialistes font exploser la course
       if (!sim.stageRace && sim.dist - G.pos < sim.dist * 0.35) L = Math.max(L, caps[Math.floor(n * 0.03)] * 1.0);
+      if (L > L0) paceSrc = 'pav';
     }
     if (g >= 4 && n >= 6 && G.burst <= 0) {
       const caps = capsDesc();
+      L0 = L;
       L = Math.max(L, caps[Math.floor(n * 0.2)] * 0.7);
+      if (L > L0) paceSrc = 'montee';
     }
     // échappée dans la dernière montée : chacun joue sa carte, les meilleurs grimpeurs durcissent dès le pied
     // (l'échappée se disperse, au lieu d'arriver groupée au pied des 4 derniers km)
     if (g >= 3 && n >= 3 && G.burst <= 0 && sim.pel && G !== sim.pel && G.pos > sim.pel.pos && inFinalClimb(sim, G)) {
       const caps = capsDesc();
+      L0 = L;
       L = Math.max(L, caps[Math.floor(n * 0.25)] * 0.9);
+      if (L > L0) paceSrc = 'finale';
     }
     // arrivée en côte : dans les derniers km de la montée finale, les plus forts du groupe font la course
     // (idem dans les 4 derniers km du dernier col d'une étape de montagne : les favoris s'y expliquent)
@@ -59,11 +69,15 @@ function tickPhysics(sim) {
       ((sim.finClimb !== null && G.pos >= Math.max(sim.finClimb, sim.dist - 3)) || lastColFinal)
     ) {
       const caps = capsDesc();
+      L0 = L;
       L = Math.max(L, caps[Math.min(n - 1, Math.floor(n * 0.1))] * 0.95);
+      if (L > L0) paceSrc = 'finale';
     }
     // dans la dernière montée, un petit groupe sans relayeur monte au rythme de son plus fort élément
     if (n <= 4 && g >= 3 && G.burst <= 0 && !ws.length && inFinalClimb(sim, G)) {
+      L0 = L;
       L = Math.max(L, capsDesc()[0] * 0.96);
+      if (L > L0) paceSrc = 'finale';
     }
     // groupe de chasseurs de maillot relevés : ils montent tranquillement (gruppetto)
     if (G.riders.every(y => y.sitUp)) {
@@ -244,6 +258,7 @@ function tickPhysics(sim) {
       }
       for (const x of drop) {
         x.dropT = sim.t;
+        if (x.player) x.st.drop = dropRecord(sim, G, x, paceSrc, ws, att0);
         if (sim.t - (x.dropLog || -99) < 15) continue;
         x.dropLog = sim.t;
         if (x.player || (sim.favs.has(x.id) && G.pos > sim.dist * 0.4))

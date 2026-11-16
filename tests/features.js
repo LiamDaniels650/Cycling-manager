@@ -734,5 +734,33 @@ check(
   feedCheck(ss, xs);
   check(xs.pen === 20, 'commissaires : 20 s de pénalité pour un ravitaillement dans les 20 derniers km');
 }
+// Pourquoi un coureur a été lâché : relevé en course pour les coureurs du joueur, explication lisible.
+{
+  newGame('T', 31);
+  const i = S.cal.findIndex(c => c.stagesSpec.some(s => s[0] === 'montagne' || s[0] === 'sommet'));
+  S.week = S.cal[i].w;
+  const rc = startRace(i, delegateSelection(i));
+  let drops = 0,
+    expl = null;
+  while (!rc.done) {
+    Object.assign(rc.orders, autoOrders(0, rc.specs[rc.si], rc));
+    runStageAuto(rc);
+    const st = rc.stageRes[rc.stageRes.length - 1];
+    for (const id in (st && st.stats) || {}) {
+      const d = st.stats[id].drop;
+      if (!d) continue;
+      drops++;
+      expl = expl || dropExplain(S.riders[id], d, (rc.orders[id] || {}).o);
+    }
+  }
+  check(drops > 0, `lâchés : ${drops} relevés pour les coureurs du joueur`);
+  check(
+    !!expl && /a perdu le contact à [0-9,]+ km/.test(expl.txt) && expl.why.length > 10,
+    'lâchés : explication lisible (« ' + (expl ? expl.txt : '?') + ' »)'
+  );
+  const d0 = { km: 12, g: 7, n: 30, I: 1.2, punch: 10, e: 20, bonk: true, food: 4, m: 4, sans: false, day: 0 };
+  const e0 = dropExplain({ fn: 'A', ln: 'B' }, { ...d0, why: 'over', src: 'finale', by: null }, 'leader');
+  check(/fringale/.test(e0.why) && /alimentation/.test(e0.tip), 'lâchés : une fringale est signalée et conseillée');
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

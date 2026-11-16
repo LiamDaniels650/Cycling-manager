@@ -68,6 +68,29 @@ function Debrief({ rc, L, st, mine }) {
         ))}
       </>
     );
+  // pourquoi mes coureurs clés ont perdu le contact (leaders, sprinteurs, cartes libres, meilleur de l'équipe)
+  if (st.stats) {
+    const key = id => ['leader', 'sprint', 'free'].includes((rc.orders[id] || {}).o);
+    const best = myRes.length ? myRes[0][0].id : null;
+    const drops = myRes
+      .filter(([e]) => e.gap > 0 && st.stats[e.id] && st.stats[e.id].drop && (key(e.id) || e.id === best))
+      .slice(0, 3)
+      .map(([e]) => dropExplain(S.riders[e.id], st.stats[e.id].drop, (rc.orders[e.id] || {}).o))
+      .filter(Boolean);
+    if (drops.length)
+      items.push(
+        <>
+          🩺 Pourquoi ils ont lâché :
+          {drops.map((d, k) => (
+            <div key={k} className="mt-1 text-xs text-slate-300">
+              <div>{d.txt}</div>
+              <div className="text-slate-400">{d.why}</div>
+              {d.tip && <div className="text-sky-300">💡 {d.tip}</div>}
+            </div>
+          ))}
+        </>
+      );
+  }
   if (!rc.done) {
     const nx = rc.specs[rc.si];
     items.push(

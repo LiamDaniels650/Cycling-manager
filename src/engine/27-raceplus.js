@@ -207,6 +207,83 @@ function allyAuto(sim, T, once) {
   }
 }
 
+// ---------- Pourquoi un coureur a été lâché ----------
+// Relevé au moment où un coureur du joueur perd le contact (lecture seule de l'état de course, sans hasard) :
+// l'origine du rythme (attaque, tempo d'une équipe, sélection par les plus forts) et l'état du coureur.
+function dropRecord(sim, G, x, src, ws, att) {
+  const thr = 1.0 + 0.085 * Math.min(1, x.punch / 40);
+  const why = x.sitUp ? 'situp' : x.I > thr ? 'over' : x.energy <= 1 ? 'empty' : 'pace';
+  let by = null;
+  if (src === 'att' && att && att !== x) by = riderName(att.r);
+  else if (src === 'tempo') {
+    const cnt = new Map();
+    for (const y of ws) if (y.team !== x.team) cnt.set(y.team, (cnt.get(y.team) || 0) + 1);
+    by =
+      [...cnt]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 2)
+        .map(([T]) => T.short)
+        .join(', ') || null;
+  }
+  return {
+    km: +(sim.dist - G.pos).toFixed(1),
+    g: +(G.g || 0).toFixed(1),
+    n: G.riders.length,
+    I: +(x.I || 0).toFixed(2),
+    punch: Math.round(x.punch),
+    e: Math.round(x.energy),
+    bonk: !!x.bonk,
+    food: Math.round(x.food),
+    m: x.matches || 0,
+    sans: !!x.sansJour,
+    day: Math.round(x.dayForm - x.r.forme),
+    why,
+    src,
+    by,
+  };
+}
+// Explication lisible d'un lâché : { txt, why, tip } (null si rien à expliquer). ord : consigne du coureur.
+function dropExplain(r, d, ord) {
+  if (!d) return null;
+  const src = {
+    att: d.by ? `sur l'attaque de ${d.by}` : 'sur une attaque',
+    tempo: d.by ? `sur le tempo imposé par ${d.by}` : 'sur le tempo de sa propre équipe',
+    pav: 'quand les spécialistes des pavés ont durci',
+    montee: 'quand les grimpeurs ont imposé leur rythme',
+    finale: 'quand les meilleurs se sont expliqués',
+    calme: '',
+  }[d.src];
+  const where = `à ${fmtDec(d.km)} km de l'arrivée${d.g >= 3 ? ` (pente ${fmtDec(d.g)} %)` : ''}`;
+  const txt = `${riderName(r)} a perdu le contact ${where}${src ? ', ' + src : ''}.`;
+  const cause = {
+    situp: "Il s'est relevé volontairement.",
+    pace: "Il a choisi de monter à son rythme plutôt que de s'accrocher.",
+    empty: `Il n'avait plus de fond (réserves à ${d.e} %).`,
+    over: `Le rythme dépassait ses moyens du jour (${Math.round(d.I * 100)} % de sa capacité).`,
+  }[d.why];
+  const f = [];
+  if (d.sans) f.push('jour sans');
+  else if (d.day <= -4) f.push('mauvaises jambes ce jour-là');
+  if (d.bonk) f.push('fringale');
+  else if (d.food < 25) f.push('mal alimenté');
+  if (d.punch < 25 && d.why === 'over') f.push(`réserve d'attaque presque vide (${d.punch} %)`);
+  if (d.m >= 3) f.push(`${d.m} efforts dans le rouge auparavant`);
+  if (d.e < 35 && d.why !== 'empty') f.push(`fond entamé (${d.e} %)`);
+  let tip = null;
+  if (d.why === 'situp') tip = null;
+  else if (ord === 'sprint' && d.g >= 4 && d.km > 3)
+    tip = "Normal pour un sprinteur dans une telle montée : l'important est de finir dans les délais.";
+  else if (d.src === 'tempo' && !d.by)
+    tip = 'Ses propres équipiers roulaient trop fort pour lui : radio « Arrête de rouler » ou consigne moins dure.';
+  else if (d.bonk || d.food < 25) tip = "Renforcez le plan d'alimentation, ou faites-le manger avant la difficulté.";
+  else if (d.m >= 3)
+    tip = 'Trop d’efforts avant le moment décisif : consigne « Économiser » ou « Monte à ton rythme » plus tôt.';
+  else if (d.e < 35 || d.why === 'empty')
+    tip = "Il s'est trop dépensé avant : moins de relais, ou des équipiers autour de lui pour l'abriter.";
+  else if (d.sans || d.day <= -4) tip = "Peu de choses à faire : la forme du jour n'y était pas.";
+  else if (d.why === 'over') tip = "Il était simplement moins fort que les meilleurs aujourd'hui.";
+  return { txt, why: cause + (f.length ? ' Facteurs : ' + f.join(', ') + '.' : ''), tip };
+}
 // ---------- Résumé d'étape ----------
 // Texte brut du résumé (copiable) et lignes pour l'affichage.
 function stageSummary(rc, idx, sim) {

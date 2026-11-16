@@ -85,7 +85,7 @@ function buildStageSim(rc) {
         conds: ((rc.conds && rc.conds[id]) || []).map(c => ({ ...c, done: false })),
         wet: spec.wx === 'pluie',
         markId: null,
-        st: { kf: 0, kw: 0, att: 0, Is: 0, n: 0, cv: [], mx: 0, risk: 0 },
+        st: { kf: 0, kw: 0, att: 0, Is: 0, n: 0, cv: [], mx: 0, risk: 0, drop: null },
         eqf: applyGear(eqFactors(T), gearFor(T, rc, spec)),
         recon: !!T.player && reconDone(rc),
         wp: wPrime(r),
