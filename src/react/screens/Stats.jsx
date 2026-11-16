@@ -1,0 +1,535 @@
+// Statistiques (portage fidèle de viewStats) : saison en cours ou passée, historique des courses, records,
+// classement UCI individuel, watts, palmarès, rivaux, légendes, bilan individuel et équipes.
+import { Card, Btn, Info, RiderLink, Table, Tr, TeamDot } from '../ui.jsx';
+import { RivalsTable } from './Home.jsx';
+import { SeasonWhy, UciObjective, WtTable, RivalsChart } from './Insights.jsx';
+
+const TABS = [
+  ['season', 'Saison'],
+  ['races', 'Courses'],
+  ['records', 'Records'],
+  ['uci', 'UCI coureurs'],
+  ['watts', 'Watts'],
+  ['palm', 'Mon palmarès'],
+  ['rivals', '🆚 Rivaux'],
+  ['legends', '🏛️ Légendes'],
+  ['review', '📋 Bilan'],
+  ['teams', 'Équipes'],
+];
+const Empty = ({ t = '—' }) => (
+  <tr>
+    <td className="py-1.5 text-slate-400">{t}</td>
+  </tr>
+);
+// Top 10 d'un critère : [coureur, valeur affichée, équipe, est-ce mon coureur].
+function Top({ title, rows, empty }) {
+  return (
+    <Card title={title}>
+      <Table>
+        {rows.length ? (
+          rows.map(([r, v, team, mine], i) => (
+            <Tr key={r.id} mine={mine}>
+              <td className="w-6 text-slate-400">{i + 1}</td>
+              <td>
+                <RiderLink r={r} />
+                {team === 'retired' ? <span className="ml-1 text-xs text-slate-400">retraité</span> : null}
+              </td>
+              {team && team !== 'retired' ? <td className="text-xs text-slate-400">{team}</td> : null}
+              <td className="whitespace-nowrap text-right tabular-nums">{v}</td>
+            </Tr>
+          ))
+        ) : (
+          <Empty t={empty} />
+        )}
+      </Table>
+    </Card>
+  );
+}
+function SeasonPicker({ ss, past }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1 text-sm text-slate-300">
+      Saison :
+      {[S.season, ...past].map(s => (
+        <Btn key={s} active={ss === s} className="min-h-9 px-2.5" onClick={() => ((UI.statSeason = s), render())}>
+          {s}
+        </Btn>
+      ))}
+    </div>
+  );
+}
+function SeasonTab() {
+  const active = Object.values(S.riders).filter(r => !r.retired && r.team !== null && !r.aca);
+  const past = Object.keys(S.seasonRank || {})
+    .map(Number)
+    .sort((a, b) => b - a);
+  const ss = UI.statSeason && UI.statSeason !== S.season && past.includes(UI.statSeason) ? UI.statSeason : S.season;
+  if (ss !== S.season) {
+    const tr = S.seasonRank[ss];
+    const pool = Object.values(S.riders)
+      .map(r => [r, (r.career || []).find(c => c.s === ss)])
+      .filter(a => a[1]);
+    const lst2 = (title, fn, fmt) => {
+      const rs = pool
+        .slice()
+        .sort((a, b) => fn(b[1]) - fn(a[1]))
+        .filter(a => fn(a[1]) > 0)
+        .slice(0, 10);
+      return <Top title={title} rows={rs.map(([r, c]) => [r, fmt ? fmt(fn(c)) : fn(c), c.t, c.t === P().short])} />;
+    };
+    return (
+      <>
+        <SeasonPicker ss={ss} past={past} />
+        <Card title={`Classement UCI ${ss} (final)`}>
+          <Table>
+            {tr.map((t, i) => (
+              <Tr key={i} mine={t.p}>
+                <td className="w-6">{i + 1}</td>
+                <td>
+                  <i className="mr-1 inline-block h-2.5 w-2.5 rounded-sm" style={{ background: t.c }} />
+                  {t.n}
+                </td>
+                <td className="whitespace-nowrap text-right">{t.u} pts</td>
+                <td className="whitespace-nowrap text-right text-xs text-slate-400">{t.w} v.</td>
+              </Tr>
+            ))}
+          </Table>
+        </Card>
+        {lst2('Points UCI', c => c.u)}
+        {lst2('Victoires', c => c.w)}
+        {lst2('Podiums', c => c.p)}
+        {lst2(
+          "Kilomètres à l'avant",
+          c => c.kf || 0,
+          v => v + ' km'
+        )}
+        {lst2('Jours de course', c => c.d)}
+      </>
+    );
+  }
+  const teams = uciRanking();
+  const lead = (teams[0] && teams[0].uci) || 1;
+  const lst = (title, fn, fmt) => {
+    const rs = active
+      .slice()
+      .sort((a, b) => fn(b) - fn(a))
+      .filter(r => fn(r) > 0)
+      .slice(0, 10);
+    return <Top title={title} rows={rs.map(r => [r, fmt ? fmt(fn(r)) : fn(r), tshort(r), r.team === 0])} />;
+  };
+  return (
+    <>
+      <SeasonPicker ss={ss} past={past} />
+      <SeasonWhy />
+      <Card title={`Classement UCI ${S.season}`}>
+        <UciObjective />
+        <Table>
+          {teams.map((t, i) => (
+            <Tr key={t.id} mine={t.player}>
+              <td className="w-6">{i + 1}</td>
+              <td>
+                <TeamDot T={t} />
+                {t.name}
+                <div className="mt-1 h-1 overflow-hidden rounded-full bg-slate-800">
+                  <i
+                    className="block h-full rounded-full"
+                    style={{ width: (((t.uci || 0) / lead) * 100).toFixed(0) + '%', background: t.color }}
+                  />
+                </div>
+              </td>
+              <td className="whitespace-nowrap text-right">{t.uci || 0} pts</td>
+              <td className="whitespace-nowrap text-right text-xs text-slate-400">{seasonWins(t.id)} v.</td>
+            </Tr>
+          ))}
+        </Table>
+      </Card>
+      <WtTable />
+      {lst('Points UCI', r => r.stats.pts)}
+      {lst('Victoires', r => r.stats.wins)}
+      {lst('Podiums', r => r.stats.podiums)}
+      {lst(
+        "Kilomètres à l'avant",
+        r => Math.round(r.stats.kf || 0),
+        v => v + ' km'
+      )}
+      {lst('Attaques', r => r.stats.att || 0)}
+      {lst('Jours de course', r => r.stats.days)}
+    </>
+  );
+}
+function RacesTab() {
+  return (
+    <Card title="Historique des courses">
+      {S.cal.map(c => {
+        const hs = (S.raceHist[c.key] || []).slice().reverse();
+        return (
+          <details key={c.key} className={'border-t border-slate-800 py-1 ' + (hs.length ? '' : 'text-slate-500')}>
+            <summary className="cursor-pointer py-1.5 text-sm">
+              <b>{c.name}</b> <span className="text-xs text-slate-400">{hs.length} édition(s)</span>
+            </summary>
+            {hs.length ? (
+              <Table>
+                {hs.map((e, i) => (
+                  <EditionRows key={i} e={e} />
+                ))}
+              </Table>
+            ) : null}
+          </details>
+        );
+      })}
+    </Card>
+  );
+}
+function EditionRows({ e }) {
+  return (
+    <>
+      <Tr>
+        <td className="align-top">{e.s}</td>
+        <td>
+          🥇 {e.pod[0] ? e.pod[0].n : ''} <span className="text-xs text-slate-400">{e.pod[0] ? e.pod[0].t : ''}</span>
+        </td>
+        <td className="text-xs">
+          🥈 {e.pod[1] ? e.pod[1].n : ''} · 🥉 {e.pod[2] ? e.pod[2].n : ''}
+        </td>
+      </Tr>
+      {e.pts ? (
+        <tr>
+          <td />
+          <td colSpan={2} className="pb-1.5 text-xs text-slate-400">
+            Points : {e.pts} · Montagne : {e.kom || '—'} · Jeune : {e.yg || '—'}
+            {e.stages ? (
+              <>
+                <br />
+                Étapes : {e.stages.map((s, i) => i + 1 + '. ' + s.n).join(' · ')}
+              </>
+            ) : null}
+          </td>
+        </tr>
+      ) : null}
+    </>
+  );
+}
+function RecordsTab() {
+  const all = Object.values(S.riders).filter(r => (r.palm && r.palm.length) || (r.career && r.career.length));
+  const wins = r =>
+    (r.palm || []).filter(p => p.k === 1 && p.e !== 'Course espoirs' && !/Maillot|grimpeur|jeune/.test(p.e)).length;
+  const gts = r =>
+    (r.palm || []).filter(p => p.k === 1 && p.r === raceNameOf('gb') && p.e === 'Classement général').length;
+  const pts = r => sum((r.career || []).map(c => c.u)) + r.stats.pts;
+  const lst = (title, fn) => {
+    const rs = all
+      .slice()
+      .sort((a, b) => fn(b) - fn(a))
+      .filter(r => fn(r) > 0)
+      .slice(0, 10);
+    return (
+      <Top
+        title={title}
+        empty="Pas encore de données."
+        rows={rs.map(r => [r, fn(r), r.retired ? 'retired' : null, r.team === 0])}
+      />
+    );
+  };
+  return (
+    <>
+      {lst('Victoires en carrière (courses, étapes, généraux)', wins)}
+      {lst(`Victoires sur la ${raceNameOf('gb')} (général)`, gts)}
+      {lst('Points UCI en carrière', pts)}
+    </>
+  );
+}
+function RivalsTab() {
+  const rows = rivalsWindow(2);
+  const U = S.uciTrack && S.uciTrack.w.length >= 2 ? S.uciTrack : S.uciPrev;
+  return (
+    <Card title="🆚 Vos rivaux au classement UCI">
+      <p className="mb-2 text-xs text-slate-400">
+        Les deux équipes devant vous et les deux derrière. Touchez une équipe pour sa fiche : matériel, stratégie,
+        effectif estimé.
+      </p>
+      <RivalsTable rows={rows} />
+      <h4 className="mb-1 mt-3 text-sm font-semibold text-slate-100">
+        Évolution des points
+        {U && U.s !== S.season ? <span className="text-xs font-normal text-slate-400"> (saison {U.s})</span> : null}
+      </h4>
+      <RivalsChart rows={rows} U={U} />
+    </Card>
+  );
+}
+function ReviewTab() {
+  const rv = S.review;
+  return (
+    <Card title={`📋 Bilan individuel${rv ? ' ' + rv.s : ''}`}>
+      <p className="mb-2 text-xs text-slate-400">
+        Établi à la clôture de chaque saison : jours de course, résultats, évolution du niveau global et objectif
+        personnel.
+      </p>
+      {rv && rv.rows.length ? (
+        <Table head={['Coureur', 'Jours', 'Vict.', 'Pod.', 'UCI', 'Niveau', 'Objectif']}>
+          {rv.rows.map(x => {
+            const r = S.riders[x.id];
+            if (!r) return null;
+            return (
+              <Tr key={x.id}>
+                <td>
+                  <RiderLink r={r} />
+                </td>
+                <td>{x.d}</td>
+                <td>{x.w}</td>
+                <td>{x.p}</td>
+                <td>{x.u}</td>
+                <td className="whitespace-nowrap">
+                  {x.ov}
+                  {x.dov == null ? null : (
+                    <span
+                      className={
+                        'ml-1 ' + (x.dov > 0 ? 'text-emerald-400' : x.dov < 0 ? 'text-rose-400' : 'text-slate-500')
+                      }
+                    >
+                      {x.dov > 0 ? '+' : ''}
+                      {x.dov}
+                    </span>
+                  )}
+                </td>
+                <td className="text-xs">{x.goal ? `${x.goal.ok ? '✅' : '❌'} ${GOAL_SHORT[x.goal.k]}` : '—'}</td>
+              </Tr>
+            );
+          })}
+        </Table>
+      ) : (
+        <p className="text-sm text-slate-400">Le premier bilan sera établi à la fin de la saison.</p>
+      )}
+    </Card>
+  );
+}
+function LegendsTab() {
+  const L = legends(25);
+  return (
+    <Card title="🏛️ Légendes du peloton">
+      <Info>
+        Toutes saisons confondues, retraités compris. Barème : Grand Tour 25 pts, monument ou Mondiaux 15, course par
+        étapes majeure 8, classique majeure 6, étape de Grand Tour 3, podiums et maillots.
+      </Info>
+      {L.length ? (
+        <Table head={['#', 'Coureur', 'Pts', 'GT', 'Monum.', '🌈', 'Vict.', '']}>
+          {L.map((x, i) => (
+            <Tr key={x.r.id} mine={x.r.team === 0}>
+              <td>{i + 1}</td>
+              <td>
+                <RiderLink r={x.r} /> <span className="text-[11px] text-slate-400">{x.r.nat}</span>
+              </td>
+              <td>
+                <b>{x.s}</b>
+              </td>
+              <td>{x.gt || ''}</td>
+              <td>{x.mon || ''}</td>
+              <td>{x.worlds || ''}</td>
+              <td>{x.wins}</td>
+              <td className="text-xs text-slate-400">
+                {x.r.retired ? 'retraité' : teamOf(x.r) ? teamOf(x.r).short : 'libre'}
+              </td>
+            </Tr>
+          ))}
+        </Table>
+      ) : (
+        <p className="text-sm text-slate-400">Aucun palmarès pour l'instant.</p>
+      )}
+    </Card>
+  );
+}
+function UciTab() {
+  const all = Object.values(S.riders)
+    .filter(r => !r.retired && r.team !== null && !r.aca && r.stats.pts > 0)
+    .sort((a, b) => b.stats.pts - a.stats.pts);
+  const rows = all.map((r, i) => [r, i + 1]).filter(([r, k]) => k <= 50 || r.team === 0);
+  return (
+    <Card title={`Classement UCI individuel ${S.season}`}>
+      <Table>
+        {rows.length ? (
+          rows.map(([r, k]) => (
+            <Tr key={r.id} mine={r.team === 0}>
+              <td className="w-7">{k}</td>
+              <td>
+                <RiderLink r={r} />
+                <div className="text-xs text-slate-400">
+                  {tshort(r)} · {ARCH[r.arch].lbl}
+                </div>
+              </td>
+              <td className="whitespace-nowrap text-right">{r.stats.pts} pts</td>
+              <td className="whitespace-nowrap text-right text-xs text-slate-400">{r.stats.wins} v.</td>
+            </Tr>
+          ))
+        ) : (
+          <Empty t="Pas encore de points cette saison." />
+        )}
+      </Table>
+    </Card>
+  );
+}
+function WattsTab() {
+  const L = S.pwRec || [];
+  const pool = Object.values(S.riders).filter(r => !r.retired && r.pb && (r.pb.m || r.pb.l));
+  const best = r => Math.max(r.pb.m ? r.pb.m.wkg : 0, r.pb.l ? r.pb.l.wkg : 0);
+  const top = pool.sort((a, b) => best(b) - best(a)).slice(0, 15);
+  return (
+    <>
+      <Card title="⚡ Meilleures performances en montée">
+        <p className="mb-2 text-xs text-slate-400">
+          Efforts de 20 minutes et plus, toutes saisons confondues, classés en watts par kilo.
+        </p>
+        {L.length ? (
+          <Table head={['#', 'Coureur · montée', 'W/kg']}>
+            {L.map((q, i) => {
+              const r = S.riders[q.id];
+              return (
+                <Tr key={i} mine={r && r.team === 0}>
+                  <td className="w-6 align-top">{i + 1}</td>
+                  <td>
+                    <RiderLink r={r} />
+                    <div className="text-xs text-slate-300">
+                      {q.climb} · {q.len} km à {fmtDec(q.avg, 1)} % · {fmtTime(q.dur)} · VAM {q.vam}
+                    </div>
+                    <div className="text-xs text-slate-400">
+                      {q.race} {q.season}
+                    </div>
+                  </td>
+                  <td className="whitespace-nowrap text-right align-top">
+                    <b>{fmtDec(q.wkg, 2)}</b>
+                    <div className="text-xs text-slate-400">{q.w} W</div>
+                  </td>
+                </Tr>
+              );
+            })}
+          </Table>
+        ) : (
+          <p className="text-sm text-slate-400">Aucune grande montée courue pour l'instant.</p>
+        )}
+      </Card>
+      <Card title="Meilleurs grimpeurs en activité (record personnel, 15 min et plus)">
+        <Table>
+          {top.length ? (
+            top.map((r, i) => (
+              <Tr key={r.id} mine={r.team === 0}>
+                <td className="w-6">{i + 1}</td>
+                <td>
+                  <RiderLink r={r} />
+                  <div className="text-xs text-slate-400">
+                    {tshort(r)} · {r.kg} kg
+                  </div>
+                </td>
+                <td className="whitespace-nowrap text-right">
+                  <b>{fmtDec(best(r), 2)}</b> W/kg
+                </td>
+              </Tr>
+            ))
+          ) : (
+            <Empty />
+          )}
+        </Table>
+      </Card>
+    </>
+  );
+}
+function PalmTab() {
+  const items = [];
+  for (const r of Object.values(S.riders)) for (const p of r.palm || []) if (p.my) items.push([p, r]);
+  items.sort((a, b) => b[0].s - a[0].s || a[0].k - b[0].k);
+  return (
+    <Card title={`Palmarès de ${P().name}`}>
+      {items.length ? (
+        <Table>
+          {items.map(([p, r], i) => (
+            <Tr key={i}>
+              <td>{p.s}</td>
+              <td>{p.k === 1 ? '🥇' : p.k === 2 ? '🥈' : '🥉'}</td>
+              <td>
+                {p.r}
+                <div className="text-xs text-slate-400">{p.e}</div>
+              </td>
+              <td>
+                <RiderLink r={r} />
+              </td>
+            </Tr>
+          ))}
+        </Table>
+      ) : (
+        <p className="text-sm text-slate-400">Aucun résultat pour l'instant.</p>
+      )}
+    </Card>
+  );
+}
+function TeamsTab() {
+  return (
+    <Card title="Équipes">
+      {S.teams
+        .filter(t => !t.player)
+        .map(t => (
+          <details key={t.id} className="border-t border-slate-800 py-1">
+            <summary className="flex cursor-pointer flex-wrap items-center gap-2 py-1 text-sm">
+              <span>
+                <TeamDot T={t} />
+                <b>{t.name}</b> <span className="text-xs text-slate-400">{STYLES[t.style] || ''}</span>
+              </span>
+              <Btn
+                className="ml-auto min-h-9"
+                onClick={e => {
+                  e.preventDefault();
+                  openTeam(t.id);
+                }}
+              >
+                Fiche
+              </Btn>
+            </summary>
+            <div className="flex flex-wrap gap-x-2 gap-y-1 pb-1 text-sm">
+              {t.riders
+                .map(id => S.riders[id])
+                .sort((a, b) => shownOv(b) - shownOv(a))
+                .map(r => (
+                  <span key={r.id}>
+                    <RiderLink r={r} />{' '}
+                    <span className="text-xs text-slate-400">
+                      {ARCH[r.arch].lbl} {svOv(r)}
+                    </span>
+                  </span>
+                ))}
+            </div>
+          </details>
+        ))}
+    </Card>
+  );
+}
+const VIEWS = {
+  season: SeasonTab,
+  races: RacesTab,
+  records: RecordsTab,
+  rivals: RivalsTab,
+  review: ReviewTab,
+  legends: LegendsTab,
+  uci: UciTab,
+  watts: WattsTab,
+  palm: PalmTab,
+  teams: TeamsTab,
+};
+export function Stats() {
+  const tab = UI.stats;
+  const V = VIEWS[tab] || TeamsTab;
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-800 p-1 sm:grid-cols-5">
+        {TABS.map(([k, l]) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => ((UI.stats = k), render())}
+            className={
+              'min-h-10 rounded-lg px-2 text-sm font-medium ' +
+              (tab === k ? 'bg-sky-500 text-slate-950' : 'text-slate-200')
+            }
+          >
+            {l}
+          </button>
+        ))}
+      </div>
+      <V />
+    </div>
+  );
+}

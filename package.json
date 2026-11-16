@@ -1,0 +1,18 @@
+{
+  "name": "cycling-manager",
+  "private": true,
+  "description": "Directeur Sportif : jeu de gestion d'équipe cycliste (navigateur, hors ligne)",
+  "scripts": {
+    "build": "python3 build.py && node tools/build_react.mjs",
+    "check": "./dev.sh check"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "eslint": "10.1.0",
+    "prettier": "3.8.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3"
+  }
+}

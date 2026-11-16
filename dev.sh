@@ -1,0 +1,58 @@
+#!/bin/sh
+# Commandes de travail. Toujours depuis la racine du projet : ./dev.sh <commande>
+#   build          assemble dist/index.html (jeu) et dist/engine.js (tests)
+#   check          build + lint + types + empreinte (≈ 1 min) : vérifie que la simulation n'a PAS changé
+#   test           check + fonctionnalités, non-régression, biais, audit, interface (≈ 6 min)
+#   calib [n=30]   calibrage sur deux séries de n saisons en parallèle (graines 200 et 300), écarts au réel
+#   impact         poids de chaque caractéristique et de chaque choix (≈ 4 min)
+#   prodiges       jeunes talents sur 9 saisons (≈ 2 min 30)
+#   play           une saison jouée comme un joueur dans le navigateur
+#   profile        fonctions les plus coûteuses de la simulation
+#   accept         après un changement VOULU de la simulation : met à jour empreinte et références
+#   fmt            formate le code (prettier)
+#   reglages       régénère docs/REGLAGES.md (leviers de 00-params.js et constantes du moteur)
+#   adjoint [n] [g] partie entièrement déléguée à l'adjoint, comparée aux équipes IA voisines
+#   react          assemble dist/react.html (interface React + Tailwind, moteur inchangé)
+#   carriere [n]   mode carrière : une carrière simulée de 16 ans à 16+n ans, avec vérifications (≈ 30 s par saison)
+set -e
+cd "$(dirname "$0")"
+build() { python3 build.py >/dev/null; }
+fp_check() {
+  now=$(node tests/fingerprint.js 17 | tail -1)
+  ref=$(cat tests/baseline/fingerprint.txt)
+  if [ "$now" = "$ref" ]; then echo "✔ Empreinte identique : la simulation n'a pas changé."; else
+    echo "✖ Empreinte différente : la simulation a changé ($now, référence $ref)."
+    echo "  Si c'est voulu : ./dev.sh accept (puis ./dev.sh calib)."; return 1; fi
+}
+case "$1" in
+  build) build; echo "dist/ à jour." ;;
+  check) build; bash tests/lint.sh | tail -1; bash tests/typecheck.sh | tail -1; fp_check ;;
+  test)
+    build; bash tests/lint.sh | tail -1; bash tests/typecheck.sh | tail -1
+    fp_check || true
+    node tests/features.js | grep -v '^✔' | tail -3
+    bash tests/regress.sh | tail -1
+    node tests/bias.js | tail -1
+    node tests/audit.js | tail -1
+    for t in ui_smoke ui_auto ui_worker; do python3 tests/$t.py 2>&1 | grep -i 'ERREURS JS\|errs \[' | head -1; done ;;
+  carriere) build; node tests/career.js "${2:-8}" ;;
+  calib)
+    n=${2:-30}; build
+    JOBS=1 node tests/calibrate.js "$n" 200 > /tmp/calib200.txt 2>&1 &
+    JOBS=1 node tests/calibrate.js "$n" 300 > /tmp/calib300.txt 2>&1
+    wait
+    for s in 200 300; do echo "graine $s : $(grep -c '✔' /tmp/calib$s.txt) mesures dans le réel"; grep '✖' /tmp/calib$s.txt || true; done
+    echo "(détail : /tmp/calib200.txt, /tmp/calib300.txt)" ;;
+  impact) build; node tests/impact.js 20 ;;
+  prodiges) build; node tests/prodigies.js 3 9 ;;
+  play) build; python3 tests/playthrough.py 1 ;;
+  profile) build; node tools/profile.js ;;
+  accept)
+    build; node tests/fingerprint.js 17 | tail -1 > tests/baseline/fingerprint.txt
+    bash tests/regress.sh update; echo "Empreinte : $(cat tests/baseline/fingerprint.txt)" ;;
+  fmt) prettier --write src/engine/*.js src/ui/*.js src/react/*.js src/react/*.jsx src/react/*/*.js src/react/*/*.jsx tests/*.js tools/*.js tools/*.mjs src/shell.html >/dev/null; echo "Formaté." ;;
+  reglages) python3 tools/reglages.py ;;
+  adjoint) Q=1 node tests/adjoint.js "${2:-8}" "${3:-11}" ;;
+  react) node tools/build_react.mjs ;;
+  *) sed -n '2,12p' "$0" ;;
+esac
