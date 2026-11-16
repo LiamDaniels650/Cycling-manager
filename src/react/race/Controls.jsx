@@ -1,0 +1,360 @@
+// Appel radio en attente, journal Radio-course, barre de commandes (vitesse, moments clés, fin, DS auto, pauses)
+// et fenêtre radio d'un coureur (portage de askHTML, du journal de liveHTML, dockHTML et radioCard).
+import { useEffect } from 'react';
+import { RADIO_GROUPS, RADIO_HELP, doingNow, orderInfo } from './orders.js';
+import { Nego, Ally } from './Team.jsx';
+import { Card, Btn, Html, Effort } from '../ui.jsx';
+import { Icon } from '../icons.jsx';
+
+// Décisions à prendre maintenant, dans un panneau flottant (hauteur limitée, défilable) : appel radio,
+// négociation dans l'échappée, proposition d'alliance.
+function Decisions({ sim }) {
+  const wrap = 'rounded-xl bg-slate-950 shadow-2xl empty:hidden';
+  return (
+    <div className="mx-auto max-h-[45vh] max-w-3xl space-y-2 overflow-y-auto px-2">
+      {sim.ask ? (
+        <div className={wrap}>
+          <AskPanel sim={sim} />
+        </div>
+      ) : null}
+      <div className={wrap}>
+        <Nego sim={sim} />
+      </div>
+      {S.car ? null : (
+        <div className={wrap}>
+          <Ally sim={sim} mode="offer" />
+        </div>
+      )}
+    </div>
+  );
+}
+export function AskPanel({ sim }) {
+  const a = sim.ask;
+  if (!a) return null;
+  const left = Math.max(0, Math.round((a.exp - sim.t) * 60));
+  return (
+    <div className="rounded-xl bg-amber-400/15 p-2.5 ring-1 ring-amber-300/60">
+      <div className="flex items-start gap-2 text-sm font-semibold text-amber-50">
+        <Icon name="alert" size={18} className="mt-0.5 text-amber-300" />
+        <span>{a.txt}</span>
+      </div>
+      <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {a.opts.map(([k, l], i) => (
+          <Btn key={k} primary={!i} onClick={() => askUI(k)}>
+            {l}
+          </Btn>
+        ))}
+      </div>
+      <div className="mt-1 text-xs text-slate-300">
+        Sans réponse dans {Math.floor(left / 60)} min {String(left % 60).padStart(2, '0')} s : {a.self}
+      </div>
+    </div>
+  );
+}
+const CLS = { me: 'text-pink-200', bad: 'text-rose-300', att: 'text-amber-200', info: 'text-sky-200' };
+function FeedRow({ l }) {
+  return (
+    <div className="flex gap-2 border-b border-slate-800 py-1.5 text-[13px] last:border-0">
+      <span className="w-12 shrink-0 tabular-nums text-slate-500">km {l.km.toFixed(0)}</span>
+      <Html className={CLS[l.cls] || 'text-slate-200'} html={l.txt} />
+    </div>
+  );
+}
+export function RadioFeed({ sim }) {
+  const lg = sim.log.slice().reverse();
+  return (
+    <Card
+      title={
+        <span className="flex items-center gap-1.5">
+          <Icon name="radio" size={16} className="text-sky-300" /> Radio-course
+        </span>
+      }
+    >
+      <div className="h-72 overflow-y-auto overscroll-contain pr-1">
+        {lg.slice(0, 12).map((l, i) => (
+          <FeedRow key={i} l={l} />
+        ))}
+      </div>
+      {lg.length > 12 ? (
+        <details className="mt-1">
+          <summary className="cursor-pointer py-1 text-xs text-slate-400">
+            Plus ancien ({Math.min(28, lg.length - 12)})
+          </summary>
+          {lg.slice(12, 40).map((l, i) => (
+            <FeedRow key={i} l={l} />
+          ))}
+        </details>
+      ) : null}
+    </Card>
+  );
+}
+// Moment fort de la course : bandeau flottant au-dessus des commandes, quel que soit l'endroit où l'on a défilé
+// (vibration brève quand il concerne votre équipe).
+const SEEN = new WeakSet();
+export function MomentToast() {
+  const B = UI.banner;
+  const on = B && Date.now() < B.until;
+  useEffect(() => {
+    if (!on || SEEN.has(B)) return;
+    SEEN.add(B);
+    if (B.mine && navigator.vibrate)
+      try {
+        navigator.vibrate(60);
+      } catch (e) {}
+  });
+  if (!on) return null;
+  return (
+    <div className="pointer-events-none flex justify-center px-3">
+      <div
+        className={
+          'max-w-xl rounded-2xl px-4 py-2.5 text-center text-[15px] font-semibold shadow-2xl ' +
+          (B.mine ? 'bg-pink-600 text-white' : 'bg-amber-300 text-slate-950')
+        }
+        style={{ animation: 'fadeIn .25s both' }}
+        dangerouslySetInnerHTML={{ __html: B.txt }}
+      />
+    </div>
+  );
+}
+// Message de course (avance rapide, final…) : il s'efface seul après quelques secondes pour ne pas cacher le final.
+let FLASH = { txt: null, t: 0 };
+function flashOn() {
+  if (UI.flashRace !== FLASH.txt) FLASH = { txt: UI.flashRace, t: Date.now() };
+  if (UI.flashRace && Date.now() - FLASH.t > 6000) UI.flashRace = null;
+  return !!UI.flashRace;
+}
+const PACE_LBL = {
+  calm: '⏩ rien ne se passe : accéléré',
+  fight: '⏩ bagarre pour l’échappée',
+  mod: '▶▶ course animée',
+  live: '▶ en direct',
+};
+const SPEED_ICON = [['pause'], ['play', 'lent'], ['play'], ['ff'], ['ff', '×3'], ['ff', 'max']];
+export function Dock({ sim }) {
+  const mult = k => '×' + fmtDec(SPEEDS[k] * 30, SPEEDS[k] * 30 < 10 ? 1 : 0);
+  const btn = (on, onClick, title, children) => (
+    <button
+      type="button"
+      title={title}
+      onClick={onClick}
+      className={
+        'flex h-11 min-w-0 items-center justify-center rounded-xl text-xs font-semibold active:scale-95 ' +
+        (on ? 'bg-sky-500 text-slate-950' : 'bg-slate-800 text-slate-100 ring-1 ring-slate-700')
+      }
+    >
+      {children}
+    </button>
+  );
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-700 bg-slate-950/95 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 backdrop-blur">
+      {/* au-dessus des commandes : moment fort et décisions à prendre (appel radio, échappée, alliance) ; ils
+          flottent au lieu de pousser la page, pour que l'écran ne bouge pas quand ils apparaissent */}
+      <div className="absolute inset-x-0 bottom-full mb-2 space-y-2">
+        {flashOn() ? (
+          <div className="mx-auto flex max-w-3xl px-2">
+            <div className="flex w-full items-start gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm text-sky-100 shadow-2xl ring-1 ring-sky-400/50">
+              <span className="flex-1" dangerouslySetInnerHTML={{ __html: UI.flashRace }} />
+              <button
+                type="button"
+                className="px-1 text-slate-400"
+                onClick={() => ((UI.flashRace = null), renderLive())}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        ) : null}
+        <MomentToast />
+        <Decisions sim={sim} />
+      </div>
+      <div className="mx-auto max-w-3xl">
+        <div className="grid grid-cols-8 gap-1">
+          {SPEED_ICON.map(([ic, sub], k) =>
+            btn(
+              UI.speed === k,
+              () => {
+                UI.keyMode = false;
+                setSpeed(k);
+              },
+              k ? mult(k) : 'pause',
+              <span key={k} className="flex flex-col items-center leading-none">
+                <Icon name={ic} size={17} />
+                {sub ? <span className="mt-0.5 text-[9px] opacity-80">{sub}</span> : null}
+              </span>
+            )
+          )}
+          {btn(
+            UI.keyMode,
+            () => keyMoments(),
+            "Moments clés : avance rapide jusqu'au final ou jusqu'à un événement pour votre équipe",
+            <Icon name="clapper" size={17} />
+          )}
+          {btn(false, () => toEnd(), "Aller à l'arrivée", <Icon name="skip" size={17} />)}
+        </div>
+        <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-slate-300">
+          <span>
+            {UI.speed ? mult(UI.speed) + ' temps réel' : 'en pause'}
+            {UI.autoPace !== false && UI.speed && UI.paceState ? (
+              <span className="text-slate-400"> · {PACE_LBL[UI.paceState]}</span>
+            ) : null}
+          </span>
+          <button
+            type="button"
+            title="Rythme auto : accélère quand il ne se passe rien, revient au direct dès que la course bouge"
+            onClick={() => {
+              UI.autoPace = UI.autoPace === false;
+              if (UI.autoPace === false && UI.speed > (UI.baseSpeed || 2)) UI.speed = UI.baseSpeed || 2;
+              renderLive();
+            }}
+            className={
+              'flex min-h-8 items-center gap-1 rounded-lg px-2 ' +
+              (UI.autoPace !== false ? 'bg-sky-500 text-slate-950' : 'bg-slate-800 text-slate-100')
+            }
+          >
+            Rythme auto {UI.autoPace !== false ? 'ON' : 'OFF'}
+          </button>
+          <label className="flex min-h-8 items-center gap-1.5">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-sky-500"
+              checked={!!sim.autoPause}
+              onChange={e => ((UI.sim.autoPause = e.target.checked), renderLive())}
+            />{' '}
+            pause mes coureurs
+          </label>
+          <label className="flex min-h-8 items-center gap-1.5">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-sky-500"
+              checked={!!UI.pauseHl}
+              onChange={e => ((UI.pauseHl = e.target.checked), renderLive())}
+            />{' '}
+            pause moments forts
+          </label>
+          {S.car ? null : (
+            <button
+              type="button"
+              onClick={() => {
+                UI.sim.autoDS = !UI.sim.autoDS;
+                UI.autoDS = UI.sim.autoDS;
+                log(
+                  UI.sim,
+                  UI.sim.autoDS
+                    ? '🤖 DS automatique : il répond aux appels de vos coureurs à votre place.'
+                    : '🤖 DS automatique désactivé : les appels de vos coureurs vous reviennent.',
+                  'info'
+                );
+                renderLive();
+              }}
+              className={
+                'flex min-h-8 items-center gap-1 rounded-lg px-2 ' +
+                (sim.autoDS ? 'bg-sky-500 text-slate-950' : 'bg-slate-800 text-slate-100')
+              }
+            >
+              <Icon name="bot" size={15} /> DS auto {sim.autoDS ? 'ON' : 'OFF'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+// Ordres radio pour un coureur (fenêtre) : ce qu'il fait maintenant, sa consigne, puis les ordres groupés,
+// chacun avec ce qu'il fait et ce qu'il coûte.
+export function RadioPanel({ id }) {
+  const sim = UI.sim;
+  if (!sim) return null;
+  const x = sim.runners.find(y => y.id === id);
+  if (!x) return null;
+  const r = x.r;
+  const oi = orderInfo(x);
+  const me = S.car && x.id === S.car.id;
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <h3 className="flex items-center gap-2 text-lg font-bold text-slate-50">
+          <Icon name="radio" size={20} className="text-sky-300" /> {riderName(r)}
+        </h3>
+        <button
+          type="button"
+          onClick={() => closeModal()}
+          className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-800 text-slate-200"
+        >
+          <Icon name="x" />
+        </button>
+      </div>
+      <div className="mt-1 rounded-xl bg-slate-800/70 p-2.5 text-sm">
+        <div className="text-slate-100">
+          En ce moment : <b>{doingNow(sim, x)}</b>
+        </div>
+        <div className="mt-1 text-slate-300">
+          Consigne : <b className="text-slate-100">{oi.lbl}</b>
+          {x.rebel ? <span className="text-rose-300"> (il n'en fait qu'à sa tête)</span> : null}
+          <div className="text-xs text-slate-400">{oi.d}</div>
+        </div>
+        {x.radio && RADIO_HELP[x.radio] ? (
+          <div className="mt-1 text-slate-300">
+            Ordre radio en cours :{' '}
+            <b className="text-sky-200">
+              {RADIO_HELP[x.radio].ic} {RADIO_HELP[x.radio].short}
+            </b>
+          </div>
+        ) : null}
+        <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
+          Fond {Math.round(x.energy)} % · Jus {Math.round(x.punch)} % · Alim. {Math.round(x.food)} % ·{' '}
+          <Effort I={x.I} />
+        </div>
+      </div>
+      {RADIO_GROUPS.map(([g, ks]) => (
+        <div key={g} className="mt-3">
+          <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">{g}</div>
+          <div className="grid gap-1.5">
+            {ks
+              .filter(k => RADIO[k])
+              .map(k => {
+                const H = RADIO_HELP[k];
+                const on = x.radio === k;
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => sendRadio(id, k)}
+                    className={
+                      'flex min-h-12 items-start gap-2.5 rounded-xl px-3 py-2 text-left active:scale-[.98] ' +
+                      (on ? 'bg-sky-500/20 ring-1 ring-sky-400' : 'bg-slate-800 ring-1 ring-slate-700')
+                    }
+                  >
+                    <span className="text-lg leading-6">{H.ic}</span>
+                    <span>
+                      <b className="text-sm text-slate-100">{H.short}</b>
+                      {on ? <span className="ml-1 text-xs text-sky-300">en cours</span> : null}
+                      <span className="block text-xs text-slate-400">{H.d}</span>
+                    </span>
+                  </button>
+                );
+              })}
+          </div>
+        </div>
+      ))}
+      {UI.markPick === id ? (
+        <>
+          <div className="mt-3 text-sm font-semibold text-slate-100">Qui marquer ?</div>
+          <div className="mt-1 grid grid-cols-2 gap-2">
+            {sim.runners
+              .filter(y => !y.player && !y.fin && !y.dnf && sim.favs.has(y.id))
+              .map(y => (
+                <Btn key={y.id} onClick={() => setMark(id, y.id)}>
+                  {riderName(y.r)} <span className="text-slate-400">{y.team.short}</span>
+                </Btn>
+              ))}
+          </div>
+        </>
+      ) : null}
+      <p className="mt-3 text-xs text-slate-400">
+        {me
+          ? 'C’est toi : tes ordres s’appliquent toujours. Sans jus, une attaque reste impossible.'
+          : 'Le coureur peut refuser selon sa discipline, son moral, son ambition et la situation. Sans jus, une attaque est impossible.'}
+      </p>
+    </div>
+  );
+}

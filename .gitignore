@@ -1,0 +1,6 @@
+node_modules/
+dist/
+tests/out/
+tests/.lint_all.js
+__pycache__/
+*.pyc
