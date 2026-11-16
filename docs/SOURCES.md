@@ -1,6 +1,6 @@
 # Sources des fourchettes de calibration
 
-`tests/calibrate.js` compare 33 mesures de la simulation à des fourchettes réelles. Ce document dit d'où vient
+`tests/calibrate.js` compare 40 mesures de la simulation à des fourchettes réelles. Ce document dit d'où vient
 chacune. Statut : **sourcée** (chiffre publié), **dérivée** (déduite d'une mesure sourcée), **à l'échelle du jeu**
 (le jeu a 18 équipes et un calendrier resserré : pas de comparaison directe possible), **estimée** (ordre de
 grandeur connu du milieu, sans chiffre publié retrouvé).
@@ -22,9 +22,14 @@ grandeur connu du milieu, sans chiffre publié retrouvé).
 | gc2/3/10_1sem | 0,1–1,5, 0,3–2,5, 2–7 min | estimée | courses d'une semaine (Paris-Nice, Dauphiné…) |
 | v_* (vitesses par type d'étape) | voir le fichier | estimée | ordres de grandeur PCS ; contre-la-montre 48-54 km/h (étape 7 du Tour 2024 : plus de 52 km/h) |
 | 10e_* (écart du 10e de l'étape) | voir le fichier | estimée | |
-| jours_course_p90, jours_course_max | 60–90, 75–105 | sourcée (partielle) | ProCyclingStats : 85 à 89 jours pour les coureurs les plus chargés (2024, 2026). **À surveiller : le jeu donne ≈97 jours au plus chargé, au-dessus du réel.** |
+| jours_course_p90, jours_course_max | 60–90, 78–95 | sourcée (partielle) | ProCyclingStats : 85 à 89 jours pour les coureurs les plus chargés (2024, 2026). Corrigé : l'IA compte désormais la course à venir dans sa limite de jours (le plus chargé passait de ≈97 à ≈86 jours) |
 | saison_victoires_n1 | 10–28 | à l'échelle du jeu | l'équipe dominante réelle gagne 50 à 80 courses (UAE 2024), mais sur un calendrier 3 à 4 fois plus long |
 | hors_delais | 0–1 par étape | estimée | |
+| solo_flandres_1j | 50–85 % | sourcée (palmarès) | classiques à monts : Tour des Flandres gagné seul 7 fois sur 10 (2016-2025, 12 s à 1 min d'avance), Strade Bianche ≈ 9/10, E3 ≈ 7/10, Omloop ≈ 5/10 |
+| solo_ardennes_1j | 30–65 % | sourcée (palmarès) | Liège-Bastogne-Liège seul 6 fois sur 10 (2016-2025), Amstel ≈ 3/10 |
+| solo_paves_1j | 15–50 % | sourcée (palmarès) | Paris-Roubaix seul 4 fois sur 9 (2016-2025, sans 2020), Gand-Wevelgem surtout au sprint |
+| favori_flandres_1j, favori_paves_1j, favori_ardennes_1j | 60–95 %, 60–95 %, 50–90 % | sourcée (palmarès) | 2016-2025 : Tour des Flandres gagné par un favori 9 fois sur 10 (seul Bettiol 2019 en outsider), Paris-Roubaix 8 fois sur 9 (Hayman 2016, échappée matinale), Liège 8 fois sur 10 (Poels, Jungels en outsiders), Amstel ≈ 6/9. Le jeu désigne les 10 favoris d'après l'aptitude au final du parcours et la forme du jour |
+| sprint_meilleur | 30–60 % | estimée | sprints massifs des Grands Tours 2023-2025 : le sprinteur dominant gagne 3 à 4 sprints sur 7 à 9 (Philipsen 2023, Girmay/Philipsen 2024, Milan/Merlier Giro 2024) |
 | GT_abandons / arrivées | | | voir plus haut |
 
 Sources principales : Frontier Economics, *The Tour de France: breaking down the breakaway* ; BikeRadar et

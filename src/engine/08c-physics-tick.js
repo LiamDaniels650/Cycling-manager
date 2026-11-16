@@ -32,7 +32,11 @@ function tickPhysics(sim) {
       L = mean * (1 - cw) + mx * cw + (1 - cw) * (n >= 15 ? 2.4 : 1.4) * Math.sqrt(Math.min(8, ws.length - 1));
     } else {
       const caps = [...capM.values()].sort((a, b) => a - b);
-      L = caps[Math.floor(caps.length * 0.5)] * (G === sim.pel ? 0.64 : 0.8);
+      // personne ne roule : le peloton temporise ; dans une classique, un groupe de tête où personne ne relaie se
+      // relève (ses coureurs attendent leur leader ou refusent de tirer) ; un groupe de lâchés monte à son rythme
+      L =
+        caps[Math.floor(caps.length * 0.5)] *
+        (G === sim.pel ? 0.64 : G.ahead && n >= 2 && !sim.stageRace ? R.noWorkAhead : 0.8);
     }
     // sur les pavés, les spécialistes en tête imposent un rythme qui fait le tri
     if (surf && n >= 6 && G.burst <= 0 && sim.dist - G.pos < sim.dist * 0.55) {
@@ -41,13 +45,47 @@ function tickPhysics(sim) {
       L0 = L;
       L = Math.max(L, caps[Math.floor(n * 0.12)] * (g >= 3 ? 0.95 : 0.91));
       // final d'une classique pavée (derniers 35 %) : les meilleurs spécialistes font exploser la course
-      if (!sim.stageRace && sim.dist - G.pos < sim.dist * 0.35) L = Math.max(L, caps[Math.floor(n * 0.03)] * 1.0);
+      if (!sim.stageRace && n >= R.cobbleBlowN && sim.dist - G.pos < sim.dist * 0.35)
+        L = Math.max(L, caps[Math.floor(n * 0.03)] * 1.0);
       if (L > L0) paceSrc = 'pav';
+    }
+    // mur pavé dans le final d'une classique : le plus fort du groupe de tête monte à bloc et fait la différence
+    // (Vieux Quaremont, Paterberg : les favoris s'y retrouvent seuls ou à deux)
+    if (surf && g >= 3 && n >= 2 && G.burst <= 0 && !sim.stageRace && sim.dist - G.pos < sim.dist * 0.35) {
+      L0 = L;
+      L = Math.max(L, capsDesc()[0] * R.murPace);
+      if (L > L0) paceSrc = 'pav';
+    }
+    // dernière côte d'une classique accidentée (Roche-aux-Faucons, Cauberg) : le plus fort du groupe des favoris
+    // fait la sélection lui-même
+    const lc = sim.lastClimb;
+    if (
+      !sim.stageRace &&
+      !surf &&
+      g >= 4 &&
+      n >= 2 &&
+      G.burst <= 0 &&
+      lc &&
+      G.pos >= lc.start &&
+      G.pos <= lc.end &&
+      sim.dist - G.pos < 25 &&
+      G.riders.some(x => sim.favs.has(x.id))
+    ) {
+      L0 = L;
+      L = Math.max(L, capsDesc()[0] * R.lastClimbPace);
+      if (L > L0) paceSrc = 'finale';
     }
     if (g >= 4 && n >= 6 && G.burst <= 0) {
       const caps = capsDesc();
       L0 = L;
       L = Math.max(L, caps[Math.floor(n * 0.2)] * 0.7);
+      // classique d'un jour : dans les côtes du final, les équipes des favoris montent à bloc et font le tri
+      // (les sprinteurs n'arrivent pas avec les meilleurs à Liège ou à l'Amstel)
+      if (!sim.stageRace && sim.dist - G.pos < R.classicHardKm && G.riders.some(x => sim.favs.has(x.id)))
+        L = Math.max(
+          L,
+          sim.dist - G.pos < 30 ? caps[Math.floor(n * 0.1)] * 0.95 : caps[Math.floor(n * 0.15)] * R.classicClimbPace
+        );
       if (L > L0) paceSrc = 'montee';
     }
     // échappée dans la dernière montée : chacun joue sa carte, les meilleurs grimpeurs durcissent dès le pied

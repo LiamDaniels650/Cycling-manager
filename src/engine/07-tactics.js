@@ -422,7 +422,8 @@ function doAttack(sim, x, opts = {}) {
       if (y.energy < 20) want *= 0.3;
       if (rnd() < want) {
         const c = cap(y, g, surf) * (0.96 + rnd() * 0.07);
-        if (c >= capA * 0.95) followers.push(y);
+        // sur un mur pavé, suivre la roue ne protège presque plus : il faut quasiment les jambes de l'attaquant
+        if (c >= capA * (surf && g >= 3 ? R.murFollow : 0.95)) followers.push(y);
       }
     }
     shuffle(followers);
@@ -624,6 +625,24 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
       if (0.75 > level) {
         level = 0.75;
         nw = 1;
+      }
+    }
+    // classique d'un jour : les équipes des favoris contrôlent l'échappée matinale pour la reprendre avant le final
+    // (25 à 35 km de l'arrivée), comme sur les Flandres, Roubaix ou Liège où elle va très rarement au bout
+    if (
+      !sim.stageRace &&
+      sim.favs.has(ldr.id) &&
+      !aheadMate &&
+      (t === 'paves' || t === 'vallonne' || t === 'punch') &&
+      kmLeft > 8
+    ) {
+      const allowed = Math.max(20, (kmLeft - R.classicCatchKm) * R.classicGapKm);
+      if (gap > allowed) {
+        const l4 = gap > allowed * 1.6 ? 0.94 : gap > allowed * 1.2 ? 0.9 : 0.86;
+        if (l4 > level) {
+          level = l4;
+          nw = gap > allowed * 1.6 ? 4 : gap > allowed * 1.2 ? 3 : 2;
+        }
       }
     }
     // intérêt pour la victoire d'étape : un leader favori ne laisse pas l'échappée prendre trop d'avance

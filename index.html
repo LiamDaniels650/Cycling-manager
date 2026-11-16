@@ -2895,8 +2895,8 @@ const R = {
   // --- Monde et progression ---
   // vitesse de progression d'un coureur selon son âge (décalé selon l'âge de pic de son profil) : [âge max, facteur]
   progAge: [
-    [20, 1.3],
-    [23, 1],
+    [20, 1.45],
+    [23, 1.2],
     [26, 0.55],
     [29, 0.2],
     [99, 0.03],
@@ -2914,9 +2914,11 @@ const R = {
     [33, 3],
     [99, 3.3],
   ],
+  youngGapMax: 1.6, // jusqu'à 22 ans, multiplicateur maximal de progression selon la marge au plafond (1,2 ensuite)
   formeRate: 0.22, // part de l'écart à la forme visée comblée chaque semaine
   daysCap: 75, // jours de course au-delà desquels la forme plafonne plus bas (fatigue chronique)
   daysMalus: 0.15, // points de forme visée perdus par jour de course au-delà
+  daysSlackAI: 8, // un coureur IA ne court pas plus de la moitié des jours de course de la saison, plus 8
 
   // --- Économie ---
   salary: { base: 25, k: 0.35, exp: 2.4, youngMul: 0.7 }, // salaire = base + k × (note − 60)^exp (k€/an), × youngMul avant 24 ans
@@ -2954,9 +2956,27 @@ const R = {
   breakTry: 0.1, // chance par pas de temps qu'un candidat à l'échappée attaque (× baroud / 72)
   hunterTry: 0.6, // idem pour le chasseur du maillot de la montagne (× max(baroud, montagne) / 72)
   hunterBridge: 180, // le chasseur part en contre tant que l'échappée a moins de 180 s
-  hunterShare: 40, // % des équipes sans ambition au général qui désignent un chasseur de maillot
+  hunterShare: 70, // % des équipes sans ambition au général qui désignent un chasseur de maillot
   hunterMon: 77, // note de montagne minimale du chasseur
   sitUpPace: 0.74, // allure d'un chasseur relevé (part de la capacité médiane du groupe)
+  // classiques d'un jour : les équipes des favoris contrôlent l'échappée (écart toléré = (km restants − catchKm) × gapKm s)
+  classicCatchKm: 50, // classique : l'échappée matinale doit être reprise vers 50 km de l'arrivée…
+  classicGapKm: 3, // … l'écart toléré diminuant de 3 s par km
+  classicChaseMax: 11, // rouleurs engagés au plus dans la poursuite (7 sur une course par étapes)
+  classicLeaderKm: 45, // … et dans les derniers km, les favoris sans équipier devant roulent eux-mêmes derrière l'échappée
+  classicLeaderWork: 0.86, // intensité du relais d'un favori derrière l'échappée
+  classicHardKm: 90, // … et dans les côtes de leurs derniers km, le groupe des favoris monte au rythme des meilleurs
+  classicClimbPace: 0.9, // côtes du final : allure (part de la capacité du 15e centile le plus fort du groupe)
+  courseSprintW: 0.45, // aptitude au parcours d'une classique à arrivée plate : poids de la pointe de vitesse (sprint du groupe)
+  classicCoLeaders: 2, // classique : équipiers au plus gardés en « carte libre » s'ils valent presque le leader…
+  classicCoGap: 2.5, // … à moins de 2,5 points d'aptitude au final du parcours
+  cobbleBlowN: 12, // final d'une classique pavée : seul un groupe d'au moins 12 coureurs est dynamité par le plus fort
+  murPace: 1.1, // mur pavé dans le final d'une classique : allure du plus fort du groupe (part de sa capacité)
+  lastClimbPace: 1.04, // dernière côte d'une classique accidentée : allure du plus fort du groupe des favoris
+  murFollow: 0.99, // pour suivre une attaque sur un mur pavé, il faut 99 % de la capacité de l'attaquant (95 % ailleurs)
+  murAttack: 1.2, // envie d'attaquer d'un leader sur un mur pavé du final (0,6 sur un secteur pavé plat)
+  classicMarking: 65, // % du temps où un leader « se regarde » au lieu de chasser un favori parti seul (final de classique)
+  noWorkAhead: 0.7, // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
 };
 
 // ---- src/engine/01-util.js ----
@@ -4420,7 +4440,8 @@ function genStageSegs(type, dist, variant) {
     const n = dur ? rint(9, 11) : rint(4, 7);
     const last = type === 'punch' ? null : dist - (dur ? rf(6, 14) : rf(8, 22));
     for (let i = 0; i < n; i++) {
-      const at = dist * rf(dur ? 0.35 : 0.25, 0.85);
+      // parcours « dur » (Liège, Amstel) : les côtes se resserrent dans le final, jusqu'à une vingtaine de km de l'arrivée
+      const at = dist * rf(dur ? 0.35 : 0.25, dur ? 0.92 : 0.85);
       const len = rf(1.2, dur ? 3.5 : 4.2);
       climb(at, len, dur ? rf(6, 9.5) : rf(4.5, 8), len * 0.8);
     }
@@ -4464,7 +4485,8 @@ function genStageSegs(type, dist, variant) {
       for (let i = 0; i < m; i++) {
         const len = rf(0.6, 1.8);
         F.push({
-          at: dist * (0.45 + (0.5 * i) / m) + rf(-3, 3),
+          // le dernier mur arrive à 14-16 km de l'arrivée (Vieux Quaremont-Paterberg, Bosberg), pas à 25-30 km
+          at: dist * (0.45 + (0.5 * (i + 0.8)) / m) + rf(-3, 3),
           kind: 'mur',
           len,
           avg: rf(5.5, 10.5),
@@ -5094,7 +5116,12 @@ function aiSelect(T, cal, specs) {
   // un coureur court au plus la moitié du calendrier environ (sauf un leader IA sur son Grand Tour cible) ;
   // la sélection proposée au joueur suit la même rotation (il reste libre de choisir autrement)
   const daysSoFar = sum(S.cal.filter(c => c.done).map(c => c.stagesSpec.length));
-  const overRaced = r => r.stats.days > daysSoFar * 0.5 + 6 && !(cal.cat === 0 && T.goals && T.goals.gt === cal.key);
+  // la course comptée d'avance : sans cela, un coureur juste sous la limite partait sur un Grand Tour et finissait
+  // la saison à près de 100 jours (les plus chargés du peloton réel en font 85 à 89)
+  const len = cal.stagesSpec.length;
+  const overRaced = r =>
+    r.stats.days + len > (daysSoFar + len) * 0.5 + R.daysSlackAI &&
+    !(cal.cat === 0 && T.goals && T.goals.gt === cal.key);
   let rs = availableRiders(T, cal.w).filter(r => T.player || !aiRestForGt(T, cal, r));
   if (rs.filter(r => !overRaced(r)).length >= n) rs = rs.filter(r => !overRaced(r));
   const w = { pla: 0, mon: 0, col: 0, spr: 0, clm: 0, pav: 0 };
@@ -5209,10 +5236,25 @@ function autoOrders(teamId, spec, rc) {
   }
   const key = t === 'plat' ? 'spr' : t === 'paves' ? 'pav' : t === 'punch' || t === 'vallonne' ? 'col' : 'mon';
   const bestKey = rs.slice().sort((a, b) => sc(b, key) - sc(a, key))[0];
+  // classique d'un jour : le leader est le meilleur sur le final du parcours (pas sur une seule caractéristique),
+  // et un équipier presque aussi fort garde sa carte (co-leader, « carte libre ») au lieu de travailler
+  const classic = !stageRace && (t === 'paves' || t === 'vallonne' || t === 'punch');
+  let bestCourse = bestKey,
+    coLeads = [],
+    cs = null;
+  if (classic) {
+    const csc = courseScorer(buildProfile(spec));
+    cs = new Map(rs.map(r => [r, csc({ r, dayForm: r.forme })]));
+    const byC = rs.slice().sort((a, b) => cs.get(b) - cs.get(a));
+    bestCourse = byC[0];
+    coLeads = byC.slice(1, 1 + R.classicCoLeaders).filter(r => cs.get(r) >= cs.get(byC[0]) - R.classicCoGap);
+  }
   if (t === 'plat' || (t === 'vallonne' && rnd() < 0.65)) {
     const bs = rs.slice().sort((a, b) => sc(b, 'spr') - sc(a, 'spr'))[0];
     if (bs.s.spr >= 70) sprinter = bs;
   }
+  // classique accidentée : on ne joue le sprint que si le sprinteur peut suivre sur ce parcours (pas à Liège)
+  if (classic && sprinter && cs.get(sprinter) < cs.get(bestCourse) - R.classicCoGap) sprinter = null;
   // arrivée en bosse d'une course par étapes : le meilleur puncheur (s'il n'est pas le leader) a sa carte à jouer
   if (stageRace && t === 'punch' && !sprinter) {
     const bp = rs.filter(r => r !== leader).sort((a, b) => sc(b, 'col') - sc(a, 'col'))[0];
@@ -5228,9 +5270,10 @@ function autoOrders(teamId, spec, rc) {
     rnd() < 0.35
       ? bestKey
       : null;
-  if (!leader && !hunter) leader = t === 'plat' && sprinter ? null : bestKey;
+  if (!leader && !hunter) leader = t === 'plat' && sprinter ? null : bestCourse;
   if (leader === sprinter) leader = null;
-  let rest = rs.filter(r => r !== leader && r !== sprinter && r !== hunter);
+  coLeads = coLeads.filter(r => r !== leader && r !== sprinter);
+  let rest = rs.filter(r => r !== leader && r !== sprinter && r !== hunter && !coLeads.includes(r));
   // les coureurs envoyés dans l'échappée dépendent du terrain : grimpeurs en montagne, puncheurs sur les étapes accidentées
   const brkScore = r =>
     t === 'montagne' || t === 'sommet'
@@ -5324,6 +5367,7 @@ function autoOrders(teamId, spec, rc) {
     o[leader.id] = { o: 'leader', att: comfy ? 'defensif' : leaderAtt(leader, rc, t, stageRace) };
   }
   if (sprinter) o[sprinter.id] = { o: 'sprint' };
+  for (const r of coLeads) o[r.id] = { o: 'free' };
   return o;
 }
 // Chasseur de maillot de la montagne d'une équipe, pour toute la course par étapes : un coureur déjà bien placé
@@ -5860,7 +5904,8 @@ function doAttack(sim, x, opts = {}) {
       if (y.energy < 20) want *= 0.3;
       if (rnd() < want) {
         const c = cap(y, g, surf) * (0.96 + rnd() * 0.07);
-        if (c >= capA * 0.95) followers.push(y);
+        // sur un mur pavé, suivre la roue ne protège presque plus : il faut quasiment les jambes de l'attaquant
+        if (c >= capA * (surf && g >= 3 ? R.murFollow : 0.95)) followers.push(y);
       }
     }
     shuffle(followers);
@@ -6062,6 +6107,24 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
       if (0.75 > level) {
         level = 0.75;
         nw = 1;
+      }
+    }
+    // classique d'un jour : les équipes des favoris contrôlent l'échappée matinale pour la reprendre avant le final
+    // (25 à 35 km de l'arrivée), comme sur les Flandres, Roubaix ou Liège où elle va très rarement au bout
+    if (
+      !sim.stageRace &&
+      sim.favs.has(ldr.id) &&
+      !aheadMate &&
+      (t === 'paves' || t === 'vallonne' || t === 'punch') &&
+      kmLeft > 8
+    ) {
+      const allowed = Math.max(20, (kmLeft - R.classicCatchKm) * R.classicGapKm);
+      if (gap > allowed) {
+        const l4 = gap > allowed * 1.6 ? 0.94 : gap > allowed * 1.2 ? 0.9 : 0.86;
+        if (l4 > level) {
+          level = l4;
+          nw = gap > allowed * 1.6 ? 4 : gap > allowed * 1.2 ? 3 : 2;
+        }
       }
     }
     // intérêt pour la victoire d'étape : un leader favori ne laisse pas l'échappée prendre trop d'avance
@@ -6347,10 +6410,14 @@ function buildStageSim(rc) {
         : spec.type === 'punch' || spec.type === 'vallonne'
           ? 'col'
           : 'mon';
+  // classique d'un jour : les favoris sont les meilleurs sur le final du parcours (pentes, pavés, sprint si
+  // l'arrivée est plate), pas sur une seule caractéristique ; course par étapes : caractéristique du terrain
+  const score = sim.stageRace ? x => x.r.s[key] * x.dayForm : courseScorer(P);
+  const sc = new Map(sim.runners.map(x => [x, score(x)]));
   sim.favs = new Set(
     sim.runners
       .slice()
-      .sort((a, b) => b.r.s[key] * b.dayForm - a.r.s[key] * a.dayForm)
+      .sort((a, b) => sc.get(b) - sc.get(a))
       .slice(0, 10)
       .map(x => x.id)
   );
@@ -6382,6 +6449,19 @@ function buildStageSim(rc) {
     'info'
   );
   return sim;
+}
+// Aptitude d'un coureur sur les 60 derniers km d'un parcours (montées et plat, pavés ; sprint si l'arrivée est plate),
+// forme du jour comprise : sert à désigner les favoris d'une classique.
+function courseScorer(P) {
+  const i0 = Math.floor(Math.max(0, P.n * STEP - 60) / STEP);
+  const pts = [];
+  for (let j = i0; j < P.n; j++) if (P.g[j] >= -2) pts.push(j);
+  return x => {
+    let t = 0;
+    for (const j of pts) t += terrStat(x.r.s, P.g[j], P.surf[j], false);
+    const base = pts.length ? t / pts.length : x.r.s.pla;
+    return base * (0.86 + (0.14 * x.dayForm) / 100) + (P.finishGrad < 3 ? (x.r.s.spr - 70) * R.courseSprintW : 0);
+  };
 }
 // Ajoute une ligne au journal de course.
 function log(sim, txt, cls) {
@@ -6782,7 +6862,7 @@ function tickTeamPlans(sim, live) {
       ch.sort((a, b) => b[1][0] - a[1][0]);
       let tot = 0;
       for (const [T, c] of ch) {
-        if (tot >= 7) {
+        if (tot >= (sim.stageRace ? 7 : R.classicChaseMax)) {
           chase.set(ckey(G, T), [0, 0]);
         } else {
           tot += c[1];
@@ -7056,7 +7136,7 @@ function decideRider(sim, x, ctx) {
       if (t === 'punch' && kmLeft < 1.6) window = 1.5;
       if (t === 'vallonne' && kmLeft < 12 && kmLeft > 2) window = Math.max(window, 0.4);
     } else if (t === 'paves') {
-      if (surf && kmLeft < 70) window = 0.6;
+      if (surf && kmLeft < 70) window = g >= 3 && !sim.stageRace ? R.murAttack : 0.6; // mur pavé : le moment de partir
       if (kmLeft < 15) window = Math.max(window, 0.5);
     } else if (t === 'plat') {
       if (kmLeft < 8 && kmLeft > 1.5) window = 0.15;
@@ -7155,6 +7235,23 @@ function decideRider(sim, x, ctx) {
         : kmLeft < 25;
     if (inFinal) x.work = Math.max(x.work, eo === 'leader' ? (x.att === 'defensif' ? 0.84 : 0.9) : 0.87);
   }
+  // classique d'un jour : dans le final, un favori sans équipier devant prend ses responsabilités et roule lui-même
+  // derrière l'échappée (les leaders des classiques ne courent pas dans les roues jusqu'à la ligne)
+  if (
+    eo === 'leader' &&
+    !sim.stageRace &&
+    kmLeft < R.classicLeaderKm &&
+    kmLeft > 3 &&
+    G !== sim.groups[0] &&
+    G.riders.length <= 40 &&
+    sim.favs.has(x.id) &&
+    x.energy > 25 &&
+    gapSec(sim.groups[0], G) < 420 &&
+    !teamHasAhead(sim, x.team, G) &&
+    // derrière l'échappée matinale seulement : derrière un favori parti seul, les leaders se regardent (plus bas)
+    !sim.groups[0].riders.some(y => sim.favs.has(y.id))
+  )
+    x.work = Math.max(x.work, R.classicLeaderWork);
   // un leader distancé roule pour revenir
   if (eo === 'leader' && G !== sim.groups[0] && G.riders.length < 40) {
     const front =
@@ -7171,7 +7268,17 @@ function decideRider(sim, x, ctx) {
                   (!sim.stageRace || sim.rc.gc[y.id] - sim.rc.gc[x.id] < gapSec(H, G) + 30)
               )
           );
-    if (front && gapSec(front, G) < 240) x.work = Math.max(x.work, 0.86);
+    if (front && gapSec(front, G) < 240) {
+      // final d'une classique : derrière un favori parti seul, les leaders se regardent (personne ne veut emmener
+      // les autres) ; fenêtres de 2 minutes, hasard figé par coureur pour ne pas toucher à la série de la course
+      const marking =
+        !sim.stageRace &&
+        sim.dist - G.pos < 30 &&
+        front.riders.length <= 2 &&
+        G.riders.filter(y => effOrder(y) === 'leader').length >= 3 &&
+        (((x.id * 2654435761) ^ (Math.floor(sim.t / 2) * 40503)) >>> 0) % 100 < R.classicMarking;
+      x.work = Math.max(x.work, marking ? 0 : 0.86);
+    }
   }
 }
 // Le groupe est-il dans la dernière montée décisive (arrivée au sommet, ou dernier col à moins de 40 km) ?
@@ -7222,7 +7329,11 @@ function tickPhysics(sim) {
       L = mean * (1 - cw) + mx * cw + (1 - cw) * (n >= 15 ? 2.4 : 1.4) * Math.sqrt(Math.min(8, ws.length - 1));
     } else {
       const caps = [...capM.values()].sort((a, b) => a - b);
-      L = caps[Math.floor(caps.length * 0.5)] * (G === sim.pel ? 0.64 : 0.8);
+      // personne ne roule : le peloton temporise ; dans une classique, un groupe de tête où personne ne relaie se
+      // relève (ses coureurs attendent leur leader ou refusent de tirer) ; un groupe de lâchés monte à son rythme
+      L =
+        caps[Math.floor(caps.length * 0.5)] *
+        (G === sim.pel ? 0.64 : G.ahead && n >= 2 && !sim.stageRace ? R.noWorkAhead : 0.8);
     }
     // sur les pavés, les spécialistes en tête imposent un rythme qui fait le tri
     if (surf && n >= 6 && G.burst <= 0 && sim.dist - G.pos < sim.dist * 0.55) {
@@ -7231,13 +7342,47 @@ function tickPhysics(sim) {
       L0 = L;
       L = Math.max(L, caps[Math.floor(n * 0.12)] * (g >= 3 ? 0.95 : 0.91));
       // final d'une classique pavée (derniers 35 %) : les meilleurs spécialistes font exploser la course
-      if (!sim.stageRace && sim.dist - G.pos < sim.dist * 0.35) L = Math.max(L, caps[Math.floor(n * 0.03)] * 1.0);
+      if (!sim.stageRace && n >= R.cobbleBlowN && sim.dist - G.pos < sim.dist * 0.35)
+        L = Math.max(L, caps[Math.floor(n * 0.03)] * 1.0);
       if (L > L0) paceSrc = 'pav';
+    }
+    // mur pavé dans le final d'une classique : le plus fort du groupe de tête monte à bloc et fait la différence
+    // (Vieux Quaremont, Paterberg : les favoris s'y retrouvent seuls ou à deux)
+    if (surf && g >= 3 && n >= 2 && G.burst <= 0 && !sim.stageRace && sim.dist - G.pos < sim.dist * 0.35) {
+      L0 = L;
+      L = Math.max(L, capsDesc()[0] * R.murPace);
+      if (L > L0) paceSrc = 'pav';
+    }
+    // dernière côte d'une classique accidentée (Roche-aux-Faucons, Cauberg) : le plus fort du groupe des favoris
+    // fait la sélection lui-même
+    const lc = sim.lastClimb;
+    if (
+      !sim.stageRace &&
+      !surf &&
+      g >= 4 &&
+      n >= 2 &&
+      G.burst <= 0 &&
+      lc &&
+      G.pos >= lc.start &&
+      G.pos <= lc.end &&
+      sim.dist - G.pos < 25 &&
+      G.riders.some(x => sim.favs.has(x.id))
+    ) {
+      L0 = L;
+      L = Math.max(L, capsDesc()[0] * R.lastClimbPace);
+      if (L > L0) paceSrc = 'finale';
     }
     if (g >= 4 && n >= 6 && G.burst <= 0) {
       const caps = capsDesc();
       L0 = L;
       L = Math.max(L, caps[Math.floor(n * 0.2)] * 0.7);
+      // classique d'un jour : dans les côtes du final, les équipes des favoris montent à bloc et font le tri
+      // (les sprinteurs n'arrivent pas avec les meilleurs à Liège ou à l'Amstel)
+      if (!sim.stageRace && sim.dist - G.pos < R.classicHardKm && G.riders.some(x => sim.favs.has(x.id)))
+        L = Math.max(
+          L,
+          sim.dist - G.pos < 30 ? caps[Math.floor(n * 0.1)] * 0.95 : caps[Math.floor(n * 0.15)] * R.classicClimbPace
+        );
       if (L > L0) paceSrc = 'montee';
     }
     // échappée dans la dernière montée : chacun joue sa carte, les meilleurs grimpeurs durcissent dès le pied
@@ -8622,7 +8767,8 @@ function weeklyUpdate() {
     let ageF = R.progAge.find(e => a <= e[0])[1];
     if (r.late && r.age >= 23 && r.age <= 28) ageF = Math.max(ageF, 0.9);
     ageF *= devAgeMul(r);
-    const gapF = clamp((r.ceil - ov) / 8, 0, 1.2);
+    // marge de progression : un jeune très doué (plafond loin devant) progresse nettement plus vite (prodiges)
+    const gapF = clamp((r.ceil - ov) / 8, 0, r.age <= 22 ? R.youngGapMax : 1.2);
     const cm = (mine ? coachMul : 1.05) * (r.aca ? mentorMul(r) : 1);
     const g0 = ageF * gapF * cm;
     trainGain(r, pl, g0);

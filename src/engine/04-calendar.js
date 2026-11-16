@@ -318,7 +318,8 @@ function genStageSegs(type, dist, variant) {
     const n = dur ? rint(9, 11) : rint(4, 7);
     const last = type === 'punch' ? null : dist - (dur ? rf(6, 14) : rf(8, 22));
     for (let i = 0; i < n; i++) {
-      const at = dist * rf(dur ? 0.35 : 0.25, 0.85);
+      // parcours « dur » (Liège, Amstel) : les côtes se resserrent dans le final, jusqu'à une vingtaine de km de l'arrivée
+      const at = dist * rf(dur ? 0.35 : 0.25, dur ? 0.92 : 0.85);
       const len = rf(1.2, dur ? 3.5 : 4.2);
       climb(at, len, dur ? rf(6, 9.5) : rf(4.5, 8), len * 0.8);
     }
@@ -362,7 +363,8 @@ function genStageSegs(type, dist, variant) {
       for (let i = 0; i < m; i++) {
         const len = rf(0.6, 1.8);
         F.push({
-          at: dist * (0.45 + (0.5 * i) / m) + rf(-3, 3),
+          // le dernier mur arrive à 14-16 km de l'arrivée (Vieux Quaremont-Paterberg, Bosberg), pas à 25-30 km
+          at: dist * (0.45 + (0.5 * (i + 0.8)) / m) + rf(-3, 3),
           kind: 'mur',
           len,
           avg: rf(5.5, 10.5),

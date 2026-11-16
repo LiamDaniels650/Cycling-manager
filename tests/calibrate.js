@@ -43,10 +43,19 @@ const REAL = {
   taille_echap_montagne_GT: [8, 35], // échappées de 16+ coureurs : 77 % de réussite (Frontier Economics)
   GT_abandons_etape: [0.8, 2.1], // Tour 2019-2024 : 21 à 43 abandons en 21 étapes (cohérent avec les arrivants)
   jours_course_p90: [60, 90],
-  jours_course_max: [75, 105], // ProCyclingStats : 85 à 89 jours pour les plus chargés (2024, 2026)
+  jours_course_max: [78, 95], // ProCyclingStats : 85 à 89 jours pour les plus chargés (2024, 2026)
   saison_victoires_n1: [10, 28],
   hors_delais: [0, 1],
   kom_vainqueur_top10_gc: [0.2, 0.55], // Grands Tours 2019-2025 : 5 sur 21 (Tour 4/7, Giro 1/7, Vuelta 0/7)
+  // part des classiques gagnées en solitaire (au moins 5 s d'avance sur le 2e), 2016-2025 : docs/SOURCES.md
+  solo_flandres_1j: [0.5, 0.85], // Flandres 7/10, Strade Bianche 9/10, E3 ≈ 7/10, Omloop ≈ 5/10
+  solo_ardennes_1j: [0.3, 0.65], // Liège 6/10, Amstel ≈ 3/10
+  solo_paves_1j: [0.15, 0.5], // Roubaix 4/9, Gand-Wevelgem ≈ 2/10 (sprints)
+  // classiques gagnées par l'un des 10 favoris d'avant-course (2016-2025) : docs/SOURCES.md
+  favori_flandres_1j: [0.6, 0.95], // Flandres 9/10
+  favori_paves_1j: [0.6, 0.95], // Roubaix 8/9
+  favori_ardennes_1j: [0.5, 0.9], // Liège 8/10, Amstel ≈ 6/9
+  sprint_meilleur: [0.3, 0.6], // sprints massifs gagnés par le meilleur sprinteur présent (estimée)
 };
 
 const M = {},
@@ -133,6 +142,17 @@ function measureStage(rc, spec, cal, out) {
     add('dernier_' + ty + '_min', res[res.length - 1].gap / 60);
     add('abandons_etape', out.sim.runners.filter(x => x.dnf).length);
     if (ty === 'plat') add('groupe_sprint', res.filter(e => e.gap < 1).length);
+    if (one === '1j' && (ty === 'flandres' || ty === 'ardennes' || ty === 'paves')) {
+      add('solo_' + ty + '_1j', res[1].gap >= 5 ? 1 : 0);
+      // vainqueur parmi les 10 favoris d'avant-course (meilleurs sur le terrain du jour, forme comprise)
+      add('favori_' + ty + '_1j', out.sim.favs.has(res[0].id) ? 1 : 0);
+    }
+    // sprint massif (20 coureurs ou plus dans le même temps) : le meilleur sprinteur présent gagne-t-il ?
+    const bunch = res.filter(e => e.gap < 1);
+    if (ty === 'plat' && bunch.length >= 20) {
+      const bestSpr = Math.max(...bunch.map(e => S.riders[e.id].s.spr));
+      add('sprint_meilleur', S.riders[res[0].id].s.spr >= bestSpr ? 1 : 0);
+    }
     if (out.brk && ty === 'plat') add('taille_echap_plat', out.brk);
     if (out.brk && ty === 'montagne' && cal.cat === 0) add('taille_echap_montagne_GT', out.brk);
     if (DBG === ty) debugFinish(out.sim, spec, res, brk);
@@ -236,9 +256,15 @@ async function runAll() {
 function report() {
   const f = v => v.toFixed(2).padStart(8);
   for (const k of Object.keys(M).sort()) {
-    // pour un taux (échappées), on compare la moyenne ; sinon la médiane
+    // pour un taux (échappées, victoires en solitaire…), on compare la moyenne ; sinon la médiane
+    const rate =
+      k.startsWith('echap_') ||
+      k.startsWith('solo_') ||
+      k.startsWith('favori_') ||
+      k === 'kom_vainqueur_top10_gc' ||
+      k === 'sprint_meilleur';
     const a = M[k],
-      m = k.startsWith('echap_') || k === 'kom_vainqueur_top10_gc' ? sum(a) / a.length : quant(a, 0.5),
+      m = rate ? sum(a) / a.length : quant(a, 0.5),
       R = REAL[k];
     const ref = R ? `   réel ${R[0]}–${R[1]} ${m >= R[0] && m <= R[1] ? '✔' : '✖'}` : '';
     console.log(

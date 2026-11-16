@@ -119,7 +119,7 @@ commun : `carSelHook` (06-race-setup), `carOrderHook` et `sim.carId` (08-stage-s
 | Test | Rôle |
 |---|---|
 | `tests/fingerprint.js` | empreinte exacte de deux saisons : rien n'a changé |
-| `tests/calibrate.js` | ~33 mesures comparées aux fourchettes réelles (`REAL`) |
+| `tests/calibrate.js` | 40 mesures comparées aux fourchettes réelles (`REAL`) |
 | `tests/features.js` | ~110 vérifications ciblées des fonctionnalités |
 | `tests/regress.sh` | non-régression des rapports de saison |
 | `tests/impact.js` | chaque caractéristique et chaque choix du joueur pèse |

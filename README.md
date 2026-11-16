@@ -179,6 +179,20 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   - Charge récente (r.load) : un bloc de courses enchaînées se récupère jusqu'à 35 % moins vite.
   - Climat : régimes météo hebdomadaires persistants (anticyclone, variable, perturbé) selon la période.
   - Économie du joueur recalée sur les nouveaux effectifs (sponsor 52, frais de course 4,5 k€ par jour).
+- v4.15 — classiques réalistes et recalibration (40 mesures, dont 7 nouvelles) :
+  - Diagnostic : les classiques étaient gagnées par des outsiders (favoris vainqueurs : 6 % sur les monts pavés, 8 %
+    dans les Ardennes ; réel ≈ 80-90 %). Les équipes désignaient leur leader sur une seule caractéristique (7 des 10
+    meilleurs du parcours couraient en équipiers), l'échappée n'était pas contrôlée, et les favoris s'éparpillaient
+    sur les pavés.
+  - Classiques d'un jour : favoris et leaders d'après l'aptitude au final du parcours (courseScorer), co-leaders en
+    carte libre, sprinteur désigné seulement s'il peut suivre ; contrôle de l'échappée pour la reprendre vers 50 km ;
+    les favoris roulent eux-mêmes dans le final ; sélection par le plus fort sur les murs pavés et la dernière côte ;
+    les leaders se regardent derrière un favori parti seul ; dernier mur à 14-16 km, côtes ardennaises resserrées.
+  - Jours de course : l'IA compte la course à venir (le plus chargé passe de ≈97 à ≈91 jours ; réel 85-89).
+  - Jeunes : progression plus rapide jusqu'à 23 ans (2 moins de 23 ans dans le top 20 ; avant 0,5).
+  - Chasseurs de maillot de la montagne plus nombreux (70 %).
+  - Bilan d'étape : « pourquoi ils ont lâché » (origine du rythme, état du coureur, conseil).
+  - Calibration 2×30 saisons : 40/40 sur les deux graines.
 - v4.14 — les coureurs du joueur courent d'eux-mêmes. Avant, sans DS automatique, ils attendaient les ordres :
   personne ne chassait, ne suivait, ne profitait d'une bordure (et c'était aussi le cas des coureurs de l'académie
   et de l'équipe du joueur dans le banc de calibrage). Désormais ils jugent la course comme ceux des autres équipes,

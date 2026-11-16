@@ -11,9 +11,11 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 |---|---|---|
 | `R.progAge` | `(table)` | vitesse de progression d'un coureur selon son âge (décalé selon l'âge de pic de son profil) : [âge max, facteur] |
 | `R.initAge` | `(table)` | de plus qu'à la création, les tout jeunes un peu moins) : [âge max, points] |
+| `R.youngGapMax` | `1.6` | jusqu'à 22 ans, multiplicateur maximal de progression selon la marge au plafond (1,2 ensuite) |
 | `R.formeRate` | `0.22` | part de l'écart à la forme visée comblée chaque semaine |
 | `R.daysCap` | `75` | jours de course au-delà desquels la forme plafonne plus bas (fatigue chronique) |
 | `R.daysMalus` | `0.15` | points de forme visée perdus par jour de course au-delà |
+| `R.daysSlackAI` | `8` | un coureur IA ne court pas plus de la moitié des jours de course de la saison, plus 8 |
 
 ### Économie
 
@@ -61,9 +63,26 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `R.breakTry` | `0.1` | chance par pas de temps qu'un candidat à l'échappée attaque (× baroud / 72) |
 | `R.hunterTry` | `0.6` | idem pour le chasseur du maillot de la montagne (× max(baroud, montagne) / 72) |
 | `R.hunterBridge` | `180` | le chasseur part en contre tant que l'échappée a moins de 180 s |
-| `R.hunterShare` | `40` | % des équipes sans ambition au général qui désignent un chasseur de maillot |
+| `R.hunterShare` | `70` | % des équipes sans ambition au général qui désignent un chasseur de maillot |
 | `R.hunterMon` | `77` | note de montagne minimale du chasseur |
 | `R.sitUpPace` | `0.74` | allure d'un chasseur relevé (part de la capacité médiane du groupe) |
+| `R.classicCatchKm` | `50` | classique : l'échappée matinale doit être reprise vers 50 km de l'arrivée… |
+| `R.classicGapKm` | `3` | … l'écart toléré diminuant de 3 s par km |
+| `R.classicChaseMax` | `11` | rouleurs engagés au plus dans la poursuite (7 sur une course par étapes) |
+| `R.classicLeaderKm` | `45` | … et dans les derniers km, les favoris sans équipier devant roulent eux-mêmes derrière l'échappée |
+| `R.classicLeaderWork` | `0.86` | intensité du relais d'un favori derrière l'échappée |
+| `R.classicHardKm` | `90` | … et dans les côtes de leurs derniers km, le groupe des favoris monte au rythme des meilleurs |
+| `R.classicClimbPace` | `0.9` | côtes du final : allure (part de la capacité du 15e centile le plus fort du groupe) |
+| `R.courseSprintW` | `0.45` | aptitude au parcours d'une classique à arrivée plate : poids de la pointe de vitesse (sprint du groupe) |
+| `R.classicCoLeaders` | `2` | classique : équipiers au plus gardés en « carte libre » s'ils valent presque le leader… |
+| `R.classicCoGap` | `2.5` | … à moins de 2,5 points d'aptitude au final du parcours |
+| `R.cobbleBlowN` | `12` | final d'une classique pavée : seul un groupe d'au moins 12 coureurs est dynamité par le plus fort |
+| `R.murPace` | `1.1` | mur pavé dans le final d'une classique : allure du plus fort du groupe (part de sa capacité) |
+| `R.lastClimbPace` | `1.04` | dernière côte d'une classique accidentée : allure du plus fort du groupe des favoris |
+| `R.murFollow` | `0.99` | pour suivre une attaque sur un mur pavé, il faut 99 % de la capacité de l'attaquant (95 % ailleurs) |
+| `R.murAttack` | `1.2` | envie d'attaquer d'un leader sur un mur pavé du final (0,6 sur un secteur pavé plat) |
+| `R.classicMarking` | `65` | % du temps où un leader « se regarde » au lieu de chasser un favori parti seul (final de classique) |
+| `R.noWorkAhead` | `0.7` | classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane) |
 
 ## Autres constantes nommées
 
@@ -107,16 +126,16 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `RACE_DEFS` | 04-calendar.js:71 |  |
 | `LAST_WEEK` | 04-calendar.js:266 |  |
 | `PLACE` | 04-calendar.js:284 |  |
-| `WX_REGIME` | 04-calendar.js:554 | plusieurs semaines, avec des tendances de saison (giboulées de printemps, canicules d'été, automne humide). |
+| `WX_REGIME` | 04-calendar.js:568 | plusieurs semaines, avec des tendances de saison (giboulées de printemps, canicules d'été, automne humide). |
 | `SPEED_K` | 05-physics.js:43 | Calibrage 2024-2025 : plat ~44 km/h, montagne ~35-38, chrono ~52, CLM par équipes ~55 (voir tests/calibrate.js). |
 | `PHY` | 05-physics.js:60 | conditions du jour : air moins dense en altitude ou par la chaleur, vent de face ou de dos, pavés, pluie. |
-| `RADIO_ACTS` | 08-stage-sim.js:200 | Consigne effective d'un coureur (radio ponctuelle, rébellion ou consigne d'avant course). |
-| `ESCORT_ORD` | 08-stage-sim.js:201 |  |
-| `DT_MIN` | 08-stage-sim.js:258 | Un pas de simulation = 30 secondes de course. |
+| `RADIO_ACTS` | 08-stage-sim.js:219 | Consigne effective d'un coureur (radio ponctuelle, rébellion ou consigne d'avant course). |
+| `ESCORT_ORD` | 08-stage-sim.js:220 |  |
+| `DT_MIN` | 08-stage-sim.js:277 | Un pas de simulation = 30 secondes de course. |
 | `SPRINT_NOISE` | 09-stage-finish.js:64 | Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints. |
-| `PW_BUCKETS` | 09-stage-finish.js:308 | Records de puissance : meilleur effort personnel par durée et palmarès mondial des ascensions (20 min et plus). |
+| `PW_BUCKETS` | 09-stage-finish.js:309 | Records de puissance : meilleur effort personnel par durée et palmarès mondial des ascensions (20 min et plus). |
 | `GC_CACHE` | 11-results.js:135 | Le général ne change qu'entre les étapes (ou sur abandon) : il est mis en cache et invalidé par gcDirty(). |
-| `UCI_COUNT` | 11-results.js:353 | Classement UCI par équipes (règle réelle) : somme des points de la saison de ses 20 meilleurs coureurs actuels. |
+| `UCI_COUNT` | 11-results.js:354 | Classement UCI par équipes (règle réelle) : somme des points de la saison de ses 20 meilleurs coureurs actuels. |
 | `JOURNALS` | 14-press.js:2 |  |
 | `EQ_BIKES` | 15-equipment.js:5 | minRep : notoriété minimale pour que la marque vous fasse une offre ; pay : versement de base (k€/saison). |
 | `EQ_TT` | 15-equipment.js:15 | Matériel de contre-la-montre (vélo, roues pleines, combinaison). |
@@ -133,7 +152,7 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `STAFF_LBL` | 19-economy.js:116 |  |
 | `STAFF_DESC` | 19-economy.js:117 |  |
 | `GOALS` | 22-goals.js:3 |  |
-| `GOAL_SHORT` | 22-goals.js:12 |  |
+| `GOAL_SHORT` | 22-goals.js:15 |  |
 | `GEAR` | 23-gear.js:2 |  |
 | `NAT_NAME` | 24-worlds.js:2 |  |
 | `WORLDS_NATIONS` | 24-worlds.js:18 |  |
@@ -160,3 +179,47 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `WT_N` | 35-officials.js:15 |  |
 | `WT_CYCLE` | 35-officials.js:16 |  |
 | `MSG_IMP` | 36-inbox.js:24 | Messages qui demandent l'attention du directeur sportif (le reste est de l'information). |
+| `STORY_KINDS` | 40-stories.js:7 |  |
+| `STORY_WAIT` | 40-stories.js:15 | semaines pour décider |
+| `STORY_CAP` | 40-stories.js:17 | Au plus n histoires de chaque sorte par saison (pour qu'elles restent des moments, pas du bruit). |
+| `STORY_FX` | 40-stories.js:98 |  |
+| `CAR_DREAMS` | 41-career.js:7 |  |
+| `CAR_TALENT` | 41-career.js:20 | et incertain : un « phénomène » peut plafonner, un « modeste » peut éclore. |
+| `CAR_GABARIT` | 41-career.js:46 |  |
+| `CAR_TRAIN` | 41-career.js:51 |  |
+| `CAR_VOLUME` | 41-career.js:60 |  |
+| `CAR_STUDIES` | 41-career.js:65 |  |
+| `CAR_POOL_N` | 41-career.js:72 | coureurs suivis par classe d'âge (la « génération ») |
+| `CAR_FX` | 41-career.js:74 | Décisions du mode carrière : effets par type de décision (clé « type:… »), complétés par les fichiers 42-44. |
+| `CAR_GEN_PLANS` | 41-career.js:240 |  |
+| `CAR_CAL` | 42-career-races.js:7 |  |
+| `CAR_TIER_W` | 42-career-races.js:150 |  |
+| `CAR_FIELD` | 42-career-races.js:151 |  |
+| `CAR_AGENTS` | 43-career-u23.js:6 |  |
+| `CAR_STAG_WEEK` | 43-career-u23.js:29 | stages chez les pros à partir du 1er août |
+| `CAR_STAG_MAX` | 43-career-u23.js:30 | courses pros au plus pour un stagiaire |
+| `CAR_DS_KINDS` | 45-career-team.js:5 |  |
+| `CAR_HELPER_ORDERS` | 45-career-team.js:39 |  |
+| `CAR_SPEC_WEEKS` | 45-career-team.js:40 | environ deux saisons pour changer de profil |
+| `CAR_TRAIN_FOCUS` | 45-career-team.js:222 | Caractéristique principalement travaillée par chaque plan d'entraînement. |
+| `CAR_LEAD` | 45-career-team.js:326 | coureur, 'sec' (leader hors Grands Tours) si tu es parmi ses trois meilleurs, sinon aucun. |
+| `CAR_HYG` | 46-career-body.js:5 |  |
+| `CAR_WEIGHT` | 46-career-body.js:26 |  |
+| `CAR_REHAB` | 46-career-body.js:31 |  |
+| `CAR_SOCIAL` | 47-career-rep.js:8 |  |
+| `CAR_DECL` | 47-career-rep.js:35 | Déclarations d'après-course : popularité, presse, confiance du DS, moral, relation (rival) ; claim = promesse. |
+| `CAR_STYLES` | 47-career-rep.js:41 |  |
+| `CAR_STATUS` | 47-career-rep.js:63 |  |
+| `CAR_BRANDS` | 47-career-rep.js:64 |  |
+| `CAR_PARTNER_FN` | 48-career-life.js:6 |  |
+| `CAR_HOMES` | 48-career-life.js:26 |  |
+| `CAR_LIFESTYLE` | 48-career-life.js:83 |  |
+| `CAR_INVEST` | 48-career-life.js:88 |  |
+| `CAR_PRIO` | 48-career-life.js:95 | Priorité quand on a une famille : entraînement (multiplicateur), tension (accumulée, résorbée), moral. |
+| `CAR_STAFF` | 48-career-life.js:366 | Abonnements (par an) et achats ponctuels, chacun avec un effet mesurable. |
+| `CAR_BUY` | 48-career-life.js:370 |  |
+| `CAR_HOUR0` | 49-career-end.js:6 | record du monde de départ (coureur fictif) |
+| `CAR_HOUR_PLACES` | 49-career-end.js:7 |  |
+| `CAR_RETIRE_AGE` | 49-career-end.js:16 |  |
+| `CAR_AFTER` | 49-career-end.js:19 |  |
+| `CAR_GC` | 49-career-end.js:123 |  |

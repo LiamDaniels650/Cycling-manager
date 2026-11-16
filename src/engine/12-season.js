@@ -109,7 +109,8 @@ function weeklyUpdate() {
     let ageF = R.progAge.find(e => a <= e[0])[1];
     if (r.late && r.age >= 23 && r.age <= 28) ageF = Math.max(ageF, 0.9);
     ageF *= devAgeMul(r);
-    const gapF = clamp((r.ceil - ov) / 8, 0, 1.2);
+    // marge de progression : un jeune très doué (plafond loin devant) progresse nettement plus vite (prodiges)
+    const gapF = clamp((r.ceil - ov) / 8, 0, r.age <= 22 ? R.youngGapMax : 1.2);
     const cm = (mine ? coachMul : 1.05) * (r.aca ? mentorMul(r) : 1);
     const g0 = ageF * gapF * cm;
     trainGain(r, pl, g0);

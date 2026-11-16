@@ -57,7 +57,12 @@ function aiSelect(T, cal, specs) {
   // un coureur court au plus la moitié du calendrier environ (sauf un leader IA sur son Grand Tour cible) ;
   // la sélection proposée au joueur suit la même rotation (il reste libre de choisir autrement)
   const daysSoFar = sum(S.cal.filter(c => c.done).map(c => c.stagesSpec.length));
-  const overRaced = r => r.stats.days > daysSoFar * 0.5 + 6 && !(cal.cat === 0 && T.goals && T.goals.gt === cal.key);
+  // la course comptée d'avance : sans cela, un coureur juste sous la limite partait sur un Grand Tour et finissait
+  // la saison à près de 100 jours (les plus chargés du peloton réel en font 85 à 89)
+  const len = cal.stagesSpec.length;
+  const overRaced = r =>
+    r.stats.days + len > (daysSoFar + len) * 0.5 + R.daysSlackAI &&
+    !(cal.cat === 0 && T.goals && T.goals.gt === cal.key);
   let rs = availableRiders(T, cal.w).filter(r => T.player || !aiRestForGt(T, cal, r));
   if (rs.filter(r => !overRaced(r)).length >= n) rs = rs.filter(r => !overRaced(r));
   const w = { pla: 0, mon: 0, col: 0, spr: 0, clm: 0, pav: 0 };
@@ -172,10 +177,25 @@ function autoOrders(teamId, spec, rc) {
   }
   const key = t === 'plat' ? 'spr' : t === 'paves' ? 'pav' : t === 'punch' || t === 'vallonne' ? 'col' : 'mon';
   const bestKey = rs.slice().sort((a, b) => sc(b, key) - sc(a, key))[0];
+  // classique d'un jour : le leader est le meilleur sur le final du parcours (pas sur une seule caractéristique),
+  // et un équipier presque aussi fort garde sa carte (co-leader, « carte libre ») au lieu de travailler
+  const classic = !stageRace && (t === 'paves' || t === 'vallonne' || t === 'punch');
+  let bestCourse = bestKey,
+    coLeads = [],
+    cs = null;
+  if (classic) {
+    const csc = courseScorer(buildProfile(spec));
+    cs = new Map(rs.map(r => [r, csc({ r, dayForm: r.forme })]));
+    const byC = rs.slice().sort((a, b) => cs.get(b) - cs.get(a));
+    bestCourse = byC[0];
+    coLeads = byC.slice(1, 1 + R.classicCoLeaders).filter(r => cs.get(r) >= cs.get(byC[0]) - R.classicCoGap);
+  }
   if (t === 'plat' || (t === 'vallonne' && rnd() < 0.65)) {
     const bs = rs.slice().sort((a, b) => sc(b, 'spr') - sc(a, 'spr'))[0];
     if (bs.s.spr >= 70) sprinter = bs;
   }
+  // classique accidentée : on ne joue le sprint que si le sprinteur peut suivre sur ce parcours (pas à Liège)
+  if (classic && sprinter && cs.get(sprinter) < cs.get(bestCourse) - R.classicCoGap) sprinter = null;
   // arrivée en bosse d'une course par étapes : le meilleur puncheur (s'il n'est pas le leader) a sa carte à jouer
   if (stageRace && t === 'punch' && !sprinter) {
     const bp = rs.filter(r => r !== leader).sort((a, b) => sc(b, 'col') - sc(a, 'col'))[0];
@@ -191,9 +211,10 @@ function autoOrders(teamId, spec, rc) {
     rnd() < 0.35
       ? bestKey
       : null;
-  if (!leader && !hunter) leader = t === 'plat' && sprinter ? null : bestKey;
+  if (!leader && !hunter) leader = t === 'plat' && sprinter ? null : bestCourse;
   if (leader === sprinter) leader = null;
-  let rest = rs.filter(r => r !== leader && r !== sprinter && r !== hunter);
+  coLeads = coLeads.filter(r => r !== leader && r !== sprinter);
+  let rest = rs.filter(r => r !== leader && r !== sprinter && r !== hunter && !coLeads.includes(r));
   // les coureurs envoyés dans l'échappée dépendent du terrain : grimpeurs en montagne, puncheurs sur les étapes accidentées
   const brkScore = r =>
     t === 'montagne' || t === 'sommet'
@@ -287,6 +308,7 @@ function autoOrders(teamId, spec, rc) {
     o[leader.id] = { o: 'leader', att: comfy ? 'defensif' : leaderAtt(leader, rc, t, stageRace) };
   }
   if (sprinter) o[sprinter.id] = { o: 'sprint' };
+  for (const r of coLeads) o[r.id] = { o: 'free' };
   return o;
 }
 // Chasseur de maillot de la montagne d'une équipe, pour toute la course par étapes : un coureur déjà bien placé

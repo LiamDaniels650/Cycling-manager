@@ -152,10 +152,14 @@ function buildStageSim(rc) {
         : spec.type === 'punch' || spec.type === 'vallonne'
           ? 'col'
           : 'mon';
+  // classique d'un jour : les favoris sont les meilleurs sur le final du parcours (pentes, pavés, sprint si
+  // l'arrivée est plate), pas sur une seule caractéristique ; course par étapes : caractéristique du terrain
+  const score = sim.stageRace ? x => x.r.s[key] * x.dayForm : courseScorer(P);
+  const sc = new Map(sim.runners.map(x => [x, score(x)]));
   sim.favs = new Set(
     sim.runners
       .slice()
-      .sort((a, b) => b.r.s[key] * b.dayForm - a.r.s[key] * a.dayForm)
+      .sort((a, b) => sc.get(b) - sc.get(a))
       .slice(0, 10)
       .map(x => x.id)
   );
@@ -187,6 +191,19 @@ function buildStageSim(rc) {
     'info'
   );
   return sim;
+}
+// Aptitude d'un coureur sur les 60 derniers km d'un parcours (montées et plat, pavés ; sprint si l'arrivée est plate),
+// forme du jour comprise : sert à désigner les favoris d'une classique.
+function courseScorer(P) {
+  const i0 = Math.floor(Math.max(0, P.n * STEP - 60) / STEP);
+  const pts = [];
+  for (let j = i0; j < P.n; j++) if (P.g[j] >= -2) pts.push(j);
+  return x => {
+    let t = 0;
+    for (const j of pts) t += terrStat(x.r.s, P.g[j], P.surf[j], false);
+    const base = pts.length ? t / pts.length : x.r.s.pla;
+    return base * (0.86 + (0.14 * x.dayForm) / 100) + (P.finishGrad < 3 ? (x.r.s.spr - 70) * R.courseSprintW : 0);
+  };
 }
 // Ajoute une ligne au journal de course.
 function log(sim, txt, cls) {
@@ -587,7 +604,7 @@ function tickTeamPlans(sim, live) {
       ch.sort((a, b) => b[1][0] - a[1][0]);
       let tot = 0;
       for (const [T, c] of ch) {
-        if (tot >= 7) {
+        if (tot >= (sim.stageRace ? 7 : R.classicChaseMax)) {
           chase.set(ckey(G, T), [0, 0]);
         } else {
           tot += c[1];

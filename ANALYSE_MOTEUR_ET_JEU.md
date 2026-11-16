@@ -36,6 +36,41 @@ Le conseil s'adapte : renforcer l'alimentation, économiser avant le moment déc
 
 ---
 
+## 0 bis. Recalibration (deuxième passe)
+
+**Résultat : 40 mesures sur 40 dans les plages réelles, sur les deux graines de référence (2 × 30 saisons).** Le calibrage comptait 33 mesures. J'en ai ajouté 7, avec leurs sources dans `docs/SOURCES.md` :
+- victoires en solitaire dans les classiques (`solo_flandres_1j`, `solo_ardennes_1j`, `solo_paves_1j`) ;
+- classiques gagnées par un favori d'avant-course (`favori_flandres_1j`, `favori_paves_1j`, `favori_ardennes_1j`) ;
+- sprints massifs gagnés par le meilleur sprinteur présent (`sprint_meilleur`).
+
+### Le défaut trouvé : les classiques étaient gagnées par des outsiders
+
+| Classiques | Gagnées par un favori, avant | Après | Réel 2016-2025 |
+|---|---|---|---|
+| Flandriennes (monts pavés) | 6 % | **69-82 %** | ≈ 90 % |
+| Pavées (type Roubaix) | 25 % | **75-92 %** | ≈ 90 % |
+| Ardennaises | 8 % | **50-57 %** | ≈ 70-80 % |
+| Victoires en solitaire, flandriennes | 40-44 % | **63-75 %** | 50-85 % (Flandres 7/10) |
+| Victoires de l'échappée matinale (au sens strict) | jusqu'à 25 % | **0-10 %** | ≈ 5 % (Hayman, Roubaix 2016) |
+
+Les causes, trouvées en suivant les courses groupe par groupe :
+1. **Les équipes désignaient mal leurs leaders.** Le leader était choisi sur une seule note (« Pavés » ou « Collines »). Sur les 10 meilleurs coureurs du parcours, 7 avaient une consigne d'équipier. *Correction* : dans une classique, le leader est le meilleur sur le final du parcours (pentes, pavés, pointe de vitesse si l'arrivée est plate), et jusqu'à deux équipiers presque aussi forts gardent leur carte (co-leaders). Un sprinteur n'est désigné que s'il peut suivre sur ce parcours. Les favoris de la course (`sim.favs`), que l'IA utilise pour ses décisions, sont calculés de la même façon.
+2. **Personne ne contrôlait l'échappée.** Les équipes des favoris la laissaient prendre 6 à 10 minutes et ne roulaient qu'à 40 km de l'arrivée. *Correction* : contrôle progressif pour la reprendre vers 50 km, jusqu'à 11 rouleurs engagés. Les favoris sans équipier devant roulent eux-mêmes dans les 45 derniers km.
+3. **Une échappée qui ne relaie pas roulait aussi vite qu'un peloton en chasse.** *Correction* : dans une classique, un groupe de tête où personne ne relaie se relève.
+4. **La sélection du final était mal réglée.** Sur les pavés, chaque groupe de 6 coureurs ou plus était dynamité par son plus fort, ce qui éparpillait les favoris. Les côtes, elles, ne triaient rien. *Correction* : seuls les gros groupes sont dynamités ; sur les murs pavés et la dernière côte, le plus fort impose son rythme et on ne suit plus dans sa roue. Derrière un favori parti seul, les autres leaders « se regardent ».
+5. **Les parcours n'étaient pas réalistes.** Le dernier mur pavé tombait à 25-30 km de l'arrivée (Paterberg : 13 km), et les côtes ardennaises s'arrêtaient à 35 km. *Correction* : dernier mur à 14-16 km, côtes resserrées dans le final.
+
+### Autres corrections de cette passe
+- **Jours de course.** Le plus chargé du peloton courait 97 jours, contre 85 à 89 dans la réalité. Un coureur juste sous la limite partait sur un Grand Tour et la dépassait de 20 jours. L'IA compte maintenant la course à venir : on tombe à environ 91 jours.
+- **Prodiges.** Le test `prodigies.js` échouait déjà avant mes changements, avec 0,5 moins de 23 ans dans le top 20 contre 2 à 5 en réalité. Les jeunes progressent maintenant plus vite jusqu'à 23 ans, les plus doués davantage encore : on obtient 2,0, avec un prodige à 86 à 20 ans, et le meilleur niveau reste plafonné à 88.
+- **Maillot de la montagne.** Il était gagné trop souvent par un coureur du top 10 du général (0,5 à 0,6, contre 0,24 réel). Plus d'équipes envoient maintenant un chasseur de maillot dans les échappées (70 %) ; on revient à 0,43-0,51.
+
+Les courses par étapes ne sont pas touchées directement : toutes les nouvelles règles de course ne s'appliquent qu'aux courses d'un jour. Tous les réglages sont dans `src/engine/00-params.js` et `docs/REGLAGES.md` (régénéré). L'équipe entièrement déléguée finit toujours au niveau des équipes IA voisines (rang moyen 11,1 contre 11,0 sur 3 graines).
+
+**Limite qui reste** : les Ardennes sont dans la plage réelle (≥ 50 %), mais à son bas. Ces courses finissent souvent au sprint d'un groupe de puncheurs, et le pas de 30 s ne permet pas de modéliser finement la sélection du dernier kilomètre (voir P1 ci-dessous).
+
+---
+
 ## 1. Verdict global
 
 Pour un jeu de gestion de cyclisme dans un navigateur, **le moteur est remarquablement riche et, surtout, bien outillé** :
@@ -44,7 +79,7 @@ Pour un jeu de gestion de cyclisme dans un navigateur, **le moteur est remarquab
 - IA tactique détaillée ;
 - hasard reproductible pour chaque étape ;
 - **empreinte de simulation** qui garantit qu'une optimisation ne change rien ;
-- **33 mesures de calibration, toutes dans les plages réelles**, dont les vitesses, les écarts en Grand Tour, le taux de victoires d'échappée selon le terrain (4 % sur le plat, 40 % en vallonné, 48 % en montagne), les abandons en Grand Tour et le nombre de victoires du meilleur coureur.
+- **40 mesures de calibration (33 à l’origine), toutes dans les plages réelles**, dont les vitesses, les écarts en Grand Tour, le taux de victoires d'échappée selon le terrain (4 % sur le plat, 40 % en vallonné, 48 % en montagne), les abandons en Grand Tour et le nombre de victoires du meilleur coureur.
 
 Peu de jeux du genre, commerciaux compris, ont ce niveau de rigueur.
 
@@ -78,12 +113,13 @@ La poursuite suit des règles du type « (km restants − 15) × 5,5 s » (`team
 ### 🟡 P3. La définition du « peloton » (mesurée, laissée telle quelle)
 Le « peloton » est le groupe qui compte le plus de favoris, mais seulement s'il a au moins 10 coureurs. Quand les favoris se retrouvent à moins de 10 dans le final, le groupe de derrière devient « le peloton » et celui des favoris est traité comme une échappée. Mesure : **2,9 % des pas, dans 45 % des étapes, presque uniquement dans les finals**. C'est assez réaliste (une sélection de favoris court comme un groupe de tête), et la calibration est réglée avec ce comportement : je ne l'ai pas modifié. Il gonfle en revanche les kilomètres « en tête » des favoris, qui servent au prix de la combativité. À corriger le jour où ce prix compte.
 
-### 🟡 P4. Mesures de calibration à ajouter
-- **Marge du vainqueur des classiques pavées et flandriennes** : médiane de 0 s dans le jeu. En réalité, le Tour des Flandres s'est gagné seul 7 fois sur 10 entre 2016 et 2025, avec 12 s à 1 min d'avance. Paris-Roubaix, plus partagé, s'est gagné seul 4 fois sur 9 depuis 2016. La mesure existe (`marge_flandres`, `marge_paves`) mais sans plage réelle : c'est le principal manque de réalisme que j'ai trouvé.
-- Taille de l'échappée au départ des étapes de montagne de Grand Tour (aujourd'hui, seule la taille « à l'arrivée » est mesurée).
+### ✅ P4. Mesures des classiques : fait (voir 0 bis)
 
 ### 🟡 P5. Progression par points entiers
-`trainGain` ajoute +1 point avec une certaine probabilité. Garder une valeur décimale cachée lisserait la progression d'une semaine à l'autre. Cela change la simulation : à faire avec `./dev.sh prodiges` et la calibration.
+`trainGain` ajoute +1 point avec une certaine probabilité. Garder une valeur décimale cachée lisserait la progression d'une semaine à l'autre. Cela change la simulation : à faire avec `./dev.sh prodiges` et la calibration. La vitesse de progression des jeunes a déjà été recalée (voir 0 bis).
+
+### 🟡 P7. Bruit de mesure de la calibration
+Avec 30 saisons, une mesure qui porte sur 60 à 120 courses (les classiques) a une incertitude d'environ ±0,05. Une mesure proche d'une borne peut donc basculer d'une exécution à l'autre sans que rien n'ait changé. Pour les classiques, `./dev.sh calib 60` donnerait des verdicts plus stables, pour un temps doublé.
 
 ### ⚪ P6. Performances : pas de priorité
 Il faut environ 105 ms par étape, soit 17 s par saison, dans un Web Worker. Le profil montre un coût réparti dans `tickPhysics`, `tickTeamPlans` et `decideRider`, sans goulot unique. Un gain de 20 à 30 % est possible avec beaucoup de micro-optimisations délicates. Ce n'est utile que pour un mode « simuler 20 saisons ».
@@ -110,7 +146,7 @@ Il faut environ 105 ms par étape, soit 17 s par saison, dans un Web Worker. Le 
 
 | Ordre | Chantier | Effort | Effet |
 |---|---|---|---|
-| 1 | Plages réelles pour la marge des classiques pavées et flandriennes, puis réglage | Faible-moyen | Réalisme |
+| ✅ | Classiques réalistes (favoris, solos, échappées) ; jours de course ; prodiges | — | Fait |
 | 2 | Explications étendues : sprints, échappées reprises, désobéissances | Faible | Fort (jeu) |
 | 3 | Minuteries en temps, puis pas adaptatif dans les finals | Moyen | Fort |
 | 4 | Sprint simulé avec ordres de timing | Moyen-élevé | Fort |
@@ -131,7 +167,7 @@ Ce que PCM 26 annonce de neuf : un mode « Simulation détaillée » qui fait to
 | Physique | Air, vent par tronçons, pavés, descentes, pluie ; vitesse dérivée des notes par terrain | Non publiée | Égalité |
 | Sprint | Formule de score (placement, train, vent, enfermement) | Trains simulés en 3D | **PCM** |
 | IA tactique | Cerveau de DS explicite : contrôle, durcir, attentisme, coopération, pactes, chasseurs de maillot, désobéissance | Réputée inégale (échappées, poursuites) | **Directeur Sportif** sur l'intention tactique |
-| Validation | **33 mesures comparées au réel**, empreinte, tests de biais | Non publiée | **Directeur Sportif** |
+| Validation | **40 mesures comparées au réel**, empreinte, tests de biais | Non publiée | **Directeur Sportif** |
 | Reproductibilité | Une graine par étape | Non | **Directeur Sportif** |
 | Vitesse de simulation | ~0,1 s par étape, une saison en ~17 s | Temps réel, ou simulation détaillée | **Directeur Sportif** |
 | Ampleur du monde | 18 équipes, 37 courses, monde fictif | Base réelle, modding | **PCM** de loin |

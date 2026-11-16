@@ -237,7 +237,7 @@ function decideRider(sim, x, ctx) {
       if (t === 'punch' && kmLeft < 1.6) window = 1.5;
       if (t === 'vallonne' && kmLeft < 12 && kmLeft > 2) window = Math.max(window, 0.4);
     } else if (t === 'paves') {
-      if (surf && kmLeft < 70) window = 0.6;
+      if (surf && kmLeft < 70) window = g >= 3 && !sim.stageRace ? R.murAttack : 0.6; // mur pavé : le moment de partir
       if (kmLeft < 15) window = Math.max(window, 0.5);
     } else if (t === 'plat') {
       if (kmLeft < 8 && kmLeft > 1.5) window = 0.15;
@@ -336,6 +336,23 @@ function decideRider(sim, x, ctx) {
         : kmLeft < 25;
     if (inFinal) x.work = Math.max(x.work, eo === 'leader' ? (x.att === 'defensif' ? 0.84 : 0.9) : 0.87);
   }
+  // classique d'un jour : dans le final, un favori sans équipier devant prend ses responsabilités et roule lui-même
+  // derrière l'échappée (les leaders des classiques ne courent pas dans les roues jusqu'à la ligne)
+  if (
+    eo === 'leader' &&
+    !sim.stageRace &&
+    kmLeft < R.classicLeaderKm &&
+    kmLeft > 3 &&
+    G !== sim.groups[0] &&
+    G.riders.length <= 40 &&
+    sim.favs.has(x.id) &&
+    x.energy > 25 &&
+    gapSec(sim.groups[0], G) < 420 &&
+    !teamHasAhead(sim, x.team, G) &&
+    // derrière l'échappée matinale seulement : derrière un favori parti seul, les leaders se regardent (plus bas)
+    !sim.groups[0].riders.some(y => sim.favs.has(y.id))
+  )
+    x.work = Math.max(x.work, R.classicLeaderWork);
   // un leader distancé roule pour revenir
   if (eo === 'leader' && G !== sim.groups[0] && G.riders.length < 40) {
     const front =
@@ -352,7 +369,17 @@ function decideRider(sim, x, ctx) {
                   (!sim.stageRace || sim.rc.gc[y.id] - sim.rc.gc[x.id] < gapSec(H, G) + 30)
               )
           );
-    if (front && gapSec(front, G) < 240) x.work = Math.max(x.work, 0.86);
+    if (front && gapSec(front, G) < 240) {
+      // final d'une classique : derrière un favori parti seul, les leaders se regardent (personne ne veut emmener
+      // les autres) ; fenêtres de 2 minutes, hasard figé par coureur pour ne pas toucher à la série de la course
+      const marking =
+        !sim.stageRace &&
+        sim.dist - G.pos < 30 &&
+        front.riders.length <= 2 &&
+        G.riders.filter(y => effOrder(y) === 'leader').length >= 3 &&
+        (((x.id * 2654435761) ^ (Math.floor(sim.t / 2) * 40503)) >>> 0) % 100 < R.classicMarking;
+      x.work = Math.max(x.work, marking ? 0 : 0.86);
+    }
   }
 }
 // Le groupe est-il dans la dernière montée décisive (arrivée au sommet, ou dernier col à moins de 40 km) ?

@@ -7,8 +7,8 @@ const R = {
   // --- Monde et progression ---
   // vitesse de progression d'un coureur selon son âge (décalé selon l'âge de pic de son profil) : [âge max, facteur]
   progAge: [
-    [20, 1.3],
-    [23, 1],
+    [20, 1.45],
+    [23, 1.2],
     [26, 0.55],
     [29, 0.2],
     [99, 0.03],
@@ -26,9 +26,11 @@ const R = {
     [33, 3],
     [99, 3.3],
   ],
+  youngGapMax: 1.6, // jusqu'à 22 ans, multiplicateur maximal de progression selon la marge au plafond (1,2 ensuite)
   formeRate: 0.22, // part de l'écart à la forme visée comblée chaque semaine
   daysCap: 75, // jours de course au-delà desquels la forme plafonne plus bas (fatigue chronique)
   daysMalus: 0.15, // points de forme visée perdus par jour de course au-delà
+  daysSlackAI: 8, // un coureur IA ne court pas plus de la moitié des jours de course de la saison, plus 8
 
   // --- Économie ---
   salary: { base: 25, k: 0.35, exp: 2.4, youngMul: 0.7 }, // salaire = base + k × (note − 60)^exp (k€/an), × youngMul avant 24 ans
@@ -66,7 +68,25 @@ const R = {
   breakTry: 0.1, // chance par pas de temps qu'un candidat à l'échappée attaque (× baroud / 72)
   hunterTry: 0.6, // idem pour le chasseur du maillot de la montagne (× max(baroud, montagne) / 72)
   hunterBridge: 180, // le chasseur part en contre tant que l'échappée a moins de 180 s
-  hunterShare: 40, // % des équipes sans ambition au général qui désignent un chasseur de maillot
+  hunterShare: 70, // % des équipes sans ambition au général qui désignent un chasseur de maillot
   hunterMon: 77, // note de montagne minimale du chasseur
   sitUpPace: 0.74, // allure d'un chasseur relevé (part de la capacité médiane du groupe)
+  // classiques d'un jour : les équipes des favoris contrôlent l'échappée (écart toléré = (km restants − catchKm) × gapKm s)
+  classicCatchKm: 50, // classique : l'échappée matinale doit être reprise vers 50 km de l'arrivée…
+  classicGapKm: 3, // … l'écart toléré diminuant de 3 s par km
+  classicChaseMax: 11, // rouleurs engagés au plus dans la poursuite (7 sur une course par étapes)
+  classicLeaderKm: 45, // … et dans les derniers km, les favoris sans équipier devant roulent eux-mêmes derrière l'échappée
+  classicLeaderWork: 0.86, // intensité du relais d'un favori derrière l'échappée
+  classicHardKm: 90, // … et dans les côtes de leurs derniers km, le groupe des favoris monte au rythme des meilleurs
+  classicClimbPace: 0.9, // côtes du final : allure (part de la capacité du 15e centile le plus fort du groupe)
+  courseSprintW: 0.45, // aptitude au parcours d'une classique à arrivée plate : poids de la pointe de vitesse (sprint du groupe)
+  classicCoLeaders: 2, // classique : équipiers au plus gardés en « carte libre » s'ils valent presque le leader…
+  classicCoGap: 2.5, // … à moins de 2,5 points d'aptitude au final du parcours
+  cobbleBlowN: 12, // final d'une classique pavée : seul un groupe d'au moins 12 coureurs est dynamité par le plus fort
+  murPace: 1.1, // mur pavé dans le final d'une classique : allure du plus fort du groupe (part de sa capacité)
+  lastClimbPace: 1.04, // dernière côte d'une classique accidentée : allure du plus fort du groupe des favoris
+  murFollow: 0.99, // pour suivre une attaque sur un mur pavé, il faut 99 % de la capacité de l'attaquant (95 % ailleurs)
+  murAttack: 1.2, // envie d'attaquer d'un leader sur un mur pavé du final (0,6 sur un secteur pavé plat)
+  classicMarking: 65, // % du temps où un leader « se regarde » au lieu de chasser un favori parti seul (final de classique)
+  noWorkAhead: 0.7, // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
 };
