@@ -400,10 +400,10 @@ export function Office() {
     <div className="space-y-3">
       <Sponsor />
       <Finances />
-      <Staff />
+      {discoOpen('staff') ? <Staff /> : null}
       <History />
       <Assistant />
-      <Equipment />
+      {discoOpen('equip') ? <Equipment /> : null}
       <Career />
       <Image />
     </div>

@@ -275,6 +275,20 @@ export function Options() {
           L'adjoint règle matériel, ravitaillement, plan de course, presse, staff et équipementiers ; les réglages
           restent accessibles (repliés).
         </p>
+        {S.disco && DISCO.some(d => !discoOpen(d.k)) ? (
+          <div className="mt-3 border-t border-slate-800 pt-3">
+            <p className="text-sm text-slate-200">
+              Découverte progressive : encore à débloquer —{' '}
+              {DISCO.filter(d => !discoOpen(d.k))
+                .map(d => d.lbl)
+                .join(', ')}
+              .
+            </p>
+            <Btn className="mt-2" onClick={() => (discoAll(), save(), render())}>
+              🔓 Tout débloquer maintenant
+            </Btn>
+          </div>
+        ) : null}
       </Card>
       <Card title="🚴 Mode carrière">
         <p className="text-xs text-slate-400">
@@ -315,11 +329,13 @@ export function Start() {
   const [name, setName] = useState('Mon Équipe');
   const [diff, setDiff] = useState('normal');
   const [simple, setSimpleOn] = useState(true);
+  const [disco, setDisco] = useState(true);
   const [txt, setTxt] = useState('');
   const start = () => {
     const n = (name || 'Mon Équipe').trim();
     newGame(n, Date.now(), diff || 'normal');
     if (simple) setSimple(true);
+    if (disco) discoStart();
     save();
     UI.view = 'home';
     render();
@@ -364,6 +380,14 @@ export function Start() {
         <p className="text-xs text-slate-400">
           L'adjoint règle matériel, ravitaillement, plan de course, presse, staff et équipementiers ; vous gardez la
           sélection, les consignes, la radio, l'effectif et l'académie. Modifiable à tout moment dans ⚙ Options.
+        </p>
+        <label className="flex min-h-11 items-center gap-2 text-sm text-slate-100">
+          <input type="checkbox" className="h-5 w-5" checked={disco} onChange={e => setDisco(e.target.checked)} />{' '}
+          Découverte progressive
+        </label>
+        <p className="text-xs text-slate-400">
+          Presse, planification, staff, équipementiers, histoires et académie se débloquent au fil de la première saison
+          (l'adjoint s'en charge en attendant). Tout débloquer à tout moment dans ⚙ Options.
         </p>
         <Btn primary className="w-full" onClick={start}>
           Nouvelle partie

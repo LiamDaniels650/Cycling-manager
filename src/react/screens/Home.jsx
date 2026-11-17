@@ -198,8 +198,14 @@ export function Home() {
   const i = nextRaceIdx();
   const c = i >= 0 ? S.cal[i] : null;
   const news = S.inbox.slice(0, 4);
+  const dn = discoNext();
   return (
     <div className="space-y-3">
+      {dn ? (
+        <div className="rounded-xl border border-dashed border-slate-700 px-3 py-2 text-xs text-slate-400">
+          🔓 Découverte : {dn[0]} {dn[1] ? `dans ${dn[1]} semaine${dn[1] > 1 ? 's' : ''}` : 'cette semaine'}
+        </div>
+      ) : null}
       <Card className="border-sky-500/40">
         <div className="mb-1 flex items-start justify-between gap-2">
           <h2 className="text-lg font-bold text-slate-50">

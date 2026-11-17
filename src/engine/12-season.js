@@ -40,6 +40,7 @@ function weeklyUpdate() {
   runAssistant();
   wtWeekly();
   storiesWeekly();
+  discoWeekly();
   const coachMul = 0.8 + 0.15 * S.staff.coach;
   for (const id in S.riders) {
     const r = S.riders[id];

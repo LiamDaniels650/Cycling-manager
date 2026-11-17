@@ -8,10 +8,7 @@ import { StageIcons } from './Bits.jsx';
 function Tabs() {
   return (
     <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-800 p-1">
-      {[
-        ['cal', 'Calendrier'],
-        ['plan', '📅 Planification'],
-      ].map(([k, l]) => (
+      {[['cal', 'Calendrier'], ...(discoOpen('plan') ? [['plan', '📅 Planification']] : [])].map(([k, l]) => (
         <button
           key={k}
           type="button"
@@ -211,7 +208,7 @@ function Planner() {
   );
 }
 export function Calendar() {
-  if (UI.calTab === 'plan')
+  if (UI.calTab === 'plan' && discoOpen('plan'))
     return (
       <div className="space-y-3">
         <Tabs />

@@ -813,5 +813,24 @@ check(
   }
   check(mom > 0 && brk > 0, `bilan : moments décisifs (${mom} étapes) et échappées relevés (${brk})`);
 }
+// Découverte progressive : systèmes cachés et confiés à l'adjoint, puis débloqués au fil de la saison.
+{
+  newGame('T', 9);
+  discoStart();
+  check(
+    !discoOpen('press') && !discoOpen('aca') && !discoOpen('stories') && S.auto.press && S.auto.academy,
+    'découverte : presse, académie et histoires cachées au départ, gérées par l’adjoint'
+  );
+  while (S.week < 20) weeklyUpdate();
+  check(
+    discoOpen('press') && discoOpen('staff') && !discoOpen('stories') && !S.auto.press,
+    'découverte : déblocages de la saison'
+  );
+  discoAll();
+  check(
+    discoOpen('aca') && discoOpen('stories') && !S.auto.academy && !discoNext(),
+    'découverte : tout débloquer'
+  );
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);
