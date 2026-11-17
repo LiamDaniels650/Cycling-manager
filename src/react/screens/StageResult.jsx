@@ -90,7 +90,46 @@ function Debrief({ rc, L, st, mine }) {
           ))}
         </>
       );
+    // sprint : pourquoi mes sprinteurs ont gagné ou perdu
+    const sprints = myRes
+      .filter(([e]) => st.stats[e.id] && st.stats[e.id].sp && (rc.orders[e.id] || {}).o === 'sprint')
+      .slice(0, 2)
+      .map(([e, i]) => {
+        // place dans le sprint de son groupe (le vainqueur a pu arriver seul devant)
+        const grp = res.filter(y => Math.abs(y.time - e.time) < 1);
+        const k = grp.findIndex(y => y.id === e.id) + 1;
+        const lead = grp[0] === res[0];
+        return sprintExplain(S.riders[e.id], st.stats[e.id].sp, lead ? i + 1 : k, S.riders[grp[0].id].s.spr, lead);
+      })
+      .filter(Boolean);
+    if (sprints.length)
+      items.push(
+        <>
+          🏁 Le sprint :
+          {sprints.map((d, k) => (
+            <div key={k} className="mt-1 text-xs text-slate-300">
+              <div>{d.txt}</div>
+              {d.tip && <div className="text-sky-300">💡 {d.tip}</div>}
+            </div>
+          ))}
+        </>
+      );
   }
+  // l'échappée : reprise (où, par qui, à quelle vitesse) ou allée au bout
+  const brk = breakExplain(st.brk);
+  if (brk) items.push(<>{brk}</>);
+  // les moments décisifs du final
+  if (st.moments && st.moments.length)
+    items.push(
+      <>
+        🎬 Moments décisifs :
+        {st.moments.map((h, k) => (
+          <div key={k} className={'text-xs ' + (h.mine ? 'text-pink-200' : 'text-slate-300')}>
+            km {h.km} · <span dangerouslySetInnerHTML={{ __html: h.txt }} />
+          </div>
+        ))}
+      </>
+    );
   if (!rc.done) {
     const nx = rc.specs[rc.si];
     items.push(
@@ -211,13 +250,20 @@ function EnergyChart({ stats, ids }) {
     </>
   );
 }
-function Disob({ id }) {
+function Disob({ id, st }) {
   const [t, setT] = useState(null);
   const r = S.riders[id];
+  const d = disobExplain(r, st && st.stats && st.stats[id] ? st.stats[id].why : null);
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 py-2 text-sm">
       <span>
         <RiderLink r={r} /> n'a pas respecté les consignes.
+        {d ? (
+          <>
+            <span className="block text-xs text-slate-400">{d.why}</span>
+            {d.tip && <span className="block text-xs text-sky-300">💡 {d.tip}</span>}
+          </>
+        ) : null}
       </span>
       {t ? (
         <i className="text-xs text-slate-400">{t}</i>
@@ -527,7 +573,7 @@ export function StageResult() {
       {bad.length ? (
         <Card title="Désobéissances">
           {bad.map(id => (
-            <Disob key={id} id={id} />
+            <Disob key={id} id={id} st={st} />
           ))}
         </Card>
       ) : null}

@@ -226,6 +226,7 @@ function dropRecord(sim, G, x, src, ws, att) {
         .join(', ') || null;
   }
   return {
+    t: sim.t,
     km: +(sim.dist - G.pos).toFixed(1),
     g: +(G.g || 0).toFixed(1),
     n: G.riders.length,
@@ -283,6 +284,150 @@ function dropExplain(r, d, ord) {
   else if (d.sans || d.day <= -4) tip = "Peu de choses à faire : la forme du jour n'y était pas.";
   else if (d.why === 'over') tip = "Il était simplement moins fort que les meilleurs aujourd'hui.";
   return { txt, why: cause + (f.length ? ' Facteurs : ' + f.join(', ') + '.' : ''), tip };
+}
+// ---------- Explications du sprint, de l'échappée et des désobéissances ----------
+// Tout est relevé en lecture seule (aucun tirage au hasard) : les résultats de course ne changent pas.
+
+// Pourquoi un coureur n'a pas respecté sa consigne : son caractère, son moral, sa relation avec le leader.
+function disobRecord(sim, x, kind) {
+  const r = x.r;
+  const ld = sim.teamLeader[x.team.id];
+  const stronger = !!(ld && ld !== x && cap(x, x.g ? x.g.g : 0, 0) > cap(ld, x.g ? x.g.g : 0, 0) * 1.04);
+  return {
+    kind,
+    dis: r.dis,
+    amb: r.amb,
+    moral: Math.round(r.moral),
+    trait: r.trait,
+    ldr: ld && ld !== x ? ld.id : null,
+    rel: ld && ld !== x ? rel(x.id, ld.id) : 0,
+    ahead: !!(x.g && x.g.ahead && x.g.riders.length <= 12),
+    stronger,
+  };
+}
+function disobExplain(r, d) {
+  if (!d) return null;
+  const f = [];
+  if (d.dis < 60) f.push(`discipline ${d.dis < 40 ? 'faible' : 'moyenne'} (${d.dis})`);
+  if (d.amb >= 60) f.push(`${d.amb >= 75 ? 'très ' : ''}ambitieux (${d.amb})`);
+  if (d.moral < 50) f.push(`moral en berne (${d.moral})`);
+  if (d.trait === 'leaderne') f.push('se voit en leader');
+  else if (d.trait === 'tete') f.push('tête brûlée');
+  else if (d.trait === 'opportuniste') f.push('opportuniste');
+  if (d.ldr != null && d.rel <= -20) f.push(`relation tendue avec ${riderName(S.riders[d.ldr])} (${d.rel})`);
+  if (d.stronger) f.push('se sentait plus fort que son leader');
+  if (d.ahead) f.push('était devant, avec sa chance à jouer');
+  const what =
+    d.kind === 'pre' ? 'a décidé de courir pour lui' : `a refusé l'ordre « ${(RADIO[d.kind] || {}).lbl || d.kind} »`;
+  const tip =
+    d.ldr != null && d.rel <= -20
+      ? 'Une discussion ou une médiation avec le leader apaiserait les choses.'
+      : d.amb >= 65 && (d.stronger || d.ahead)
+        ? 'Un coureur de ce calibre voudra une carte à jouer : envisagez la consigne « Carte libre » ou co-leader.'
+        : d.dis < 50
+          ? 'Le recadrer peut aider ; un coureur peu discipliné reste un pari pour les rôles d’équipier.'
+          : null;
+  return {
+    txt: `${riderName(r)} ${what}.`,
+    why: f.length
+      ? 'Raisons : ' + f.join(', ') + '.'
+      : `Coureur plutôt discipliné (${d.dis}) : un écart ponctuel, sans raison profonde.`,
+    tip,
+  };
+}
+
+// Reprise de l'échappée : où, par qui, et à quelle vitesse l'écart a fondu.
+function catchRecord(sim, A, B) {
+  const H = sim.gapHist || [];
+  const recent = H.slice(-11).filter(p => p.gap > 0);
+  const rate =
+    recent.length >= 2 ? (recent[0].gap - recent[recent.length - 1].gap) / Math.max(1, recent.length - 1) : 0;
+  const cnt = {};
+  for (const y of B.riders) if (y.work > 0) cnt[y.team.short] = (cnt[y.team.short] || 0) + 1;
+  return {
+    km: Math.round(sim.dist - B.pos),
+    n: A.riders.length,
+    mine: A.riders.some(y => y.player),
+    teams: Object.entries(cnt)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3),
+    rate: Math.round(rate),
+  };
+}
+function breakRecord(sim) {
+  const H = sim.gapHist || [];
+  if (!sim.brkIds || !sim.brkIds.size) return null;
+  const mx = H.reduce((a, p) => (p.gap > a.gap ? p : a), { gap: 0, km: 0 });
+  const won = !!(sim.finish.length && sim.brkIds.has(sim.finish.slice().sort((a, b) => a.time - b.time)[0].id));
+  const tally = Object.entries(sim.chaseTally || {})
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+  return {
+    n: sim.brkIds.size,
+    mine: sim.runners.some(x => x.player && sim.brkIds.has(x.id)),
+    max: mx.gap,
+    maxKm: mx.km,
+    won,
+    caught: sim.brkCaught || null,
+    tally,
+  };
+}
+function breakExplain(b) {
+  if (!b || b.n < 1 || b.n > 35 || b.max < 30) return null;
+  const who = b.mine ? ' (avec un de vos coureurs)' : '';
+  if (b.won) {
+    const ch = b.tally.length
+      ? `derrière, seules ${b.tally.map(([t]) => t).join(', ')} ont roulé ; `
+      : 'personne n’a vraiment roulé derrière ; ';
+    return `🚀 L'échappée de ${b.n}${who} est allée au bout : ${ch}l'avance a atteint ${fmtGap(b.max)} (km ${b.maxKm}).`;
+  }
+  if (!b.caught) return null;
+  const c = b.caught;
+  const t = c.teams.length
+    ? `${c.teams.map(([s, k]) => `${s} (${k} coureur${k > 1 ? 's' : ''})`).join(', ')} roulai${c.teams.length > 1 ? 'en' : ''}t`
+    : 'le peloton a accéléré';
+  return `🔁 L'échappée${who} a été reprise à ${c.km} km de l'arrivée : ${t}${c.rate > 0 ? `, l'écart fondait d'environ ${c.rate} s/km` : ''} (avance maximale ${fmtGap(b.max)}).`;
+}
+
+// Sprint : placement, train, enfermement, départ trop tôt, vent.
+// rank : place dans le sprint du groupe ; forWin : ce sprint était pour la victoire
+function sprintExplain(r, d, rank, winnerSpr, forWin = true) {
+  if (!d || !d.big) return null;
+  const f = [];
+  if (d.lost) f.push('son train a craqué avant le dernier kilomètre');
+  else if (d.train > 0)
+    f.push(`emmené par ${d.train} poisson${d.train > 1 ? 's' : ''}-pilote${d.train > 1 ? 's' : ''}`);
+  else if (d.train === 0) f.push('sans poisson-pilote dans le final');
+  if (d.surf) f.push('il a surfé dans les roues du meilleur train');
+  if (d.boxed) f.push(`il est resté enfermé (placement ${d.pos})`);
+  else if (d.pos < 60) f.push(`mal placé à l'approche de la ligne (placement ${d.pos})`);
+  if (d.early) f.push(`il a lancé trop tôt${d.wind === 'face' ? ', vent de face' : ''}`);
+  if (rank > 1 && winnerSpr - d.spr >= 4) f.push(`moins rapide que le vainqueur (sprint ${d.spr} contre ${winnerSpr})`);
+  const tip = d.lost
+    ? 'Gardez des poissons-pilotes frais : moins de relais dans la poursuite pour eux.'
+    : d.boxed || d.pos < 60
+      ? 'Un train de 2 poissons-pilotes ou la radio « Place-toi devant » dans les derniers km aide à être placé.'
+      : d.early
+        ? 'Rien à faire sur le moment : un sprinteur plus endurant résiste mieux à un lancement long.'
+        : null;
+  const lbl = forWin
+    ? rank === 1
+      ? 'vainqueur'
+      : `${rank}e`
+    : `${rank === 1 ? '1er' : rank + 'e'} du sprint du groupe`;
+  return { txt: `Sprint de ${riderName(r)} : ${lbl}${f.length ? ' — ' + f.join(', ') : ''}.`, tip };
+}
+
+// Les moments décisifs : les temps forts du dernier tiers de la course (ceux du joueur d'abord).
+function decisiveMoments(sim, n = 3) {
+  const all = (sim.hls || []).filter(h => !/a faim/.test(h.txt) && h.km != null && h.km >= sim.dist * 0.6);
+  // les faits de course (attaques, reprises, lâchés) d'abord ; les points de situation (3 km, flamme rouge) en appoint
+  const situ = h => /^(📍|🚩)/.test(h.txt);
+  const facts = all.filter(h => !situ(h));
+  const hl = facts.length >= n ? facts : facts.concat(all.filter(situ).slice(-(n - facts.length)));
+  const mine = hl.filter(h => h.mine);
+  const pick = mine.concat(hl.filter(h => !h.mine)).slice(-Math.max(n, mine.length));
+  return pick.sort((a, b) => a.t - b.t).slice(-n);
 }
 // ---------- Résumé d'étape ----------
 // Texte brut du résumé (copiable) et lignes pour l'affichage.

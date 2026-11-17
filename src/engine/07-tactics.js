@@ -68,6 +68,7 @@ function applyRadio(sim, x, k, src) {
   if (!obeyCheck(x, k === 'front' ? 'tempo' : k, sim)) {
     x.r.stats.disob++;
     (sim.refusals = sim.refusals || new Set()).add(x.id);
+    if (x.player) x.st.disobWhy = disobRecord(sim, x, k);
     log(sim, `${pre}${nm} : ${RADIO[k].lbl} — « ${radioReply(x, 'no')} »`, 'bad');
     return false;
   }

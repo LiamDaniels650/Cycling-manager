@@ -85,7 +85,7 @@ function buildStageSim(rc) {
         conds: ((rc.conds && rc.conds[id]) || []).map(c => ({ ...c, done: false })),
         wet: spec.wx === 'pluie',
         markId: null,
-        st: { kf: 0, kw: 0, att: 0, Is: 0, n: 0, cv: [], mx: 0, risk: 0, drop: null },
+        st: { kf: 0, kw: 0, att: 0, Is: 0, n: 0, cv: [], mx: 0, risk: 0, drop: null, disobWhy: null },
         eqf: applyGear(eqFactors(T), gearFor(T, rc, spec)),
         recon: !!T.player && reconDone(rc),
         wp: wPrime(r),
@@ -110,6 +110,7 @@ function buildStageSim(rc) {
         _early: undefined,
         _boxed: undefined,
         _lost: undefined,
+        _sp: undefined,
       };
       sim.runners.push(x);
       if (x.order === 'leader') {
@@ -126,6 +127,7 @@ function buildStageSim(rc) {
     if (SUBORD.includes(x.order) && !obeyCheckPre(x, sim)) {
       x.rebel = true;
       x.r.stats.disob++;
+      if (x.player) x.st.disobWhy = disobRecord(sim, x, 'pre');
       if (x.player)
         log(sim, `📻 ${riderName(x.r)} n'a visiblement pas l'intention de respecter sa consigne aujourd'hui…`, 'bad');
     }

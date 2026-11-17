@@ -130,6 +130,8 @@ function finishGroup(sim, G, tcross) {
         if (fw === 'face' && x._surf) s += 1.5;
         if (fw === 'dos') s += (x.r.s.end - 70) * 0.05 + (x.r.kg - 70) * 0.06;
         if (tr.sp === x) s += Math.min(2, tr.n) * 1.6;
+        // relevé pour expliquer le sprint au joueur (lecture seule)
+        x._sp = { pos: Math.round(posS), train: tr.sp === x ? tr.n : -1, big: true, wind: fw };
       } else if (sim.teamSprinter[x.team.id] === x) {
         const lo = xs.filter(y => y.team === x.team && y !== x && effOrder(y) === 'leadout' && y.energy > 8).length;
         s += Math.min(2, lo) * 2;
@@ -238,8 +240,14 @@ function endStageSim(sim) {
         cv: x.st.cv,
         e: Math.round(x.energy),
         drop: x.st.drop,
+        sp: x._sp
+          ? { ...x._sp, boxed: !!x._boxed, early: !!x._early, lost: !!x._lost, surf: !!x._surf, spr: x.r.s.spr }
+          : null,
+        why: x.st.disobWhy || null,
       };
   }
+  rc._brk = breakRecord(sim);
+  rc._moments = decisiveMoments(sim).map(h => ({ km: h.km, txt: h.txt, mine: h.mine }));
   const kb = sim.runners.filter(x => !x.dnf).sort((a, b) => b.st.kf + b.st.att * 8 - (a.st.kf + a.st.att * 8))[0];
   if (kb && kb.st.kf > 5) rc._komb = kb.id;
   for (const x of sim.finish) if (x.pen) x.time += x.pen; // pénalités des commissaires

@@ -93,6 +93,8 @@ function applyStageResult(rc, spec, res, dnfIds) {
     res: res.map(e => ({ id: e.id, gap: e.gap, time: e.time })),
     cut: cutIds,
     stats: rc._stats || null,
+    brk: rc._brk || null,
+    moments: rc._moments || null,
     komb: rc._komb || null,
     climbs: rc._climbs || null,
     power: rc._power || null,

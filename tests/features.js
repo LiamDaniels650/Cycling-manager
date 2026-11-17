@@ -762,5 +762,48 @@ check(
   const e0 = dropExplain({ fn: 'A', ln: 'B' }, { ...d0, why: 'over', src: 'finale', by: null }, 'leader');
   check(/fringale/.test(e0.why) && /alimentation/.test(e0.tip), 'lâchés : une fringale est signalée et conseillée');
 }
+// Explications du bilan d'étape : sprint, échappée, désobéissance, moments décisifs (lecture seule).
+{
+  const sp = sprintExplain(
+    { fn: 'A', ln: 'B' },
+    { big: true, pos: 50, train: 0, boxed: true, early: false, lost: false, surf: false, spr: 80 },
+    6,
+    88
+  );
+  check(/enfermé/.test(sp.txt) && /moins rapide/.test(sp.txt) && !!sp.tip, 'sprint : enfermement et vitesse expliqués');
+  const sp2 = sprintExplain({ fn: 'A', ln: 'B' }, { big: true, pos: 80, train: 2, spr: 85 }, 1, 85, false);
+  check(/1er du sprint du groupe/.test(sp2.txt), 'sprint : place dans le sprint du groupe');
+  const be = breakExplain({
+    n: 4,
+    max: 240,
+    maxKm: 60,
+    won: false,
+    caught: { km: 12, n: 4, teams: [['AVE', 3]], rate: 18 },
+    tally: [],
+  });
+  check(
+    /reprise à 12 km/.test(be) && /AVE/.test(be) && /18 s\/km/.test(be),
+    'échappée : reprise expliquée (où, qui, vitesse)'
+  );
+  const de = disobExplain(
+    { fn: 'A', ln: 'B' },
+    { kind: 'pre', dis: 30, amb: 80, moral: 60, trait: 'aucun', ldr: null, rel: 0, ahead: false, stronger: true }
+  );
+  check(/discipline faible/.test(de.why) && /plus fort que son leader/.test(de.why), 'désobéissance : raisons données');
+  newGame('T', 31);
+  const i = S.cal.findIndex(c => c.stagesSpec.length > 5);
+  S.week = S.cal[i].w;
+  const rc = startRace(i, delegateSelection(i));
+  let mom = 0,
+    brk = 0;
+  while (!rc.done) {
+    Object.assign(rc.orders, autoOrders(0, rc.specs[rc.si], rc));
+    runStageAuto(rc);
+    const st = rc.stageRes[rc.stageRes.length - 1];
+    if (st.moments && st.moments.length) mom++;
+    if (st.brk) brk++;
+  }
+  check(mom > 0 && brk > 0, `bilan : moments décisifs (${mom} étapes) et échappées relevés (${brk})`);
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

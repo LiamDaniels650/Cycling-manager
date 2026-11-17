@@ -435,6 +435,14 @@ function tickMerges(sim) {
         (A.riders.some(x => x.player || sim.favs.has(x.id)) || A.riders.length >= 3 || A.pos > sim.dist * 0.5)
       )
         log(sim, `🔁 Le groupe de ${A.riders.length} coureur(s) est repris par le peloton.`, '');
+      // reprise de l'échappée du jour (pas des attaques de la bagarre du départ) : relevée pour le bilan d'étape
+      if (
+        wasBreak &&
+        !sim.brkCaught &&
+        sim.brkIds &&
+        A.riders.filter(y => sim.brkIds.has(y.id)).length > A.riders.length / 2
+      )
+        sim.brkCaught = catchRecord(sim, A, B);
       if (wasBreak && A.riders.length && sim.dist - B.pos < 25)
         highlight(
           sim,

@@ -63,6 +63,14 @@ function commentTick(sim) {
   if (!H.length || H[H.length - 1].km < kmNow) {
     const gap = front !== pel && pel ? gapSec(front, pel) : 0;
     H.push({ km: kmNow, gap: Math.round(gap), n: front.riders.length });
+    // un coureur du joueur lâché puis revenu en tête : ce lâché n'explique plus son résultat
+    for (const x of sim.runners)
+      if (x.player && x.st.drop && x.g === front && sim.t - x.st.drop.t > 1) x.st.drop = null;
+    // qui roule derrière l'échappée (un relevé par km, pour expliquer sa reprise ou sa réussite)
+    if (front !== pel && pel) {
+      const T = (sim.chaseTally = sim.chaseTally || {});
+      for (const y of pel.riders) if (y.work > 0) T[y.team.short] = (T[y.team.short] || 0) + 1;
+    }
   }
   sim.com = sim.com || { marks: {}, lastT: -99 };
   const C = sim.com;
