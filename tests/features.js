@@ -60,6 +60,14 @@ const choiceCat = Object.keys(S.eqOffers)[0],
 chooseEq(choiceCat, 0);
 endSeason();
 check(S.teams[0].eq[choiceCat] === chosen, `le choix d'équipementier est appliqué en fin de saison (${chosen})`);
+{
+  const f = (S.films || [])[0];
+  const ics = f ? f.ch.map(c => c.ic).join('') : '';
+  check(
+    !!f && f.s === S.season - 1 && /🏆/.test(ics) && /⭐/.test(ics) && /🚴/.test(ics),
+    `film de la saison tourné (${f ? f.ch.length : 0} chapitres : ${ics})`
+  );
+}
 check(
   S.career.seasons === 1 && S.career.rep >= 0 && S.career.rep <= 100,
   `réputation du DS mise à jour (${Math.round(S.career.rep)})`

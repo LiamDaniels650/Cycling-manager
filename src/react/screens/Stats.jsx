@@ -14,6 +14,7 @@ const TABS = [
   ['rivals', '🆚 Rivaux'],
   ['legends', '🏛️ Légendes'],
   ['review', '📋 Bilan'],
+  ['film', '🎬 Film'],
   ['teams', 'Équipes'],
 ];
 const Empty = ({ t = '—' }) => (
@@ -497,12 +498,46 @@ function TeamsTab() {
     </Card>
   );
 }
+// Le film de la saison : récit des 5 dernières saisons (grandes victoires, coureur de l'année, révélations…).
+function FilmTab() {
+  const films = S.films || [];
+  if (!films.length)
+    return (
+      <Card title="🎬 Le film de la saison">
+        <p className="text-sm text-slate-400">Le premier film sera tourné à la fin de la saison.</p>
+      </Card>
+    );
+  return (
+    <>
+      {films.map((f, k) => (
+        <details key={f.s} open={k === 0} className="rounded-2xl border border-slate-700/70 bg-slate-900 p-3.5">
+          <summary className="cursor-pointer text-base font-semibold text-slate-100">🎬 Saison {f.s}</summary>
+          <div className="mt-2 space-y-3">
+            {f.ch.map((c, j) => (
+              <div key={j}>
+                <h4 className="text-sm font-semibold text-slate-100">
+                  {c.ic} {c.t}
+                </h4>
+                <ul className="mt-1 space-y-0.5 text-sm text-slate-300">
+                  {c.l.map((l, i) => (
+                    <li key={i}>{l}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </details>
+      ))}
+    </>
+  );
+}
 const VIEWS = {
   season: SeasonTab,
   races: RacesTab,
   records: RecordsTab,
   rivals: RivalsTab,
   review: ReviewTab,
+  film: FilmTab,
   legends: LegendsTab,
   uci: UciTab,
   watts: WattsTab,

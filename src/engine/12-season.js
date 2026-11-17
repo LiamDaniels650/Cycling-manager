@@ -321,6 +321,7 @@ function endSeason() {
     }
   }
   seasonReview();
+  seasonFilm(myRank);
   seasonWhy(myRank, why0, lines, rew + bonus);
   // vieillissement
   for (const id in S.riders) {
@@ -548,6 +549,11 @@ function endSeason() {
     }
   }
   storiesEndSeason();
+  seasonFilmEnd();
+  msg(
+    `🎬 Le film de la saison ${S.season}`,
+    'Grandes victoires, coureur de l’année, révélations, records, mercato et adieux : à revoir dans Statistiques → Film.'
+  );
   for (const T of S.teams) T.uci = 0;
   eqEndSeason();
   sponsorEndSeason();

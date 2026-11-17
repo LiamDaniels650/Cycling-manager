@@ -131,3 +131,145 @@ function seasonHighlights() {
     h += `<br><b>Coureur de la saison</b> : ${riderName(best)} (${best.stats.pts} pts UCI, ${best.stats.wins || 0} victoire(s)).`;
   return h;
 }
+
+// ---------- Le film de la saison ----------
+// Récit de la saison qui s'achève (lecture seule, aucun hasard) : grandes victoires, coureur de l'année, saison de
+// l'équipe, révélations, records, histoires, mercato et adieux. Gardé pour les 5 dernières saisons (S.films).
+// Première partie, avant la remise à zéro des statistiques de la saison (appelée par endSeason).
+function seasonFilm(myRank) {
+  const s = S.season;
+  const ch = [];
+  const nm = id => {
+    const r = S.riders[id];
+    return r ? riderName(r) : '?';
+  };
+  const tsh = id => {
+    const r = S.riders[id];
+    const T = r ? teamOf(r) : null;
+    return T ? ` (${T.short})` : '';
+  };
+  // grandes victoires : Grands Tours, monuments, championnat du monde
+  const big = [];
+  for (const c of S.cal) {
+    const h = (S.raceHist[c.key] || []).find(e => e.s === s);
+    if (!h || !h.pod || !h.pod[0]) continue;
+    const gt = c.cat === 0 && c.stagesSpec.length >= 15;
+    if (!gt && !MONUMENTS.includes(c.key) && !c.worlds) continue;
+    const w = h.pod[0];
+    big.push({
+      o: gt ? 0 : c.worlds ? 1 : 2,
+      w: c.w,
+      txt: `${gt ? '🟡' : c.worlds ? '🌈' : '🏛️'} ${c.name} : ${w.n}${w.t ? ` (${w.t})` : ''}${
+        h.pod[1] ? `, devant ${h.pod[1].n}` : ''
+      }${gt && h.kom ? ` · montagne : ${h.kom}` : ''}${gt && h.pts ? ` · points : ${h.pts}` : ''}`,
+    });
+  }
+  big.sort((a, b) => a.o - b.o || a.w - b.w);
+  if (big.length) ch.push({ ic: '🏆', t: 'Les grandes victoires', l: big.map(b => b.txt) });
+  // coureur de l'année (points UCI de la saison) et le plus victorieux
+  const pros = Object.values(S.riders).filter(r => !r.retired && r.team !== null && !r.aca && r.stats);
+  const top = pros.slice().sort((a, b) => (b.stats.pts || 0) - (a.stats.pts || 0))[0];
+  const most = pros.slice().sort((a, b) => (b.stats.wins || 0) - (a.stats.wins || 0))[0];
+  const L1 = [];
+  if (top && top.stats.pts)
+    L1.push(
+      `⭐ ${riderName(top)}${tsh(top.id)} : ${top.stats.pts} points UCI, ${top.stats.wins || 0} victoire(s), ${top.age} ans.`
+    );
+  if (most && most !== top && most.stats.wins >= 3)
+    L1.push(`🔁 Le plus victorieux : ${riderName(most)}${tsh(most.id)}, ${most.stats.wins} victoires.`);
+  if (L1.length) ch.push({ ic: '⭐', t: "Le coureur de l'année", l: L1 });
+  // la saison de l'équipe du joueur
+  const P = S.teams[0];
+  if (P) {
+    const mine = P.riders.map(id => S.riders[id]).filter(Boolean);
+    const wins = [];
+    for (const r of mine)
+      for (const p of r.palm || [])
+        if (p.s === s && p.k === 1 && !/espoirs|juniors/i.test(p.e))
+          wins.push(`${riderName(r)} — ${p.r}, ${p.e.toLowerCase()}`);
+    const best = mine.slice().sort((a, b) => (b.stats.pts || 0) - (a.stats.pts || 0))[0];
+    const L2 = [`Classement UCI : ${myRank}e sur ${S.teams.length}, ${seasonWins(0)} victoire(s).`];
+    for (const w of wins.slice(0, 4)) L2.push('🏅 ' + w);
+    if (wins.length > 4) L2.push(`… et ${wins.length - 4} autre(s) victoire(s).`);
+    if (best && best.stats.pts) L2.push(`Coureur de la saison : ${riderName(best)} (${best.stats.pts} pts UCI).`);
+    ch.push({ ic: '🚴', t: `La saison de ${P.name}`, l: L2 });
+  }
+  // révélations : les jeunes (23 ans et moins) qui ont le plus progressé ou gagné
+  const young = pros
+    .filter(r => r.age <= 23 && r.career && r.career.length)
+    .map(r => {
+      const c = r.career;
+      const cur = c[c.length - 1];
+      const prev = c.length > 1 ? c[c.length - 2] : null;
+      return { r, d: prev && cur.s === s ? cur.ov - prev.ov : 0, w: r.stats.wins || 0, ov: overall(r.s) };
+    })
+    .filter(x => x.d >= 3 || x.w >= 1)
+    .sort((a, b) => b.w * 3 + b.d - (a.w * 3 + a.d))
+    .slice(0, 3);
+  if (young.length)
+    ch.push({
+      ic: '💎',
+      t: 'Les révélations',
+      l: young.map(
+        x =>
+          `${riderName(x.r)}${tsh(x.r.id)}, ${x.r.age} ans : niveau ${x.ov}${x.d > 0 ? ` (+${x.d})` : ''}${
+            x.w ? `, ${x.w} victoire(s)` : ''
+          }${x.r.team === 0 ? ' — chez vous !' : ''}`
+      ),
+    });
+  // records de puissance de la saison
+  const recs = (S.pwRec || []).filter(q => q.season === s).slice(0, 2);
+  if (recs.length)
+    ch.push({
+      ic: '⚡',
+      t: 'Les records',
+      l: recs.map(
+        q => `${nm(q.id)} : ${fmtDec(q.wkg, 2)} W/kg pendant ${Math.round(q.dur / 60)} min (${q.climb}, ${q.race}).`
+      ),
+    });
+  const film = { s, ch };
+  S.films = (S.films || []).filter(f => f.s !== s);
+  S.films.unshift(film);
+  if (S.films.length > 5) S.films.length = 5;
+  return film;
+}
+// Seconde partie, après les départs et les histoires de fin de saison : histoires, mercato, adieux.
+function seasonFilmEnd() {
+  const s = S.season;
+  const film = (S.films || []).find(f => f.s === s);
+  if (!film) return;
+  const st = (S.stories || []).filter(t => t.s0 === s || (t.done && t.log.length && t.log[t.log.length - 1].s === s));
+  if (st.length)
+    film.ch.push({
+      ic: '📖',
+      t: 'Les histoires de la saison',
+      l: st
+        .slice(0, 4)
+        .map(
+          t =>
+            `${STORY_KINDS[t.k].ic} ${STORY_KINDS[t.k].lbl} : ${String(t.log[t.log.length - 1].txt || '').replace(/<[^>]+>/g, '')}`
+        ),
+    });
+  const merc = (S.merc || []).filter(m => m.s === s && m.imp);
+  // les transferts entre équipes et les coureurs en vue d'abord (pas les signatures de complément au minimum)
+  const big = m => S.riders[m.id] && mercNotable(S.riders[m.id]);
+  const tr = merc
+    .filter(m => (m.k === 'transfert' || m.k === 'signe') && (big(m) || m.k === 'transfert'))
+    .sort(
+      (a, b) => (big(b) ? 2 : 0) + (b.k === 'transfert' ? 1 : 0) - ((big(a) ? 2 : 0) + (a.k === 'transfert' ? 1 : 0))
+    )
+    .slice(0, 4);
+  if (tr.length)
+    film.ch.push({ ic: '🔀', t: 'Le mercato', l: tr.map(m => `${m.n} : ${m.f} → ${m.t}${m.my ? ' (vous)' : ''}`) });
+  const bye = merc.filter(m => m.k === 'retraite').slice(0, 4);
+  if (bye.length)
+    film.ch.push({
+      ic: '👋',
+      t: 'Ils arrêtent',
+      l: bye.map(m => {
+        const r = S.riders[m.id];
+        const w = r ? (r.palm || []).filter(p => p.k === 1).length : 0;
+        return `${m.n}${r ? `, ${r.age} ans` : ''}${w ? ` — ${w} victoire(s) en carrière` : ''}`;
+      }),
+    });
+}
