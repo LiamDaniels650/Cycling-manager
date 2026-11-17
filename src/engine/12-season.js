@@ -1,9 +1,19 @@
 /* Semaine (forme, fatigue, progression, finances), avance du calendrier et fin de saison */
 // Gain d'entraînement d'une semaine (plan pl, facteur g0 = âge × marge de progression × encadrement) : la
 // caractéristique travaillée, plus une au hasard (souvent une du profil). Commun au monde pro et au mode carrière.
+// Perte de poids par semaine selon le plan d'entraînement (kg) ; 0,15 par défaut, reprise de poids au repos.
+const KG_BURN = { foncier: 0.25, altitude: 0.25, intensif: 0.25, montagne: 0.2 };
 function trainGain(r, pl, g0) {
+  // progression décimale cachée (r.sx) : chaque semaine apporte une fraction de point, le point s'affiche une fois
+  // la fraction atteinte. Même progression moyenne qu'un tirage au sort, sans les paliers aléatoires.
+  const sx = (r.sx = r.sx || {});
   const inc = (k, a) => {
-    if (rnd() < a * g0 && r.s[k] < 95) r.s[k]++;
+    if (r.s[k] >= 95) return;
+    const v = (sx[k] || 0) + a * g0 * (0.7 + 0.6 * rnd());
+    if (v >= 1) {
+      r.s[k]++;
+      sx[k] = Math.round((v - 1) * 100) / 100;
+    } else sx[k] = Math.round(v * 100) / 100;
   };
   if (pl === 'foncier') {
     inc('end', 0.2);
@@ -29,10 +39,9 @@ function trainGain(r, pl, g0) {
   } else {
     inc(pick(STATS), 0.1);
   }
-  if (rnd() < 0.33 * g0) {
-    const k = rnd() < 0.55 ? pick(PRIMARY[r.arch] || ['pla']) : pick(STATS);
-    if (r.s[k] < 95) r.s[k]++;
-  }
+  // progression générale, surtout dans les points forts du profil
+  inc(pick(PRIMARY[r.arch] || ['pla']), 0.33 * 0.55);
+  inc(pick(STATS), 0.33 * 0.45);
 }
 // Semaine : forme, fatigue, progression, marché, espoirs, finances, presse.
 function weeklyUpdate() {
@@ -113,8 +122,14 @@ function weeklyUpdate() {
     // marge de progression : un jeune très doué (plafond loin devant) progresse nettement plus vite (prodiges)
     const gapF = clamp((r.ceil - ov) / 8, 0, r.age <= 22 ? R.youngGapMax : 1.2);
     const cm = (mine ? coachMul : 1.05) * (r.aca ? mentorMul(r) : 1);
-    const g0 = ageF * gapF * cm;
+    // la course fait progresser : la charge récente (jours de course) module la progression (0,9 à 1,2)
+    const loadF = 0.9 + Math.min(0.3, (r.load || 0) * 0.04);
+    const g0 = ageF * gapF * cm * loadF;
     trainGain(r, pl, g0);
+    // poids de forme : le poids pris à l'intersaison fond à l'entraînement et en course (pas au repos)
+    if (r.kgOpt == null) r.kgOpt = r.kg;
+    const burn = pl === 'repos' ? -0.1 : (KG_BURN[pl] || 0.15) + Math.min(0.2, (r.load || 0) * 0.03);
+    r.kg = +clamp(r.kg - burn, r.kgOpt - 0.5, r.kgOpt + 4).toFixed(2);
     if (r.aca) {
       const k = pick(STATS);
       if (rnd() < 0.1 * g0 && r.s[k] < 95) r.s[k]++;
@@ -329,6 +344,9 @@ function endSeason() {
     const r = S.riders[id];
     if (r.retired) continue;
     r.age++;
+    // intersaison : quelques kilos pris (moins chez les coureurs réguliers), à perdre avant les grands objectifs
+    if (!r.car && r.kgOpt != null)
+      r.kg = +Math.min(r.kgOpt + 4, r.kg + (r.trait === 'regulier' ? 1 : R.winterKg)).toFixed(2);
     // déclin après l'âge de pic du profil : les qualités explosives (sprint) partent les premières
     const pkEnd = (PEAK_AGE[r.arch] || [26, 30])[1];
     if (r.age > pkEnd) {

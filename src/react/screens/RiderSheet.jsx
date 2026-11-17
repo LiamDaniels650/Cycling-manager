@@ -485,8 +485,15 @@ export function RiderSheet({ r }) {
       <div className="mt-1 text-sm text-slate-400">
         {ARCH[r.arch].lbl} · {r.age} ans ·{' '}
         {r.retired ? 'Retraité' : r.aca ? 'Académie' : T ? T.name : r.youth ? 'Vivier des jeunes' : 'Libre'} ·{' '}
-        {r.kg || '?'} kg · Popularité {Math.round(r.pop || 0)} · Global <b className="text-slate-100">{svOv(r)}</b> ·
-        Potentiel <Stars v={potEst(r)} />
+        {r.kg ? fmtDec(r.kg, 1) : '?'} kg
+        {r.kgOpt != null && r.kg - r.kgOpt >= 0.5 ? (
+          <span className="text-amber-300" title="Au-dessus de son poids de course : il perd en montée">
+            {' '}
+            (+{fmtDec(r.kg - r.kgOpt, 1)} kg sur son poids de forme)
+          </span>
+        ) : null}{' '}
+        · Popularité {Math.round(r.pop || 0)} · Global <b className="text-slate-100">{svOv(r)}</b> · Potentiel{' '}
+        <Stars v={potEst(r)} />
         {potKnow(r) < 70 ? <span className="text-xs"> (estimé)</span> : null}
       </div>
       <Tabs />

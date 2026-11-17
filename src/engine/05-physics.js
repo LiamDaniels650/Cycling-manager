@@ -12,7 +12,11 @@ function terrStat(s, g, surf, short) {
     v = s.pla * (1 - w) + s.col * w;
   } else if (g > -2.5) v = s.pla;
   else v = (s.des || 68) * 0.65 + s.pla * 0.35;
-  if (surf) v = v * 0.35 + s.pav * 0.65;
+  // pavés : plus le secteur est dur (1 à 5 étoiles), plus la caractéristique Pavés compte
+  if (surf) {
+    const w = 0.44 + 0.07 * Math.min(5, surf);
+    v = v * (1 - w) + s.pav * w;
+  }
   return v;
 }
 // Capacité instantanée d'un coureur sur ce terrain (fringale = -12 %).
@@ -36,7 +40,10 @@ function capRaw(x, g, surf) {
   const mor = r.trait === 'fragile' ? 0.97 + (0.06 * r.moral) / 100 : 1;
   // altitude : environ -7 % par 1 000 m au-dessus de 1 500 m, moitié moins pour un coureur acclimaté (stage en altitude)
   const altF = x.alt > 1500 ? 1 - ((x.alt - 1500) / 1000) * 0.07 * (r.altBoost > 0 ? 0.5 : 1) : 1;
-  return terrStat(r.s, g, surf, x.short && g === x.gr) * f * e * fat * mor * altF * dur;
+  // poids de forme : chaque kilo au-dessus du poids de course coûte en montée (≈ 1,3 % par kilo dans les fortes pentes)
+  const kgX = r.kgOpt != null && g >= 3 ? r.kg - r.kgOpt : 0;
+  const kgF = kgX > 0 ? 1 - kgX * R.kgClimb * clamp((g - 2) / 4, 0, 1) : 1;
+  return terrStat(r.s, g, surf, x.short && g === x.gr) * f * e * fat * mor * altF * dur * kgF;
 }
 // Vitesse (km/h) d'un groupe roulant au niveau L sur une pente g.
 // Calibrage 2024-2025 : plat ~44 km/h, montagne ~35-38, chrono ~52, CLM par équipes ~55 (voir tests/calibrate.js).
@@ -93,7 +100,7 @@ function roadCond(sim, G) {
   const temp = sim.wx === 'chaleur' ? 32 : sim.wx === 'froid' ? 6 : 18;
   return {
     rho: airRho(G.alt, temp),
-    crr: (G.surf ? 0.012 : PHY.crr) * (sim.wx === 'pluie' ? 1.12 : 1),
+    crr: (G.surf ? 0.012 * (0.76 + 0.08 * Math.min(5, G.surf)) : PHY.crr) * (sim.wx === 'pluie' ? 1.12 : 1),
     vw: headwindAt(sim, G.pos),
   };
 }

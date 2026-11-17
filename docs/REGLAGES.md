@@ -12,6 +12,8 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `R.progAge` | `(table)` | vitesse de progression d'un coureur selon son âge (décalé selon l'âge de pic de son profil) : [âge max, facteur] |
 | `R.initAge` | `(table)` | de plus qu'à la création, les tout jeunes un peu moins) : [âge max, points] |
 | `R.youngGapMax` | `1.6` | jusqu'à 22 ans, multiplicateur maximal de progression selon la marge au plafond (1,2 ensuite) |
+| `R.winterKg` | `1.8` | kilos pris à l'intersaison (1 pour un coureur régulier), reperdus à l'entraînement et en course |
+| `R.kgClimb` | `0.013` | perte de capacité par kilo au-dessus du poids de course, dans les fortes pentes |
 | `R.formeRate` | `0.22` | part de l'écart à la forme visée comblée chaque semaine |
 | `R.daysCap` | `75` | jours de course au-delà desquels la forme plafonne plus bas (fatigue chronique) |
 | `R.daysMalus` | `0.15` | points de forme visée perdus par jour de course au-delà |
@@ -56,6 +58,10 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | Réglage | Valeur | Rôle |
 |---|---|---|
 | `R.sprintNoise` | `4.5` | aléa du sprint (placement, timing, jambes du jour) |
+| `R.sprintVk` | `0.1` | sprint simulé : vitesse de pointe (m/s) gagnée par point de qualité de sprint (16,6 m/s à 75) |
+| `R.sprintSpread` | `0.8` | … mètres de retard sur la tête au dernier km par point de placement manquant (0-100) |
+| `R.sprintDraft` | `0.45` | … gain de vitesse (m/s) dans la roue d'un coureur à moins de 6 m (×1,6 vent de face) |
+| `R.sprintFade` | `0.7` | … perte de vitesse (m/s par s) une fois la pointe tenue (≈ 10 s) |
 | `R.leaderFollow` | `0.8` | chance qu'un leader suive une attaque qui compte (0,95 s'il court défensif) |
 | `R.leaderFollowDef` | `0.95` |  |
 | `R.leaderFollowIdle` | `0.03` | … et une attaque qui ne compte pas (bagarre pour l'échappée) |
@@ -133,16 +139,17 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `RACE_DEFS` | 04-calendar.js:71 |  |
 | `LAST_WEEK` | 04-calendar.js:266 |  |
 | `PLACE` | 04-calendar.js:284 |  |
-| `WX_REGIME` | 04-calendar.js:568 | plusieurs semaines, avec des tendances de saison (giboulées de printemps, canicules d'été, automne humide). |
-| `SPEED_K` | 05-physics.js:43 | Calibrage 2024-2025 : plat ~44 km/h, montagne ~35-38, chrono ~52, CLM par équipes ~55 (voir tests/calibrate.js). |
-| `PHY` | 05-physics.js:60 | conditions du jour : air moins dense en altitude ou par la chaleur, vent de face ou de dos, pavés, pluie. |
-| `RADIO_ACTS` | 08-stage-sim.js:221 | Consigne effective d'un coureur (radio ponctuelle, rébellion ou consigne d'avant course). |
-| `ESCORT_ORD` | 08-stage-sim.js:222 |  |
-| `DT_MIN` | 08-stage-sim.js:322 | Un pas de simulation = 30 secondes de course. |
-| `SPRINT_NOISE` | 09-stage-finish.js:64 | Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints. |
-| `PW_BUCKETS` | 09-stage-finish.js:317 | Records de puissance : meilleur effort personnel par durée et palmarès mondial des ascensions (20 min et plus). |
+| `WX_REGIME` | 04-calendar.js:572 | plusieurs semaines, avec des tendances de saison (giboulées de printemps, canicules d'été, automne humide). |
+| `SPEED_K` | 05-physics.js:50 | Calibrage 2024-2025 : plat ~44 km/h, montagne ~35-38, chrono ~52, CLM par équipes ~55 (voir tests/calibrate.js). |
+| `PHY` | 05-physics.js:67 | conditions du jour : air moins dense en altitude ou par la chaleur, vent de face ou de dos, pavés, pluie. |
+| `RADIO_ACTS` | 08-stage-sim.js:227 | Consigne effective d'un coureur (radio ponctuelle, rébellion ou consigne d'avant course). |
+| `ESCORT_ORD` | 08-stage-sim.js:228 |  |
+| `DT_MIN` | 08-stage-sim.js:328 | Un pas de simulation = 30 secondes de course. |
+| `SPRINT_NOISE` | 09-stage-finish.js:149 | Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints. |
+| `PW_BUCKETS` | 09-stage-finish.js:393 | Records de puissance : meilleur effort personnel par durée et palmarès mondial des ascensions (20 min et plus). |
 | `GC_CACHE` | 11-results.js:137 | Le général ne change qu'entre les étapes (ou sur abandon) : il est mis en cache et invalidé par gcDirty(). |
 | `UCI_COUNT` | 11-results.js:361 | Classement UCI par équipes (règle réelle) : somme des points de la saison de ses 20 meilleurs coureurs actuels. |
+| `KG_BURN` | 12-season.js:5 | Perte de poids par semaine selon le plan d'entraînement (kg) ; 0,15 par défaut, reprise de poids au repos. |
 | `JOURNALS` | 14-press.js:2 |  |
 | `EQ_BIKES` | 15-equipment.js:5 | minRep : notoriété minimale pour que la marque vous fasse une offre ; pay : versement de base (k€/saison). |
 | `EQ_TT` | 15-equipment.js:15 | Matériel de contre-la-montre (vélo, roues pleines, combinaison). |

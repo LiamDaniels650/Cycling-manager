@@ -191,7 +191,11 @@ function buildStageSim(rc) {
   sim.windShift = P.wind ? { km: spec.dist * rf(0.35, 0.75), to: clamp(P.wind + pick([-1, 1]), 0, 3) } : null;
   log(
     sim,
-    `Départ de ${spec.name}. ${P.climbs.length} difficulté(s) répertoriée(s)${P.sectors.length ? ', ' + P.sectors.length + ' secteurs pavés' : ''}.`,
+    `Départ de ${spec.name}. ${P.climbs.length} difficulté(s) répertoriée(s)${
+      P.sectors.length
+        ? `, ${P.sectors.length} secteurs pavés${(n5 => (n5 ? ` dont ${n5} cinq étoiles` : ''))(P.sectors.filter(q => q.stars >= 5).length)}`
+        : ''
+    }.`,
     'info'
   );
   return sim;

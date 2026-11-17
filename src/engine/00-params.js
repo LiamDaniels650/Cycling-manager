@@ -27,6 +27,8 @@ const R = {
     [99, 3.3],
   ],
   youngGapMax: 1.6, // jusqu'à 22 ans, multiplicateur maximal de progression selon la marge au plafond (1,2 ensuite)
+  winterKg: 1.8, // kilos pris à l'intersaison (1 pour un coureur régulier), reperdus à l'entraînement et en course
+  kgClimb: 0.013, // perte de capacité par kilo au-dessus du poids de course, dans les fortes pentes
   formeRate: 0.22, // part de l'écart à la forme visée comblée chaque semaine
   daysCap: 75, // jours de course au-delà desquels la forme plafonne plus bas (fatigue chronique)
   daysMalus: 0.15, // points de forme visée perdus par jour de course au-delà

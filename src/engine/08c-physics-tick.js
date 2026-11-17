@@ -317,13 +317,17 @@ function tickIncidents(sim, live) {
     const G = x.g;
     const km = G.speed * dtH;
     const kmLeft = sim.dist - G.pos;
-    const pP = 0.00022 * km * (G.surf ? 7 * x.eqf.pavPunct * (x.recon ? 0.85 : 1) : 1) * x.eqf.punct;
+    const pP =
+      0.00022 *
+      km *
+      (G.surf ? 7 * (0.55 + 0.15 * Math.min(5, G.surf)) * x.eqf.pavPunct * (x.recon ? 0.85 : 1) : 1) *
+      x.eqf.punct;
     const wet = sim.wx === 'pluie';
     const pC =
       0.0001 *
       km *
       (wet ? (G.surf || G.g < -3 ? 1.8 : 1.2) : 1) *
-      (G.surf ? 3 : 1) *
+      (G.surf ? 3 * (0.64 + 0.12 * Math.min(5, G.surf)) : 1) *
       (G.g < -3
         ? 2.5 *
           clamp(1 + (70 - (x.r.s.des || 68)) / 25, 0.6, 2.2) *

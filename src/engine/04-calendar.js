@@ -407,7 +407,7 @@ function genStageSegs(type, dist, variant) {
       }
     } else if (f.kind === 'mur') {
       let rem = Math.min(f.len, dist - cur);
-      const sf = rnd() < 0.6 ? 1 : 0;
+      const sf = rnd() < 0.6 ? 3 : 0; // mur pavé : difficulté moyenne (3 étoiles)
       while (rem > 0.01) {
         const l = Math.min(rem, rf(0.25, 0.6));
         segs.push([+l.toFixed(2), +clamp(f.avg + gauss() * 2, 3, f.avg + 5).toFixed(1), sf]);
@@ -421,7 +421,9 @@ function genStageSegs(type, dist, variant) {
       }
     } else {
       const l = Math.min(f.len, dist - cur);
-      segs.push([+l.toFixed(2), +(gauss() * 0.6).toFixed(1), 1]);
+      // difficulté du secteur, de 1 à 5 étoiles comme à Roubaix : les longs secteurs sont souvent les plus durs
+      const stars = clamp(Math.round(0.6 + l * 0.8 + rnd() * 2), 1, 5);
+      segs.push([+l.toFixed(2), +(gauss() * 0.6).toFixed(1), stars]);
       cur += l;
     }
   }
@@ -494,7 +496,9 @@ function buildProfile(spec) {
     if (surf[k]) {
       let j = k;
       while (j < n && surf[j]) j++;
-      sectors.push({ start: k * STEP, end: j * STEP });
+      let st = 0;
+      for (let q = k; q < j; q++) st = Math.max(st, surf[q]);
+      sectors.push({ start: k * STEP, end: j * STEP, stars: st });
       k = j;
     } else k++;
   }
