@@ -59,6 +59,91 @@ function tickCrossings(sim) {
     }
   }
 }
+// Sprint simulé sur le dernier kilomètre, au quart de seconde. Chaque coureur part de sa place dans le groupe
+// (placement, train, surf), file à la vitesse du peloton puis lance son sprint à sa distance (longue pour un
+// coureur endurant ou par vent de dos, courte par vent de face ou sur ordre) : accélération, vitesse de pointe
+// tenue une dizaine de secondes, puis déclin. L'aspiration avantage celui qui lance dans une roue ; un coureur
+// mal placé peut rester enfermé. Renvoie le temps de passage (s) de chacun sur la ligne.
+function sprintRun(sim, ents, fw, big) {
+  const v0 = 15.5 * (fw === 'face' ? 0.95 : fw === 'dos' ? 1.05 : 1);
+  const draftV = fw === 'face' ? R.sprintDraft * 1.6 : fw === 'dos' ? R.sprintDraft * 0.5 : R.sprintDraft;
+  const R_ = ents.map(e => {
+    const x = e.x,
+      s = x.r.s;
+    const plan = x.launchPlan || null;
+    let L =
+      plan === 'long'
+        ? 320
+        : plan === 'court'
+          ? 150
+          : 215 + ((s.end || 70) - 70) * 2.5 + (fw === 'dos' ? 50 : fw === 'face' ? -40 : 0) + gauss() * 30;
+    L = clamp(L, 110, 380);
+    return {
+      e,
+      x,
+      d: 1000 + (100 - clamp(e.posS, 0, 100)) * R.sprintSpread + rf(0, 2),
+      v: v0,
+      vmax: e.role ? v0 * 0.98 : 16.6 + (e.q - 75) * R.sprintVk,
+      acc: 1.1 + (s.spr - 70) / 50,
+      sus: 7 + ((s.end || 70) - 60) / 10 + (s.spr - 70) / 25,
+      L,
+      on: false,
+      tOn: 0,
+      blk: 0,
+      t: null,
+    };
+  });
+  // la roue choisie (ordre « dans la roue de… ») : placé juste derrière ce coureur, si le placement le permet
+  for (const a of R_) {
+    if (a.x.wheelId == null) continue;
+    const b = R_.find(y => y.x.id === a.x.wheelId);
+    if (b && rnd() < (a.x.r.s.plc || 65) / 100) a.d = b.d + 1.5;
+  }
+  const dt = 0.25;
+  let t = 0;
+  for (let k = 0; k < 600 && R_.some(a => a.t == null); k++) {
+    // ordre de course (du plus proche de la ligne au plus loin) pour l'aspiration et l'enfermement
+    const live = R_.filter(a => a.t == null).sort((a, b) => a.d - b.d);
+    for (let i = 0; i < live.length; i++) {
+      const a = live[i];
+      if (!a.on && !a.e.role && a.d <= a.L) {
+        a.on = true;
+        a.tOn = t;
+        // mal placé au moment de lancer : enfermé quelques secondes (les bons frotteurs s'en sortent)
+        if (big && a.e.posS < 72 && rnd() < 0.3 * (1 - (a.x.r.s.plc || 65) / 125)) {
+          a.blk = rf(1, 3);
+          a.x._boxed = true;
+        }
+      }
+      let target = v0;
+      if (a.on) {
+        const el = t - a.tOn;
+        target = el <= a.sus ? a.vmax : Math.max(v0, a.vmax - (el - a.sus) * R.sprintFade);
+        if (a.blk > 0) {
+          target = Math.min(target, v0);
+          a.blk -= dt;
+        }
+        // aspiration : un coureur juste devant (moins de 6 m) protège du vent
+        const ahead = i > 0 ? live[i - 1] : null;
+        if (ahead && a.d - ahead.d < 6 && a.d - ahead.d > 0.3) target += draftV;
+      }
+      a.v = a.v < target ? Math.min(target, a.v + a.acc * dt) : Math.max(target, a.v - 0.6 * dt);
+      const nd = a.d - a.v * dt;
+      if (nd <= 0) a.t = t + a.d / a.v;
+      a.d = nd;
+    }
+    t += dt;
+  }
+  // parti trop tôt : il a lancé de loin et s'est fait passer dans les 50 derniers mètres
+  const res = new Map();
+  for (const a of R_) res.set(a.x, a.t == null ? t + 10 : a.t);
+  const sorted = R_.filter(a => !a.e.role).sort((a, b) => res.get(a.x) - res.get(b.x));
+  sorted.forEach((a, i) => {
+    if (a.on && a.L >= 260 && i > 0 && sorted.slice(0, i).some(b => b.L < a.L - 60)) a.x._early = true;
+    if (a.x._sp) a.x._sp.launch = Math.round(a.L);
+  });
+  return res;
+}
 // Arrivée d'un groupe : sprint (placement, poisson-pilote, déclassement) ou arrivée en côte.
 // Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints.
 const SPRINT_NOISE = R.sprintNoise;
@@ -98,16 +183,17 @@ function finishGroup(sim, G, tcross) {
     const bestTrain = Object.values(trains)
       .filter(t => t.sp && t.str > 0)
       .sort((a, b) => b.str - a.str)[0];
-    ord = xs.map(x => {
+    // préparation : placement à l'approche (trains, surf, train perdu), qualités de sprint du jour
+    const ents = xs.map(x => {
       x._surf = x._boxed = x._early = false;
-      let s =
+      let q =
         sprintPeak(x.r.s.spr) * (0.72 + 0.28 * Math.min(1, x.energy / 45)) +
         gauss() * SPRINT_NOISE +
         (x.dayForm - 70) * 0.08 +
         (x.punch - 50) * 0.025;
+      let posS = x.pos;
+      const tr = trains[x.team.id];
       if (big) {
-        const tr = trains[x.team.id];
-        let posS = x.pos;
         if (tr.sp === x && tr.str > 0) posS = Math.max(posS, 60 + tr.str / 6);
         if (tr.sp === x && tr.lost) {
           posS -= 10;
@@ -116,30 +202,20 @@ function finishGroup(sim, G, tcross) {
           posS = Math.max(posS, 74);
           x._surf = true;
         }
-        // être bien placé au dernier kilomètre compte presque autant que la pointe de vitesse
-        s += (posS - 50) * 0.08 + ((x.r.s.plc || 65) - 65) * 0.18;
-        if (x.r.s.spr >= 68 && posS < 72 && rnd() < 0.3 * (1 - (x.r.s.plc || 65) / 125)) {
-          s -= rf(3, 7);
-          x._boxed = true;
-        }
-        if (x.r.s.spr >= 68 && rnd() < 0.12 * (1 - (x.r.s.plc || 65) / 130) * (fw === 'face' ? 1.4 : 1)) {
-          s -= (x.r.s.end < 70 ? 3 : 1.5) * (fw === 'face' ? 1.8 : fw === 'dos' ? 0.5 : 1);
-          x._early = true;
-        }
-        // vent de face : les sprinteurs qui patientent dans les roues sont avantagés ; vent de dos : les sprints longs et puissants
-        if (fw === 'face' && x._surf) s += 1.5;
-        if (fw === 'dos') s += (x.r.s.end - 70) * 0.05 + (x.r.kg - 70) * 0.06;
-        if (tr.sp === x) s += Math.min(2, tr.n) * 1.6;
-        // relevé pour expliquer le sprint au joueur (lecture seule)
-        x._sp = { pos: Math.round(posS), train: tr.sp === x ? tr.n : -1, big: true, wind: fw };
+        posS += ((x.r.s.plc || 65) - 65) * 0.9;
+        if (tr.sp === x) q += Math.min(2, tr.n) * 1.6;
       } else if (sim.teamSprinter[x.team.id] === x) {
         const lo = xs.filter(y => y.team === x.team && y !== x && effOrder(y) === 'leadout' && y.energy > 8).length;
-        s += Math.min(2, lo) * 2;
+        q += Math.min(2, lo) * 2;
       }
-      if (x.r.trait === 'gagneur') s += 1.5;
-      if (['protect', 'control', 'leadout'].includes(effOrder(x))) s -= 6;
-      return [x, s];
+      if (x.r.trait === 'gagneur') q += 1.5;
+      // les équipiers (protéger, contrôler, poisson-pilote) ne disputent pas le sprint
+      const role = ['protect', 'control', 'leadout'].includes(effOrder(x));
+      x._sp = { pos: Math.round(posS), train: big && tr.sp === x ? tr.n : -1, big, wind: fw };
+      return { x, q, posS, role };
     });
+    const T = sprintRun(sim, ents, fw, big);
+    ord = ents.map(e => [e.x, -T.get(e.x)]);
     ord.sort((a, b) => b[1] - a[1]);
     pactFinish(sim, ord);
     if (big && ord.length > 3 && rnd() < 0.03) {

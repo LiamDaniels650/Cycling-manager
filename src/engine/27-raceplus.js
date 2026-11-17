@@ -401,7 +401,9 @@ function sprintExplain(r, d, rank, winnerSpr, forWin = true) {
   if (d.surf) f.push('il a surfé dans les roues du meilleur train');
   if (d.boxed) f.push(`il est resté enfermé (placement ${d.pos})`);
   else if (d.pos < 60) f.push(`mal placé à l'approche de la ligne (placement ${d.pos})`);
-  if (d.early) f.push(`il a lancé trop tôt${d.wind === 'face' ? ', vent de face' : ''}`);
+  if (d.early)
+    f.push(`il a lancé trop tôt${d.launch ? ` (à ${d.launch} m)` : ''}${d.wind === 'face' ? ', vent de face' : ''}`);
+  else if (d.launch && rank <= 10) f.push(`lancé à ${d.launch} m`);
   if (rank > 1 && winnerSpr - d.spr >= 4) f.push(`moins rapide que le vainqueur (sprint ${d.spr} contre ${winnerSpr})`);
   const tip = d.lost
     ? 'Gardez des poissons-pilotes frais : moins de relais dans la poursuite pour eux.'
@@ -418,6 +420,15 @@ function sprintExplain(r, d, rank, winnerSpr, forWin = true) {
   return { txt: `Sprint de ${riderName(r)} : ${lbl}${f.length ? ' — ' + f.join(', ') : ''}.`, tip };
 }
 
+// Sprinteurs adverses de la course (consigne « dans la roue de… ») : les 8 plus rapides des autres équipes.
+function rivalSprinters(rc, id) {
+  const me = S.riders[id];
+  const out = [];
+  for (const T of S.teams)
+    if (!me || T.id !== me.team)
+      for (const y of rc.sel[T.id] || []) if (!rc.out[y] && S.riders[y].s.spr >= 75) out.push(S.riders[y]);
+  return out.sort((a, b) => b.s.spr - a.s.spr).slice(0, 8);
+}
 // Les moments décisifs : les temps forts du dernier tiers de la course (ceux du joueur d'abord).
 function decisiveMoments(sim, n = 3) {
   const all = (sim.hls || []).filter(h => !/a faim/.test(h.txt) && h.km != null && h.km >= sim.dist * 0.6);

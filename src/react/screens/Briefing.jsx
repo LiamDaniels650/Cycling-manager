@@ -137,6 +137,38 @@ function Orders({ rc, spec, ids }) {
                         options={Object.entries(ATT)}
                       />
                     ) : null}
+                    {o.o === 'sprint' ? (
+                      <>
+                        <Select
+                          value={(rc.sprintPlan || {})[id] || 'auto'}
+                          onChange={v => (
+                            ((S.rc.sprintPlan = S.rc.sprintPlan || {})[id] = v === 'auto' ? null : v),
+                            save(),
+                            render()
+                          )}
+                          options={[
+                            ['auto', 'Lancement : à son idée'],
+                            ['long', 'Lancement long (≈ 300 m)'],
+                            ['court', 'Lancement court (≈ 150 m, dans les roues)'],
+                          ]}
+                        />
+                        <Select
+                          value={String((rc.sprintWheel || {})[id] || '')}
+                          onChange={v => (
+                            ((S.rc.sprintWheel = S.rc.sprintWheel || {})[id] = v ? +v : null),
+                            save(),
+                            render()
+                          )}
+                          options={[
+                            ['', 'Roue : aucune en particulier'],
+                            ...rivalSprinters(rc, id).map(y => [
+                              String(y.id),
+                              `Dans la roue de ${riderName(y)} (${y.s.spr})`,
+                            ]),
+                          ]}
+                        />
+                      </>
+                    ) : null}
                   </>
                 )}
               </div>

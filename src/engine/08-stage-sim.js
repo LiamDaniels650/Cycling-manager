@@ -111,6 +111,8 @@ function buildStageSim(rc) {
         _boxed: undefined,
         _lost: undefined,
         _sp: undefined,
+        launchPlan: (rc.sprintPlan && rc.sprintPlan[id]) || null, // ordre de sprint : 'long' | 'court'
+        wheelId: (rc.sprintWheel && rc.sprintWheel[id]) || null, // ordre de sprint : dans la roue de …
       };
       sim.runners.push(x);
       if (x.order === 'leader') {

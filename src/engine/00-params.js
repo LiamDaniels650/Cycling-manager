@@ -61,6 +61,10 @@ const R = {
 
   // --- Course ---
   sprintNoise: 4.5, // aléa du sprint (placement, timing, jambes du jour)
+  sprintVk: 0.1, // sprint simulé : vitesse de pointe (m/s) gagnée par point de qualité de sprint (16,6 m/s à 75)
+  sprintSpread: 0.8, // … mètres de retard sur la tête au dernier km par point de placement manquant (0-100)
+  sprintDraft: 0.45, // … gain de vitesse (m/s) dans la roue d'un coureur à moins de 6 m (×1,6 vent de face)
+  sprintFade: 0.7, // … perte de vitesse (m/s par s) une fois la pointe tenue (≈ 10 s)
   leaderFollow: 0.8, // chance qu'un leader suive une attaque qui compte (0,95 s'il court défensif)
   leaderFollowDef: 0.95,
   leaderFollowIdle: 0.03, // … et une attaque qui ne compte pas (bagarre pour l'échappée)
