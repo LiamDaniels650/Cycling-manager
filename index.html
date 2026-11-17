@@ -8577,6 +8577,11 @@ function finishRace(rc) {
     lines.push(`Classement par équipes : ${TW ? TW.name : '—'}${myT ? ` · votre équipe ${myT}e` : ''}.`);
     if (tl[0] === 0) S.teams[0].teamWins = (S.teams[0].teamWins || 0) + 1;
   }
+  // récit : course confiée à l'adjoint (tout), ou grande course courue sans le joueur (moments clés)
+  if (rc.delegated || (!myIds.length && rc.cat <= 1)) {
+    const story = raceStory(rc, !!rc.delegated);
+    if (story.length) lines.push('<br><b>Le récit</b> :<br>' + story.join('<br>'));
+  }
   msg(`Bilan : ${rc.name}`, lines.join('<br>'));
   S.hist.push({
     season: S.season,
@@ -12187,6 +12192,53 @@ function decisiveMoments(sim, n = 3) {
   const mine = hl.filter(h => h.mine);
   const pick = mine.concat(hl.filter(h => !h.mine)).slice(-Math.max(n, mine.length));
   return pick.sort((a, b) => a.t - b.t).slice(-n);
+}
+// ---------- Récit d'une course jouée sans le joueur (adjoint ou simulation) ----------
+// Pour chaque étape : vainqueur, sort de l'échappée, moments décisifs, et pourquoi les coureurs clés du joueur
+// ont perdu (lâché, sprint). Lecture des relevés d'étape uniquement.
+function raceStory(rc, full) {
+  const L = [];
+  const multi = rc.specs.length > 1;
+  const nm = id => {
+    const r = S.riders[id];
+    const T = r ? teamOf(r) : null;
+    return r ? `${riderName(r)}${T ? ` (${T.short})` : ''}` : '?';
+  };
+  const mine = new Set(rc.sel[0] || []);
+  const key = id => ['leader', 'sprint', 'free'].includes((rc.orders[id] || {}).o);
+  rc.stageRes.forEach((st, k) => {
+    if (!st || !st.res || !st.res.length) return;
+    const head = multi ? `<b>Ét. ${k + 1}</b> (${typeLbl(st.type).toLowerCase()}) : ` : '';
+    const parts = [`${head}🏆 ${nm(st.res[0].id)}`];
+    const b = breakExplain(st.brk);
+    if (b && (full || !multi)) parts.push(b);
+    if (st.moments && st.moments.length && (full || !multi))
+      parts.push('🎬 ' + st.moments.map(h => `km ${h.km} : ${h.txt}`).join(' · '));
+    L.push(parts.join('<br>'));
+    if (!full || !st.stats) return;
+    const res = st.res;
+    for (const e of res) {
+      if (!mine.has(e.id) || !key(e.id) || !st.stats[e.id]) continue;
+      const d = st.stats[e.id];
+      const r = S.riders[e.id];
+      if (d.sp && (rc.orders[e.id] || {}).o === 'sprint') {
+        const grp = res.filter(y => Math.abs(y.time - e.time) < 1);
+        const lead = grp[0] === res[0];
+        const x = sprintExplain(
+          r,
+          d.sp,
+          lead ? res.indexOf(e) + 1 : grp.indexOf(e) + 1,
+          S.riders[grp[0].id].s.spr,
+          lead
+        );
+        if (x) L.push('&nbsp;&nbsp;🏁 ' + x.txt);
+      } else if (e.gap > 0 && d.drop) {
+        const x = dropExplain(r, d.drop, (rc.orders[e.id] || {}).o);
+        if (x) L.push('&nbsp;&nbsp;🩺 ' + x.txt + ' ' + x.why);
+      }
+    }
+  });
+  return L;
 }
 // ---------- Résumé d'étape ----------
 // Texte brut du résumé (copiable) et lignes pour l'affichage.

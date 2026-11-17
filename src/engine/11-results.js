@@ -269,6 +269,11 @@ function finishRace(rc) {
     lines.push(`Classement par équipes : ${TW ? TW.name : '—'}${myT ? ` · votre équipe ${myT}e` : ''}.`);
     if (tl[0] === 0) S.teams[0].teamWins = (S.teams[0].teamWins || 0) + 1;
   }
+  // récit : course confiée à l'adjoint (tout), ou grande course courue sans le joueur (moments clés)
+  if (rc.delegated || (!myIds.length && rc.cat <= 1)) {
+    const story = raceStory(rc, !!rc.delegated);
+    if (story.length) lines.push('<br><b>Le récit</b> :<br>' + story.join('<br>'));
+  }
   msg(`Bilan : ${rc.name}`, lines.join('<br>'));
   S.hist.push({
     season: S.season,
