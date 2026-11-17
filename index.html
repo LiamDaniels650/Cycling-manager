@@ -2976,6 +2976,13 @@ const R = {
   murFollow: 0.99, // pour suivre une attaque sur un mur pavé, il faut 99 % de la capacité de l'attaquant (95 % ailleurs)
   murAttack: 1.2, // envie d'attaquer d'un leader sur un mur pavé du final (0,6 sur un secteur pavé plat)
   classicMarking: 65, // % du temps où un leader « se regarde » au lieu de chasser un favori parti seul (final de classique)
+  mtnChaseK: 0.65, // montagne : marge laissée à l'échappée (écarts mesurés en temps de passage, plus justes en montée)
+  summitChaseK: 0.5, // … et pour une arrivée au sommet, marge laissée par les favoris qui visent l'étape
+  mtnLeaderGap: 150, // dernière montée d'une étape : les favoris roulent eux-mêmes derrière une échappée à moins de 150 s
+  flatChaseK: 0.85, // équipes de sprinteurs : marge laissée à l'échappée (part de l'écart toléré d'origine)
+  sprintCatchKm: 8, // poursuite des équipes de sprinteurs : reprendre l'échappée vers 8 km de l'arrivée…
+  chaseAhead: 2, // … une équipe en avance sur cet objectif (vitesse de reprise > 1,4 × nécessaire) lève le pied
+  chaseBehind: 0.7, // … en retard (< 0,7 × nécessaire), elle accélère et engage un rouleur de plus
   noWorkAhead: 0.7, // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
 };
 
@@ -5987,7 +5994,9 @@ function teamChaseLevel1(sim, T, G, kmLeft) {
       // contrôler, c'est garder l'échappée à un écart raisonnable, pas la reprendre
       const t = sim.spec.type;
       let allowed =
-        t === 'montagne' || t === 'sommet' ? Math.max(180, (kmLeft - 15) * 5.5) : Math.max(60, (kmLeft - 10) * 3.5);
+        t === 'montagne' || t === 'sommet'
+          ? Math.max(180, (kmLeft - 15) * 5.5) * R.mtnChaseK
+          : Math.max(60, (kmLeft - 10) * 3.5);
       // une échappée sans danger pour le général (tous à plus de 10 minutes) a droit à bien plus de marge
       if (sim.stageRace) {
         const front = ahead.reduce((a, b) => (a.pos > b.pos ? a : b));
@@ -6001,6 +6010,23 @@ function teamChaseLevel1(sim, T, G, kmLeft) {
     }
   }
   return base;
+}
+// Projection de la poursuite : l'écart fond-il assez vite pour reprendre la tête de course vers targetKm de
+// l'arrivée ? Vitesse de reprise mesurée sur les derniers kilomètres (historique des écarts tête / peloton).
+// En avance sur l'objectif : on économise un rouleur ; en retard : on accélère et on en met un de plus.
+function chaseProject(sim, G, gap, kmLeft, targetKm, level, nw) {
+  if (G !== sim.pel || gap < 20 || kmLeft <= targetKm + 3) return [level, nw];
+  const H = sim.gapHist || [];
+  if (H.length < 6) return [level, nw];
+  const a = H[H.length - 6],
+    b = H[H.length - 1];
+  if (!a.gap || !b.gap) return [level, nw];
+  const rate = (a.gap - b.gap) / Math.max(1, b.km - a.km); // s repris par km
+  const need = gap / Math.max(1, kmLeft - targetKm);
+  if (level > 0 && rate > need * R.chaseAhead && nw > 1 && kmLeft > targetKm + 20)
+    return [Math.max(0.8, level - 0.04), nw - 1];
+  if (level > 0 && rate < need * R.chaseBehind) return [Math.min(0.97, level + 0.04), Math.min(5, nw + 1)];
+  return [level, nw];
 }
 // Niveau de poursuite « naturel » selon la situation de course (menaces au général, sprint, victoire d'étape).
 function teamChaseLevel0(sim, T, G, kmLeft) {
@@ -6050,7 +6076,7 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
     (t === 'plat' || (t === 'punch' && kmLeft < 95) || (t === 'vallonne' && kmLeft < 80 && spr.r.s.col >= 66)) &&
     !aheadMate
   ) {
-    const allowed = Math.min(300, Math.max(0, (kmLeft - 7) * 4.2));
+    const allowed = Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK;
     if (gap > allowed * 1.5 + 40) {
       level = 0.97;
       nw = 4;
@@ -6061,6 +6087,8 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
       level = 0.84;
       nw = 2;
     }
+    // projection : reprendre l'échappée vers 5-10 km de l'arrivée, pas avant, pas trop tard
+    [level, nw] = chaseProject(sim, G, gap, kmLeft, R.sprintCatchKm, level, nw);
   }
   if (ldr) {
     // menace au général ?
@@ -6127,6 +6155,7 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
           nw = gap > allowed * 1.6 ? 4 : gap > allowed * 1.2 ? 3 : 2;
         }
       }
+      [level, nw] = chaseProject(sim, G, gap, kmLeft, R.classicCatchKm - 15, level, nw);
     }
     // intérêt pour la victoire d'étape : un leader favori ne laisse pas l'échappée prendre trop d'avance
     if (
@@ -6138,12 +6167,12 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
       const lc = sim.lastClimb;
       const climbLeft = lc ? Math.max(0, lc.end - Math.max(G.pos, lc.start)) : 0;
       const allowed =
-        t === 'sommet' || t === 'punch'
+        (t === 'sommet' || t === 'punch'
           ? Math.max(
               45,
               climbLeft * (t === 'sommet' ? 52 : 24) + Math.max(0, kmLeft - climbLeft) * (t === 'sommet' ? 6 : 1.4)
             )
-          : Math.max(45, (kmLeft - 5) * 5.2);
+          : Math.max(45, (kmLeft - 5) * 5.2)) * (t === 'sommet' ? R.summitChaseK : 1);
       if (gap > allowed) {
         const l3 = gap > allowed * 1.5 ? 0.9 : 0.85;
         if (l3 > level) {
@@ -6485,8 +6514,51 @@ function effOrder(x) {
   return x.order;
 }
 // Écart en secondes entre deux groupes (distance / vitesse du groupe de derrière).
+// Écart en secondes entre deux groupes, mesuré comme en course : le temps mis par la tête de la course pour aller
+// de la position de b à celle de a (temps de passage relevés à chaque pas). L'ancienne estimation (distance divisée
+// par la vitesse du groupe de derrière) gonflait les écarts quand ce groupe était dans une montée.
+let SIMC = null; // étape en cours de simulation (temps de passage)
 function gapSec(a, b) {
-  return (Math.max(0, a.pos - b.pos) / Math.max(15, b.speed)) * 3600;
+  const d = a.pos - b.pos;
+  if (d <= 0) return 0;
+  const ta = SIMC ? passAt(SIMC, a.pos) : null,
+    tb = SIMC ? passAt(SIMC, b.pos) : null;
+  if (ta != null && tb != null) return Math.max(0, (ta - tb) * 60);
+  return (d / Math.max(15, b.speed)) * 3600;
+}
+// Temps (min) auquel la tête de la course est passée au km x (null si pas encore relevé).
+function passAt(sim, x) {
+  const T = sim.passT;
+  if (!T || x < 0) return null;
+  const f = x / STEP,
+    i = Math.floor(f);
+  if (i + 1 > sim.passN) return null;
+  return T[i] + (T[i + 1] - T[i]) * (f - i);
+}
+// Relève les temps de passage de la tête de la course pendant le pas qui vient de s'écouler.
+function recordPassage(sim) {
+  let lead = -1;
+  for (const G of sim.groups) if (G.riders.some(x => !x.fin && !x.dnf) && G.pos > lead) lead = G.pos;
+  if (lead < 0) return;
+  lead = Math.min(lead, sim.dist);
+  if (!sim.passT) {
+    sim.passT = new Float64Array(Math.ceil(sim.dist / STEP) + 2);
+    sim.passT[0] = 0;
+    sim.passN = 0;
+    sim.passPos = 0;
+    sim.passTime = 0;
+  }
+  const t1 = sim.t + DT_MIN,
+    p0 = sim.passPos,
+    t0 = sim.passTime;
+  const iMax = Math.min(sim.passT.length - 1, Math.floor(lead / STEP));
+  for (let i = sim.passN + 1; i <= iMax; i++) {
+    const x = i * STEP;
+    sim.passT[i] = lead > p0 ? t0 + ((t1 - t0) * (x - p0)) / (lead - p0) : t1;
+  }
+  if (iMax > sim.passN) sim.passN = iMax;
+  sim.passPos = Math.max(p0, lead);
+  sim.passTime = t1;
 }
 // Crée un groupe à partir de coureurs à une position donnée.
 // Un groupe de coureurs ; tous les champs sont déclarés d'emblée pour que les groupes partagent la même forme d'objet.
@@ -6540,6 +6612,7 @@ const DT_MIN = 0.5,
 // Un pas de 30 secondes : préparation, route, équipes, coureurs, physique, incidents, jonctions, passages.
 function simTick(sim) {
   if (sim.done) return;
+  SIMC = sim;
   if (sim.sd != null) withSeed(sim, () => simStep(sim));
   else simStep(sim);
 }
@@ -6550,6 +6623,7 @@ function simStep(sim) {
   for (const x of shuffle(live.slice())) decideRider(sim, x, ctx);
   radioTick(sim);
   tickPhysics(sim);
+  recordPassage(sim);
   tickIncidents(sim, live);
   tickMerges(sim);
   tickCrossings(sim);
@@ -6593,10 +6667,13 @@ function tickPrepare(sim) {
   // le peloton = le groupe principal qui contient le plus de favoris (pas forcément le plus gros : le gruppetto peut l'être)
   // un groupe composé surtout de l'échappée du jour n'est jamais « le peloton », même s'il contient des favoris
   const brkGroup = G => sim.brkIds && G.riders.filter(x => sim.brkIds.has(x.id)).length > G.riders.length / 2;
+  // un groupe de 3 favoris ou plus reste « le peloton » même réduit à moins de 10 coureurs dans le final
+  // (sinon le gruppetto, plus nombreux, prenait sa place et le groupe des favoris passait pour une échappée)
+  const favN = G => G.riders.filter(x => sim.favs.has(x.id)).length;
   const pelScore = G =>
     brkGroup(G) && sim.groups.length > 1
       ? -1
-      : G.riders.length + (G.riders.length >= 10 ? 8 * G.riders.filter(x => sim.favs.has(x.id)).length : 0);
+      : G.riders.length + (G.riders.length >= 10 || favN(G) >= 3 ? 100 * favN(G) : 0);
   // (score calculé une fois par groupe ; même choix qu'une comparaison deux à deux)
   const sc = new Map(sim.groups.map(G => [G, pelScore(G)]));
   const pel = sim.groups.reduce((a, b) => (sc.get(b) > sc.get(a) ? b : a));
@@ -7238,6 +7315,22 @@ function decideRider(sim, x, ctx) {
         : kmLeft < 25;
     if (inFinal) x.work = Math.max(x.work, eo === 'leader' ? (x.att === 'defensif' ? 0.84 : 0.9) : 0.87);
   }
+  // course par étapes, dernière montée : les favoris (groupe de référence, sans équipier devant) roulent eux-mêmes
+  // derrière une échappée encore à portée pour lui disputer la victoire d'étape et les bonifications
+  if (
+    eo === 'leader' &&
+    sim.stageRace &&
+    G === sim.pel &&
+    G.riders.length <= 15 &&
+    sim.groups[0] !== G &&
+    g >= 3 &&
+    inFinalClimb(sim, G) &&
+    sim.favs.has(x.id) &&
+    x.energy > 20 &&
+    gapSec(sim.groups[0], G) < R.mtnLeaderGap &&
+    !teamHasAhead(sim, x.team, G)
+  )
+    x.work = Math.max(x.work, 0.9);
   // classique d'un jour : dans le final, un favori sans équipier devant prend ses responsabilités et roule lui-même
   // derrière l'échappée (les leaders des classiques ne courent pas dans les roues jusqu'à la ligne)
   if (
@@ -7332,11 +7425,11 @@ function tickPhysics(sim) {
       L = mean * (1 - cw) + mx * cw + (1 - cw) * (n >= 15 ? 2.4 : 1.4) * Math.sqrt(Math.min(8, ws.length - 1));
     } else {
       const caps = [...capM.values()].sort((a, b) => a - b);
-      // personne ne roule : le peloton temporise ; dans une classique, un groupe de tête où personne ne relaie se
+      // personne ne roule : le peloton (un vrai, 20 coureurs ou plus) temporise ; dans une classique, un groupe de tête où personne ne relaie se
       // relève (ses coureurs attendent leur leader ou refusent de tirer) ; un groupe de lâchés monte à son rythme
       L =
         caps[Math.floor(caps.length * 0.5)] *
-        (G === sim.pel ? 0.64 : G.ahead && n >= 2 && !sim.stageRace ? R.noWorkAhead : 0.8);
+        (G === sim.pel && n >= 20 ? 0.64 : G.ahead && n >= 2 && !sim.stageRace ? R.noWorkAhead : 0.8);
     }
     // sur les pavés, les spécialistes en tête imposent un rythme qui fait le tri
     if (surf && n >= 6 && G.burst <= 0 && sim.dist - G.pos < sim.dist * 0.55) {

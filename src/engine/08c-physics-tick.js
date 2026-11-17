@@ -32,11 +32,11 @@ function tickPhysics(sim) {
       L = mean * (1 - cw) + mx * cw + (1 - cw) * (n >= 15 ? 2.4 : 1.4) * Math.sqrt(Math.min(8, ws.length - 1));
     } else {
       const caps = [...capM.values()].sort((a, b) => a - b);
-      // personne ne roule : le peloton temporise ; dans une classique, un groupe de tête où personne ne relaie se
+      // personne ne roule : le peloton (un vrai, 20 coureurs ou plus) temporise ; dans une classique, un groupe de tête où personne ne relaie se
       // relève (ses coureurs attendent leur leader ou refusent de tirer) ; un groupe de lâchés monte à son rythme
       L =
         caps[Math.floor(caps.length * 0.5)] *
-        (G === sim.pel ? 0.64 : G.ahead && n >= 2 && !sim.stageRace ? R.noWorkAhead : 0.8);
+        (G === sim.pel && n >= 20 ? 0.64 : G.ahead && n >= 2 && !sim.stageRace ? R.noWorkAhead : 0.8);
     }
     // sur les pavés, les spécialistes en tête imposent un rythme qui fait le tri
     if (surf && n >= 6 && G.burst <= 0 && sim.dist - G.pos < sim.dist * 0.55) {

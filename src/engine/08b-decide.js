@@ -336,6 +336,22 @@ function decideRider(sim, x, ctx) {
         : kmLeft < 25;
     if (inFinal) x.work = Math.max(x.work, eo === 'leader' ? (x.att === 'defensif' ? 0.84 : 0.9) : 0.87);
   }
+  // course par étapes, dernière montée : les favoris (groupe de référence, sans équipier devant) roulent eux-mêmes
+  // derrière une échappée encore à portée pour lui disputer la victoire d'étape et les bonifications
+  if (
+    eo === 'leader' &&
+    sim.stageRace &&
+    G === sim.pel &&
+    G.riders.length <= 15 &&
+    sim.groups[0] !== G &&
+    g >= 3 &&
+    inFinalClimb(sim, G) &&
+    sim.favs.has(x.id) &&
+    x.energy > 20 &&
+    gapSec(sim.groups[0], G) < R.mtnLeaderGap &&
+    !teamHasAhead(sim, x.team, G)
+  )
+    x.work = Math.max(x.work, 0.9);
   // classique d'un jour : dans le final, un favori sans équipier devant prend ses responsabilités et roule lui-même
   // derrière l'échappée (les leaders des classiques ne courent pas dans les roues jusqu'à la ligne)
   if (

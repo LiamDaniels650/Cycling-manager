@@ -82,6 +82,13 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `R.murFollow` | `0.99` | pour suivre une attaque sur un mur pavé, il faut 99 % de la capacité de l'attaquant (95 % ailleurs) |
 | `R.murAttack` | `1.2` | envie d'attaquer d'un leader sur un mur pavé du final (0,6 sur un secteur pavé plat) |
 | `R.classicMarking` | `65` | % du temps où un leader « se regarde » au lieu de chasser un favori parti seul (final de classique) |
+| `R.mtnChaseK` | `0.65` | montagne : marge laissée à l'échappée (écarts mesurés en temps de passage, plus justes en montée) |
+| `R.summitChaseK` | `0.5` | … et pour une arrivée au sommet, marge laissée par les favoris qui visent l'étape |
+| `R.mtnLeaderGap` | `150` | dernière montée d'une étape : les favoris roulent eux-mêmes derrière une échappée à moins de 150 s |
+| `R.flatChaseK` | `0.85` | équipes de sprinteurs : marge laissée à l'échappée (part de l'écart toléré d'origine) |
+| `R.sprintCatchKm` | `8` | poursuite des équipes de sprinteurs : reprendre l'échappée vers 8 km de l'arrivée… |
+| `R.chaseAhead` | `2` | … une équipe en avance sur cet objectif (vitesse de reprise > 1,4 × nécessaire) lève le pied |
+| `R.chaseBehind` | `0.7` | … en retard (< 0,7 × nécessaire), elle accélère et engage un rouleur de plus |
 | `R.noWorkAhead` | `0.7` | classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane) |
 
 ## Autres constantes nommées
@@ -129,13 +136,13 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `WX_REGIME` | 04-calendar.js:568 | plusieurs semaines, avec des tendances de saison (giboulées de printemps, canicules d'été, automne humide). |
 | `SPEED_K` | 05-physics.js:43 | Calibrage 2024-2025 : plat ~44 km/h, montagne ~35-38, chrono ~52, CLM par équipes ~55 (voir tests/calibrate.js). |
 | `PHY` | 05-physics.js:60 | conditions du jour : air moins dense en altitude ou par la chaleur, vent de face ou de dos, pavés, pluie. |
-| `RADIO_ACTS` | 08-stage-sim.js:219 | Consigne effective d'un coureur (radio ponctuelle, rébellion ou consigne d'avant course). |
-| `ESCORT_ORD` | 08-stage-sim.js:220 |  |
-| `DT_MIN` | 08-stage-sim.js:277 | Un pas de simulation = 30 secondes de course. |
+| `RADIO_ACTS` | 08-stage-sim.js:221 | Consigne effective d'un coureur (radio ponctuelle, rébellion ou consigne d'avant course). |
+| `ESCORT_ORD` | 08-stage-sim.js:222 |  |
+| `DT_MIN` | 08-stage-sim.js:322 | Un pas de simulation = 30 secondes de course. |
 | `SPRINT_NOISE` | 09-stage-finish.js:64 | Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints. |
-| `PW_BUCKETS` | 09-stage-finish.js:309 | Records de puissance : meilleur effort personnel par durée et palmarès mondial des ascensions (20 min et plus). |
-| `GC_CACHE` | 11-results.js:135 | Le général ne change qu'entre les étapes (ou sur abandon) : il est mis en cache et invalidé par gcDirty(). |
-| `UCI_COUNT` | 11-results.js:354 | Classement UCI par équipes (règle réelle) : somme des points de la saison de ses 20 meilleurs coureurs actuels. |
+| `PW_BUCKETS` | 09-stage-finish.js:317 | Records de puissance : meilleur effort personnel par durée et palmarès mondial des ascensions (20 min et plus). |
+| `GC_CACHE` | 11-results.js:137 | Le général ne change qu'entre les étapes (ou sur abandon) : il est mis en cache et invalidé par gcDirty(). |
+| `UCI_COUNT` | 11-results.js:361 | Classement UCI par équipes (règle réelle) : somme des points de la saison de ses 20 meilleurs coureurs actuels. |
 | `JOURNALS` | 14-press.js:2 |  |
 | `EQ_BIKES` | 15-equipment.js:5 | minRep : notoriété minimale pour que la marque vous fasse une offre ; pay : versement de base (k€/saison). |
 | `EQ_TT` | 15-equipment.js:15 | Matériel de contre-la-montre (vélo, roues pleines, combinaison). |
@@ -223,3 +230,4 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `CAR_RETIRE_AGE` | 49-career-end.js:16 |  |
 | `CAR_AFTER` | 49-career-end.js:19 |  |
 | `CAR_GC` | 49-career-end.js:123 |  |
+| `DISCO` | 50-discovery.js:7 | auto : domaines de l'adjoint qui le gèrent en attendant. |

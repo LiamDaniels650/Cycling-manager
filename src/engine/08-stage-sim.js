@@ -226,8 +226,51 @@ function effOrder(x) {
   return x.order;
 }
 // Écart en secondes entre deux groupes (distance / vitesse du groupe de derrière).
+// Écart en secondes entre deux groupes, mesuré comme en course : le temps mis par la tête de la course pour aller
+// de la position de b à celle de a (temps de passage relevés à chaque pas). L'ancienne estimation (distance divisée
+// par la vitesse du groupe de derrière) gonflait les écarts quand ce groupe était dans une montée.
+let SIMC = null; // étape en cours de simulation (temps de passage)
 function gapSec(a, b) {
-  return (Math.max(0, a.pos - b.pos) / Math.max(15, b.speed)) * 3600;
+  const d = a.pos - b.pos;
+  if (d <= 0) return 0;
+  const ta = SIMC ? passAt(SIMC, a.pos) : null,
+    tb = SIMC ? passAt(SIMC, b.pos) : null;
+  if (ta != null && tb != null) return Math.max(0, (ta - tb) * 60);
+  return (d / Math.max(15, b.speed)) * 3600;
+}
+// Temps (min) auquel la tête de la course est passée au km x (null si pas encore relevé).
+function passAt(sim, x) {
+  const T = sim.passT;
+  if (!T || x < 0) return null;
+  const f = x / STEP,
+    i = Math.floor(f);
+  if (i + 1 > sim.passN) return null;
+  return T[i] + (T[i + 1] - T[i]) * (f - i);
+}
+// Relève les temps de passage de la tête de la course pendant le pas qui vient de s'écouler.
+function recordPassage(sim) {
+  let lead = -1;
+  for (const G of sim.groups) if (G.riders.some(x => !x.fin && !x.dnf) && G.pos > lead) lead = G.pos;
+  if (lead < 0) return;
+  lead = Math.min(lead, sim.dist);
+  if (!sim.passT) {
+    sim.passT = new Float64Array(Math.ceil(sim.dist / STEP) + 2);
+    sim.passT[0] = 0;
+    sim.passN = 0;
+    sim.passPos = 0;
+    sim.passTime = 0;
+  }
+  const t1 = sim.t + DT_MIN,
+    p0 = sim.passPos,
+    t0 = sim.passTime;
+  const iMax = Math.min(sim.passT.length - 1, Math.floor(lead / STEP));
+  for (let i = sim.passN + 1; i <= iMax; i++) {
+    const x = i * STEP;
+    sim.passT[i] = lead > p0 ? t0 + ((t1 - t0) * (x - p0)) / (lead - p0) : t1;
+  }
+  if (iMax > sim.passN) sim.passN = iMax;
+  sim.passPos = Math.max(p0, lead);
+  sim.passTime = t1;
 }
 // Crée un groupe à partir de coureurs à une position donnée.
 // Un groupe de coureurs ; tous les champs sont déclarés d'emblée pour que les groupes partagent la même forme d'objet.
@@ -281,6 +324,7 @@ const DT_MIN = 0.5,
 // Un pas de 30 secondes : préparation, route, équipes, coureurs, physique, incidents, jonctions, passages.
 function simTick(sim) {
   if (sim.done) return;
+  SIMC = sim;
   if (sim.sd != null) withSeed(sim, () => simStep(sim));
   else simStep(sim);
 }
@@ -291,6 +335,7 @@ function simStep(sim) {
   for (const x of shuffle(live.slice())) decideRider(sim, x, ctx);
   radioTick(sim);
   tickPhysics(sim);
+  recordPassage(sim);
   tickIncidents(sim, live);
   tickMerges(sim);
   tickCrossings(sim);
@@ -334,10 +379,13 @@ function tickPrepare(sim) {
   // le peloton = le groupe principal qui contient le plus de favoris (pas forcément le plus gros : le gruppetto peut l'être)
   // un groupe composé surtout de l'échappée du jour n'est jamais « le peloton », même s'il contient des favoris
   const brkGroup = G => sim.brkIds && G.riders.filter(x => sim.brkIds.has(x.id)).length > G.riders.length / 2;
+  // un groupe de 3 favoris ou plus reste « le peloton » même réduit à moins de 10 coureurs dans le final
+  // (sinon le gruppetto, plus nombreux, prenait sa place et le groupe des favoris passait pour une échappée)
+  const favN = G => G.riders.filter(x => sim.favs.has(x.id)).length;
   const pelScore = G =>
     brkGroup(G) && sim.groups.length > 1
       ? -1
-      : G.riders.length + (G.riders.length >= 10 ? 8 * G.riders.filter(x => sim.favs.has(x.id)).length : 0);
+      : G.riders.length + (G.riders.length >= 10 || favN(G) >= 3 ? 100 * favN(G) : 0);
   // (score calculé une fois par groupe ; même choix qu'une comparaison deux à deux)
   const sc = new Map(sim.groups.map(G => [G, pelScore(G)]));
   const pel = sim.groups.reduce((a, b) => (sc.get(b) > sc.get(a) ? b : a));

@@ -505,7 +505,9 @@ function teamChaseLevel1(sim, T, G, kmLeft) {
       // contrôler, c'est garder l'échappée à un écart raisonnable, pas la reprendre
       const t = sim.spec.type;
       let allowed =
-        t === 'montagne' || t === 'sommet' ? Math.max(180, (kmLeft - 15) * 5.5) : Math.max(60, (kmLeft - 10) * 3.5);
+        t === 'montagne' || t === 'sommet'
+          ? Math.max(180, (kmLeft - 15) * 5.5) * R.mtnChaseK
+          : Math.max(60, (kmLeft - 10) * 3.5);
       // une échappée sans danger pour le général (tous à plus de 10 minutes) a droit à bien plus de marge
       if (sim.stageRace) {
         const front = ahead.reduce((a, b) => (a.pos > b.pos ? a : b));
@@ -519,6 +521,23 @@ function teamChaseLevel1(sim, T, G, kmLeft) {
     }
   }
   return base;
+}
+// Projection de la poursuite : l'écart fond-il assez vite pour reprendre la tête de course vers targetKm de
+// l'arrivée ? Vitesse de reprise mesurée sur les derniers kilomètres (historique des écarts tête / peloton).
+// En avance sur l'objectif : on économise un rouleur ; en retard : on accélère et on en met un de plus.
+function chaseProject(sim, G, gap, kmLeft, targetKm, level, nw) {
+  if (G !== sim.pel || gap < 20 || kmLeft <= targetKm + 3) return [level, nw];
+  const H = sim.gapHist || [];
+  if (H.length < 6) return [level, nw];
+  const a = H[H.length - 6],
+    b = H[H.length - 1];
+  if (!a.gap || !b.gap) return [level, nw];
+  const rate = (a.gap - b.gap) / Math.max(1, b.km - a.km); // s repris par km
+  const need = gap / Math.max(1, kmLeft - targetKm);
+  if (level > 0 && rate > need * R.chaseAhead && nw > 1 && kmLeft > targetKm + 20)
+    return [Math.max(0.8, level - 0.04), nw - 1];
+  if (level > 0 && rate < need * R.chaseBehind) return [Math.min(0.97, level + 0.04), Math.min(5, nw + 1)];
+  return [level, nw];
 }
 // Niveau de poursuite « naturel » selon la situation de course (menaces au général, sprint, victoire d'étape).
 function teamChaseLevel0(sim, T, G, kmLeft) {
@@ -568,7 +587,7 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
     (t === 'plat' || (t === 'punch' && kmLeft < 95) || (t === 'vallonne' && kmLeft < 80 && spr.r.s.col >= 66)) &&
     !aheadMate
   ) {
-    const allowed = Math.min(300, Math.max(0, (kmLeft - 7) * 4.2));
+    const allowed = Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK;
     if (gap > allowed * 1.5 + 40) {
       level = 0.97;
       nw = 4;
@@ -579,6 +598,8 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
       level = 0.84;
       nw = 2;
     }
+    // projection : reprendre l'échappée vers 5-10 km de l'arrivée, pas avant, pas trop tard
+    [level, nw] = chaseProject(sim, G, gap, kmLeft, R.sprintCatchKm, level, nw);
   }
   if (ldr) {
     // menace au général ?
@@ -645,6 +666,7 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
           nw = gap > allowed * 1.6 ? 4 : gap > allowed * 1.2 ? 3 : 2;
         }
       }
+      [level, nw] = chaseProject(sim, G, gap, kmLeft, R.classicCatchKm - 15, level, nw);
     }
     // intérêt pour la victoire d'étape : un leader favori ne laisse pas l'échappée prendre trop d'avance
     if (
@@ -656,12 +678,12 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
       const lc = sim.lastClimb;
       const climbLeft = lc ? Math.max(0, lc.end - Math.max(G.pos, lc.start)) : 0;
       const allowed =
-        t === 'sommet' || t === 'punch'
+        (t === 'sommet' || t === 'punch'
           ? Math.max(
               45,
               climbLeft * (t === 'sommet' ? 52 : 24) + Math.max(0, kmLeft - climbLeft) * (t === 'sommet' ? 6 : 1.4)
             )
-          : Math.max(45, (kmLeft - 5) * 5.2);
+          : Math.max(45, (kmLeft - 5) * 5.2)) * (t === 'sommet' ? R.summitChaseK : 1);
       if (gap > allowed) {
         const l3 = gap > allowed * 1.5 ? 0.9 : 0.85;
         if (l3 > level) {
