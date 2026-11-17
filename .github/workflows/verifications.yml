@@ -1,0 +1,31 @@
+# Vérifications à chaque push et pull request : lint, types, empreinte de la simulation, tests fonctionnels.
+# (La calibration, plus longue, se lance à la main : ./dev.sh calib.)
+name: Vérifications
+on:
+  push:
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Lint, types, empreinte
+        run: ./dev.sh check
+      - name: Tests fonctionnels
+        run: node tests/features.js
+      - name: Non-régression
+        run: bash tests/regress.sh
+      - name: Format (Prettier)
+        run: npx prettier --check src/engine/*.js src/ui/*.js tests/*.js tools/*.js tools/*.mjs
+      - name: Interface React assemblée
+        run: node tools/build_react.mjs
