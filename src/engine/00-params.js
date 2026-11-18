@@ -74,7 +74,7 @@ const R = {
   breakTry: 0.1, // chance par pas de temps qu'un candidat à l'échappée attaque (× baroud / 72)
   hunterTry: 0.6, // idem pour le chasseur du maillot de la montagne (× max(baroud, montagne) / 72)
   hunterBridge: 180, // le chasseur part en contre tant que l'échappée a moins de 180 s
-  hunterShare: 70, // % des équipes sans ambition au général qui désignent un chasseur de maillot
+  hunterShare: 85, // % des équipes sans ambition au général qui désignent un chasseur de maillot
   hunterMon: 77, // note de montagne minimale du chasseur
   sitUpPace: 0.74, // allure d'un chasseur relevé (part de la capacité médiane du groupe)
   // classiques d'un jour : les équipes des favoris contrôlent l'échappée (écart toléré = (km restants − catchKm) × gapKm s)
@@ -90,13 +90,13 @@ const R = {
   classicCoGap: 2.5, // … à moins de 2,5 points d'aptitude au final du parcours
   cobbleBlowN: 12, // final d'une classique pavée : seul un groupe d'au moins 12 coureurs est dynamité par le plus fort
   murPace: 1.1, // mur pavé dans le final d'une classique : allure du plus fort du groupe (part de sa capacité)
-  lastClimbPace: 1.04, // dernière côte d'une classique accidentée : allure du plus fort du groupe des favoris
+  lastClimbPace: 1.07, // dernière côte d'une classique accidentée : allure du plus fort du groupe des favoris
   murFollow: 0.99, // pour suivre une attaque sur un mur pavé, il faut 99 % de la capacité de l'attaquant (95 % ailleurs)
   murAttack: 1.2, // envie d'attaquer d'un leader sur un mur pavé du final (0,6 sur un secteur pavé plat)
   classicMarking: 65, // % du temps où un leader « se regarde » au lieu de chasser un favori parti seul (final de classique)
   mtnChaseK: 0.65, // montagne : marge laissée à l'échappée (écarts mesurés en temps de passage, plus justes en montée)
   summitChaseK: 0.5, // … et pour une arrivée au sommet, marge laissée par les favoris qui visent l'étape
-  mtnLeaderGap: 150, // dernière montée d'une étape : les favoris roulent eux-mêmes derrière une échappée à moins de 150 s
+  mtnLeaderGap: 180, // dernière montée d'une étape : les favoris roulent eux-mêmes derrière une échappée à moins de 180 s
   flatChaseK: 0.85, // équipes de sprinteurs : marge laissée à l'échappée (part de l'écart toléré d'origine)
   sprintCatchKm: 8, // poursuite des équipes de sprinteurs : reprendre l'échappée vers 8 km de l'arrivée…
   chaseAhead: 2, // … une équipe en avance sur cet objectif (vitesse de reprise > 1,4 × nécessaire) lève le pied

@@ -265,18 +265,177 @@ function NamesFile() {
     </Card>
   );
 }
+// Base complète : noms, attributs des coureurs, parcours (fichier à partager entre joueurs).
+function DbFile() {
+  const [txt, setTxt] = useState('');
+  const apply = t => {
+    let o = null;
+    try {
+      o = JSON.parse(t);
+    } catch (e) {}
+    const res = importDb(o);
+    if (res.ok) done(null, '🗃️ ' + res.txt);
+    else alertBox(res.txt);
+  };
+  const exportFile = async () => {
+    const data = JSON.stringify(exportDb(), null, 1);
+    try {
+      const cl = /** @type {any} */ (window).claude;
+      const dl = cl && cl.use ? await cl.use('downloads') : null;
+      if (!dl) throw new Error('indisponible');
+      await dl.save({ filename: `base-directeur-sportif-${S.season}.json`, data });
+      UI.flash = '💾 Base proposée au téléchargement.';
+      render();
+    } catch (e) {
+      setTxt(data);
+      UI.flash = 'Téléchargement impossible ici : la base est affichée ci-dessous, copiez-la.';
+      render();
+    }
+  };
+  return (
+    <Card title="🗃️ Base de données">
+      <p className="text-sm text-slate-300">
+        Toute la base dans un fichier : équipes, coureurs avec leurs caractéristiques (plat, montagne, collines, sprint,
+        chrono, pavés, descente, placement, endurance, récupération, attaque), âge, nationalité, profil, poids,
+        caractère, plafond, et les parcours importés. Modifiez-la, partagez-la, réimportez-la.
+      </p>
+      <ul className="mt-2 list-disc pl-5 text-xs text-slate-400">
+        <li>Un coureur est reconnu par son numéro (id) ; les valeurs sont bornées (caractéristiques 30 à 95).</li>
+        <li>
+          Un coureur sans numéro (avec au moins nom et profil) est créé et rejoint les coureurs libres : c'est ainsi
+          qu'on ajoute des coureurs réels.
+        </li>
+        <li>Un fichier de noms (onglet Fichier) s'importe aussi ici.</li>
+      </ul>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Btn onClick={exportFile}>💾 Exporter la base</Btn>
+        <label className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-slate-800 px-3 text-sm font-medium text-slate-100 ring-1 ring-slate-700">
+          📂 Importer
+          <input
+            type="file"
+            accept=".json,application/json,text/plain"
+            className="hidden"
+            onChange={e => {
+              const f = e.target.files && e.target.files[0];
+              if (f) f.text().then(apply);
+              e.target.value = '';
+            }}
+          />
+        </label>
+      </div>
+      <textarea
+        rows={4}
+        value={txt}
+        onChange={e => setTxt(e.target.value)}
+        placeholder="…ou collez ici le contenu d'une base"
+        className="mt-3 w-full rounded-xl border border-slate-700 bg-slate-800 p-2 text-xs text-slate-100"
+      />
+      <Btn className="mt-2" disabled={!txt.trim()} onClick={() => apply(txt)}>
+        Appliquer le texte collé
+      </Btn>
+    </Card>
+  );
+}
+// Parcours réels : une trace GPX devient le profil d'une étape du calendrier.
+function Gpx() {
+  const races = RACE_DEFS.filter(d => !d.worlds).sort((a, b) => a.w - b.w);
+  const [key, setKey] = useState(races[0].key);
+  const [si, setSi] = useState(0);
+  const [prev, setPrev] = useState(null);
+  const d = RACE_DEFS.find(x => x.key === key);
+  const stages = d.stages
+    .map((st, i) => [i, st])
+    .filter(([, st]) => st[2] !== 'R' && !['clm', 'clmeq'].includes(st[0]));
+  const k = `${key}:${si}`;
+  const cur = (S.customProf || {})[k];
+  const read = f =>
+    f.text().then(t => {
+      const p = parseGpx(t);
+      if (p.err) alertBox(p.err);
+      else setPrev({ ...p, nom: f.name.replace(/\.gpx$/i, '') });
+    });
+  return (
+    <Card title="🗺️ Parcours GPX">
+      <p className="text-sm text-slate-300">
+        Importez la trace GPX d'une vraie étape (avec altitudes) : elle devient le parcours de l'étape choisie, saison
+        après saison. Le type d'étape (plat, vallonné, bosse, montagne, arrivée au sommet) est déduit du profil.
+      </p>
+      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <Select
+          value={key}
+          onChange={v => (setKey(v), setSi(0), setPrev(null))}
+          options={races.map(r => [r.key, raceNameOf(r.key)])}
+        />
+        <Select
+          value={String(si)}
+          onChange={v => (setSi(+v), setPrev(null))}
+          options={stages.map(([i, st]) => [
+            String(i),
+            `${d.stages.length > 1 ? `Étape ${i + 1} — ` : ''}${typeLbl(st[0])}, ${st[1]} km`,
+          ])}
+        />
+      </div>
+      {cur ? (
+        <div className="mt-2 rounded-xl bg-slate-800/60 p-2.5 text-sm">
+          Parcours actuel : <b>{cur.nom || 'importé'}</b> — {typeLbl(cur.type)}, {cur.dist} km
+          <Btn className="ml-2" onClick={() => (clearCustomProfile(k), done(null, '🗺️ Parcours d’origine rétabli.'))}>
+            Rétablir l'original
+          </Btn>
+        </div>
+      ) : null}
+      <label className="mt-3 inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-slate-800 px-3 text-sm font-medium text-slate-100 ring-1 ring-slate-700">
+        📂 Choisir un fichier GPX
+        <input
+          type="file"
+          accept=".gpx,application/gpx+xml,application/xml,text/xml"
+          className="hidden"
+          onChange={e => {
+            const f = e.target.files && e.target.files[0];
+            if (f) read(f);
+            e.target.value = '';
+          }}
+        />
+      </label>
+      {prev ? (
+        <div className="mt-3 rounded-xl border border-sky-500/40 p-2.5 text-sm">
+          <b>{prev.nom}</b> : {fmtDec(prev.dist)} km, {prev.gain} m de dénivelé positif, départ à {prev.startAlt} m —
+          type déduit : <b>{typeLbl(prev.type)}</b>
+          <div className="mt-2">
+            <Btn
+              primary
+              onClick={() => {
+                const ok = setCustomProfile(k, prev);
+                setPrev(null);
+                if (ok) done(null, `🗺️ Parcours appliqué à ${raceNameOf(key)}.`);
+                else alertBox('Cette étape ne peut pas recevoir de parcours (contre-la-montre ou repos).');
+              }}
+            >
+              Appliquer à cette étape
+            </Btn>
+          </div>
+        </div>
+      ) : null}
+      <p className="mt-2 text-xs text-slate-400">
+        La course en cours n'est pas modifiée ; la prochaine édition prend le nouveau parcours. Les contre-la-montre
+        gardent leur parcours.
+      </p>
+    </Card>
+  );
+}
 const TABS = [
   ['teams', 'Équipes'],
   ['riders', 'Coureurs'],
   ['races', 'Courses'],
   ['file', 'Fichier'],
+  ['base', '🗃️ Base'],
+  ['gpx', '🗺️ GPX'],
 ];
 export function Names() {
   const tab = UI.namesTab || 'teams';
-  const V = { teams: Teams, riders: Riders, races: Races, file: NamesFile }[tab];
+  const V = { teams: Teams, riders: Riders, races: Races, file: NamesFile, base: DbFile, gpx: Gpx }[tab];
   return (
     <div className="space-y-3">
-      <h2 className="px-1 text-lg font-bold text-slate-50">✏️ Tes vrais noms</h2>
+      <h2 className="px-1 text-lg font-bold text-slate-50">✏️ Éditeur : noms, base, parcours</h2>
       <Tabs items={TABS} value={tab} onChange={k => ((UI.namesTab = k), render())} />
       <V />
     </div>

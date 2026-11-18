@@ -299,12 +299,13 @@ export function Options() {
           Passer au mode carrière
         </Btn>
       </Card>
-      <Card title="✏️ Tes vrais noms">
+      <Card title="✏️ Éditeur et base de données">
         <p className="text-xs text-slate-400">
-          Renomme les équipes, les coureurs et les courses, ou importe un fichier de noms préparé sur ordinateur.
+          Renomme les équipes, les coureurs et les courses ; exporte ou importe toute la base (caractéristiques des
+          coureurs comprises) ; importe des parcours réels au format GPX.
         </p>
         <Btn primary className="mt-2 w-full" onClick={() => go('names')}>
-          Ouvrir l'éditeur de noms
+          Ouvrir l'éditeur
         </Btn>
       </Card>
       <Card title="Équipe">
