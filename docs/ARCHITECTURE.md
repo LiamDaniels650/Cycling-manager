@@ -1,7 +1,9 @@
 # Directeur Sportif — guide du code
 
-Un seul fichier jouable (`dist/index.html`) assemblé à partir de `src/` par `build.py` : le moteur
-(`src/engine/*.js`, ordre alphabétique) puis l'interface (`src/ui/*.js`), insérés dans `src/shell.html`.
+Un seul fichier jouable (`dist/index.html`) assemblé par `tools/build_react.mjs` : le moteur
+(`src/engine/*.js`, ordre alphabétique), les fonctions d'action de l'interface (`src/ui/*.js` : sauvegarde,
+navigation, course en direct, sans affichage) et l'application React (`src/react`), avec les styles de
+`src/shell.html`. `build.py` n'assemble plus que le moteur pour les tests.
 Tout est global (pas de modules) ; les fonctions sont des déclarations, donc l'ordre des fichiers ne compte
 qu'au chargement des constantes. `dist/engine.js` (moteur seul) sert aux tests Node.
 
@@ -126,7 +128,7 @@ commun : `carSelHook` (06-race-setup), `carOrderHook` et `sim.carId` (08-stage-s
 | `tests/bias.js`, `tests/audit.js` | biais d'ordre, cohérence sur plusieurs saisons |
 | `tests/prodigies.js` | jeunes talents sur 9 saisons |
 | `tests/career.js` | mode carrière : une carrière simulée de 16 ans à 24 ans, avec vérifications (`./dev.sh carriere`) |
-| `tests/ui_*.py`, `tests/playthrough.py` | interface dans le navigateur (Playwright) |
+| `tests/ui_*_react.py`, `tests/ui_worker.py`, `tests/play_react.py` | interface React dans le navigateur (Playwright) |
 
 ## Conventions
 

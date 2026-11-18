@@ -318,7 +318,7 @@ export function Options() {
         <Btn danger onClick={newGameConfirm}>
           Nouvelle partie
         </Btn>
-        <p className="mt-2 text-xs text-slate-400">Version 4.14</p>
+        <p className="mt-2 text-xs text-slate-400">Version 5.0</p>
       </Card>
       <EngineBench />
       <Guide />

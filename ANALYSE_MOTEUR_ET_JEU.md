@@ -100,59 +100,43 @@ J'avais travaillé sur le seul fichier compilé. Les sources et la calibration c
 
 ---
 
-## 3. Moteur : ce qui reste à améliorer
+## 3. Version 5.0 : ce qui a été fait (troisième passe)
 
-### 🔴 P1. Résolution fine dans les finals
-Le pas de 30 s (`DT_MIN`) correspond à environ 375 m sur le plat. C'est parfait pour 90 % de l'étape, mais trop grossier pour une attaque à la flamme rouge ou un sprint.
-- **Pas adaptatif** de 5 à 10 s dans les 3 derniers km et dans la fin de la dernière montée. **Attention** : plusieurs minuteries comptent en pas et non en minutes (`burst`, `noMerge`, `waitCD`). Il faut d'abord les convertir en temps, puis vérifier l'empreinte et la calibration.
-- **Sprint simulé** dans les 1 500 derniers mètres au lieu de la formule de `finishGroup` (`09-stage-finish.js`) : désagrégation du train, moment du lancement, sillage, enfermement. Cela ouvrirait des ordres de jeu (« lance à 250 m », « prends la roue de X »). Les indicateurs « enfermé », « parti trop tôt » et « train perdu » existent déjà et serviraient de base.
+Tout est sur la branche, commit par commit, avec les tests. **Calibration de référence : 40 mesures sur 40 dans les plages réelles, sur 2 × 60 saisons** (graines 200 et 300).
 
-### 🟠 P2. Remplacer des seuils par des estimations
-La poursuite suit des règles du type « (km restants − 15) × 5,5 s » (`teamChaseLevel1`). Il serait plus juste de **prédire la jonction** à partir des vitesses réelles des groupes et des rouleurs disponibles. `finale.js` calcule déjà une projection d'écart pour l'affichage : il suffirait de la réutiliser dans l'IA. Les attaques gagneraient à généraliser `attackUtility` : chance estimée de tenir jusqu'à l'arrivée multipliée par l'enjeu.
+### Moteur
+- **IA de course.** Le « peloton » est désormais le groupe qui compte le plus de favoris, même réduit dans le final : le gruppetto ne prend plus sa place (de 2,9 % des pas de course à 0,35 %). Les écarts sont mesurés **en temps de passage**, comme dans une vraie course ; avant, la distance était divisée par la vitesse du groupe de derrière, ce qui gonflait les écarts en montée (« +23' » au Tour des Flandres). La poursuite se fait **par projection** : l'équipe compare la vitesse à laquelle l'écart fond à celle qu'il faut pour reprendre l'échappée à temps, puis accélère ou économise. Sur la dernière montée, les favoris roulent eux-mêmes derrière une échappée encore à portée.
+- **Sprint simulé** au quart de seconde sur le dernier kilomètre : place dans le groupe, trains, distance de lancement, pointe tenue puis déclin, aspiration, enfermement. Il remplace la formule de score. Le meilleur sprinteur présent gagne 41 à 43 % des sprints massifs (réel : 30-60 %).
+- **Progression décimale** (fraction de point cachée, sans paliers aléatoires), modulée par la charge de course.
+- **Poids de forme** : kilos pris à l'intersaison, reperdus à l'entraînement et en course, coût d'environ 1,3 % par kilo dans les fortes pentes.
+- **Secteurs pavés de 1 à 5 étoiles** : roulement, crevaisons, chutes et poids de la caractéristique Pavés.
 
-### 🟡 P3. La définition du « peloton » (mesurée, laissée telle quelle)
-Le « peloton » est le groupe qui compte le plus de favoris, mais seulement s'il a au moins 10 coureurs. Quand les favoris se retrouvent à moins de 10 dans le final, le groupe de derrière devient « le peloton » et celui des favoris est traité comme une échappée. Mesure : **2,9 % des pas, dans 45 % des étapes, presque uniquement dans les finals**. C'est assez réaliste (une sélection de favoris court comme un groupe de tête), et la calibration est réglée avec ce comportement : je ne l'ai pas modifié. Il gonfle en revanche les kilomètres « en tête » des favoris, qui servent au prix de la combativité. À corriger le jour où ce prix compte.
+### Jeu
+- **Tout est expliqué** : pourquoi un coureur a lâché ; un sprint perdu ou gagné (placement, train, lancement, enfermement, écart de vitesse) ; une échappée reprise (où, par qui, à quelle vitesse) ou allée au bout ; les raisons d'une désobéissance ; les moments décisifs.
+- **Ordres de sprint** dans le briefing : lancement long ou court, dans la roue d'un sprinteur adverse. Un lancement long n'est rentable que pour un coureur endurant, et prendre la roue du plus rapide paie.
+- **Récit des courses** confiées à l'adjoint, et **film de la saison** (Statistiques → Film) : grandes victoires, coureur de l'année, révélations, records, histoires, mercato, adieux.
+- **Découverte progressive** : presse, planification, staff, équipementiers, histoires et académie se débloquent au fil de la première saison.
+- **Base de données ouverte** : export et import de toute la base (caractéristiques des coureurs comprises), ajout de coureurs, **parcours réels importés en GPX** (type d'étape déduit du profil).
 
-### ✅ P4. Mesures des classiques : fait (voir 0 bis)
+### Technique
+- **Une seule interface (React)** : environ 2 080 lignes de l'ancienne interface supprimées, tests navigateur portés sur React. Le jeu passe de 1 329 à 1 190 Ko.
+- **Intégration continue GitHub** : lint, types, empreinte, tests fonctionnels et non-régression à chaque push.
 
-### 🟡 P5. Progression par points entiers
-`trainGain` ajoute +1 point avec une certaine probabilité. Garder une valeur décimale cachée lisserait la progression d'une semaine à l'autre. Cela change la simulation : à faire avec `./dev.sh prodiges` et la calibration. La vitesse de progression des jeunes a déjà été recalée (voir 0 bis).
-
-### 🟡 P7. Bruit de mesure de la calibration
-Avec 30 saisons, une mesure qui porte sur 60 à 120 courses (les classiques) a une incertitude d'environ ±0,05. Une mesure proche d'une borne peut donc basculer d'une exécution à l'autre sans que rien n'ait changé. Pour les classiques, `./dev.sh calib 60` donnerait des verdicts plus stables, pour un temps doublé.
-
-### ⚪ P6. Performances : pas de priorité
-Il faut environ 105 ms par étape, soit 17 s par saison, dans un Web Worker. Le profil montre un coût réparti dans `tickPhysics`, `tickTeamPlans` et `decideRider`, sans goulot unique. Un gain de 20 à 30 % est possible avec beaucoup de micro-optimisations délicates. Ce n'est utile que pour un mode « simuler 20 saisons ».
-
----
-
-## 4. Côté jeu
-
-### Points forts
-- Contenu très dense : WorldTour avec promotions et relégations, sponsor, staff, centre de formation, matériel, reconnaissance, ravitaillement, commissaires, presse, relations entre coureurs, histoires, Mondiaux, **mode carrière de coureur complet**, **délégation à l'adjoint**.
-- Consignes expressives : rôles, styles d'attaque, radio, ordres conditionnels, alliances de poursuite. Le DS automatique utilise le même cerveau que l'IA.
-- La désobéissance (discipline, ambition, relations) donne de la personnalité aux coureurs.
-
-### À améliorer
-1. **Expliquer encore plus**. C'est commencé avec « Pourquoi ils ont lâché ». La même logique pourrait s'étendre aux sprints perdus (les indicateurs existent), aux échappées reprises (« reprise à 4 km : AVE et ALP ont roulé à 3 ») et aux désobéissances (« il voulait sa chance : ambition 85, relation tendue avec le leader »).
-2. **Décider dans les finals** : cela dépend de la priorité moteur P1.
-3. **Base de données ouverte et éditeur** (équipes, coureurs, courses, parcours, import GPX). C'est ce qui fait durer PCM depuis 20 ans. L'export de noms existe déjà.
-4. **Découverte progressive des systèmes** : avec plus de 50 systèmes, il faut débloquer staff, matériel et relations au fil des saisons.
-5. **Interface** : deux interfaces coexistent, React et l'ancienne en chaînes HTML. La nouvelle explication n'est branchée que sur l'interface React, qui est le jeu principal selon le README.
+### Ce que je n'ai pas fait, et pourquoi
+- **Pas de simulation plus fin dans les finals.** Le sprint, le seul moment où le pas de 30 s posait vraiment problème, est maintenant simulé à part au quart de seconde. Sur une montée finale, 30 s font environ 170 m, ce qui suffit à départager les grimpeurs. Changer le pas obligerait à revoir environ 80 tirages au sort et une dizaine de minuteries comptées en pas : un gros risque pour un gain faible.
+- **Performances.** Le coût reste réparti, sans goulot unique, et une saison se calcule en arrière-plan en une vingtaine de secondes. Ce n'est pas un problème pour le joueur.
 
 ---
 
-## 5. Feuille de route conseillée
+## 4. Ce qui reste possible
 
-| Ordre | Chantier | Effort | Effet |
-|---|---|---|---|
-| ✅ | Classiques réalistes (favoris, solos, échappées) ; jours de course ; prodiges | — | Fait |
-| 2 | Explications étendues : sprints, échappées reprises, désobéissances | Faible | Fort (jeu) |
-| 3 | Minuteries en temps, puis pas adaptatif dans les finals | Moyen | Fort |
-| 4 | Sprint simulé avec ordres de timing | Moyen-élevé | Fort |
-| 5 | IA de poursuite fondée sur la projection de jonction | Moyen | Fort |
-| 6 | Base de données ouverte et éditeur | Moyen-élevé | Durée de vie |
-| 7 | Progression décimale | Faible | Confort |
+| Chantier | Effort | Intérêt |
+|---|---|---|
+| Ordres de sprint aussi à la radio, pendant la course | Faible | Jeu |
+| Une base « réelle » prête à importer (pelotons 2026 refaits par la communauté) | Contenu | Durée de vie |
+| Éditeur de coureur dans le jeu (aujourd'hui : par le fichier de base) | Moyen | Confort |
+| Mesures de calibration en plus (taille de l'échappée au départ, marges des sprints) | Faible | Réalisme |
+| Pas adaptatif dans les finals | Élevé | Faible (voir plus haut) |
 
 ---
 
@@ -165,12 +149,12 @@ Ce que PCM 26 annonce de neuf : un mode « Simulation détaillée » qui fait to
 | Granularité | Groupes, pas de 30 s, placement abstrait | Chaque coureur dans l'espace 3D, en temps réel | **PCM** (sprints, placement, chutes en chaîne) |
 | Physiologie | CP/W′, durabilité, allumettes, fringale, altitude, chaleur, froid, jours sans | Jauges d'énergie et d'effort, forme du jour | **Directeur Sportif** |
 | Physique | Air, vent par tronçons, pavés, descentes, pluie ; vitesse dérivée des notes par terrain | Non publiée | Égalité |
-| Sprint | Formule de score (placement, train, vent, enfermement) | Trains simulés en 3D | **PCM** |
+| Sprint | **Simulé au quart de seconde** sur le dernier km (placement, train, lancement, aspiration, enfermement), avec ordres de sprint | Trains simulés en 3D | Égalité sur le fond ; PCM le montre en 3D |
 | IA tactique | Cerveau de DS explicite : contrôle, durcir, attentisme, coopération, pactes, chasseurs de maillot, désobéissance | Réputée inégale (échappées, poursuites) | **Directeur Sportif** sur l'intention tactique |
-| Validation | **40 mesures comparées au réel**, empreinte, tests de biais | Non publiée | **Directeur Sportif** |
+| Validation | **40 mesures comparées au réel (2 × 60 saisons)**, empreinte, tests de biais, intégration continue | Non publiée | **Directeur Sportif** |
 | Reproductibilité | Une graine par étape | Non | **Directeur Sportif** |
 | Vitesse de simulation | ~0,1 s par étape, une saison en ~17 s | Temps réel, ou simulation détaillée | **Directeur Sportif** |
-| Ampleur du monde | 18 équipes, 37 courses, monde fictif | Base réelle, modding | **PCM** de loin |
+| Ampleur du monde | 18 équipes, 37 courses, monde fictif ; **base ouverte (JSON) et parcours GPX** | Base réelle, modding | **PCM** (sa base réelle), mais l'écart d'outillage est comblé |
 | Planification | Pics de forme, altitude, planificateur, délégation | Rôles de saison, Tour/Classics Focus | Égalité |
 
 **Mon avis** : sur le cœur de la simulation, ton moteur est au niveau de PCM et le dépasse sur la physiologie, la lisibilité de l'IA et surtout la **validation** : aucun PCM ne publie une calibration contre le réel. Les deux jeux font un choix différent. PCM simule chaque coureur dans l'espace, alors que le tien simule des groupes intelligents, ce qui est cohérent avec un jeu de gestion jouable sur téléphone. Pour rivaliser vraiment, il reste **le final au mètre près** (sprints et attaques), et surtout **l'ampleur et le modding**, qui relèvent du contenu et des outils plus que du moteur.

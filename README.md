@@ -5,14 +5,16 @@ Jeu de gestion d'équipe cycliste joué dans le navigateur, en un seul fichier H
 ## Dans ce dépôt
 
 - `index.html` : le jeu prêt à jouer (ouvrir dans un navigateur).
-- Construire depuis les sources : `npm install`, puis `npm run build` (ou `python3 build.py` puis
-  `node tools/build_react.mjs`). Le jeu principal (interface React) sort dans `dist/react.html` ; le moteur seul,
-  utilisé par les tests Node, dans `dist/engine.js`. Copier `dist/react.html` en `index.html` pour publier.
-- Vérifications : `./dev.sh check` (lint, types, empreinte de la simulation), `./dev.sh calib` (réalisme),
-  `node tests/career.js`, `node tests/career_impact.js`, `python3 tests/play_react.py` (parties jouées par clics,
-  Playwright).
+- Construire depuis les sources : `npm install`, puis `npm run build` (ou `./dev.sh build`). Le jeu (interface
+  React) sort dans `dist/index.html` (et `dist/react.html`) ; le moteur seul, utilisé par les tests Node, dans
+  `dist/engine.js`. Copier `dist/index.html` en `index.html` pour publier.
+- Vérifications : `./dev.sh check` (lint, types, empreinte de la simulation), `./dev.sh test` (tout, interface
+  comprise), `./dev.sh calib 60` (réalisme, 2 × 60 saisons), `node tests/career.js`, `python3 tests/play_react.py`.
+  L'intégration continue GitHub (`.github/workflows/verifications.yml`) lance check, tests fonctionnels et
+  non-régression à chaque push.
 
-Le moteur et l'ancienne interface sont assemblés par `build.py` ; l'interface React par `tools/build_react.mjs`.
+Le moteur est assemblé par `build.py` (tests) ; le jeu par `tools/build_react.mjs` (moteur + fonctions d'action de
+`src/ui` + application React de `src/react`). Il n'y a plus qu'une interface : React.
 
 ## Organisation
 
@@ -58,17 +60,18 @@ src/
     05-office.js          marché, gestion, statistiques, messages, options
     06-help.js            premiers pas (bulles d'aide par écran) et guide du directeur sportif
     07-home.js            tableau de bord (accueil), navigation mobile (barre du bas, menu), fiche d'équipe, rivaux
-    99-init.js            démarrage
 tests/
   season_report.js        une saison complète simulée, résultats course par course
   multi_seasons.js        plusieurs saisons : stabilité, finances, progression des jeunes
   regress.sh              non-régression à graine fixe (résultats identiques attendus)
   features.js             tests fonctionnels : matériel, presse, carrière du DS
-  ui_smoke.py             interface dans Chrome sans écran (aucune erreur JS tolérée)
+  ui_smoke_react.py       interface dans Chrome sans écran (aucune erreur JS tolérée)
+  ui_auto_react.py        chaque bouton « Auto » cliqué pour de vrai, appel radio, DS automatique
+  ui_worker.py            simulation d'une course dans un Web Worker (même résultat qu'en direct)
   calibrate.js            comparaison avec le cyclisme réel (vitesses, écarts, échappées, profils de vainqueurs)
   baseline/calibrage.txt  dernière mesure de calibration de référence
   fixtures/               anciennes sauvegardes pour tester la migration
-  out/                    captures d'écran produites par ui_smoke.py
+  out/                    captures d'écran produites par ui_smoke_react.py
 dist/                     fichiers produits (ne pas éditer)
 ```
 
@@ -84,14 +87,15 @@ un commentaire d'une ligne qui dit ce qu'elle fait.
 ## Commandes
 
 ```
-python3 build.py                     # produit dist/index.html et dist/engine.js
+./dev.sh build                       # produit dist/index.html (jeu) et dist/engine.js (tests)
 tests/regress.sh                     # vérifie qu'un nettoyage n'a rien changé
 tests/regress.sh update              # après un changement voulu de comportement
 node tests/season_report.js 7        # une saison, graine 7 (L=1 pour le journal, AUTO=1 pour le DS auto)
 node tests/multi_seasons.js 11 5     # 5 saisons, graine 11
-python3 tests/ui_smoke.py            # test complet de l'interface
+python3 tests/ui_smoke_react.py      # test complet de l'interface
 node tests/features.js               # matériel, presse, carrière (changement d'équipe, licenciement)
 node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fourchettes réelles (✔/✖)
+./dev.sh calib 60                    # référence : deux séries de 60 saisons (graines 200 et 300)
 ```
 
 ## Points clés du modèle
@@ -179,6 +183,22 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   - Charge récente (r.load) : un bloc de courses enchaînées se récupère jusqu'à 35 % moins vite.
   - Climat : régimes météo hebdomadaires persistants (anticyclone, variable, perturbé) selon la période.
   - Économie du joueur recalée sur les nouveaux effectifs (sponsor 52, frais de course 4,5 k€ par jour).
+- v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :
+  - Bilan d'étape : pourquoi ils ont lâché, sprint perdu ou gagné (placement, train, lancement, enfermement),
+    échappée reprise ou allée au bout, raisons des désobéissances, moments décisifs. Récit des courses confiées à
+    l'adjoint. Le film de la saison (Statistiques → Film).
+  - Découverte progressive : presse, planification, staff, équipementiers, histoires et académie se débloquent au
+    fil de la première saison (l'adjoint s'en charge en attendant).
+  - IA : peloton bien désigné dans les finals ; écarts mesurés en temps de passage (justes en montée) ; poursuite
+    par projection du point de jonction ; les favoris roulent eux-mêmes derrière l'échappée sur la dernière montée.
+  - Sprint simulé au quart de seconde sur le dernier kilomètre ; ordres de sprint (lancement long ou court, dans la
+    roue d'un sprinteur adverse).
+  - Progression décimale liée à la charge de course ; poids de forme (kilos de l'intersaison, coût en montée) ;
+    secteurs pavés de 1 à 5 étoiles.
+  - Base de données ouverte : export / import complet (coureurs et caractéristiques, équipes, courses, parcours),
+    ajout de coureurs ; parcours réels importés en GPX.
+  - Une seule interface (React) ; ≈ 2 080 lignes de l'ancienne interface supprimées ; intégration continue GitHub.
+  - Calibration 2 × 60 saisons.
 - v4.15 — classiques réalistes et recalibration (40 mesures, dont 7 nouvelles) :
   - Diagnostic : les classiques étaient gagnées par des outsiders (favoris vainqueurs : 6 % sur les monts pavés, 8 %
     dans les Ardennes ; réel ≈ 80-90 %). Les équipes désignaient leur leader sur une seule caractéristique (7 des 10
