@@ -25,6 +25,24 @@ function actionsFor(sim, x, head) {
   const climb = P.climbs.some(c => c.end > G.pos && c.start < sim.dist && c.end >= sim.dist - FINALE_KM);
   const flat = !climb && P.finishGrad < 3;
   const A = [];
+  // sprint à venir : les ordres qui comptent sont le moment de lancer et la roue à prendre
+  const kmL = sim.dist - G.pos;
+  if (flat && G === head && n > 3 && kmL <= 4 && (x.order === 'sprint' || x.r.s.spr >= 75)) {
+    const rv = fastestRival(x);
+    A.push(['sp:long', 'Lance long', x.launchPlan === 'long' ? 'ordre donné : ≈ 300 m' : '≈ 300 m, pour un endurant']);
+    A.push([
+      'sp:court',
+      'Attends',
+      x.launchPlan === 'court' && !x.wheelId ? 'ordre donné : ≈ 150 m' : 'sort à 150 m, dans les roues',
+    ]);
+    if (rv)
+      A.push([
+        'sp:wheel',
+        `Roue de ${riderName(rv.r)}`,
+        x.wheelId === rv.id ? 'ordre donné' : `le plus rapide du groupe (${rv.r.s.spr})`,
+      ]);
+    return A;
+  }
   if (G !== head) {
     A.push(['bridge', 'Rejoindre devant', 'effort court pour boucher le trou']);
     if (n > 3) A.push(['chase', 'Chasser', 'mène à fond, vide le fond']);
@@ -113,15 +131,18 @@ export function FinalActions({ sim }) {
                   {[0, 1, 2].map(j => {
                     const a = acts[j];
                     if (!a) return <div key={j} className="min-h-14 rounded-xl bg-slate-800/40" />;
-                    const H = RADIO_HELP[a[0]];
+                    const sp = a[0].startsWith('sp:');
+                    const H = sp
+                      ? { ic: a[0] === 'sp:long' ? '🚀' : a[0] === 'sp:court' ? '⏳' : '🎯' }
+                      : RADIO_HELP[a[0]];
                     return (
                       <button
                         key={j}
                         type="button"
-                        onClick={() => sendRadio(x.id, a[0])}
+                        onClick={() => (sp ? (sprintOrder(sim, x.id, a[0].slice(3)), render()) : sendRadio(x.id, a[0]))}
                         className={
                           'flex min-h-14 flex-col items-start justify-center rounded-xl px-2.5 py-1.5 text-left active:scale-[.97] ' +
-                          (a[0] === 'attack' || a[0] === 'bridge'
+                          (a[0] === 'attack' || a[0] === 'bridge' || sp
                             ? 'bg-sky-500 text-slate-950'
                             : 'bg-slate-800 text-slate-100 ring-1 ring-slate-700')
                         }
@@ -132,7 +153,7 @@ export function FinalActions({ sim }) {
                         <span
                           className={
                             'text-[11px] leading-tight ' +
-                            (a[0] === 'attack' || a[0] === 'bridge' ? 'text-slate-900' : 'text-slate-400')
+                            (a[0] === 'attack' || a[0] === 'bridge' || sp ? 'text-slate-900' : 'text-slate-400')
                           }
                         >
                           {a[2]}

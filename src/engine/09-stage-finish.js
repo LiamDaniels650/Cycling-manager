@@ -101,7 +101,21 @@ function sprintRun(sim, ents, fw, big) {
   }
   const dt = 0.25;
   let t = 0;
+  // enregistrement pour la retransmission du sprint (positions toutes les 0,5 s, événements) : lecture seule
+  const rec = R_.filter(a => !a.e.role);
+  const frames = [],
+    events = [];
+  let leader = null;
   for (let k = 0; k < 600 && R_.some(a => a.t == null); k++) {
+    if (k % 2 === 0) {
+      frames.push(rec.map(a => Math.max(0, +(a.t == null ? a.d : 0).toFixed(1))));
+      const lead = rec.filter(a => a.t == null).sort((a, b) => a.d - b.d)[0];
+      // (on ne suit plus la tête une fois la ligne franchie : le suivant n'est pas « en tête »)
+      if (lead && lead !== leader && lead.d < 400 && !rec.some(a => a.t != null)) {
+        if (leader) events.push({ t, id: lead.x.id, k: 'lead', m: Math.round(lead.d) });
+        leader = lead;
+      }
+    }
     // ordre de course (du plus proche de la ligne au plus loin) pour l'aspiration et l'enfermement
     const live = R_.filter(a => a.t == null).sort((a, b) => a.d - b.d);
     for (let i = 0; i < live.length; i++) {
@@ -109,10 +123,12 @@ function sprintRun(sim, ents, fw, big) {
       if (!a.on && !a.e.role && a.d <= a.L) {
         a.on = true;
         a.tOn = t;
+        events.push({ t, id: a.x.id, k: 'launch', m: Math.round(a.d) });
         // mal placé au moment de lancer : enfermé quelques secondes (les bons frotteurs s'en sortent)
         if (big && a.e.posS < 72 && rnd() < 0.3 * (1 - (a.x.r.s.plc || 65) / 125)) {
           a.blk = rf(1, 3);
           a.x._boxed = true;
+          events.push({ t, id: a.x.id, k: 'box', m: Math.round(a.d) });
         }
       }
       let target = v0;
@@ -142,6 +158,29 @@ function sprintRun(sim, ents, fw, big) {
     if (a.on && a.L >= 260 && i > 0 && sorted.slice(0, i).some(b => b.L < a.L - 60)) a.x._early = true;
     if (a.x._sp) a.x._sp.launch = Math.round(a.L);
   });
+  // retransmission : les 10 premiers et mes coureurs (sprinteurs), avec l'écart en mètres sur la ligne
+  // (un groupe d'équipiers qui ne disputent pas le sprint n'a rien à montrer)
+  if (!sorted.length) {
+    sim._sprintTrace = null;
+    return res;
+  }
+  const tw = res.get(sorted[0].x);
+  const keep = sorted.filter((a, i) => i < 10 || a.x.player).slice(0, 14);
+  const idx = keep.map(a => rec.indexOf(a));
+  const ids = new Set(keep.map(a => a.x.id));
+  sim._sprintTrace = {
+    dt: 0.5,
+    riders: keep.map(a => ({
+      id: a.x.id,
+      n: riderName(a.x.r),
+      t: a.x.team.short,
+      c: a.x.team.color,
+      me: !!a.x.player,
+      gap: +((res.get(a.x) - tw) * a.v).toFixed(1),
+    })),
+    frames: frames.map(f => idx.map(j => f[j])),
+    events: events.filter(e => ids.has(e.id) && e.m <= 450),
+  };
   return res;
 }
 // Arrivée d'un groupe : sprint (placement, poisson-pilote, déclassement) ou arrivée en côte.
@@ -267,7 +306,13 @@ function finishGroup(sim, G, tcross) {
       x.time = tcross;
     });
     if (!sim.finish.length)
-      sim.photo = { kind: 'sprint', n: ord.length, ord: ord.slice(0, 10).map(([x, s]) => ({ id: x.id, s })) };
+      sim.photo = {
+        kind: 'sprint',
+        n: ord.length,
+        ord: ord.slice(0, 10).map(([x, s]) => ({ id: x.id, s })),
+        trace: sim._sprintTrace || null,
+      };
+    sim._sprintTrace = null;
   } else {
     ord = xs.map(x => {
       const fg = Math.max(kmLeftGrad, 4);

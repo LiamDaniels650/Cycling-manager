@@ -420,6 +420,41 @@ function sprintExplain(r, d, rank, winnerSpr, forWin = true) {
   return { txt: `Sprint de ${riderName(r)} : ${lbl}${f.length ? ' — ' + f.join(', ') : ''}.`, tip };
 }
 
+// Ordre de sprint à la radio dans le final : lancer de loin, attendre dans les roues, ou prendre la roue du plus
+// rapide du groupe. Même effet que la consigne du briefing, décidé au dernier moment.
+function sprintOrder(sim, id, plan) {
+  const x = sim.runners.find(y => y.id === id);
+  if (!x || x.fin || x.dnf || !x.g) return;
+  const nm = riderName(x.r);
+  if (plan === 'wheel') {
+    const rivals = x.g.riders.filter(y => y !== x && y.team !== x.team && !y.fin).sort((a, b) => b.r.s.spr - a.r.s.spr);
+    if (!rivals.length) return;
+    x.wheelId = rivals[0].id;
+    x.launchPlan = 'court';
+    log(
+      sim,
+      `📻 ${nm} : « Je me cale dans la roue de ${riderName(rivals[0].r)} et je sors au dernier moment ! »`,
+      'me'
+    );
+  } else {
+    x.launchPlan = plan;
+    x.wheelId = null;
+    log(
+      sim,
+      plan === 'long'
+        ? `📻 ${nm} : « Je lance de loin, accrochez-vous ! »`
+        : `📻 ${nm} : « J'attends, je ne bouge pas avant les 150 derniers mètres. »`,
+      'me'
+    );
+  }
+}
+// Rival le plus rapide du groupe d'un coureur (bouton « dans la roue de… » du final).
+function fastestRival(x) {
+  if (!x || !x.g) return null;
+  return (
+    x.g.riders.filter(y => y !== x && y.team !== x.team && !y.fin).sort((a, b) => b.r.s.spr - a.r.s.spr)[0] || null
+  );
+}
 // Sprinteurs adverses de la course (consigne « dans la roue de… ») : les 8 plus rapides des autres équipes.
 function rivalSprinters(rc, id) {
   const me = S.riders[id];

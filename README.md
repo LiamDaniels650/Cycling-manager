@@ -183,6 +183,12 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   - Charge récente (r.load) : un bloc de courses enchaînées se récupère jusqu'à 35 % moins vite.
   - Climat : régimes météo hebdomadaires persistants (anticyclone, variable, perturbé) selon la période.
   - Économie du joueur recalée sur les nouveaux effectifs (sponsor 52, frais de course 4,5 k€ par jour).
+- v5.1 — final immersif et économie de départ :
+  - Sprint rejoué : les 450 derniers mètres animés coureur par coureur (lancements, enfermements, prises de tête),
+    commentés en direct, puis photo-finish avec les écarts en boyaux et longueurs. « Revoir » et « Passer ».
+  - Ordres de sprint en direct dans les 4 derniers km : lancer long, attendre, ou prendre la roue d'un rival.
+  - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
+    sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :
   - Bilan d'étape : pourquoi ils ont lâché, sprint perdu ou gagné (placement, train, lancement, enfermement),
     échappée reprise ou allée au bout, raisons des désobéissances, moments décisifs. Récit des courses confiées à

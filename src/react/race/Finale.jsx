@@ -1,5 +1,5 @@
 // Le final (15 derniers km) et la photo-finish : portage fidèle de finaleHTML et photoHTML.
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Icon } from '../icons.jsx';
 import { Html, Effort } from '../ui.jsx';
 import { RoadStrip } from './Broadcast.jsx';
@@ -233,6 +233,142 @@ export function Finale({ sim, children }) {
   );
 }
 const BUZZED = new WeakSet();
+const REPLAYED = new WeakSet(); // sprints déjà rejoués (la retransmission ne repart pas à chaque rafraîchissement)
+// Écart sur la ligne, en mètres, dit comme à la télévision.
+const gapWords = d =>
+  d < 0.35
+    ? 'un boyau'
+    : d < 1
+      ? 'une demi-longueur'
+      : d < 2.2
+        ? 'une longueur'
+        : d < 12
+          ? `${Math.min(6, Math.max(2, Math.round(d / 1.8)))} longueurs`
+          : `${Math.round(d)} m`;
+// Commentaire d'un événement du sprint.
+function sprintLine(e, R) {
+  const r = R.find(y => y.id === e.id);
+  if (!r) return '';
+  if (e.k === 'launch') return `⚡ ${r.n} (${r.t}) lance à ${e.m} m !`;
+  if (e.k === 'box') return `📦 ${r.n} est enfermé, il cherche l'ouverture !`;
+  return `🔝 ${r.n} passe en tête à ${e.m} m !`;
+}
+const SPRINT_FROM = 450; // mètres montrés
+const SPRINT_SPEED = 3.5; // la retransmission va 3,5 fois plus vite que le sprint réel (≈ 8 s)
+// Les 450 derniers mètres du sprint, rejoués : un couloir par coureur (dans l'ordre d'arrivée), la ligne à droite,
+// la distance restante et le commentaire en direct. Les positions viennent du sprint simulé (09-stage-finish.js).
+function SprintReplay({ tr, onDone }) {
+  const [run, setRun] = useState(0);
+  const start = Math.max(
+    0,
+    tr.frames.findIndex(f => Math.min(...f) <= SPRINT_FROM)
+  );
+  const end = tr.frames.length - 1;
+  const [k, setK] = useState(start);
+  useEffect(() => {
+    let raf;
+    const t0 = performance.now();
+    setK(start);
+    const step = now => {
+      const kk = Math.min(end, start + (((now - t0) / 1000) * SPRINT_SPEED) / tr.dt);
+      setK(kk);
+      if (kk < end) raf = requestAnimationFrame(step);
+      else onDone();
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [tr, run]);
+  const i = Math.floor(k),
+    f = k - i;
+  const pos = tr.riders.map((_, j) => {
+    const a = tr.frames[i][j],
+      b = tr.frames[Math.min(end, i + 1)][j];
+    return a + (b - a) * f;
+  });
+  const lead = Math.min(...pos);
+  // couloirs dans l'ordre du peloton au début de la retransmission (l'ordre d'arrivée ne se devine pas)
+  const order = tr.riders.map((_, j) => j).sort((a, b) => tr.frames[start][a] - tr.frames[start][b]);
+  const laneOf = new Map(order.map((j, q) => [j, q]));
+  const W = 640,
+    L = 8,
+    Rr = 150,
+    lane = 30,
+    H = tr.riders.length * lane + 14;
+  const X = d => L + ((SPRINT_FROM - clamp(d, 0, SPRINT_FROM)) / SPRINT_FROM) * (W - L - Rr);
+  const tNow = k * tr.dt;
+  const said = tr.events.filter(e => e.t <= tNow).slice(-3);
+  // sur la ligne : le vainqueur et son avance
+  const atLine = k >= end;
+  const byGap = tr.riders.slice().sort((a, b) => a.gap - b.gap);
+  return (
+    <div className="mt-2">
+      <div className="flex items-baseline justify-between">
+        <span className="text-3xl font-black tabular-nums text-amber-200">
+          {lead > 0.5 ? `${Math.ceil(lead / 10) * 10} m` : 'Ligne !'}
+        </span>
+        <span className="flex gap-2">
+          <button type="button" className="text-xs text-sky-300 underline" onClick={() => setRun(run + 1)}>
+            ↺ Revoir
+          </button>
+          <button type="button" className="text-xs text-slate-400 underline" onClick={() => (setK(end), onDone())}>
+            Passer
+          </button>
+        </span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="mt-1 w-full" aria-label="Retransmission du sprint">
+        {[400, 300, 200, 100].map(m => (
+          <g key={m}>
+            <line x1={X(m)} x2={X(m)} y1={0} y2={H} stroke="#334155" strokeDasharray="4 6" />
+            <text x={X(m)} y={H} fontSize="14" fill="#64748b" textAnchor="middle">
+              {m}
+            </text>
+          </g>
+        ))}
+        <line x1={X(0)} x2={X(0)} y1={0} y2={H - 4} stroke="#f8fafc" strokeWidth="4" strokeDasharray="5 5" />
+        {tr.riders.map((r, j) => {
+          const y = 16 + laneOf.get(j) * lane;
+          const x = X(pos[j]);
+          return (
+            <g key={r.id}>
+              <line x1={L} x2={X(0)} y1={y} y2={y} stroke="#1e293b" strokeWidth="1" />
+              <circle
+                cx={x}
+                cy={y}
+                r={r.me ? 11 : 9}
+                fill={r.c}
+                stroke={r.me ? '#f472b6' : '#0f172a'}
+                strokeWidth={r.me ? 4 : 2}
+              />
+              <text
+                x={x > W - Rr - 40 ? x - 15 : x + 15}
+                y={y + 6}
+                fontSize="18"
+                fill={r.me ? '#fbcfe8' : '#cbd5e1'}
+                fontWeight={r.me ? 700 : 400}
+                textAnchor={x > W - Rr - 40 ? 'end' : 'start'}
+              >
+                {r.me ? '★ ' : ''}
+                {r.n}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+      <div className="mt-1 min-h-[3.75rem] space-y-0.5 text-sm text-slate-100">
+        {said.map((e, j) => (
+          <div key={j} className={j === said.length - 1 && !atLine ? 'font-semibold' : 'text-slate-400'}>
+            {sprintLine(e, tr.riders)}
+          </div>
+        ))}
+        {atLine && byGap[1] ? (
+          <div className="font-semibold text-amber-100">
+            🏆 {byGap[0].n} ({byGap[0].t}) s'impose devant {byGap[1].n} ({gapWords(byGap[1].gap)} d'avance) !
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 function Photo({ sim }) {
   const ph = sim.photo;
   // une vibration à l'arrivée (plus longue si un de mes coureurs est sur le podium), une seule fois par arrivée
@@ -264,6 +400,13 @@ function Photo({ sim }) {
         : 'Arrivée en côte';
   const mine = fin.filter(x => x.player);
   const second = ph.kind === 'seul' ? fin.find(x => x !== first) : null;
+  const tr = ph.kind === 'sprint' && ph.trace && ph.trace.frames.length > 2 ? ph.trace : null;
+  const [shown, setShown] = useState(!tr || REPLAYED.has(ph));
+  const done = () => {
+    REPLAYED.add(ph);
+    setShown(true);
+  };
+  const gapM = id => (tr ? (tr.riders.find(r => r.id === id) || {}).gap : null);
   return (
     <section className="rounded-2xl border border-amber-400/40 bg-slate-900 p-3.5">
       <div className="flex items-baseline justify-between gap-2">
@@ -272,11 +415,22 @@ function Photo({ sim }) {
         </span>
         <span className="text-xs text-slate-300">{kind}</span>
       </div>
-      <div className="mt-2 space-y-1.5">
+      {tr ? <SprintReplay tr={tr} onDone={done} /> : null}
+      <div className={'mt-2 space-y-1.5 ' + (shown ? '' : 'hidden')}>
+        {tr ? <div className="text-sm font-semibold text-amber-100">📸 Photo-finish</div> : null}
         {ph.ord.slice(0, 6).map((o, i) => {
           const x = sim.runners.find(y => y.id === o.id);
           const prev = i ? ph.ord[i - 1] : null;
-          const gapTxt = !i ? '🥇' : ph.kind === 'sprint' ? `à ${lbl(prev.s - o.s)}` : fmtGap(x.time - first.time);
+          // écart avec le coureur qui précède (comme dans un vrai classement de sprint)
+          const gm = gapM(o.id),
+            gp = prev ? gapM(prev.id) : null;
+          const gapTxt = !i
+            ? '🥇'
+            : ph.kind === 'sprint'
+              ? gm != null && gp != null
+                ? `à ${gapWords(Math.max(0, gm - gp))}`
+                : `à ${lbl(prev.s - o.s)}`
+              : fmtGap(x.time - first.time);
           return (
             <div
               key={o.id}
@@ -284,7 +438,7 @@ function Photo({ sim }) {
                 'flex items-center gap-3 rounded-xl px-2.5 py-2 ' +
                 (x.player ? 'bg-pink-500/15 ring-1 ring-pink-400/50' : 'bg-slate-800/70')
               }
-              style={{ animation: `fadeIn .4s ${i * 0.35}s both` }}
+              style={{ animation: `fadeIn .4s ${i * 0.15}s both` }}
             >
               <span className="w-6 text-center font-black text-slate-100">{i + 1}</span>
               <div className="text-sm text-slate-100">
@@ -309,7 +463,7 @@ function Photo({ sim }) {
           )}
         </div>
       ) : null}
-      {mine.length ? (
+      {mine.length && shown ? (
         <div className="mt-1 text-xs text-slate-300">
           Mes coureurs déjà arrivés : {mine.map(x => `${fin.indexOf(x) + 1}e ${riderName(x.r)}`).join(', ')}
         </div>
