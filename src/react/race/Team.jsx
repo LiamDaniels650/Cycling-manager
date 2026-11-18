@@ -208,6 +208,8 @@ export function MyTeam({ sim }) {
         {mine.map(x => (
           <RiderLive key={x.id} sim={sim} x={x} front={front} />
         ))}
+        {/* négociation dans l'échappée et pacte : dans la page (ils durent des dizaines de km), pas en surimpression */}
+        <Nego sim={sim} />
         {S.car ? null : <TeamOrders sim={sim} />}
         {S.car ? null : (
           <div className="min-h-11">

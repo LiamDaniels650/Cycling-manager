@@ -196,6 +196,13 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     roue du plus rapide, sinon lancer long ; côte : attendre si explosif, roue du meilleur grimpeur s'il est proche,
     son rythme s'il est un peu plus fort, rien forcer s'il est bien plus fort). Réglé sur des arrivées rejouées :
     +3,3 places en moyenne au sprint, +2,8 en côte, sans perte notable.
+  - Sprint recalé : un sprinteur à bout de pointe tombe sous la vitesse du groupe (partir trop tôt se paie), la
+    pointe dépend davantage de l'endurance, le vent agit dans le bon sens (face : attendre ; dos : lancer long),
+    un coureur collé à un lanceur suit son accélération dans l'aspiration. Lancer long (≈ 280 m) sert l'endurant ou
+    le vent de dos, attendre (≈ 170 m) le vent de face ou le finisseur explosif ; aucun ordre ne domine.
+  - Écran de course allégé : un seul message à la fois au-dessus des commandes (décision, message, moment fort),
+    plus court et fermé d'un toucher ; moments forts des autres équipes espacés ; négociation dans l'échappée et
+    pacte dans la page ; réglages de la course (rythme, pauses, DS auto) repliés derrière ⚙.
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

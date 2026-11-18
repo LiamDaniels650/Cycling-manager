@@ -1,32 +1,32 @@
 // Appel radio en attente, journal Radio-course, barre de commandes (vitesse, moments clés, fin, DS auto, pauses)
 // et fenêtre radio d'un coureur (portage de askHTML, du journal de liveHTML, dockHTML et radioCard).
-import { useEffect } from 'react';
 import { RADIO_GROUPS, RADIO_HELP, doingNow, orderInfo } from './orders.js';
-import { Nego, Ally } from './Team.jsx';
+import { Ally } from './Team.jsx';
 import { Card, Btn, Html, Effort } from '../ui.jsx';
 import { Icon } from '../icons.jsx';
 
-// Décisions à prendre maintenant, dans un panneau flottant (hauteur limitée, défilable) : appel radio,
-// négociation dans l'échappée, proposition d'alliance.
+// Décision à prendre maintenant, en surimpression au-dessus des commandes : seulement ce qui demande une réponse
+// rapide (appel radio d'un coureur, proposition d'alliance). La négociation dans l'échappée et le pacte, qui durent,
+// sont dans la page (Mes coureurs).
 function Decisions({ sim }) {
-  const wrap = 'rounded-xl bg-slate-950 shadow-2xl empty:hidden';
-  return (
-    <div className="mx-auto max-h-[45vh] max-w-3xl space-y-2 overflow-y-auto px-2">
-      {sim.ask ? (
+  const wrap = 'rounded-xl bg-slate-950 shadow-2xl';
+  if (sim.ask)
+    return (
+      <div className="mx-auto max-h-[35vh] max-w-3xl overflow-y-auto px-2">
         <div className={wrap}>
           <AskPanel sim={sim} />
         </div>
-      ) : null}
-      <div className={wrap}>
-        <Nego sim={sim} />
       </div>
-      {S.car ? null : (
+    );
+  if (!S.car && sim.allyOffer)
+    return (
+      <div className="mx-auto max-h-[35vh] max-w-3xl overflow-y-auto px-2">
         <div className={wrap}>
           <Ally sim={sim} mode="offer" />
         </div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  return null;
 }
 export function AskPanel({ sim }) {
   const a = sim.ask;
@@ -88,26 +88,38 @@ export function RadioFeed({ sim }) {
     </Card>
   );
 }
-// Moment fort de la course : bandeau flottant au-dessus des commandes, quel que soit l'endroit où l'on a défilé
-// (vibration brève quand il concerne votre équipe).
+// Moment fort de la course : bandeau d'une ligne au-dessus des commandes (vibration brève quand il concerne votre
+// équipe). Ceux des autres équipes sont espacés (au plus un toutes les 12 s) pour ne pas encombrer l'écran.
 const SEEN = new WeakSet();
-export function MomentToast() {
+let LAST_OTHER = 0;
+function toastOn() {
   const B = UI.banner;
-  const on = B && Date.now() < B.until;
-  useEffect(() => {
-    if (!on || SEEN.has(B)) return;
+  if (!B || Date.now() >= B.until) return null;
+  if (!SEEN.has(B)) {
     SEEN.add(B);
+    if (!B.mine) {
+      if (Date.now() - LAST_OTHER < 12000) {
+        UI.banner = null;
+        return null;
+      }
+      LAST_OTHER = Date.now();
+    }
+    B.until = Math.min(B.until, Date.now() + (B.mine ? 4000 : 3000));
     if (B.mine && navigator.vibrate)
       try {
         navigator.vibrate(60);
       } catch (e) {}
-  });
-  if (!on) return null;
+  }
+  return B;
+}
+function Toast({ B }) {
   return (
-    <div className="pointer-events-none flex justify-center px-3">
-      <div
+    <div className="flex justify-center px-3">
+      <button
+        type="button"
+        onClick={() => ((UI.banner = null), renderLive())}
         className={
-          'max-w-xl rounded-2xl px-4 py-2.5 text-center text-[15px] font-semibold shadow-2xl ' +
+          'line-clamp-2 max-w-xl rounded-xl px-3 py-1.5 text-center text-sm font-semibold shadow-2xl ' +
           (B.mine ? 'bg-pink-600 text-white' : 'bg-amber-300 text-slate-950')
         }
         style={{ animation: 'fadeIn .25s both' }}
@@ -116,11 +128,11 @@ export function MomentToast() {
     </div>
   );
 }
-// Message de course (avance rapide, final…) : il s'efface seul après quelques secondes pour ne pas cacher le final.
+// Message de course (avance rapide, final, pause…) : il s'efface seul après 4 s pour ne pas cacher le final.
 let FLASH = { txt: null, t: 0 };
 function flashOn() {
   if (UI.flashRace !== FLASH.txt) FLASH = { txt: UI.flashRace, t: Date.now() };
-  if (UI.flashRace && Date.now() - FLASH.t > 6000) UI.flashRace = null;
+  if (UI.flashRace && Date.now() - FLASH.t > 4000) UI.flashRace = null;
   return !!UI.flashRace;
 }
 const PACE_LBL = {
@@ -149,23 +161,23 @@ export function Dock({ sim }) {
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-700 bg-slate-950/95 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 backdrop-blur">
       {/* au-dessus des commandes : moment fort et décisions à prendre (appel radio, échappée, alliance) ; ils
           flottent au lieu de pousser la page, pour que l'écran ne bouge pas quand ils apparaissent */}
-      <div className="absolute inset-x-0 bottom-full mb-2 space-y-2">
-        {flashOn() ? (
+      {/* au-dessus des commandes, UN SEUL message à la fois, par priorité : décision à prendre, message de course,
+          moment fort. Il flotte au lieu de pousser la page, et se ferme d'un toucher. */}
+      <div className="absolute inset-x-0 bottom-full mb-2">
+        {sim.ask || (!S.car && sim.allyOffer) ? (
+          <Decisions sim={sim} />
+        ) : flashOn() ? (
           <div className="mx-auto flex max-w-3xl px-2">
-            <div className="flex w-full items-start gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm text-sky-100 shadow-2xl ring-1 ring-sky-400/50">
-              <span className="flex-1" dangerouslySetInnerHTML={{ __html: UI.flashRace }} />
-              <button
-                type="button"
-                className="px-1 text-slate-400"
-                onClick={() => ((UI.flashRace = null), renderLive())}
-              >
-                ✕
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => ((UI.flashRace = null), renderLive())}
+              className="line-clamp-2 w-full rounded-xl bg-slate-900 px-3 py-1.5 text-left text-sm text-sky-100 shadow-2xl ring-1 ring-sky-400/50"
+              dangerouslySetInnerHTML={{ __html: UI.flashRace }}
+            />
           </div>
-        ) : null}
-        <MomentToast />
-        <Decisions sim={sim} />
+        ) : (
+          (B => (B ? <Toast B={B} /> : null))(toastOn())
+        )}
       </div>
       <div className="mx-auto max-w-3xl">
         <div className="grid grid-cols-8 gap-1">
@@ -200,60 +212,81 @@ export function Dock({ sim }) {
           </span>
           <button
             type="button"
-            title="Rythme auto : accélère quand il ne se passe rien, revient au direct dès que la course bouge"
-            onClick={() => {
-              UI.autoPace = UI.autoPace === false;
-              if (UI.autoPace === false && UI.speed > (UI.baseSpeed || 2)) UI.speed = UI.baseSpeed || 2;
-              renderLive();
-            }}
+            onClick={() => ((UI.dockOpts = !UI.dockOpts), renderLive())}
             className={
               'flex min-h-8 items-center gap-1 rounded-lg px-2 ' +
-              (UI.autoPace !== false ? 'bg-sky-500 text-slate-950' : 'bg-slate-800 text-slate-100')
+              (UI.dockOpts ? 'bg-slate-600 text-slate-50' : 'bg-slate-800 text-slate-200')
             }
+            title="Rythme auto, pauses automatiques, directeur sportif automatique"
           >
-            Rythme auto {UI.autoPace !== false ? 'ON' : 'OFF'}
+            ⚙ Réglages{' '}
+            <span className="text-slate-400">
+              {[UI.autoPace !== false ? 'rythme' : '', sim.autoPause ? 'pauses' : '', sim.autoDS ? 'DS auto' : '']
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
           </button>
-          <label className="flex min-h-8 items-center gap-1.5">
-            <input
-              type="checkbox"
-              className="h-4 w-4 accent-sky-500"
-              checked={!!sim.autoPause}
-              onChange={e => ((UI.sim.autoPause = e.target.checked), renderLive())}
-            />{' '}
-            pause mes coureurs
-          </label>
-          <label className="flex min-h-8 items-center gap-1.5">
-            <input
-              type="checkbox"
-              className="h-4 w-4 accent-sky-500"
-              checked={!!UI.pauseHl}
-              onChange={e => ((UI.pauseHl = e.target.checked), renderLive())}
-            />{' '}
-            pause moments forts
-          </label>
-          {S.car ? null : (
-            <button
-              type="button"
-              onClick={() => {
-                UI.sim.autoDS = !UI.sim.autoDS;
-                UI.autoDS = UI.sim.autoDS;
-                log(
-                  UI.sim,
-                  UI.sim.autoDS
-                    ? '🤖 DS automatique : il répond aux appels de vos coureurs à votre place.'
-                    : '🤖 DS automatique désactivé : les appels de vos coureurs vous reviennent.',
-                  'info'
-                );
-                renderLive();
-              }}
-              className={
-                'flex min-h-8 items-center gap-1 rounded-lg px-2 ' +
-                (sim.autoDS ? 'bg-sky-500 text-slate-950' : 'bg-slate-800 text-slate-100')
-              }
-            >
-              <Icon name="bot" size={15} /> DS auto {sim.autoDS ? 'ON' : 'OFF'}
-            </button>
-          )}
+          {/* réglages repliés : le bandeau du bas reste bas, l'écran de course garde la place */}
+          {UI.dockOpts ? (
+            <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-1">
+              <button
+                type="button"
+                title="Rythme auto : accélère quand il ne se passe rien, revient au direct dès que la course bouge"
+                onClick={() => {
+                  UI.autoPace = UI.autoPace === false;
+                  if (UI.autoPace === false && UI.speed > (UI.baseSpeed || 2)) UI.speed = UI.baseSpeed || 2;
+                  renderLive();
+                }}
+                className={
+                  'flex min-h-8 items-center gap-1 rounded-lg px-2 ' +
+                  (UI.autoPace !== false ? 'bg-sky-500 text-slate-950' : 'bg-slate-800 text-slate-100')
+                }
+              >
+                Rythme auto {UI.autoPace !== false ? 'ON' : 'OFF'}
+              </button>
+              <label className="flex min-h-8 items-center gap-1.5">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-sky-500"
+                  checked={!!sim.autoPause}
+                  onChange={e => ((UI.sim.autoPause = e.target.checked), renderLive())}
+                />{' '}
+                pause mes coureurs
+              </label>
+              <label className="flex min-h-8 items-center gap-1.5">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-sky-500"
+                  checked={!!UI.pauseHl}
+                  onChange={e => ((UI.pauseHl = e.target.checked), renderLive())}
+                />{' '}
+                pause moments forts
+              </label>
+              {S.car ? null : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    UI.sim.autoDS = !UI.sim.autoDS;
+                    UI.autoDS = UI.sim.autoDS;
+                    log(
+                      UI.sim,
+                      UI.sim.autoDS
+                        ? '🤖 DS automatique : il répond aux appels de vos coureurs à votre place.'
+                        : '🤖 DS automatique désactivé : les appels de vos coureurs vous reviennent.',
+                      'info'
+                    );
+                    renderLive();
+                  }}
+                  className={
+                    'flex min-h-8 items-center gap-1 rounded-lg px-2 ' +
+                    (sim.autoDS ? 'bg-sky-500 text-slate-950' : 'bg-slate-800 text-slate-100')
+                  }
+                >
+                  <Icon name="bot" size={15} /> DS auto {sim.autoDS ? 'ON' : 'OFF'}
+                </button>
+              )}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

@@ -73,22 +73,26 @@ function sprintRun(sim, ents, fw, big) {
     const plan = x.launchPlan || null;
     let L =
       plan === 'long'
-        ? 320
+        ? 280
         : plan === 'court'
-          ? 150
-          : 215 + ((s.end || 70) - 70) * 2.5 + (fw === 'dos' ? 50 : fw === 'face' ? -40 : 0) + gauss() * 30;
+          ? 170
+          : 205 + ((s.end || 70) - 70) * 1.2 + (fw === 'dos' ? 50 : fw === 'face' ? -40 : 0) + gauss() * 30;
     L = clamp(L, 110, 380);
     return {
       e,
       x,
       d: 1000 + (100 - clamp(e.posS, 0, 100)) * R.sprintSpread + rf(0, 2),
       v: v0,
-      vmax: e.role ? v0 * 0.98 : 16.6 + (e.q - 75) * R.sprintVk,
+      // la pointe au-dessus du rythme du groupe : rognée par vent de face (la traînée croît vite), accrue par vent de dos
+      vmax: e.role
+        ? v0 * 0.98
+        : v0 + (1.1 + (e.q - 75) * R.sprintVk) * (fw === 'face' ? 0.75 : fw === 'dos' ? 1.15 : 1),
       acc: 1.1 + (s.spr - 70) / 50,
-      sus: 7 + ((s.end || 70) - 60) / 10 + (s.spr - 70) / 25,
+      sus: 6 + ((s.end || 70) - 55) * 0.2 + (s.spr - 70) / 25,
       L,
       on: false,
       tOn: 0,
+      fol: 0, // secondes passées à suivre un lanceur avant de lancer soi-même
       blk: 0,
       t: null,
     };
@@ -132,16 +136,27 @@ function sprintRun(sim, ents, fw, big) {
         }
       }
       let target = v0;
+      const ahead = i > 0 ? live[i - 1] : null;
+      // pas encore lancé, collé à un coureur qui a lancé : il suit l'accélération dans sa roue (aspiration),
+      // ce qui entame un peu sa propre pointe
+      if (!a.on && !a.e.role && ahead && ahead.on && a.d - ahead.d < 5 && a.d - ahead.d > 0.3) {
+        target = Math.min(ahead.v, a.vmax * 0.97);
+        a.fol += dt;
+      }
       if (a.on) {
         const el = t - a.tOn;
-        target = el <= a.sus ? a.vmax : Math.max(v0, a.vmax - (el - a.sus) * R.sprintFade);
+        const sus = a.sus - a.fol * 0.25;
+        // pointe tenue ~10 s, puis le coureur se vide : il tombe sous la vitesse du groupe (parti trop tôt, il se fait
+        // remonter par ceux qui ont attendu)
+        target = el <= sus ? a.vmax : Math.max(v0 - R.sprintSpent, a.vmax - (el - sus) * R.sprintFade);
         if (a.blk > 0) {
           target = Math.min(target, v0);
           a.blk -= dt;
         }
         // aspiration : un coureur juste devant (moins de 6 m) protège du vent
-        const ahead = i > 0 ? live[i - 1] : null;
         if (ahead && a.d - ahead.d < 6 && a.d - ahead.d > 0.3) target += draftV;
+        // vent de face : celui qui lance sans abri s'use contre le vent (attendre paie)
+        else if (fw === 'face') target -= 0.35;
       }
       a.v = a.v < target ? Math.min(target, a.v + a.acc * dt) : Math.max(target, a.v - 0.6 * dt);
       const nd = a.d - a.v * dt;

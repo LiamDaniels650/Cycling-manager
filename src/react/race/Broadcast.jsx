@@ -288,19 +288,3 @@ export function VirtualLeader({ sim }) {
     </div>
   );
 }
-export function Banner() {
-  const B = UI.banner;
-  if (!B || Date.now() >= B.until) return null;
-  return (
-    <div
-      className={
-        'mt-2 rounded-xl px-3 py-2 text-sm font-semibold ' +
-        (B.mine
-          ? 'bg-pink-500/20 text-pink-100 ring-1 ring-pink-400/60'
-          : 'bg-amber-400/15 text-amber-100 ring-1 ring-amber-300/50')
-      }
-    >
-      <span dangerouslySetInnerHTML={{ __html: B.txt }} />
-    </div>
-  );
-}

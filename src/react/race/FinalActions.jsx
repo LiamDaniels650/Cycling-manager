@@ -29,11 +29,28 @@ function actionsFor(sim, x, head) {
   const kmL = sim.dist - G.pos;
   if (flat && G === head && n > 3 && kmL <= 4 && (x.order === 'sprint' || x.r.s.spr >= 75)) {
     const rv = fastestRival(x);
-    A.push(['sp:long', 'Lance long', x.launchPlan === 'long' ? 'ordre donné : ≈ 300 m' : '≈ 300 m, pour un endurant']);
+    const adv = sprintAdvice(x, sim.finWind);
+    A.push([
+      'sp:long',
+      'Lance long',
+      x.launchPlan === 'long'
+        ? 'ordre donné : ≈ 280 m'
+        : sim.finWind === 'face'
+          ? 'vent de face : risqué'
+          : adv === 'long'
+            ? '≈ 280 m : bon choix pour lui'
+            : '≈ 280 m, pour un endurant',
+    ]);
     A.push([
       'sp:court',
       'Attends',
-      x.launchPlan === 'court' && !x.wheelId ? 'ordre donné : ≈ 150 m' : 'sort à 150 m, dans les roues',
+      x.launchPlan === 'court' && !x.wheelId
+        ? 'ordre donné : ≈ 170 m'
+        : adv === 'court'
+          ? sim.finWind === 'face'
+            ? 'vent de face : bon choix'
+            : 'explosif : bon choix pour lui'
+          : 'sort à 170 m, dans les roues',
     ]);
     if (rv)
       A.push([

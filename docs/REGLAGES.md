@@ -26,6 +26,7 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `R.salary` | `{ base: 25, k: 0.35, exp: 2.4, youngMul: 0.7 }` | salaire = base + k × (note − 60)^exp (k€/an), × youngMul avant 24 ans |
 | `R.lvlRef` | `77.3` | niveau de référence du peloton (moyenne des 200 meilleurs, fin de première saison) |
 | `R.lvlK` | `0.75` | part de la hausse du niveau du peloton retranchée de la note pour fixer un salaire |
+| `R.startPayRef` | `2400` | nouvelle partie : masse salariale (k€) au-delà de laquelle le sponsor verse une prime de lancement |
 | `R.sponsorBase` | `52` | apport du sponsor principal (k€ par semaine) |
 | `R.sponsorConf` | `0.15` | par point de confiance du sponsor |
 | `R.sponsorUci` | `0.0015` | par point UCI de la saison |
@@ -62,6 +63,7 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `R.sprintSpread` | `0.8` | … mètres de retard sur la tête au dernier km par point de placement manquant (0-100) |
 | `R.sprintDraft` | `0.45` | … gain de vitesse (m/s) dans la roue d'un coureur à moins de 6 m (×1,6 vent de face) |
 | `R.sprintFade` | `0.7` | … perte de vitesse (m/s par s) une fois la pointe tenue (≈ 10 s) |
+| `R.sprintSpent` | `1.2` | … un sprinteur à bout de pointe tombe sous la vitesse du groupe (m/s) : lancer trop tôt se paie |
 | `R.leaderFollow` | `0.8` | chance qu'un leader suive une attaque qui compte (0,95 s'il court défensif) |
 | `R.leaderFollowDef` | `0.95` |  |
 | `R.leaderFollowIdle` | `0.03` | … et une attaque qui ne compte pas (bagarre pour l'échappée) |
@@ -69,7 +71,7 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `R.breakTry` | `0.1` | chance par pas de temps qu'un candidat à l'échappée attaque (× baroud / 72) |
 | `R.hunterTry` | `0.6` | idem pour le chasseur du maillot de la montagne (× max(baroud, montagne) / 72) |
 | `R.hunterBridge` | `180` | le chasseur part en contre tant que l'échappée a moins de 180 s |
-| `R.hunterShare` | `70` | % des équipes sans ambition au général qui désignent un chasseur de maillot |
+| `R.hunterShare` | `85` | % des équipes sans ambition au général qui désignent un chasseur de maillot |
 | `R.hunterMon` | `77` | note de montagne minimale du chasseur |
 | `R.sitUpPace` | `0.74` | allure d'un chasseur relevé (part de la capacité médiane du groupe) |
 | `R.classicCatchKm` | `50` | classique : l'échappée matinale doit être reprise vers 50 km de l'arrivée… |
@@ -84,13 +86,13 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `R.classicCoGap` | `2.5` | … à moins de 2,5 points d'aptitude au final du parcours |
 | `R.cobbleBlowN` | `12` | final d'une classique pavée : seul un groupe d'au moins 12 coureurs est dynamité par le plus fort |
 | `R.murPace` | `1.1` | mur pavé dans le final d'une classique : allure du plus fort du groupe (part de sa capacité) |
-| `R.lastClimbPace` | `1.04` | dernière côte d'une classique accidentée : allure du plus fort du groupe des favoris |
+| `R.lastClimbPace` | `1.07` | dernière côte d'une classique accidentée : allure du plus fort du groupe des favoris |
 | `R.murFollow` | `0.99` | pour suivre une attaque sur un mur pavé, il faut 99 % de la capacité de l'attaquant (95 % ailleurs) |
 | `R.murAttack` | `1.2` | envie d'attaquer d'un leader sur un mur pavé du final (0,6 sur un secteur pavé plat) |
 | `R.classicMarking` | `65` | % du temps où un leader « se regarde » au lieu de chasser un favori parti seul (final de classique) |
 | `R.mtnChaseK` | `0.65` | montagne : marge laissée à l'échappée (écarts mesurés en temps de passage, plus justes en montée) |
 | `R.summitChaseK` | `0.5` | … et pour une arrivée au sommet, marge laissée par les favoris qui visent l'étape |
-| `R.mtnLeaderGap` | `150` | dernière montée d'une étape : les favoris roulent eux-mêmes derrière une échappée à moins de 150 s |
+| `R.mtnLeaderGap` | `180` | dernière montée d'une étape : les favoris roulent eux-mêmes derrière une échappée à moins de 180 s |
 | `R.flatChaseK` | `0.85` | équipes de sprinteurs : marge laissée à l'échappée (part de l'écart toléré d'origine) |
 | `R.sprintCatchKm` | `8` | poursuite des équipes de sprinteurs : reprendre l'échappée vers 8 km de l'arrivée… |
 | `R.chaseAhead` | `2` | … une équipe en avance sur cet objectif (vitesse de reprise > 1,4 × nécessaire) lève le pied |
@@ -139,16 +141,16 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `RACE_DEFS` | 04-calendar.js:71 |  |
 | `LAST_WEEK` | 04-calendar.js:266 |  |
 | `PLACE` | 04-calendar.js:284 |  |
-| `WX_REGIME` | 04-calendar.js:572 | plusieurs semaines, avec des tendances de saison (giboulées de printemps, canicules d'été, automne humide). |
+| `WX_REGIME` | 04-calendar.js:573 | plusieurs semaines, avec des tendances de saison (giboulées de printemps, canicules d'été, automne humide). |
 | `SPEED_K` | 05-physics.js:50 | Calibrage 2024-2025 : plat ~44 km/h, montagne ~35-38, chrono ~52, CLM par équipes ~55 (voir tests/calibrate.js). |
 | `PHY` | 05-physics.js:67 | conditions du jour : air moins dense en altitude ou par la chaleur, vent de face ou de dos, pavés, pluie. |
 | `RADIO_ACTS` | 08-stage-sim.js:227 | Consigne effective d'un coureur (radio ponctuelle, rébellion ou consigne d'avant course). |
 | `ESCORT_ORD` | 08-stage-sim.js:228 |  |
 | `DT_MIN` | 08-stage-sim.js:328 | Un pas de simulation = 30 secondes de course. |
-| `SPRINT_NOISE` | 09-stage-finish.js:149 | Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints. |
-| `PW_BUCKETS` | 09-stage-finish.js:393 | Records de puissance : meilleur effort personnel par durée et palmarès mondial des ascensions (20 min et plus). |
+| `SPRINT_NOISE` | 09-stage-finish.js:203 | Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints. |
+| `PW_BUCKETS` | 09-stage-finish.js:524 | Records de puissance : meilleur effort personnel par durée et palmarès mondial des ascensions (20 min et plus). |
 | `GC_CACHE` | 11-results.js:137 | Le général ne change qu'entre les étapes (ou sur abandon) : il est mis en cache et invalidé par gcDirty(). |
-| `UCI_COUNT` | 11-results.js:361 | Classement UCI par équipes (règle réelle) : somme des points de la saison de ses 20 meilleurs coureurs actuels. |
+| `UCI_COUNT` | 11-results.js:362 | Classement UCI par équipes (règle réelle) : somme des points de la saison de ses 20 meilleurs coureurs actuels. |
 | `KG_BURN` | 12-season.js:5 | Perte de poids par semaine selon le plan d'entraînement (kg) ; 0,15 par défaut, reprise de poids au repos. |
 | `JOURNALS` | 14-press.js:2 |  |
 | `EQ_BIKES` | 15-equipment.js:5 | minRep : notoriété minimale pour que la marque vous fasse une offre ; pay : versement de base (k€/saison). |
@@ -238,3 +240,5 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `CAR_AFTER` | 49-career-end.js:19 |  |
 | `CAR_GC` | 49-career-end.js:123 |  |
 | `DISCO` | 50-discovery.js:7 | auto : domaines de l'adjoint qui le gèrent en attendant. |
+| `DB_TYPE` | 51-database.js:5 |  |
+| `TYPE_OK` | 51-database.js:188 |  |

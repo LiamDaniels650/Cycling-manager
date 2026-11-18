@@ -148,8 +148,8 @@ function Orders({ rc, spec, ids }) {
                           )}
                           options={[
                             ['auto', 'Lancement : à son idée'],
-                            ['long', 'Lancement long (≈ 300 m)'],
-                            ['court', 'Lancement court (≈ 150 m, dans les roues)'],
+                            ['long', 'Lancement long (≈ 280 m : endurant, vent de dos)'],
+                            ['court', 'Lancement court (≈ 170 m : vent de face, explosif)'],
                           ]}
                         />
                         <Select

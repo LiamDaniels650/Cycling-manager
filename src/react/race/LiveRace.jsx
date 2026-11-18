@@ -7,7 +7,7 @@ import { RaceHeader, Clock, StageProfile, RoadStrip, GapChart, VirtualLeader } f
 import { Finale, inFinale } from './Finale.jsx';
 import { FinalActions } from './FinalActions.jsx';
 import { Peloton } from './Peloton.jsx';
-import { MyTeam } from './Team.jsx';
+import { MyTeam, Nego } from './Team.jsx';
 import { RadioFeed, Dock } from './Controls.jsx';
 
 function Fold({ title, children }) {
@@ -40,6 +40,11 @@ export function LiveRace() {
           <span className="shrink-0 tabular-nums">{fmtTime(Math.max(0, sim.t * 60 - 30 + frac * 30))}</span>
         </div>
         <Finale sim={sim}>{sim.photo ? null : <FinalActions sim={sim} />}</Finale>
+        {sim.photo ? null : (
+          <div className="space-y-2 empty:hidden">
+            <Nego sim={sim} />
+          </div>
+        )}
         <Fold title="📺 Retransmission complète (profil, écarts)">
           <Card>
             <RaceHeader sim={sim} rc={rc} />

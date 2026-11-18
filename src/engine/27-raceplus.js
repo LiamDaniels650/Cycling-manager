@@ -443,7 +443,7 @@ function sprintOrder(sim, id, plan) {
       sim,
       plan === 'long'
         ? `📻 ${nm} : « Je lance de loin, accrochez-vous ! »`
-        : `📻 ${nm} : « J'attends, je ne bouge pas avant les 150 derniers mètres. »`,
+        : `📻 ${nm} : « J'attends, je ne bouge pas avant les 170 derniers mètres. »`,
       'me'
     );
   }
@@ -475,7 +475,8 @@ function climbOrder(sim, id, plan) {
   }
 }
 // Bouton « Auto » du final : l'adjoint choisit l'ordre qui convient au coureur et le dit à la radio.
-// Sprint (réglé sur des arrivées rejouées) : mal placé, on remonte dans la roue du plus rapide ; bien placé, on lance long.
+// Sprint (réglé sur des sprints simulés) : mal placé, on remonte dans la roue du plus rapide ; sinon le conseil
+// de sprintAdvice (attendre par vent de face ou pour un explosif, lancer long pour un endurant ou par vent de dos).
 // Côte (réglé sur des arrivées rejouées) : attendre la fin s'il est assez explosif, attaquer seulement s'il domine
 // nettement le groupe, prendre la roue du meilleur grimpeur s'il est proche, monter à son rythme s'il est un peu
 // plus fort, et ne rien forcer s'il est bien plus fort.
@@ -486,16 +487,30 @@ function finalAuto(sim, id, mode) {
   const say = why => log(sim, `🤖 DS → ${nm} : ${why}`, 'me');
   if (mode === 'sprint') {
     const rv = fastestRival(x);
+    const end = x.r.s.end || 70,
+      fw = sim.finWind;
+    const plan = sprintAdvice(x, fw);
     if (rv && x.pos < 65) {
       say(`mal placé dans le groupe : on remonte dans la roue de ${riderName(rv.r)}, le plus rapide.`);
       sprintOrder(sim, id, 'wheel');
-    } else {
+    } else if (plan === 'court') {
       say(
-        sim.finWind === 'dos'
+        fw === 'face'
+          ? 'vent de face : on attend, on sort aux 170 mètres.'
+          : 'finisseur explosif : on attend les 170 derniers mètres.'
+      );
+      sprintOrder(sim, id, 'court');
+    } else if (plan === 'long') {
+      say(
+        fw === 'dos'
           ? 'vent de dos : on lance de loin, ils ne reviendront pas.'
-          : 'on lance de loin, avant que les autres ne prennent la roue.'
+          : `endurant (${end}) : on lance de loin.`
       );
       sprintOrder(sim, id, 'long');
+    } else {
+      x.launchPlan = null;
+      x.wheelId = null;
+      say('bien placé, rien de spécial : il lance à son instinct, vers 200 mètres.');
     }
     return;
   }
@@ -534,6 +549,15 @@ function bestClimberRival(sim, x) {
     x.g.riders.filter(y => y !== x && y.team !== x.team && !y.fin).sort((a, b) => cap(b, fg, 0) - cap(a, fg, 0))[0] ||
     null
   );
+}
+// Conseil de lancement selon le profil et le vent de l'arrivée (banc d'essai du sprint simulé) : 'court' par vent
+// de face ou pour un finisseur peu endurant, 'long' pour un endurant ou par vent de dos, sinon null (son instinct).
+function sprintAdvice(x, fw) {
+  const end = x.r.s.end || 70;
+  if (fw === 'face') return 'court';
+  if (end >= 75 || (fw === 'dos' && end >= 68)) return 'long';
+  if (end <= 64) return 'court';
+  return null;
 }
 // Rival le plus rapide du groupe d'un coureur (bouton « dans la roue de… » du final).
 function fastestRival(x) {
