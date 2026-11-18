@@ -247,11 +247,157 @@ const gapWords = d =>
           : `${Math.round(d)} m`;
 // Commentaire d'un événement du sprint.
 function sprintLine(e, R) {
+  if (e.txt) return e.txt;
   const r = R.find(y => y.id === e.id);
   if (!r) return '';
   if (e.k === 'launch') return `⚡ ${r.n} (${r.t}) lance à ${e.m} m !`;
   if (e.k === 'box') return `📦 ${r.n} est enfermé, il cherche l'ouverture !`;
   return `🔝 ${r.n} passe en tête à ${e.m} m !`;
+}
+// Le dernier kilomètre d'une arrivée en côte ou en solitaire, reconstruit à partir des temps sur la ligne (sans
+// tirage au sort : la course n'en est pas modifiée). Chaque coureur suit le vainqueur puis lâche prise assez tôt
+// pour perdre son retard ; les poursuivants d'un échappé sont montés à leur écart, en bord gauche s'ils sont loin.
+function finishTrace(sim, ph) {
+  const fin = sim.finish,
+    first = fin[0];
+  if (!first) return null;
+  const P = sim.P;
+  const lc = P.climbs.filter(c => c.end >= sim.dist - 0.5).slice(-1)[0];
+  const g = lc ? lc.avg : P.finishGrad || 0;
+  const v = clamp(13 - 0.95 * Math.max(0, g), 4.5, 13); // m/s
+  const from = 1000;
+  const who = x => ({ id: x.id, n: riderName(x.r), t: x.team.short, c: x.team.color, me: !!x.player });
+  const rs = [];
+  if (ph.kind === 'seul') {
+    rs.push({ ...who(first), D: 0 });
+    const tNow = sim.t * 60; // le pas vient d'avancer l'horloge
+    // poursuivants déjà arrivés dans le même pas (écart connu), puis groupes encore en course (écart estimé)
+    const done = fin.filter(x => x !== first);
+    if (done.length) {
+      const D = done[0].time - first.time;
+      const xs = done.filter(x => x.time - done[0].time < 1);
+      rs.push({
+        ...who(xs[0]),
+        n: xs.length === 1 ? riderName(xs[0].r) : `Poursuivants (${xs.length})`,
+        c: xs.length === 1 ? xs[0].team.color : '#94a3b8',
+        me: xs.some(x => x.player),
+        id: 'g9',
+        D,
+        lbl: fmtGap(D),
+        np: xs.length === 1 ? riderName(xs[0].r) : 'les poursuivants',
+        chase: true,
+      });
+    }
+    sim.groups
+      .filter(G => G.riders.some(x => !x.fin) && G.speed > 0)
+      .sort((a, b) => b.pos - a.pos)
+      .slice(0, 2 - rs.length + 1)
+      .forEach((G, i) => {
+        i += rs.length - 1;
+        const xs = G.riders.filter(x => !x.fin);
+        const D = ((sim.dist - G.pos) / G.speed) * 3600 + Math.max(0, tNow - first.time);
+        const lead = xs.slice().sort((a, b) => overall(b.r.s) - overall(a.r.s))[0];
+        rs.push({
+          id: 'g' + i,
+          n: xs.length === 1 ? riderName(lead.r) : `${i ? 'Groupe' : 'Poursuivants'} (${xs.length})`,
+          t: xs.length === 1 ? lead.team.short : '',
+          c: xs.length === 1 ? lead.team.color : '#94a3b8',
+          me: xs.some(x => x.player),
+          D,
+          lbl: fmtGap(D),
+          np: xs.length === 1 ? riderName(lead.r) : i ? 'le groupe suivant' : 'les poursuivants',
+          chase: true,
+        });
+      });
+  } else {
+    for (const o of ph.ord.slice(0, 8)) {
+      const x = sim.runners.find(y => y.id === o.id);
+      if (x) rs.push({ ...who(x), D: Math.max(0, x.time - first.time) });
+    }
+  }
+  // distance à la ligne à l'instant t (0 = le vainqueur passe la ligne)
+  for (const r of rs) {
+    if (r.chase || r.D * v * 1.5 > 950) r.m = null;
+    else r.m = r.D < 0.05 ? 0 : clamp(r.D * v * 2.5, 120, 950);
+  }
+  const dist = (r, t) => {
+    if (r.m == null) return v * (r.D - t);
+    if (!r.m) return Math.max(0, -v * t);
+    const tm = -r.m / v,
+      v2 = r.m / (r.m / v + r.D);
+    return t <= tm ? -v * t : Math.max(0, r.m - v2 * (t - tm));
+  };
+  const dt = 0.5,
+    t0 = -from / v,
+    tEnd = Math.min(20, Math.max(2, ...rs.filter(r => !r.chase).map(r => r.D))) + 1;
+  const frames = [];
+  for (let t = t0; t <= tEnd + 1e-9; t += dt) frames.push(rs.map(r => +dist(r, t).toFixed(1)));
+  const at = m => -m / v - t0; // temps de trace où le vainqueur est à m mètres
+  const W = rs[0],
+    S2 = rs[1];
+  const ago = d => fmtGap(d).replace(/^\+/, ''); // « 1'04" d'avance »
+  const nm = r => r.np || r.n;
+  const events = [];
+  const top = lc && lc.end >= sim.dist - 0.5 ? ` au sommet de ${lc.name}` : '';
+  let win;
+  if (ph.kind === 'seul') {
+    events.push({
+      t: 0,
+      txt: S2
+        ? `🚴 ${W.n} (${W.t}) seul en tête, ${ago(S2.D)} d'avance sur ${nm(S2)} !`
+        : `🚴 ${W.n} (${W.t}) seul en tête !`,
+    });
+    const cap = t => t[0].toUpperCase() + t.slice(1);
+    if (S2 && S2.D < 10) {
+      const pl = /^les /.test(nm(S2));
+      events.push({ t: at(400), txt: `😬 ${cap(nm(S2))} revien${pl ? 'nent' : 't'} fort, il faut tenir !` });
+      events.push({ t: at(80), txt: `💪 ${W.n} résiste jusqu'à la ligne !` });
+    } else if (S2 && S2.D < 30) {
+      events.push({ t: at(300), txt: `👀 ${W.n} se retourne : ${nm(S2)} à ${ago(S2.D)} !` });
+      events.push({ t: at(60), txt: `🙌 C'est gagné, ${W.n} peut savourer !` });
+    } else {
+      events.push({ t: at(300), txt: `👀 ${W.n} se retourne… personne en vue !` });
+      events.push({ t: at(60), txt: `🙌 ${W.n} peut lever les bras !` });
+    }
+    win = `🏆 ${W.n} (${W.t}) s'impose en solitaire${top}${S2 ? `, ${ago(S2.D)} devant ${nm(S2)}` : ''} !`;
+  } else {
+    if (S2 && S2.m) {
+      events.push({
+        t: at(S2.m),
+        txt:
+          S2.m > 200
+            ? `⚡ ${W.n} (${W.t}) attaque à ${Math.round(S2.m / 10) * 10} m, ${S2.n} ne suit pas !`
+            : `⚔️ Duel jusqu'à la ligne entre ${W.n} et ${S2.n} !`,
+      });
+    } else if (S2 && S2.D < 0.05) events.push({ t: at(150), txt: `⚔️ Coude à coude entre ${W.n} et ${S2.n} !` });
+    for (const r of rs.slice(2))
+      if (r.m && r.m > 200 && r.D >= 2 && r.D - S2.D >= 1)
+        events.push({ t: at(r.m), txt: `💥 ${r.n} lâche prise à ${Math.round(r.m / 10) * 10} m.` });
+    events.sort((a, b) => a.t - b.t);
+    win = S2
+      ? S2.D < 0.5
+        ? `🏆 ${W.n} (${W.t}) s'impose${top}, dans le même temps que ${S2.n} !`
+        : `🏆 ${W.n} (${W.t}) s'impose${top}, ${ago(S2.D)} devant ${S2.n} !`
+      : `🏆 ${W.n} (${W.t}) s'impose${top} !`;
+  }
+  // couloirs : ordre mélangé de façon fixe (l'ordre d'arrivée ne se devine pas), échappé en haut
+  const lanes = rs
+    .map((r, j) => [
+      j,
+      r.chase ? 1e9 + j : ph.kind === 'seul' ? -1 : ((String(r.id).length * 31 + j * 7919) % 97) + j * 0.01,
+    ])
+    .sort((a, b) => a[1] - b[1])
+    .map(a => a[0]);
+  return {
+    dt,
+    from,
+    speed: (tEnd - t0) / 10, // une dizaine de secondes de retransmission
+    riders: rs.map(r => ({ id: r.id, n: r.n, t: r.t, c: r.c, me: r.me, lbl: r.lbl, gap: r.D * v })),
+    frames,
+    events: events.map(e => ({ ...e, t: e.t })),
+    lanes,
+    win,
+  };
 }
 const SPRINT_FROM = 450; // mètres montrés
 const SPRINT_SPEED = 3.5; // la retransmission va 3,5 fois plus vite que le sprint réel (≈ 8 s)
@@ -259,9 +405,11 @@ const SPRINT_SPEED = 3.5; // la retransmission va 3,5 fois plus vite que le spri
 // la distance restante et le commentaire en direct. Les positions viennent du sprint simulé (09-stage-finish.js).
 function SprintReplay({ tr, onDone }) {
   const [run, setRun] = useState(0);
+  const FROM = tr.from || SPRINT_FROM,
+    SPEED = tr.speed || SPRINT_SPEED;
   const start = Math.max(
     0,
-    tr.frames.findIndex(f => Math.min(...f) <= SPRINT_FROM)
+    tr.frames.findIndex(f => Math.min(...f) <= FROM)
   );
   const end = tr.frames.length - 1;
   const [k, setK] = useState(start);
@@ -270,7 +418,7 @@ function SprintReplay({ tr, onDone }) {
     const t0 = performance.now();
     setK(start);
     const step = now => {
-      const kk = Math.min(end, start + (((now - t0) / 1000) * SPRINT_SPEED) / tr.dt);
+      const kk = Math.min(end, start + ((Math.max(0, now - t0) / 1000) * SPEED) / tr.dt);
       setK(kk);
       if (kk < end) raf = requestAnimationFrame(step);
       else onDone();
@@ -287,14 +435,14 @@ function SprintReplay({ tr, onDone }) {
   });
   const lead = Math.min(...pos);
   // couloirs dans l'ordre du peloton au début de la retransmission (l'ordre d'arrivée ne se devine pas)
-  const order = tr.riders.map((_, j) => j).sort((a, b) => tr.frames[start][a] - tr.frames[start][b]);
+  const order = tr.lanes || tr.riders.map((_, j) => j).sort((a, b) => tr.frames[start][a] - tr.frames[start][b]);
   const laneOf = new Map(order.map((j, q) => [j, q]));
   const W = 640,
     L = 8,
     Rr = 150,
     lane = 30,
     H = tr.riders.length * lane + 14;
-  const X = d => L + ((SPRINT_FROM - clamp(d, 0, SPRINT_FROM)) / SPRINT_FROM) * (W - L - Rr);
+  const X = d => L + ((FROM - clamp(d, 0, FROM)) / FROM) * (W - L - Rr);
   const tNow = k * tr.dt;
   const said = tr.events.filter(e => e.t <= tNow).slice(-3);
   // sur la ligne : le vainqueur et son avance
@@ -316,7 +464,7 @@ function SprintReplay({ tr, onDone }) {
         </span>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-1 w-full" aria-label="Retransmission du sprint">
-        {[400, 300, 200, 100].map(m => (
+        {(FROM > 500 ? [750, 500, 250] : [400, 300, 200, 100]).map(m => (
           <g key={m}>
             <line x1={X(m)} x2={X(m)} y1={0} y2={H} stroke="#334155" strokeDasharray="4 6" />
             <text x={X(m)} y={H} fontSize="14" fill="#64748b" textAnchor="middle">
@@ -349,6 +497,7 @@ function SprintReplay({ tr, onDone }) {
               >
                 {r.me ? '★ ' : ''}
                 {r.n}
+                {r.lbl ? ` · ${r.lbl}` : ''}
               </text>
             </g>
           );
@@ -360,7 +509,8 @@ function SprintReplay({ tr, onDone }) {
             {sprintLine(e, tr.riders)}
           </div>
         ))}
-        {atLine && byGap[1] ? (
+        {atLine && tr.win ? <div className="font-semibold text-amber-100">{tr.win}</div> : null}
+        {atLine && !tr.win && byGap[1] ? (
           <div className="font-semibold text-amber-100">
             🏆 {byGap[0].n} ({byGap[0].t}) s'impose devant {byGap[1].n} ({gapWords(byGap[1].gap)} d'avance) !
           </div>
@@ -400,13 +550,14 @@ function Photo({ sim }) {
         : 'Arrivée en côte';
   const mine = fin.filter(x => x.player);
   const second = ph.kind === 'seul' ? fin.find(x => x !== first) : null;
-  const tr = ph.kind === 'sprint' && ph.trace && ph.trace.frames.length > 2 ? ph.trace : null;
+  if (ph.kind !== 'sprint' && ph.trace === undefined) ph.trace = finishTrace(sim, ph); // une fois, à l'arrivée
+  const tr = ph.trace && ph.trace.frames.length > 2 ? ph.trace : null;
   const [shown, setShown] = useState(!tr || REPLAYED.has(ph));
   const done = () => {
     REPLAYED.add(ph);
     setShown(true);
   };
-  const gapM = id => (tr ? (tr.riders.find(r => r.id === id) || {}).gap : null);
+  const gapM = id => (tr && ph.kind === 'sprint' ? (tr.riders.find(r => r.id === id) || {}).gap : null);
   return (
     <section className="rounded-2xl border border-amber-400/40 bg-slate-900 p-3.5">
       <div className="flex items-baseline justify-between gap-2">
@@ -417,7 +568,11 @@ function Photo({ sim }) {
       </div>
       {tr ? <SprintReplay tr={tr} onDone={done} /> : null}
       <div className={'mt-2 space-y-1.5 ' + (shown ? '' : 'hidden')}>
-        {tr ? <div className="text-sm font-semibold text-amber-100">📸 Photo-finish</div> : null}
+        {tr ? (
+          <div className="text-sm font-semibold text-amber-100">
+            {ph.kind === 'sprint' ? '📸 Photo-finish' : '⏱️ Sur la ligne'}
+          </div>
+        ) : null}
         {ph.ord.slice(0, 6).map((o, i) => {
           const x = sim.runners.find(y => y.id === o.id);
           const prev = i ? ph.ord[i - 1] : null;
@@ -452,7 +607,7 @@ function Photo({ sim }) {
           );
         })}
       </div>
-      {ph.kind === 'seul' ? (
+      {ph.kind === 'seul' && shown ? (
         <div className="mt-2 text-sm text-slate-200">
           {second ? (
             <>

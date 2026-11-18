@@ -186,6 +186,8 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
 - v5.1 — final immersif et économie de départ :
   - Sprint rejoué : les 450 derniers mètres animés coureur par coureur (lancements, enfermements, prises de tête),
     commentés en direct, puis photo-finish avec les écarts en boyaux et longueurs. « Revoir » et « Passer ».
+  - Arrivées en solitaire et en côte rejouées aussi (dernier kilomètre) : l'échappé et l'écart de ses poursuivants,
+    l'attaque décisive et ceux qui lâchent prise dans une arrivée en bosse, commentaire adapté à l'écart.
   - Ordres de sprint en direct dans les 4 derniers km : lancer long, attendre, ou prendre la roue d'un rival.
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
