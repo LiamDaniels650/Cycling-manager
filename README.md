@@ -189,6 +189,9 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   - Arrivées en solitaire et en côte rejouées aussi (dernier kilomètre) : l'échappé et l'écart de ses poursuivants,
     l'attaque décisive et ceux qui lâchent prise dans une arrivée en bosse, commentaire adapté à l'écart.
   - Ordres de sprint en direct dans les 4 derniers km : lancer long, attendre, ou prendre la roue d'un rival.
+  - Ordres de final en côte (3 derniers km, pour un coureur qui joue la gagne) : attaquer maintenant, attendre la
+    fin (paie pour un puncheur explosif, coûte à un pur grimpeur) ou suivre le meilleur grimpeur adverse (marquage :
+    gros gain s'il est à portée, explosion s'il est trop fort). Sans ordre, la course ne change pas.
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

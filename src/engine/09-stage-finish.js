@@ -330,6 +330,8 @@ function finishGroup(sim, G, tcross) {
     ord.forEach(([x, s]) => {
       x.time = tcross + Math.min(25, Math.max(0, (best - s) * 0.7));
     });
+    if (climbPlans(sim, ord)) ord.sort((a, b) => a[0].time - b[0].time);
+    climbPlanLog(sim, ord);
     if (!sim.finish.length)
       sim.photo = {
         kind: ord.length === 1 ? 'seul' : 'bosse',
@@ -341,6 +343,71 @@ function finishGroup(sim, G, tcross) {
     sim.finish.push(x);
   }
   G.riders = [];
+}
+// Ordres de final en côte du directeur sportif (climbOrder), appliqués au temps sur la ligne : en montée, les
+// coureurs arrivent souvent un par un. Attendre la fin fait gagner jusqu'à 2 s à un puncheur explosif (collines >
+// montagne) qui a gardé du jus, et coûte jusqu'à 2,5 s à un pur grimpeur, que les puncheurs sautent ; suivre un
+// rival (marqué pendant la montée) colle au temps de celui-ci s'il est à portée (10 s), coûte 2 à 6 s si on
+// s'est mis dans le rouge à vouloir tenir la roue d'un plus fort, et on le bat dans le
+// même groupe si on a plus de punch. Personne ne repasse un coureur arrivé à un pas précédent, ni le vainqueur
+// annoncé. Aucun tirage.
+function climbPlans(sim, ord) {
+  // plancher : les coureurs arrivés aux pas précédents, et le vainqueur déjà annoncé (photo-finish)
+  const t0 = sim.t * 60;
+  const prev = sim.finish.filter(y => y.time <= t0 + 1e-6).map(y => y.time);
+  const floor = Math.max(-Infinity, ...prev, sim.finish.length ? sim.finish[0].time + 0.1 : -Infinity);
+  let any = false;
+  for (const [x] of ord) {
+    if (x.climbPlan === 'last') {
+      const d = clamp((x.r.s.col - x.r.s.mon) * 0.12 + (x.punch - 60) * 0.03, -2.5, 2);
+      x.time = Math.max(floor, x.time - d);
+      x._cp = d >= 0 ? 'last+' : 'last-';
+      any = true;
+    } else if (x.climbPlan === 'follow') {
+      const rv = sim.runners.find(y => y.id === x.followId);
+      x._cpRival = rv || null;
+      if (!rv || rv.dnf) continue;
+      x._cp = 'follow';
+      const same = ord.some(a => a[0] === rv);
+      if (!rv.fin && !same) continue; // le rival est derrière
+      const tgt = same ? rv.time + 0.3 - (x.punch - rv.punch) * 0.03 : rv.time + 0.5;
+      if (x.time > tgt) {
+        if (x.time - tgt > 10) {
+          x._cp = 'gone'; // trop fort pour lui : à vouloir tenir sa roue, il s'est mis dans le rouge
+          x.time = Math.max(floor, x.time + Math.min(6, (x.time - tgt - 10) * 0.3 + 2));
+        } else x.time = Math.max(floor, tgt, x.time - 4);
+      } else if (same && tgt < x.time) x.time = tgt;
+      any = true;
+    }
+  }
+  return any;
+}
+function climbPlanLog(sim, ord) {
+  for (const [x] of ord) {
+    if (!x.player || !x._cp || x._cpLogged) continue;
+    x._cpLogged = true;
+    const nm = riderName(x.r),
+      rv = x._cpRival;
+    if (x._cp === 'last+')
+      log(sim, `📻 ${nm} : « J'avais gardé du jus, j'ai tout donné dans les 300 derniers mètres ! »`, 'me');
+    else if (x._cp === 'last-')
+      log(sim, `📻 ${nm} : « J'ai attendu, mais les puncheurs ont été plus explosifs que moi… »`, 'bad');
+    else if (x._cp === 'gone')
+      log(sim, `📻 ${nm} : « ${riderName(rv.r)} était trop fort : à vouloir tenir sa roue, j'ai explosé. »`, 'bad');
+    else if (rv) {
+      const beat =
+        !rv.fin ||
+        rv.time > x.time ||
+        (ord.some(a => a[0] === rv) && ord.findIndex(a => a[0] === x) < ord.findIndex(a => a[0] === rv));
+      log(
+        sim,
+        beat
+          ? `📻 ${nm} : « Collé à ${riderName(rv.r)}, je l'ai devancé sur la ligne ! »`
+          : `📻 ${nm} : « Je suis resté dans la roue de ${riderName(rv.r)} jusqu'au bout. »`,
+        beat ? 'me' : 'info'
+      );
+    }
+  }
 }
 // Fin d'étape : classement, statistiques, watts, règle des 3 km, désobéissances.
 function endStageSim(sim) {

@@ -448,6 +448,41 @@ function sprintOrder(sim, id, plan) {
     );
   }
 }
+// Ordre de final en côte : « attends la fin » (tout garder pour les 300 derniers mètres) ou « suis » le meilleur
+// grimpeur adverse du groupe (marquage : il suit ses attaques). Pris en compte sur la ligne (finishGroup) ;
+// l'attaque, elle, reste l'ordre radio habituel.
+function climbOrder(sim, id, plan) {
+  const x = sim.runners.find(y => y.id === id);
+  if (!x || x.fin || x.dnf || !x.g) return;
+  const nm = riderName(x.r);
+  if (plan === 'follow') {
+    const rv = bestClimberRival(sim, x);
+    if (!rv) return;
+    x.climbPlan = 'follow';
+    x.followId = rv.id;
+    x.markId = rv.id; // le marquage du moteur : il saute dans sa roue s'il attaque
+    x.manual = true;
+    log(
+      sim,
+      `📻 ${nm} : « Je ne lâche pas la roue de ${riderName(rv.r)}, je le passe sur la ligne si je peux ! »`,
+      'me'
+    );
+  } else {
+    x.climbPlan = 'last';
+    x.followId = null;
+    x.manual = true; // l'adjoint ne le fait pas attaquer de lui-même
+    log(sim, `📻 ${nm} : « Je ne bouge pas, je garde tout pour les 300 derniers mètres. »`, 'me');
+  }
+}
+// Meilleur grimpeur adverse du groupe d'un coureur, pour la pente de l'arrivée.
+function bestClimberRival(sim, x) {
+  if (!x || !x.g) return null;
+  const fg = Math.max(sim.P.finishGrad, 4);
+  return (
+    x.g.riders.filter(y => y !== x && y.team !== x.team && !y.fin).sort((a, b) => cap(b, fg, 0) - cap(a, fg, 0))[0] ||
+    null
+  );
+}
 // Rival le plus rapide du groupe d'un coureur (bouton « dans la roue de… » du final).
 function fastestRival(x) {
   if (!x || !x.g) return null;

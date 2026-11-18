@@ -43,6 +43,41 @@ function actionsFor(sim, x, head) {
       ]);
     return A;
   }
+  // arrivée en côte ou au sommet : attaquer (ordre radio habituel), attendre la fin, ou suivre le meilleur grimpeur
+  const upFin = P.finishGrad >= 3 || P.climbs.some(c => c.end >= sim.dist - 0.5);
+  // seulement pour un coureur qui joue la gagne : leader, carte libre, ou parmi les 10 meilleurs grimpeurs du groupe
+  const fg = Math.max(P.finishGrad, 4);
+  const contender =
+    ['leader', 'free'].includes(x.order) ||
+    G.riders.filter(y => !y.fin && y !== x && cap(y, fg, 0) > cap(x, fg, 0)).length < 10;
+  if (upFin && G === head && n > 1 && kmL <= 3 && contender) {
+    const rv = bestClimberRival(sim, x);
+    A.push([
+      'attack',
+      'Attaque maintenant',
+      x.punch < 30 ? 'jus trop bas : risque d’échec' : `à ${kmL.toFixed(1).replace('.', ',')} km, coûte du jus`,
+    ]);
+    A.push([
+      'cl:last',
+      'Attends la fin',
+      x.climbPlan === 'last'
+        ? 'ordre donné : tout à 300 m'
+        : x.r.s.col < x.r.s.mon - 4
+          ? 'grimpeur pur : risqué'
+          : 'pour un puncheur explosif',
+    ]);
+    if (rv)
+      A.push([
+        'cl:follow',
+        `Suis ${riderName(rv.r)}`,
+        x.followId === rv.id
+          ? 'ordre donné'
+          : cap(rv, fg, 0) > cap(x, fg, 0) + 3
+            ? 'plus fort : risque d’exploser'
+            : 'à ta portée : roue à prendre',
+      ]);
+    return A;
+  }
   if (G !== head) {
     A.push(['bridge', 'Rejoindre devant', 'effort court pour boucher le trou']);
     if (n > 3) A.push(['chase', 'Chasser', 'mène à fond, vide le fond']);
@@ -131,15 +166,22 @@ export function FinalActions({ sim }) {
                   {[0, 1, 2].map(j => {
                     const a = acts[j];
                     if (!a) return <div key={j} className="min-h-14 rounded-xl bg-slate-800/40" />;
-                    const sp = a[0].startsWith('sp:');
+                    const cl = a[0].startsWith('cl:');
+                    const sp = a[0].startsWith('sp:') || cl;
                     const H = sp
-                      ? { ic: a[0] === 'sp:long' ? '🚀' : a[0] === 'sp:court' ? '⏳' : '🎯' }
+                      ? { ic: a[0] === 'sp:long' ? '🚀' : a[0] === 'sp:court' || a[0] === 'cl:last' ? '⏳' : '🎯' }
                       : RADIO_HELP[a[0]];
                     return (
                       <button
                         key={j}
                         type="button"
-                        onClick={() => (sp ? (sprintOrder(sim, x.id, a[0].slice(3)), render()) : sendRadio(x.id, a[0]))}
+                        onClick={() =>
+                          cl
+                            ? (climbOrder(sim, x.id, a[0].slice(3)), render())
+                            : sp
+                              ? (sprintOrder(sim, x.id, a[0].slice(3)), render())
+                              : sendRadio(x.id, a[0])
+                        }
                         className={
                           'flex min-h-14 flex-col items-start justify-center rounded-xl px-2.5 py-1.5 text-left active:scale-[.97] ' +
                           (a[0] === 'attack' || a[0] === 'bridge' || sp
