@@ -3,7 +3,7 @@
   "private": true,
   "description": "Directeur Sportif : jeu de gestion d'équipe cycliste (navigateur, hors ligne)",
   "scripts": {
-    "build": "python3 build.py && node tools/build_react.mjs",
+    "build": "python3 build.py && node tools/build_react.mjs && cp dist/react.html dist/index.html",
     "check": "./dev.sh check"
   },
   "devDependencies": {

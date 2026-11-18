@@ -14,12 +14,6 @@ const TIPS = {
     'La presse juge vos résultats et vos réponses. La notoriété aide le sponsor, les invitations aux Grands Tours et le recrutement.',
   stats: 'Les statistiques : classements UCI (équipes et coureurs), historique des courses, records et watts.',
 };
-// Bulle « premiers pas » d'un écran, tant que le joueur ne l'a pas fermée.
-function tipCard(view) {
-  S.tipsSeen = S.tipsSeen || {};
-  if (S.tipsOff || S.tipsSeen[view] || !TIPS[view]) return '';
-  return `<div class="card tip"><div class="row sb"><b>💡 Premiers pas</b><span><button onclick="tipDone('${view}')">Compris</button> <button onclick="S.tipsOff=true;save();render()">Masquer l'aide</button></span></div><div class="small">${TIPS[view]}</div></div>`;
-}
 // Ferme la bulle d'aide d'un écran.
 function tipDone(view) {
   S.tipsSeen = S.tipsSeen || {};
@@ -78,8 +72,3 @@ const GUIDE = [
     'Dans Gestion, déléguez ce que vous voulez (entraînement, contrats, recrutement, académie, presse, matériel, staff). Chaque écran a aussi son bouton 🧑‍💼 pour une décision ponctuelle.',
   ],
 ];
-// Guide du directeur sportif, affiché dans les options.
-function guideCard() {
-  return `<div class="card"><h2>📘 Guide du directeur sportif</h2>${GUIDE.map(([t, d]) => `<details><summary><b>${t}</b></summary><p class="small">${d}</p></details>`).join('')}
- <div class="row"><button onclick="S.tipsOff=false;S.tipsSeen={};save();UI.flash='Les bulles d\\'aide sont réactivées.';render()">Réafficher les premiers pas</button></div></div>`;
-}

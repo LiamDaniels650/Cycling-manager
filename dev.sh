@@ -1,6 +1,6 @@
 #!/bin/sh
 # Commandes de travail. Toujours depuis la racine du projet : ./dev.sh <commande>
-#   build          assemble dist/index.html (jeu) et dist/engine.js (tests)
+#   build          assemble dist/index.html (jeu, interface React) et dist/engine.js (tests)
 #   check          build + lint + types + empreinte (≈ 1 min) : vérifie que la simulation n'a PAS changé
 #   test           check + fonctionnalités, non-régression, biais, audit, interface (≈ 6 min)
 #   calib [n=30]   calibrage sur deux séries de n saisons en parallèle (graines 200 et 300), écarts au réel
@@ -16,7 +16,7 @@
 #   carriere [n]   mode carrière : une carrière simulée de 16 ans à 16+n ans, avec vérifications (≈ 30 s par saison)
 set -e
 cd "$(dirname "$0")"
-build() { python3 build.py >/dev/null; }
+build() { python3 build.py >/dev/null && node tools/build_react.mjs >/dev/null && cp dist/react.html dist/index.html; }
 # lance une vérification, n'affiche que sa dernière ligne, mais garde son code de retour (sh n'a pas pipefail)
 last() { rc=0; out=$("$@" 2>&1) || rc=$?; printf '%s\n' "$out" | tail -1; return $rc; }
 fp_check() {
@@ -41,7 +41,7 @@ case "$1" in
     bash tests/regress.sh | tail -1
     node tests/bias.js | tail -1
     node tests/audit.js | tail -1
-    for t in ui_smoke ui_auto ui_worker; do python3 tests/$t.py 2>&1 | grep -i 'ERREURS JS\|errs \[' | head -1; done ;;
+    for t in ui_smoke_react ui_auto_react ui_worker; do python3 tests/$t.py 2>&1 | grep -i 'ERREURS JS\|errs \[' | head -1; done ;;
   carriere) build; node tests/career.js "${2:-8}" ;;
   calib)
     n=${2:-30}; build
@@ -52,7 +52,7 @@ case "$1" in
     echo "(détail : /tmp/calib200.txt, /tmp/calib300.txt)" ;;
   impact) build; node tests/impact.js 20 ;;
   prodiges) build; node tests/prodigies.js 3 9 ;;
-  play) build; python3 tests/playthrough.py 1 ;;
+  play) build; python3 tests/play_react.py ;;
   profile) build; node tools/profile.js ;;
   accept)
     build; node tests/fingerprint.js 17 | tail -1 > tests/baseline/fingerprint.txt
