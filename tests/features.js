@@ -827,10 +827,52 @@ check(
     'découverte : déblocages de la saison'
   );
   discoAll();
+  check(discoOpen('aca') && discoOpen('stories') && !S.auto.academy && !discoNext(), 'découverte : tout débloquer');
+}
+// Base de données ouverte : export / import des coureurs, ajout d'un coureur, parcours GPX.
+{
+  newGame('T', 12);
+  const db = exportDb();
+  const c0 = db.coureurs.find(c => S.riders[c.id].team === 1);
+  c0.car.mon = 93;
+  c0.prenom = 'Tadej';
+  db.coureurs.push({ prenom: 'Nouveau', nom: 'Coureur', nat: 'FRA', age: 22, profil: 'grimpeur', car: { mon: 80 } });
+  const res = importDb(JSON.parse(JSON.stringify(db)));
+  const nouveau = Object.values(S.riders).find(r => r.ln === 'Coureur' && r.fn === 'Nouveau');
   check(
-    discoOpen('aca') && discoOpen('stories') && !S.auto.academy && !discoNext(),
-    'découverte : tout débloquer'
+    res.ok &&
+      S.riders[c0.id].s.mon === 93 &&
+      S.riders[c0.id].fn === 'Tadej' &&
+      !!nouveau &&
+      S.free.includes(nouveau.id),
+    'base : attributs importés et coureur ajouté aux libres (' + res.txt + ')'
   );
+  // trace GPX synthétique : 140 km de plat puis une montée finale de 10 km à 7,5 %
+  let gpx = '<gpx><trk><trkseg>';
+  for (let k = 0; k <= 150; k += 0.2) {
+    const ele = 200 + (k > 140 ? (k - 140) * 75 : 0);
+    gpx += `<trkpt lat="${(45 + k / 111.2).toFixed(6)}" lon="6.000000"><ele>${ele}</ele></trkpt>`;
+  }
+  gpx += '</trkseg></trk></gpx>';
+  const P = parseGpx(gpx);
+  check(
+    !P.err && Math.abs(P.dist - 150) < 1 && P.type === 'sommet' && Math.abs(P.gain - 750) < 30,
+    `GPX : ${P.dist} km, D+ ${P.gain} m, type ${P.type}`
+  );
+  const key = 'col';
+  check(setCustomProfile(key + ':0', { ...P, nom: 'Test' }), 'GPX : parcours appliqué à une course');
+  const i = S.cal.findIndex(c => c.key === key);
+  S.week = S.cal[i].w;
+  const rc = startRace(i, []);
+  const sim = newStageSim(rc);
+  check(
+    rc.specs[0].type === 'sommet' && sim.P.finishGrad >= 5 && Math.abs(sim.dist - 150) < 1,
+    'GPX : la course se court sur le parcours importé'
+  );
+  while (!sim.done) simTick(sim);
+  check(rc.stageRes.length === 1, 'GPX : course terminée sans erreur');
+  S.rc = null;
+  check(exportDb().parcours[key + ':0'].type === 'sommet', 'GPX : parcours exporté dans la base');
 }
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

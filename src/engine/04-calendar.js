@@ -274,7 +274,7 @@ function buildCalendar() {
     cat: d.cat,
     done: false,
     winner: null,
-    stagesSpec: d.stages,
+    stagesSpec: customStages(d.key, d.stages), // parcours importés (51-database.js)
     ...(d.worlds ? { worlds: true } : {}),
   })).sort((a, b) => a.w - b.w);
   // invitations : licences WorldTour (cycle de trois saisons) et invitations des ProTeams (35-officials)
@@ -542,7 +542,8 @@ function buildRaceSpecs(cal) {
     type,
     dist,
     rest: variant === 'R',
-    segs: genStageSegs(type, dist, variant === 'R' ? null : variant),
+    // parcours réel importé (GPX) ou parcours généré
+    segs: (customProfileOf(cal.key, i) || {}).segs || genStageSegs(type, dist, variant === 'R' ? null : variant),
     name: (cal.stagesSpec.length > 1 ? 'Étape ' + (i + 1) + ' — ' : '') + typeLbl(type) + ' — ' + dist + ' km',
     startAlt: type === 'montagne' || type === 'sommet' ? rint(300, 900) : rint(20, 250),
     wind: windFor(cal.w),
