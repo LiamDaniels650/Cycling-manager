@@ -38,6 +38,7 @@ const R = {
   salary: { base: 25, k: 0.35, exp: 2.4, youngMul: 0.7 }, // salaire = base + k × (note − 60)^exp (k€/an), × youngMul avant 24 ans
   lvlRef: 77.3, // niveau de référence du peloton (moyenne des 200 meilleurs, fin de première saison)
   lvlK: 0.75, // part de la hausse du niveau du peloton retranchée de la note pour fixer un salaire
+  startPayRef: 2400, // nouvelle partie : masse salariale (k€) au-delà de laquelle le sponsor verse une prime de lancement
   sponsorBase: 52, // apport du sponsor principal (k€ par semaine)
   // part variable de l'apport du sponsor (k€ par semaine) : modeste, comme les primes de résultats d'un vrai contrat
   // (réglée pour qu'une équipe entièrement déléguée finisse en moyenne au niveau des équipes IA voisines en normal)

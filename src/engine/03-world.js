@@ -309,12 +309,22 @@ function newGame(teamName, seed, diff) {
   assignGoals();
   initEconomy(diff);
   S.budget = diffOf().budget;
+  // prime de lancement : l'effectif hérité coûte plus ou moins cher selon le tirage ; le sponsor finance la part de
+  // la masse salariale qui dépasse la référence, pour que la première saison ne se joue pas sur la loterie du départ
+  const pay0 = sum(pT.riders.map(id => S.riders[id].salary));
+  const launch = Math.round(Math.max(0, pay0 - R.startPayRef) * diffOf().spons);
+  S.budget += launch;
+  S.launch = launch;
   genObjectives();
   initCareer();
   initImage();
   msg(
     'Bienvenue',
-    `Vous prenez la direction sportive de <b>${pT.name}</b>. Budget : ${fmtMoney(S.budget)}. Consultez votre effectif, réglez les plans d'entraînement, jetez un œil au vivier de jeunes (onglet Académie) puis préparez la première course au calendrier.<br><br>Objectifs du sponsor :<br>${S.obj.map(o => '• ' + o.txt).join('<br>')}`
+    `Vous prenez la direction sportive de <b>${pT.name}</b>. Budget : ${fmtMoney(S.budget)}${
+      S.launch
+        ? `, dont une prime de lancement de ${fmtMoney(S.launch)} versée par le sponsor pour reprendre un effectif coûteux (${fmtMoney(sum(pT.riders.map(id => S.riders[id].salary)))} de salaires par an)`
+        : ''
+    }. Consultez votre effectif, réglez les plans d'entraînement, jetez un œil au vivier de jeunes (onglet Académie) puis préparez la première course au calendrier.<br><br>Objectifs du sponsor :<br>${S.obj.map(o => '• ' + o.txt).join('<br>')}`
   );
   return S;
 }

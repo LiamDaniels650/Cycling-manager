@@ -2932,6 +2932,7 @@ const R = {
   salary: { base: 25, k: 0.35, exp: 2.4, youngMul: 0.7 }, // salaire = base + k × (note − 60)^exp (k€/an), × youngMul avant 24 ans
   lvlRef: 77.3, // niveau de référence du peloton (moyenne des 200 meilleurs, fin de première saison)
   lvlK: 0.75, // part de la hausse du niveau du peloton retranchée de la note pour fixer un salaire
+  startPayRef: 2400, // nouvelle partie : masse salariale (k€) au-delà de laquelle le sponsor verse une prime de lancement
   sponsorBase: 52, // apport du sponsor principal (k€ par semaine)
   // part variable de l'apport du sponsor (k€ par semaine) : modeste, comme les primes de résultats d'un vrai contrat
   // (réglée pour qu'une équipe entièrement déléguée finisse en moyenne au niveau des équipes IA voisines en normal)
@@ -4045,12 +4046,22 @@ function newGame(teamName, seed, diff) {
   assignGoals();
   initEconomy(diff);
   S.budget = diffOf().budget;
+  // prime de lancement : l'effectif hérité coûte plus ou moins cher selon le tirage ; le sponsor finance la part de
+  // la masse salariale qui dépasse la référence, pour que la première saison ne se joue pas sur la loterie du départ
+  const pay0 = sum(pT.riders.map(id => S.riders[id].salary));
+  const launch = Math.round(Math.max(0, pay0 - R.startPayRef) * diffOf().spons);
+  S.budget += launch;
+  S.launch = launch;
   genObjectives();
   initCareer();
   initImage();
   msg(
     'Bienvenue',
-    `Vous prenez la direction sportive de <b>${pT.name}</b>. Budget : ${fmtMoney(S.budget)}. Consultez votre effectif, réglez les plans d'entraînement, jetez un œil au vivier de jeunes (onglet Académie) puis préparez la première course au calendrier.<br><br>Objectifs du sponsor :<br>${S.obj.map(o => '• ' + o.txt).join('<br>')}`
+    `Vous prenez la direction sportive de <b>${pT.name}</b>. Budget : ${fmtMoney(S.budget)}${
+      S.launch
+        ? `, dont une prime de lancement de ${fmtMoney(S.launch)} versée par le sponsor pour reprendre un effectif coûteux (${fmtMoney(sum(pT.riders.map(id => S.riders[id].salary)))} de salaires par an)`
+        : ''
+    }. Consultez votre effectif, réglez les plans d'entraînement, jetez un œil au vivier de jeunes (onglet Académie) puis préparez la première course au calendrier.<br><br>Objectifs du sponsor :<br>${S.obj.map(o => '• ' + o.txt).join('<br>')}`
   );
   return S;
 }
@@ -8797,6 +8808,7 @@ function finishRace(rc) {
   });
   // objectifs : suivi
   S.objTrack = S.objTrack || {};
+  if (rc.cat === 0 && multi && myStages) S.objTrack.gtStage = true;
   if (rc.key === 'gb') {
     if (myStages) S.objTrack.gbStage = true;
     if (best && pos(best) <= 10) S.objTrack.gbTop10 = true;
@@ -11364,17 +11376,23 @@ function genObjectives() {
   const rk = S.lastRank != null ? S.lastRank : Math.round(nT * 0.62);
   const d = diffOf().obj;
   const nW = Math.max(1, (rk <= 2 ? 14 : rk <= 5 ? 8 : rk <= 9 ? 5 : rk <= 13 ? 3 : 2) + d * 2);
+  // classement UCI visé : la place de la saison passée, avec une place de marge hors du haut du classement
+  const uciN = clamp(rk + (rk > 6 ? 2 : 1) - d, 1, nT - 1);
   S.obj = [
     { k: 'wins', n: nW, txt: `Remporter au moins ${nW} victoires (étapes comprises)`, rew: 200 },
     {
       k: 'uci',
-      n: clamp(rk + 1 - d, 1, nT - 1),
-      txt: `Terminer dans les ${clamp(rk + 1 - d, 1, nT - 1)} premières équipes au classement UCI`,
+      n: uciN,
+      txt: `Terminer dans les ${uciN} premières équipes au classement UCI`,
       rew: 250,
     },
+    // un sponsor fixe des objectifs à la portée de son équipe : pour une équipe moyenne, une étape d'un Grand Tour
+    // (la Grande Boucle seule ne réussit qu'une saison sur quatre environ à ce niveau)
     rk <= 4
       ? { k: 'gbTop10', txt: 'Placer un coureur dans le top 10 de la Grande Boucle', rew: 300 }
-      : { k: 'gbStage', txt: 'Gagner une étape de la Grande Boucle', rew: 300 },
+      : rk <= 8
+        ? { k: 'gbStage', txt: 'Gagner une étape de la Grande Boucle', rew: 300 }
+        : { k: 'gtStage', txt: 'Gagner une étape d’un Grand Tour', rew: 300 },
     { k: 'promo', txt: "Faire passer professionnel un coureur de l'académie", rew: 100 },
   ];
   S.objTrack = {};

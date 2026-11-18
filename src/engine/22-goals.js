@@ -98,17 +98,23 @@ function genObjectives() {
   const rk = S.lastRank != null ? S.lastRank : Math.round(nT * 0.62);
   const d = diffOf().obj;
   const nW = Math.max(1, (rk <= 2 ? 14 : rk <= 5 ? 8 : rk <= 9 ? 5 : rk <= 13 ? 3 : 2) + d * 2);
+  // classement UCI visé : la place de la saison passée, avec une place de marge hors du haut du classement
+  const uciN = clamp(rk + (rk > 6 ? 2 : 1) - d, 1, nT - 1);
   S.obj = [
     { k: 'wins', n: nW, txt: `Remporter au moins ${nW} victoires (étapes comprises)`, rew: 200 },
     {
       k: 'uci',
-      n: clamp(rk + 1 - d, 1, nT - 1),
-      txt: `Terminer dans les ${clamp(rk + 1 - d, 1, nT - 1)} premières équipes au classement UCI`,
+      n: uciN,
+      txt: `Terminer dans les ${uciN} premières équipes au classement UCI`,
       rew: 250,
     },
+    // un sponsor fixe des objectifs à la portée de son équipe : pour une équipe moyenne, une étape d'un Grand Tour
+    // (la Grande Boucle seule ne réussit qu'une saison sur quatre environ à ce niveau)
     rk <= 4
       ? { k: 'gbTop10', txt: 'Placer un coureur dans le top 10 de la Grande Boucle', rew: 300 }
-      : { k: 'gbStage', txt: 'Gagner une étape de la Grande Boucle', rew: 300 },
+      : rk <= 8
+        ? { k: 'gbStage', txt: 'Gagner une étape de la Grande Boucle', rew: 300 }
+        : { k: 'gtStage', txt: 'Gagner une étape d’un Grand Tour', rew: 300 },
     { k: 'promo', txt: "Faire passer professionnel un coureur de l'académie", rew: 100 },
   ];
   S.objTrack = {};

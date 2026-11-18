@@ -286,6 +286,7 @@ function finishRace(rc) {
   });
   // objectifs : suivi
   S.objTrack = S.objTrack || {};
+  if (rc.cat === 0 && multi && myStages) S.objTrack.gtStage = true;
   if (rc.key === 'gb') {
     if (myStages) S.objTrack.gbStage = true;
     if (best && pos(best) <= 10) S.objTrack.gbTop10 = true;

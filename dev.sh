@@ -13,6 +13,7 @@
 #   reglages       régénère docs/REGLAGES.md (leviers de 00-params.js et constantes du moteur)
 #   adjoint [n] [g] partie entièrement déléguée à l'adjoint, comparée aux équipes IA voisines
 #   react          assemble dist/react.html (interface React + Tailwind, moteur inchangé)
+#   economie       équilibre économique : 4 parties déléguées sur 3 saisons (budget, licenciement ; ≈ 5 min)
 #   carriere [n]   mode carrière : une carrière simulée de 16 ans à 16+n ans, avec vérifications (≈ 30 s par saison)
 set -e
 cd "$(dirname "$0")"
@@ -43,6 +44,7 @@ case "$1" in
     node tests/audit.js | tail -1
     for t in ui_smoke_react ui_auto_react ui_worker; do python3 tests/$t.py 2>&1 | grep -i 'ERREURS JS\|errs \[' | head -1; done ;;
   carriere) build; node tests/career.js "${2:-8}" ;;
+  economie) build; node tests/economy.js 4 3 ;;
   calib)
     n=${2:-30}; build
     JOBS=1 node tests/calibrate.js "$n" 200 > /tmp/calib200.txt 2>&1 &
