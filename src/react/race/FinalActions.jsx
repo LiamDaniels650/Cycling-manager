@@ -41,6 +41,7 @@ function actionsFor(sim, x, head) {
         `Roue de ${riderName(rv.r)}`,
         x.wheelId === rv.id ? 'ordre donné' : `le plus rapide du groupe (${rv.r.s.spr})`,
       ]);
+    A.push(['au:sprint', 'Auto', "l'adjoint choisit selon le coureur et le vent"]);
     return A;
   }
   // arrivée en côte ou au sommet : attaquer (ordre radio habituel), attendre la fin, ou suivre le meilleur grimpeur
@@ -62,9 +63,11 @@ function actionsFor(sim, x, head) {
       'Attends la fin',
       x.climbPlan === 'last'
         ? 'ordre donné : tout à 300 m'
-        : x.r.s.col < x.r.s.mon - 4
-          ? 'grimpeur pur : risqué'
-          : 'pour un puncheur explosif',
+        : climbKick(x) > 0.5
+          ? 'explosif : ça devrait payer'
+          : climbKick(x) < 0
+            ? 'pas assez explosif : risqué'
+            : 'peu à gagner',
     ]);
     if (rv)
       A.push([
@@ -76,6 +79,7 @@ function actionsFor(sim, x, head) {
             ? 'plus fort : risque d’exploser'
             : 'à ta portée : roue à prendre',
       ]);
+    A.push(['au:climb', 'Auto', "l'adjoint choisit selon le coureur et ses rivaux"]);
     return A;
   }
   if (G !== head) {
@@ -163,30 +167,43 @@ export function FinalActions({ sim }) {
                 </div>
                 {/* toujours quatre cases (2 × 2) : les boutons ne bougent pas quand la situation change */}
                 <div className="mt-2 grid grid-cols-2 gap-1.5">
-                  {[0, 1, 2].map(j => {
+                  {(acts.length > 3 ? [0, 1, 2, 3] : [0, 1, 2]).map(j => {
                     const a = acts[j];
                     if (!a) return <div key={j} className="min-h-14 rounded-xl bg-slate-800/40" />;
                     const cl = a[0].startsWith('cl:');
-                    const sp = a[0].startsWith('sp:') || cl;
+                    const au = a[0].startsWith('au:');
+                    const sp = a[0].startsWith('sp:') || cl || au;
                     const H = sp
-                      ? { ic: a[0] === 'sp:long' ? '🚀' : a[0] === 'sp:court' || a[0] === 'cl:last' ? '⏳' : '🎯' }
+                      ? {
+                          ic: au
+                            ? '🤖'
+                            : a[0] === 'sp:long'
+                              ? '🚀'
+                              : a[0] === 'sp:court' || a[0] === 'cl:last'
+                                ? '⏳'
+                                : '🎯',
+                        }
                       : RADIO_HELP[a[0]];
                     return (
                       <button
                         key={j}
                         type="button"
                         onClick={() =>
-                          cl
-                            ? (climbOrder(sim, x.id, a[0].slice(3)), render())
-                            : sp
-                              ? (sprintOrder(sim, x.id, a[0].slice(3)), render())
-                              : sendRadio(x.id, a[0])
+                          au
+                            ? (finalAuto(sim, x.id, a[0].slice(3)), render())
+                            : cl
+                              ? (climbOrder(sim, x.id, a[0].slice(3)), render())
+                              : sp
+                                ? (sprintOrder(sim, x.id, a[0].slice(3)), render())
+                                : sendRadio(x.id, a[0])
                         }
                         className={
                           'flex min-h-14 flex-col items-start justify-center rounded-xl px-2.5 py-1.5 text-left active:scale-[.97] ' +
-                          (a[0] === 'attack' || a[0] === 'bridge' || sp
-                            ? 'bg-sky-500 text-slate-950'
-                            : 'bg-slate-800 text-slate-100 ring-1 ring-slate-700')
+                          (au
+                            ? 'bg-emerald-400 text-slate-950'
+                            : a[0] === 'attack' || a[0] === 'bridge' || sp
+                              ? 'bg-sky-500 text-slate-950'
+                              : 'bg-slate-800 text-slate-100 ring-1 ring-slate-700')
                         }
                       >
                         <b className="text-[13px] leading-tight">
@@ -207,7 +224,10 @@ export function FinalActions({ sim }) {
                     type="button"
                     disabled={out}
                     onClick={() => openRadio(x.id)}
-                    className="flex min-h-14 flex-col items-start justify-center rounded-xl bg-slate-800 px-2.5 py-1.5 text-left text-slate-100 ring-1 ring-slate-700 active:scale-[.97] disabled:opacity-40"
+                    className={
+                      (acts.length > 3 ? 'col-span-2 min-h-10 ' : 'min-h-14 ') +
+                      'flex flex-col items-start justify-center rounded-xl bg-slate-800 px-2.5 py-1.5 text-left text-slate-100 ring-1 ring-slate-700 active:scale-[.97] disabled:opacity-40'
+                    }
                   >
                     <b className="flex items-center gap-1 text-[13px]">
                       <Icon name="radio" size={15} /> Tous les ordres

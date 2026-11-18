@@ -192,6 +192,10 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   - Ordres de final en côte (3 derniers km, pour un coureur qui joue la gagne) : attaquer maintenant, attendre la
     fin (paie pour un puncheur explosif, coûte à un pur grimpeur) ou suivre le meilleur grimpeur adverse (marquage :
     gros gain s'il est à portée, explosion s'il est trop fort). Sans ordre, la course ne change pas.
+  - Bouton 🤖 Auto pour ces ordres de final : l'adjoint choisit et explique à la radio (sprint : mal placé, dans la
+    roue du plus rapide, sinon lancer long ; côte : attendre si explosif, roue du meilleur grimpeur s'il est proche,
+    son rythme s'il est un peu plus fort, rien forcer s'il est bien plus fort). Réglé sur des arrivées rejouées :
+    +3,3 places en moyenne au sprint, +2,8 en côte, sans perte notable.
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

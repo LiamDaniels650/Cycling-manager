@@ -474,6 +474,58 @@ function climbOrder(sim, id, plan) {
     log(sim, `📻 ${nm} : « Je ne bouge pas, je garde tout pour les 300 derniers mètres. »`, 'me');
   }
 }
+// Bouton « Auto » du final : l'adjoint choisit l'ordre qui convient au coureur et le dit à la radio.
+// Sprint (réglé sur des arrivées rejouées) : mal placé, on remonte dans la roue du plus rapide ; bien placé, on lance long.
+// Côte (réglé sur des arrivées rejouées) : attendre la fin s'il est assez explosif, attaquer seulement s'il domine
+// nettement le groupe, prendre la roue du meilleur grimpeur s'il est proche, monter à son rythme s'il est un peu
+// plus fort, et ne rien forcer s'il est bien plus fort.
+function finalAuto(sim, id, mode) {
+  const x = sim.runners.find(y => y.id === id);
+  if (!x || x.fin || x.dnf || !x.g) return;
+  const nm = riderName(x.r);
+  const say = why => log(sim, `🤖 DS → ${nm} : ${why}`, 'me');
+  if (mode === 'sprint') {
+    const rv = fastestRival(x);
+    if (rv && x.pos < 65) {
+      say(`mal placé dans le groupe : on remonte dans la roue de ${riderName(rv.r)}, le plus rapide.`);
+      sprintOrder(sim, id, 'wheel');
+    } else {
+      say(
+        sim.finWind === 'dos'
+          ? 'vent de dos : on lance de loin, ils ne reviendront pas.'
+          : 'on lance de loin, avant que les autres ne prennent la roue.'
+      );
+      sprintOrder(sim, id, 'long');
+    }
+    return;
+  }
+  const fg = Math.max(sim.P.finishGrad, 4);
+  const rv = bestClimberRival(sim, x);
+  const cx = cap(x, fg, 0),
+    cr = rv ? cap(rv, fg, 0) : 0;
+  const kick = climbKick(x),
+    dc = cr - cx; // avance du meilleur grimpeur adverse sur mon coureur
+  if (kick > 0.3) {
+    say('assez explosif pour le final : on attend les 300 derniers mètres.');
+    climbOrder(sim, id, 'last');
+  } else if (rv && dc < -6 && x.punch >= 60) {
+    say('nettement le plus fort du groupe : on attaque maintenant !');
+    applyRadio(sim, x, 'attack', 'user');
+  } else if (rv && dc <= 3) {
+    say(`${riderName(rv.r)} est à portée : on prend sa roue.`);
+    climbOrder(sim, id, 'follow');
+  } else if (rv && dc <= 7) {
+    say(`${riderName(rv.r)} est un peu plus fort : on monte à notre rythme, sans se mettre dans le rouge.`);
+    applyRadio(sim, x, 'pace', 'user');
+  } else {
+    x.manual = true;
+    say(
+      rv
+        ? `${riderName(rv.r)} est bien plus fort : on reste dans les roues, on ne force rien.`
+        : 'on reste dans les roues.'
+    );
+  }
+}
 // Meilleur grimpeur adverse du groupe d'un coureur, pour la pente de l'arrivée.
 function bestClimberRival(sim, x) {
   if (!x || !x.g) return null;

@@ -351,6 +351,10 @@ function finishGroup(sim, G, tcross) {
 // s'est mis dans le rouge à vouloir tenir la roue d'un plus fort, et on le bat dans le
 // même groupe si on a plus de punch. Personne ne repasse un coureur arrivé à un pas précédent, ni le vainqueur
 // annoncé. Aucun tirage.
+// Gain (s) d'un « attends la fin » pour ce coureur : explosivité (collines - montagne) et jus restant.
+function climbKick(x) {
+  return clamp((x.r.s.col - x.r.s.mon) * 0.12 + (x.punch - 60) * 0.03, -2.5, 2);
+}
 function climbPlans(sim, ord) {
   // plancher : les coureurs arrivés aux pas précédents, et le vainqueur déjà annoncé (photo-finish)
   const t0 = sim.t * 60;
@@ -359,7 +363,7 @@ function climbPlans(sim, ord) {
   let any = false;
   for (const [x] of ord) {
     if (x.climbPlan === 'last') {
-      const d = clamp((x.r.s.col - x.r.s.mon) * 0.12 + (x.punch - 60) * 0.03, -2.5, 2);
+      const d = climbKick(x);
       x.time = Math.max(floor, x.time - d);
       x._cp = d >= 0 ? 'last+' : 'last-';
       any = true;
