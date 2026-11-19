@@ -80,11 +80,9 @@ function actionsFor(sim, x, head) {
       'Attends la fin',
       x.climbPlan === 'last'
         ? 'ordre donné : tout à 300 m'
-        : climbKick(x) > 0.5
-          ? 'explosif : ça devrait payer'
-          : climbKick(x) < 0
-            ? 'pas assez explosif : risqué'
-            : 'peu à gagner',
+        : x.r.s.col - x.r.s.mon >= 3
+          ? 'puncheur : effort au bon moment'
+          : 'discipline à 300 m, peu à gagner',
     ]);
     if (rv)
       A.push([
