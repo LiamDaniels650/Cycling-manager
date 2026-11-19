@@ -64,6 +64,9 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `R.sprintDraft` | `0.45` | … gain de vitesse (m/s) dans la roue d'un coureur à moins de 6 m (×1,6 vent de face) |
 | `R.sprintFade` | `0.7` | … perte de vitesse (m/s par s) une fois la pointe tenue (≈ 10 s) |
 | `R.sprintSpent` | `1.2` | … un sprinteur à bout de pointe tombe sous la vitesse du groupe (m/s) : lancer trop tôt se paie |
+| `R.climbFinK` | `0.006` | final en côte simulé : écart de vitesse (part) par point de capacité du jour |
+| `R.climbFinCost` | `0.33` | … réserve (W' relatif) brûlée par seconde et par unité de vitesse au-dessus de son allure |
+| `R.climbFinSurge` | `0.12` | … surcroît de vitesse d'une attaque (12 %) |
 | `R.leaderFollow` | `0.8` | chance qu'un leader suive une attaque qui compte (0,95 s'il court défensif) |
 | `R.leaderFollowDef` | `0.95` |  |
 | `R.leaderFollowIdle` | `0.03` | … et une attaque qui ne compte pas (bagarre pour l'échappée) |
@@ -147,10 +150,10 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `RADIO_ACTS` | 08-stage-sim.js:227 | Consigne effective d'un coureur (radio ponctuelle, rébellion ou consigne d'avant course). |
 | `ESCORT_ORD` | 08-stage-sim.js:228 |  |
 | `DT_MIN` | 08-stage-sim.js:328 | Un pas de simulation = 30 secondes de course. |
-| `SPRINT_NOISE` | 09-stage-finish.js:203 | Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints. |
-| `PW_BUCKETS` | 09-stage-finish.js:524 | Records de puissance : meilleur effort personnel par durée et palmarès mondial des ascensions (20 min et plus). |
-| `GC_CACHE` | 11-results.js:137 | Le général ne change qu'entre les étapes (ou sur abandon) : il est mis en cache et invalidé par gcDirty(). |
-| `UCI_COUNT` | 11-results.js:362 | Classement UCI par équipes (règle réelle) : somme des points de la saison de ses 20 meilleurs coureurs actuels. |
+| `SPRINT_NOISE` | 09-stage-finish.js:230 | Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints. |
+| `PW_BUCKETS` | 09-stage-finish.js:746 | Records de puissance : meilleur effort personnel par durée et palmarès mondial des ascensions (20 min et plus). |
+| `GC_CACHE` | 11-results.js:145 | Le général ne change qu'entre les étapes (ou sur abandon) : il est mis en cache et invalidé par gcDirty(). |
+| `UCI_COUNT` | 11-results.js:373 | Classement UCI par équipes (règle réelle) : somme des points de la saison de ses 20 meilleurs coureurs actuels. |
 | `KG_BURN` | 12-season.js:5 | Perte de poids par semaine selon le plan d'entraînement (kg) ; 0,15 par défaut, reprise de poids au repos. |
 | `JOURNALS` | 14-press.js:2 |  |
 | `EQ_BIKES` | 15-equipment.js:5 | minRep : notoriété minimale pour que la marque vous fasse une offre ; pay : versement de base (k€/saison). |
@@ -242,3 +245,4 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `DISCO` | 50-discovery.js:7 | auto : domaines de l'adjoint qui le gèrent en attendant. |
 | `DB_TYPE` | 51-database.js:5 |  |
 | `TYPE_OK` | 51-database.js:188 |  |
+| `TV_ARCH` | 52-commentary.js:6 |  |

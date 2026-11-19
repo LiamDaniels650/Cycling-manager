@@ -212,6 +212,11 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     décisifs, la montée la plus rapide (W/kg), le final, le vainqueur et son compteur de victoires, le maillot de
     leader, et notre équipe. Tournures variées d'une étape à l'autre ; aussi dans le bilan d'une course d'un jour
     confiée à l'adjoint.
+  - Le dernier kilomètre des arrivées en côte se court au détail (à la demi-seconde), comme le sprint : allure de
+    chacun selon sa forme du jour, réserve explosive (W') pour tenir une roue plus rapide ou attaquer, aspiration
+    sous 7 %, lâchés quand la réserve est vide ; le plus fort grimpeur attaque de loin, les puncheurs attendent les
+    300 m, les groupes proches courent ensemble (on peut revenir ou être repris). Les ordres « attendre la fin » et
+    « suivre » y agissent pour de vrai ; le rejeu montre ce kilomètre (attaques, lâchés, passages en tête).
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

@@ -51,11 +51,38 @@ function tickCrossings(sim) {
       if (w) log(sim, `⛰️ ${c.name} (cat. ${c.cat}) : ${riderName(w.r)} passe en tête${pw}.`, w.player ? 'me' : '');
     }
   }
-  for (const G of sim.groups) {
+  // dans l'ordre de la route : le groupe de tête passe la ligne (ou entre dans le dernier kilomètre) le premier
+  for (const G of sim.groups.slice().sort((a, b) => b.pos - a.pos)) {
     if (G.pos >= sim.dist && G.riders.length) {
       const over = ((G.pos - sim.dist) / G.speed) * 3600;
       const tcross = sim.t * 60 + 30 - over;
       finishGroup(sim, G, tcross);
+    } else if (
+      sim.P.finishGrad >= 3 &&
+      sim.dist - G.pos <= 1 &&
+      G.speed > 0 &&
+      G.riders.filter(x => !x.fin).length >= 2
+    ) {
+      // arrivée en côte : le dernier kilomètre d'un groupe se court au détail (climbRun), dès qu'il y entre ;
+      // les groupes à moins de 250 m derrière, et ceux encore devant lui dans ce dernier kilomètre, courent avec lui
+      // (chacun part de sa place : on peut revenir ou être repris)
+      for (const x of G.riders) {
+        x._d0 = (sim.dist - G.pos) * 1000;
+        x._v0 = G.speed / 3.6;
+      }
+      for (const H of sim.groups)
+        if (
+          H !== G &&
+          H.speed > 0 &&
+          ((H.pos < G.pos && G.pos - H.pos <= 0.25) || (H.pos > G.pos && H.pos < sim.dist)) // devant : déjà dans le dernier km
+        )
+          for (const x of H.riders.slice())
+            if (!x.fin) {
+              x._d0 = (sim.dist - H.pos) * 1000;
+              x._v0 = H.speed / 3.6;
+              moveTo(x, G);
+            }
+      finishGroup(sim, G, sim.t * 60 + 30, (sim.dist - G.pos) * 1000);
     }
   }
 }
@@ -206,7 +233,7 @@ const SPRINT_NOISE = R.sprintNoise;
 function sprintPeak(v) {
   return v > 84 ? 84 + (v - 84) * 0.6 : v;
 }
-function finishGroup(sim, G, tcross) {
+function finishGroup(sim, G, tcross, Lfine) {
   const kmLeftGrad = sim.P.finishGrad;
   const xs = G.riders.filter(x => !x.fin);
   let ord;
@@ -339,18 +366,44 @@ function finishGroup(sim, G, tcross) {
       if (['protect', 'control', 'leadout'].includes(effOrder(x))) s -= 4;
       return [x, s];
     });
-    ord.sort((a, b) => b[1] - a[1]);
-    pactFinish(sim, ord);
-    const best = ord[0][1];
-    ord.forEach(([x, s]) => {
-      x.time = tcross + Math.min(25, Math.max(0, (best - s) * 0.7));
-    });
-    if (climbPlans(sim, ord)) ord.sort((a, b) => a[0].time - b[0].time);
+    let tr = null;
+    if (Lfine != null && ord.length > 1) {
+      // dernier kilomètre en côte simulé : allures, roues, attaques, réserves (les ordres du DS y agissent)
+      const T = climbRun(sim, ord, Lfine, G.speed / 3.6, Math.max(kmLeftGrad, 4));
+      ord.forEach(a => {
+        a[0].time = tcross + T.get(a[0]);
+        a[0]._fine = true;
+      });
+      ord.sort((a, b) => a[0].time - b[0].time);
+      pactFinish(sim, ord);
+      for (
+        let i = 1;
+        i < ord.length;
+        i++ // un pacte respecté : le coureur qui s'efface passe un souffle derrière
+      )
+        if (ord[i][0].time < ord[i - 1][0].time) ord[i][0].time = ord[i - 1][0].time + 0.2;
+      tr = sim._climbTrace;
+      sim._climbTrace = null;
+      climbSummitCredit(sim, ord);
+    } else {
+      ord.sort((a, b) => b[1] - a[1]);
+      pactFinish(sim, ord);
+      const best = ord[0][1];
+      ord.forEach(([x, s]) => {
+        x.time = tcross + Math.min(25, Math.max(0, (best - s) * 0.7));
+      });
+      if (climbPlans(sim, ord)) ord.sort((a, b) => a[0].time - b[0].time);
+    }
     climbPlanLog(sim, ord);
-    if (!sim.finish.length)
+    // la photo d'arrivée : le premier groupe arrivé, et personne encore en course devant lui
+    // (ou un groupe arrivé plus tard au détail, mais plus vite : la photo change de vainqueur)
+    const ahead = sim.groups.some(H => H !== G && H.pos > G.pos && H.riders.some(x => !x.fin && !x.dnf));
+    const best = sim.finish.length ? Math.min(...sim.finish.map(y => y.time)) : Infinity;
+    if (!ahead && ord[0][0].time < best)
       sim.photo = {
         kind: ord.length === 1 ? 'seul' : 'bosse',
         ord: ord.slice(0, 10).map(([x, s]) => ({ id: x.id, s })),
+        ...(tr ? { trace: tr } : {}),
       };
   }
   for (const [x] of ord) {
@@ -358,6 +411,167 @@ function finishGroup(sim, G, tcross) {
     sim.finish.push(x);
   }
   G.riders = [];
+}
+// Dernier kilomètre d'une arrivée en côte, simulé à la demi-seconde pour un groupe. Chacun a son allure
+// soutenable (capacité du jour, comme avant : même hiérarchie) et sa réserve (W' restant, relatif) : tenir la roue
+// d'un plus rapide (l'aspiration aide un peu sous 7 %) ou attaquer la vide ; à sec, il lâche. Le plus fort grimpeur
+// attaque de loin pour décrocher les puncheurs, les puncheurs attendent les 300 derniers mètres, tous donnent ce qui
+// reste aux 200 m. Ordres du DS : « attendre la fin » (garde la réserve pour 300 m), « suivre » (colle à la roue du
+// rival choisi). Renvoie le temps (s) de chacun jusqu'à la ligne ; enregistre la retransmission (sim._climbTrace).
+function climbRun(sim, ord, L, vg, fg) {
+  const sMed = ord.map(a => a[1]).sort((a, b) => b - a)[Math.min(ord.length - 1, 2)];
+  const draft = Math.max(0, 7 - fg) * 0.004;
+  const kF = R.climbFinCost,
+    surge = R.climbFinSurge;
+  const sorted = ord.map(a => a[1]).sort((a, b) => b - a);
+  const R_ = ord.map(([x, sc]) => {
+    const role = ['protect', 'control', 'leadout'].includes(effOrder(x));
+    const vi = (x._v0 || vg) * (1 + (sc - sMed) * R.climbFinK);
+    const res0 = clamp((x.wbal || 0) / 15, 0, 1.5);
+    const punchy = x.r.s.col - x.r.s.mon >= 3;
+    const strongest = sc >= sorted[Math.min(1, sorted.length - 1)] - 0.3;
+    let D = 200;
+    if (x.climbPlan === 'last') D = 300;
+    else if (x.climbPlan === 'follow') D = 200;
+    else if (punchy) D = 260 + res0 * 40;
+    else if (strongest && !role) D = Math.min(L - 40, 600 + rf(0, 450));
+    return {
+      x,
+      sc,
+      role,
+      vi,
+      R: res0,
+      R0: res0,
+      D,
+      mode: 'ride',
+      d: (x._d0 != null ? x._d0 : L) + (100 - clamp(x.pos || 60, 0, 100)) * 0.06 + rf(0, 1.5),
+      v: x._v0 || vg,
+      t: null,
+      fol: null,
+      dropped: false,
+    };
+  });
+  const dt = 0.5;
+  let t = 0;
+  const frames = [],
+    events = [];
+  let leader = null;
+  const name = a => riderName(a.x.r);
+  for (let k = 0; k < 2400 && R_.some(a => a.t == null); k++) {
+    const live = R_.filter(a => a.t == null).sort((a, b) => a.d - b.d);
+    if (k % 2 === 0) {
+      frames.push(R_.map(a => Math.max(0, +(a.t == null ? a.d : 0).toFixed(1))));
+      const lead = live[0];
+      if (lead && lead !== leader && lead.d < 450 && !R_.some(a => a.t != null)) {
+        if (leader) events.push({ t, txt: `🔝 ${name(lead)} passe en tête à ${Math.round(lead.d / 10) * 10} m !` });
+        leader = lead;
+      }
+    }
+    for (let i = 0; i < live.length; i++) {
+      const a = live[i];
+      let want = a.role ? a.vi * 0.97 : a.vi;
+      if (a.mode === 'ride' && !a.role && a.d <= a.D && a.R > 0.12) {
+        a.mode = 'att';
+        if (a.D > 230)
+          events.push({
+            t,
+            id: a.x.id,
+            txt: `⚡ ${name(a)} attaque à ${Math.round(a.d / 10) * 10} m !`,
+          });
+      }
+      if (a.mode === 'att') {
+        want = a.vi * (1 + surge);
+        a.R -= surge * kF * dt;
+        if (a.R <= 0) {
+          a.R = 0;
+          a.mode = 'spent';
+        }
+      } else if (a.mode === 'spent') want = a.vi * 0.99;
+      // la roue à tenir : le rival choisi (jusqu'à 30 m devant) ou le coureur juste devant (moins de 4 m)
+      let tgt = null;
+      if (a.x.climbPlan === 'follow' && a.x.followId != null) {
+        const rv = live.find(y => y.x.id === a.x.followId);
+        if (rv && rv.d < a.d && a.d - rv.d < 30) tgt = rv;
+      }
+      if (!tgt && i > 0 && a.d - live[i - 1].d < 4) tgt = live[i - 1];
+      if (tgt && !a.role && a.mode !== 'spent' && tgt.v > want) {
+        const need = tgt.v + (a.d - tgt.d > 2.5 ? 0.25 : 0);
+        const q = need / a.vi - 1 - draft;
+        const cost = Math.max(0, q) * kF * dt;
+        if (q <= 0) want = need;
+        else if (a.R >= cost) {
+          want = need;
+          a.R -= cost;
+          a.fol = tgt;
+        } else if (!a.dropped && a.fol) {
+          a.dropped = true;
+          if (a.d < 900)
+            events.push({ t, id: a.x.id, txt: `💥 ${name(a)} lâche prise à ${Math.round(a.d / 10) * 10} m.` });
+        }
+      }
+      a.v = want;
+      const nd = a.d - a.v * dt;
+      if (nd <= 0) a.t = t + a.d / a.v;
+      a.d = nd;
+    }
+    t += dt;
+  }
+  const res = new Map();
+  for (const a of R_) {
+    res.set(a.x, a.t == null ? t + 10 : a.t);
+    a.x._d0 = a.x._v0 = null;
+    a.x.wbal = Math.max(0, (a.x.wbal || 0) * (a.R / Math.max(0.01, a.R0)));
+    if (a.x.climbPlan) a.x._cp = a.x.climbPlan === 'last' ? (climbKick(a.x) >= 0 ? 'last+' : 'last-') : 'follow';
+    if (a.x.climbPlan === 'follow') a.x._cpRival = sim.runners.find(y => y.id === a.x.followId) || null;
+  }
+  // retransmission : les 10 premiers et mes coureurs
+  const fin = R_.slice().sort((a, b) => res.get(a.x) - res.get(b.x));
+  const keep = fin.filter((a, i) => i < 10 || a.x.player).slice(0, 14);
+  const idx = keep.map(a => R_.indexOf(a));
+  const ids = new Set(keep.map(a => a.x.id));
+  const t0 = res.get(fin[0].x);
+  const w = fin[0],
+    s2 = fin[1];
+  const g2 = s2 ? res.get(s2.x) - t0 : 0;
+  const lc = sim.P.climbs.filter(c => c.end >= sim.dist - 0.5).slice(-1)[0];
+  const top = lc ? ` au sommet de ${lc.name}` : '';
+  const wn = `${name(w)} (${w.x.team.short})`;
+  sim._climbTrace = {
+    dt: 1,
+    from: Math.round(L / 50) * 50,
+    speed: Math.max(4, (frames.length * 1) / 10),
+    riders: keep.map(a => ({
+      id: a.x.id,
+      n: name(a),
+      t: a.x.team.short,
+      c: a.x.team.color,
+      me: !!a.x.player,
+      gap: +((res.get(a.x) - t0) * a.vi).toFixed(1),
+    })),
+    frames: frames.map(f => idx.map(j => f[j])),
+    events: events.filter(e => e.id == null || ids.has(e.id)).map(e => ({ t: e.t, txt: e.txt })),
+    win: !s2
+      ? `🏆 ${wn} s'impose${top} !`
+      : g2 < 0.5
+        ? `🏆 ${wn} s'impose${top} ! ${name(s2)} échoue d'un souffle.`
+        : `🏆 ${wn} s'impose${top}, ${fmtGap(g2).replace(/^\+/, '')} devant ${name(s2)} !`,
+  };
+  return res;
+}
+// Arrivée simulée au détail : les points du grimpeur et le chrono de la montée finale (le groupe ne franchit
+// pas le sommet dans la boucle de course ordinaire).
+function climbSummitCredit(sim, ord) {
+  sim.klimbs.forEach((c, ci) => {
+    if (c.done || c.end < sim.dist - 0.5) return;
+    const pts = komPts(sim.rc, c, true);
+    for (const [x] of ord) if (c.order.length < pts.length && !c.order.includes(x.id)) c.order.push(x.id);
+    if (c.len >= 1.5) {
+      c.perf = c.perf || [];
+      for (const [x] of ord)
+        if (x.cs && x.cs[ci] !== undefined && !c.perf.some(e => e.id === x.id))
+          c.perf.push({ id: x.id, dur: x.time - x.cs[ci] });
+    }
+  });
 }
 // Ordres de final en côte du directeur sportif (climbOrder), appliqués au temps sur la ligne : en montée, les
 // coureurs arrivent souvent un par un. Attendre la fin fait gagner jusqu'à 2 s à un puncheur explosif (collines >
@@ -431,6 +645,14 @@ function climbPlanLog(sim, ord) {
 // Fin d'étape : classement, statistiques, watts, règle des 3 km, désobéissances.
 function endStageSim(sim) {
   sim.done = true;
+  // filet de sécurité : une photo d'arrivée, même si aucun groupe n'a pu la revendiquer en course
+  if (!sim.photo && sim.finish.length) {
+    const f = sim.finish.slice().sort((a, b) => a.time - b.time);
+    sim.photo = {
+      kind: f[1] && f[1].time - f[0].time < 1 ? 'bosse' : 'seul',
+      ord: f.slice(0, 10).map(x => ({ id: x.id, s: 0 })),
+    };
+  }
   const rc = sim.rc;
   for (const x of sim.runners) {
     x.r.stats.kf = (x.r.stats.kf || 0) + x.st.kf;
