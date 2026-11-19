@@ -430,10 +430,12 @@ function climbRun(sim, ord, L, vg, fg) {
     const res0 = clamp((x.wbal || 0) / 15, 0, 1.5);
     const punchy = x.r.s.col - x.r.s.mon >= 3;
     const strongest = sc >= sorted[Math.min(1, sorted.length - 1)] - 0.3;
-    let D = 200;
+    // le moment de l'effort final : à l'instinct, il varie (certains partent trop tôt) ; sur ordre « attendre la
+    // fin », 300 m, le bon moment pour un puncheur
+    let D = 200 + rf(0, 200);
     if (x.climbPlan === 'last') D = 300;
     else if (x.climbPlan === 'follow') D = 200;
-    else if (punchy) D = 260 + res0 * 40;
+    else if (punchy) D = 220 + rf(0, 280);
     else if (strongest && !role) D = Math.min(L - 40, 600 + rf(0, 450));
     return {
       x,
@@ -494,14 +496,11 @@ function climbRun(sim, ord, L, vg, fg) {
         if (rv && rv.d < a.d && a.d - rv.d < 30) tgt = rv;
       }
       if (!tgt && i > 0 && a.d - live[i - 1].d < 4) tgt = live[i - 1];
-      // « attendre la fin » : il suit les roues sans entamer plus de 45 % de sa réserve, et garde le reste pour 300 m
-      const waits = a.x.climbPlan === 'last' && a.mode === 'ride';
       if (tgt && !a.role && a.mode !== 'spent' && tgt.v > want) {
         const need = tgt.v + (a.d - tgt.d > 2.5 ? 0.25 : 0);
         const q = need / a.vi - 1 - draft;
         const cost = Math.max(0, q) * kF * dt;
         if (q <= 0) want = need;
-        else if (waits && a.R - cost < a.R0 * 0.55) want = a.vi * (1 + draft); // il garde de quoi finir
         else if (a.R >= cost) {
           want = need;
           a.R -= cost;

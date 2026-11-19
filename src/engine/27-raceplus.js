@@ -477,9 +477,8 @@ function climbOrder(sim, id, plan, quiet) {
 // Bouton « Auto » du final : l'adjoint choisit l'ordre qui convient au coureur et le dit à la radio.
 // Sprint (réglé sur des sprints simulés) : mal placé, on remonte dans la roue du plus rapide ; sinon le conseil
 // de sprintAdvice (attendre par vent de face ou pour un explosif, lancer long pour un endurant ou par vent de dos).
-// Côte (réglé sur des arrivées rejouées) : attendre la fin s'il est assez explosif, attaquer seulement s'il domine
-// nettement le groupe, prendre la roue du meilleur grimpeur s'il est proche, monter à son rythme s'il est un peu
-// plus fort, et ne rien forcer s'il est bien plus fort.
+// Côte (réglé sur le dernier kilomètre simulé) : un puncheur attend les 300 m, le plus fort attaque s'il domine
+// nettement, on prend la roue du meilleur grimpeur s'il est proche, sinon on reste dans les roues.
 function finalAuto(sim, id, mode, src = 'user') {
   const x = sim.runners.find(y => y.id === id);
   if (!x || x.fin || x.dnf || !x.g) return;
@@ -523,8 +522,8 @@ function finalAuto(sim, id, mode, src = 'user') {
     cr = rv ? cap(rv, fg, 0) : 0;
   const kick = climbKick(x),
     dc = cr - cx; // avance du meilleur grimpeur adverse sur mon coureur
-  if (kick > 0.3) {
-    say('assez explosif pour le final : on attend les 300 derniers mètres.');
+  if (kick > 0.3 && x.r.s.col - x.r.s.mon >= 3) {
+    say('puncheur : on attend, tout aux 300 derniers mètres.');
     climbOrder(sim, id, 'last', ai);
   } else if (rv && dc < -6 && x.punch >= 60) {
     say('nettement le plus fort du groupe : on attaque maintenant !');
@@ -532,14 +531,9 @@ function finalAuto(sim, id, mode, src = 'user') {
   } else if (rv && dc <= 3) {
     say(`${riderName(rv.r)} est à portée : on prend sa roue.`);
     climbOrder(sim, id, 'follow', ai);
-  } else if (rv && dc <= 7) {
-    say(`${riderName(rv.r)} est un peu plus fort : on monte à notre rythme, sans se mettre dans le rouge.`);
-    radio('pace');
   } else {
     say(
-      rv
-        ? `${riderName(rv.r)} est bien plus fort : on reste dans les roues, on ne force rien.`
-        : 'on reste dans les roues.'
+      rv ? `${riderName(rv.r)} est plus fort : on reste dans les roues, on ne force rien.` : 'on reste dans les roues.'
     );
   }
 }
