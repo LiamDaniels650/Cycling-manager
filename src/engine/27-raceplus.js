@@ -463,7 +463,6 @@ function climbOrder(sim, id, plan, quiet) {
     x.climbPlan = 'follow';
     x.followId = rv.id;
     x.markId = rv.id; // le marquage du moteur : il saute dans sa roue s'il attaque
-    x.manual = true;
     log(
       sim,
       `📻 ${nm} : « Je ne lâche pas la roue de ${riderName(rv.r)}, je le passe sur la ligne si je peux ! »`,
@@ -472,7 +471,6 @@ function climbOrder(sim, id, plan, quiet) {
   } else {
     x.climbPlan = 'last';
     x.followId = null;
-    x.manual = true; // l'adjoint ne le fait pas attaquer de lui-même
     log(sim, `📻 ${nm} : « Je ne bouge pas, je garde tout pour les 300 derniers mètres. »`, 'me');
   }
 }
@@ -538,7 +536,6 @@ function finalAuto(sim, id, mode, src = 'user') {
     say(`${riderName(rv.r)} est un peu plus fort : on monte à notre rythme, sans se mettre dans le rouge.`);
     radio('pace');
   } else {
-    if (src === 'user') x.manual = true;
     say(
       rv
         ? `${riderName(rv.r)} est bien plus fort : on reste dans les roues, on ne force rien.`
