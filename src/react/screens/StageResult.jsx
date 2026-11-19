@@ -19,6 +19,20 @@ function NextBtn({ rc, big }) {
     </Btn>
   );
 }
+// Le résumé de l'étape, comme à la télévision (tvRecap, 52-commentary.js).
+function Commentary({ rc, idx }) {
+  const p = tvRecap(rc, idx);
+  if (!p || !p.length) return null;
+  return (
+    <Card className="border-amber-400/30" title="🎙️ Le résumé du commentateur">
+      <div className="space-y-2 text-[15px] leading-relaxed text-slate-100">
+        {p.map((t, i) => (
+          <p key={i}>{t}</p>
+        ))}
+      </div>
+    </Card>
+  );
+}
 function Debrief({ rc, L, st, mine }) {
   const res = st.res;
   const myRes = res.map((e, i) => [e, i]).filter(([e]) => mine.has(e.id));
@@ -481,6 +495,7 @@ export function StageResult() {
           </table>
         </Card>
       ) : null}
+      <Commentary rc={rc} idx={L.idx} />
       <Debrief rc={rc} L={L} st={st} mine={mine} />
       <Card title={rc.name}>
         <div className="text-sm text-slate-400">{st.name} — Arrivée</div>

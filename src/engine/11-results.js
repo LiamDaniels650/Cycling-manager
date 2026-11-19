@@ -126,6 +126,14 @@ function applyStageResult(rc, spec, res, dnfIds) {
   // victoire
   const w = S.riders[res[0].id];
   w.stats.wins++;
+  // pour le résumé du commentateur (52-commentary.js) : figé au soir de l'étape
+  const sr = rc.stageRes[rc.stageRes.length - 1];
+  sr.wn = w.stats.wins;
+  if (rc.specs.length > 1) {
+    const g = gcList(rc);
+    sr.lead = g[0];
+    sr.lgap = g[1] != null ? rc.gc[g[1]] - rc.gc[g[0]] : null;
+  }
   w.moral = clamp(w.moral + 12, 0, 100);
   if (rc.specs.length > 1) palmAdd(res[0].id, rc.name, 'Étape ' + (rc.si + 1) + ' (' + typeLbl(spec.type) + ')', 1);
   for (let i = 0; i < 3 && i < res.length; i++) S.riders[res[i].id].stats.podiums++;
@@ -273,6 +281,9 @@ function finishRace(rc) {
   if (rc.delegated || (!myIds.length && rc.cat <= 1)) {
     const story = raceStory(rc, !!rc.delegated);
     if (story.length) lines.push('<br><b>Le récit</b> :<br>' + story.join('<br>'));
+    // course d'un jour confiée à l'adjoint : le résumé du commentateur
+    const tv = !multi && rc.delegated ? tvRecap(rc, 0) : null;
+    if (tv) lines.push('<br><b>🎙️ Le résumé du commentateur</b> :<br>' + tv.map(t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;')).join('<br>'));
   }
   msg(`Bilan : ${rc.name}`, lines.join('<br>'));
   S.hist.push({

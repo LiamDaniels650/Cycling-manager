@@ -400,7 +400,7 @@ Plat — 198 km | t= 4h28'59" avg 44.2 km/h | ticks 566 | last +13'47" | DNF 0
    S. Christensen[spri]m.t., P. Gil[spri]m.t., W. Maes[spri]m.t., S. Meijer[spri]m.t., V. Marchand[spri]m.t.
  GC: S. Christensen[spri] m.t., P. Gil[spri] +4", W. Maes[spri] +6", S. Meijer[spri] +10", V. Marchand[spri] +10"
 
-season ok, budget 1422 riders 602 json 695453
+season ok, budget 1422 riders 602 json 695460
 
 === Grand Prix d'Ouverture ===
 Plat — 176 km | t= 3h53'22" avg 45.3 km/h | ticks 469 | last +51" | DNF 0

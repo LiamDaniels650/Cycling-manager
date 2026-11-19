@@ -51,6 +51,7 @@ src/
     27-raceplus.js        course : plan d'alimentation, barres en poche, alliances de poursuite, résumé d'étape
     28-image.js           image de l'équipe (identité construite par les résultats) et ses effets
     29-ai-economy.js      économie des équipes IA (budget selon le standing, masse salariale, standing qui évolue)
+    52-commentary.js      le résumé du commentateur à la fin de chaque étape (lecture seule des relevés d'étape)
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -207,6 +208,10 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     (sprint : roue, lancer long ou attendre selon placement, vent et endurance ; côte : attendre, attaquer, suivre ou
     monter à son rythme), un sur quatre laisse faire l'instinct. Mon équipe en profite quand l'adjoint la dirige
     (DS auto, course confiée) ; un ordre du joueur n'est jamais remplacé.
+  - 🎙️ Le résumé du commentateur à la fin de chaque étape : le cadre, l'échappée et qui l'a reprise, les moments
+    décisifs, la montée la plus rapide (W/kg), le final, le vainqueur et son compteur de victoires, le maillot de
+    leader, et notre équipe. Tournures variées d'une étape à l'autre ; aussi dans le bilan d'une course d'un jour
+    confiée à l'adjoint.
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

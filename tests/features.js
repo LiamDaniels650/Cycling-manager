@@ -871,6 +871,17 @@ check(
   );
   while (!sim.done) simTick(sim);
   check(rc.stageRes.length === 1, 'GPX : course terminée sans erreur');
+  {
+    const tv = tvRecap(rc, 0);
+    check(
+      tv &&
+        tv.length >= 3 &&
+        /kilomètres/.test(tv[0]) &&
+        tv.some(t => /victoire/.test(t)) &&
+        !tv.join(' ').includes('undefined'),
+      `Commentateur : ${tv ? tv.length : 0} paragraphes`
+    );
+  }
   S.rc = null;
   check(exportDb().parcours[key + ':0'].type === 'sommet', 'GPX : parcours exporté dans la base');
 }
