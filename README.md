@@ -203,6 +203,10 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   - Écran de course allégé : un seul message à la fois au-dessus des commandes (décision, message, moment fort),
     plus court et fermé d'un toucher ; moments forts des autres équipes espacés ; négociation dans l'échappée et
     pacte dans la page ; réglages de la course (rythme, pauses, DS auto) repliés derrière ⚙.
+  - Les équipes de l'ordinateur jouent aussi leurs finals : à 3 km, leur directeur raisonne comme le bouton Auto
+    (sprint : roue, lancer long ou attendre selon placement, vent et endurance ; côte : attendre, attaquer, suivre ou
+    monter à son rythme), un sur quatre laisse faire l'instinct. Mon équipe en profite quand l'adjoint la dirige
+    (DS auto, course confiée) ; un ordre du joueur n'est jamais remplacé.
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

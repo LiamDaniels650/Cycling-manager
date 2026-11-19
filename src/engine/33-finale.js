@@ -60,6 +60,7 @@ function finaleSituation(sim) {
 function finaleTick(sim) {
   const A = sim.groups.find(G => G.riders.some(x => !x.fin));
   if (!A || sim.finish.length) return;
+  aiFinalOrders(sim);
   const kmL = sim.dist - A.pos,
     prevL = sim.dist - (A.prev ?? A.pos);
   if (kmL <= 25) {
