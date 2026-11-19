@@ -217,6 +217,8 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     sous 7 %, lâchés quand la réserve est vide ; le plus fort grimpeur attaque de loin, les puncheurs attendent les
     300 m, les groupes proches courent ensemble (on peut revenir ou être repris). Les ordres « attendre la fin » et
     « suivre » y agissent pour de vrai ; le rejeu montre ce kilomètre (attaques, lâchés, passages en tête).
+  - Objectif « victoires » du sponsor recalé sur les victoires réelles des équipes de chaque rang (médianes mesurées
+    sur des saisons simulées) : il était trop dur pour le milieu et le bas du classement.
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

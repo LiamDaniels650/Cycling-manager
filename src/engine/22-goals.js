@@ -97,7 +97,10 @@ function genObjectives() {
   const nT = S.teams.length;
   const rk = S.lastRank != null ? S.lastRank : Math.round(nT * 0.62);
   const d = diffOf().obj;
-  const nW = Math.max(1, (rk <= 2 ? 14 : rk <= 5 ? 8 : rk <= 9 ? 5 : rk <= 13 ? 3 : 2) + d * 2);
+  // victoires visées : un peu sous la médiane des équipes de ce rang (saisons simulées : 27-36 pour les deux
+  // premières, 13-21 du 3e au 5e, 6-9 du 6e au 8e, 3 vers le 9e, 1 à 3 du 11e au 13e, 0-1 au-delà)
+  const base = rk <= 2 ? 16 : rk <= 3 ? 12 : rk <= 5 ? 9 : rk <= 7 ? 6 : rk <= 8 ? 4 : rk <= 11 ? 3 : rk <= 13 ? 2 : 1;
+  const nW = Math.max(1, base + d * 2);
   // classement UCI visé : la place de la saison passée, avec une place de marge hors du haut du classement
   const uciN = clamp(rk + (rk > 6 ? 2 : 1) - d, 1, nT - 1);
   S.obj = [
