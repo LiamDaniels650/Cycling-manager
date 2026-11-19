@@ -494,14 +494,14 @@ function climbRun(sim, ord, L, vg, fg) {
         if (rv && rv.d < a.d && a.d - rv.d < 30) tgt = rv;
       }
       if (!tgt && i > 0 && a.d - live[i - 1].d < 4) tgt = live[i - 1];
-      // « attendre la fin » : il ne répond pas aux accélérations (seulement l'aspiration), il garde tout pour 300 m
+      // « attendre la fin » : il suit les roues sans entamer plus de 45 % de sa réserve, et garde le reste pour 300 m
       const waits = a.x.climbPlan === 'last' && a.mode === 'ride';
       if (tgt && !a.role && a.mode !== 'spent' && tgt.v > want) {
         const need = tgt.v + (a.d - tgt.d > 2.5 ? 0.25 : 0);
         const q = need / a.vi - 1 - draft;
         const cost = Math.max(0, q) * kF * dt;
         if (q <= 0) want = need;
-        else if (waits) want = a.vi * (1 + draft);
+        else if (waits && a.R - cost < a.R0 * 0.55) want = a.vi * (1 + draft); // il garde de quoi finir
         else if (a.R >= cost) {
           want = need;
           a.R -= cost;
