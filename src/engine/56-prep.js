@@ -70,11 +70,11 @@ function effortTest(id) {
 }
 // Entraîneurs en chef candidats de la saison (trois profils, fixes pour la saison).
 const COACH_SPEC = {
-  montagne: 'la montagne',
-  sprint: 'le sprint',
-  clm: 'le contre-la-montre',
-  paves: 'les pavés',
-  jeunes: 'les jeunes (23 ans et moins)',
+  montagne: 'de la montagne',
+  sprint: 'du sprint',
+  clm: 'du contre-la-montre',
+  paves: 'des pavés',
+  jeunes: 'des jeunes (23 ans et moins)',
 };
 function coachCandidates() {
   const ks = Object.keys(COACH_SPEC);
@@ -98,5 +98,5 @@ function hireCoach(i) {
   S.budget -= c.fee;
   finAdd('other', -c.fee);
   S.coach = { k: c.k, n: `${c.fn} ${c.ln}`, s: S.season };
-  return `${c.fn} ${c.ln} devient votre entraîneur en chef, spécialiste de ${COACH_SPEC[c.k]}.`;
+  return `${c.fn} ${c.ln} devient votre entraîneur en chef, spécialiste ${COACH_SPEC[c.k]}.`;
 }

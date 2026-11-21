@@ -423,8 +423,7 @@ function Prep() {
       <h3 className="mt-3 text-sm font-semibold text-slate-100">🧑‍🏫 Entraîneur en chef</h3>
       {S.coach ? (
         <p className="mt-1 text-sm text-slate-200">
-          {S.coach.n}, spécialiste de {COACH_SPEC[S.coach.k]} : progression renforcée dans ce domaine pour tout
-          l'effectif.
+          {S.coach.n}, spécialiste {COACH_SPEC[S.coach.k]} : progression renforcée dans ce domaine pour tout l'effectif.
         </p>
       ) : (
         <p className="mt-1 text-xs text-slate-400">
@@ -441,7 +440,7 @@ function Prep() {
               <b className="text-slate-100">
                 {c.fn} {c.ln}
               </b>{' '}
-              <span className="text-xs text-slate-400">· {COACH_SPEC[c.k]}</span>
+              <span className="text-xs text-slate-400">· spécialiste {COACH_SPEC[c.k]}</span>
             </span>
             <Btn
               className="min-h-9 shrink-0"

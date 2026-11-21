@@ -7,20 +7,34 @@
 
 // Groupes passant un sommet ou une sortie de secteur ce pas-ci (appelé par tickCrossings, avant les points).
 function decisiveSplit(sim) {
+  // les moments retenus pour l'étape : les deux derniers grands cols (hors montée finale) et les deux derniers
+  // secteurs pavés difficiles (4 étoiles et plus) ; au plus quatre moments
+  if (!sim.momentPlan) {
+    sim.momentPlan = true;
+    sim.klimbs
+      .filter(c => c.end < sim.dist - 3 && (c.cat === 'HC' || c.cat === 1 || (c.len >= 4 && c.avg >= 6)))
+      .sort((a, b) => b.end - a.end)
+      .slice(0, 2)
+      .forEach(c => (c.fineOk = true));
+    (sim.P.sectors || [])
+      .filter(sc => sc.end < sim.dist - 3 && sc.end - sc.start >= 1.5 && (sc.stars || 3) >= 4)
+      .sort((a, b) => b.end - a.end)
+      .slice(0, 2)
+      .forEach(sc => (sc.fineOk = true));
+  }
+  if ((sim.momentTraces || []).length >= 4) return;
   for (const G of sim.groups.slice().sort((a, b) => b.pos - a.pos)) {
     if (!(G.speed > 0) || G.prev == null) continue;
     const xs = G.riders.filter(x => !x.fin && !x.dnf);
     if (xs.length < 4 || !xs.some(x => sim.favs.has(x.id) || x.player)) continue;
     for (const c of sim.klimbs) {
-      if (c.fineDone || !(G.prev < c.end && G.pos >= c.end) || c.end >= sim.dist - 3) continue;
-      if (!(c.cat === 'HC' || c.cat === 1 || (c.len >= 4 && c.avg >= 6))) continue;
+      if (!c.fineOk || c.fineDone || !(G.prev < c.end && G.pos >= c.end)) continue;
       c.fineDone = true;
       momentRun(sim, G, Math.min(2000, c.len * 1000), c.avg, 0, 'col', c.name, c.end);
       break;
     }
     for (const sc of sim.P.sectors || []) {
-      if (sc.fineDone || sc.end - sc.start < 1.5 || !(G.prev < sc.end && G.pos >= sc.end)) continue;
-      if (sc.end >= sim.dist - 3) continue;
+      if (!sc.fineOk || sc.fineDone || !(G.prev < sc.end && G.pos >= sc.end)) continue;
       sc.fineDone = true;
       momentRun(
         sim,
@@ -50,13 +64,13 @@ function momentRun(sim, G, L, grad, surf, kind, name, km) {
   const T = climbRun(sim, ord, L, G.speed / 3.6, kind === 'pave' ? 6 : fg);
   const tr = sim._climbTrace;
   sim._climbTrace = null;
-  // l'éclatement : un nouveau groupe dès que l'écart dépasse 3 s
+  // l'éclatement : un nouveau groupe dès que l'écart dépasse 4 s
   const sorted = xs.slice().sort((a, b) => T.get(a) - T.get(b));
   const t0 = T.get(sorted[0]);
   const clusters = [];
   let cur = [sorted[0]];
   for (let i = 1; i < sorted.length; i++) {
-    if (T.get(sorted[i]) - T.get(sorted[i - 1]) > 3) {
+    if (T.get(sorted[i]) - T.get(sorted[i - 1]) > 4) {
       clusters.push(cur);
       cur = [];
     }
@@ -74,7 +88,7 @@ function momentRun(sim, G, L, grad, surf, kind, name, km) {
   const where = kind === 'pave' ? `à la sortie du ${name}` : `au sommet de ${name}`;
   const txt =
     clusters.length > 1
-      ? `${kind === 'pave' ? '🧱' : '⛰️'} ${where}, ${riderName(lead.r)} (${lead.team.short}) passe en tête avec ${clusters[0].length > 1 ? clusters[0].length - 1 + ' coureur(s) dans sa roue' : 'un petit écart'} : le groupe explose en ${clusters.length} morceaux (${fmtGap(g2)} pour le suivant).`
+      ? `${kind === 'pave' ? '🧱' : '⛰️'} ${where}, ${riderName(lead.r)} (${lead.team.short}) passe en tête avec ${clusters[0].length === 2 ? 'un coureur dans sa roue' : clusters[0].length > 2 ? clusters[0].length - 1 + ' coureurs dans sa roue' : 'un petit écart'} : le groupe explose en ${clusters.length} morceaux (${fmtGap(g2)} pour le suivant).`
       : `${kind === 'pave' ? '🧱' : '⛰️'} ${where}, ${riderName(lead.r)} (${lead.team.short}) passe en tête, le groupe reste groupé.`;
   const mine = xs.some(x => x.player);
   log(sim, txt, mine ? 'me' : 'info');

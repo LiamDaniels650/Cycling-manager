@@ -117,6 +117,6 @@ function dsAnnounce(sim) {
           : T.style === 'sprint'
             ? '« Le train est prêt, on vient pour gagner. »'
             : '« C’est notre objectif de l’année, on sera devant. »';
-    log(sim, `🎙️ ${dsName(T)}, directeur de ${T.name} : ${q}`, 'info');
+    log(sim, `🎙️ ${dsName(T)}, directeur ${/^[AEIOUYÉÈH]/.test(T.name) ? "d'" : 'de '}${T.name} : ${q}`, 'info');
   }
 }
