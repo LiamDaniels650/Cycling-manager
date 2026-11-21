@@ -107,6 +107,7 @@ function buildStageSim(rc) {
         lastReply: undefined,
         cs: undefined,
         _surf: undefined,
+        _cut: undefined,
         _early: undefined,
         _boxed: undefined,
         _lost: undefined,

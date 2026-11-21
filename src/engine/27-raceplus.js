@@ -399,6 +399,7 @@ function sprintExplain(r, d, rank, winnerSpr, forWin = true) {
     f.push(`emmené par ${d.train} poisson${d.train > 1 ? 's' : ''}-pilote${d.train > 1 ? 's' : ''}`);
   else if (d.train === 0) f.push('sans poisson-pilote dans le final');
   if (d.surf) f.push('il a surfé dans les roues du meilleur train');
+  if (d.cut) f.push(`${d.cut} s'est intercalé et lui a pris la roue de son dernier poisson-pilote`);
   if (d.boxed) f.push(`il est resté enfermé (placement ${d.pos})`);
   else if (d.pos < 60) f.push(`mal placé à l'approche de la ligne (placement ${d.pos})`);
   if (d.early)

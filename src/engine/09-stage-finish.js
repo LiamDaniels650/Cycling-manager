@@ -124,6 +124,7 @@ function sprintRun(sim, ents, fw, big) {
       t: null,
     };
   });
+  const events = []; // événements de la retransmission (train, coupure, lancements, enfermements, prises de tête)
   // le train : les poissons-pilotes (jusqu'à 3) en file devant leur sprinteur, le moins bon en tête, le meilleur
   // en dernier ; chacun mène à haute vitesse (aptitude à rouler, réserves), puis s'écarte, le dernier juste avant
   // le lancement de son sprinteur
@@ -146,6 +147,37 @@ function sprintRun(sim, ents, fw, big) {
       a.pull = clamp(0.6 + (0.8 * (a.x.r.s.pla - 60)) / 30, 0.3, 1.4) * Math.min(1, a.x.energy / 40);
     });
   }
+  // le surf : un sprinteur sans train se cale physiquement dans la roue du sprinteur du meilleur train
+  const best = trains
+    .filter(T => T.lo.length)
+    .sort((p, q) => sum(q.lo.map(a => a.x.r.s.pla)) - sum(p.lo.map(a => a.x.r.s.pla)))[0];
+  if (best) {
+    let wheel = best.sp;
+    for (const a of R_)
+      if (a.x._surf && a !== best.sp && !a.e.role) {
+        a.d = wheel.d + 1.5;
+        wheel = a;
+      }
+  }
+  // la bataille du placement : un adversaire bon frotteur s'intercale entre le dernier poisson-pilote et son
+  // sprinteur (plus souvent derrière un train court) ; il prend la roue, le sprinteur se retrouve derrière lui
+  for (const T of trains) {
+    if (!T.lo.length || !big) continue;
+    const cand = R_.filter(
+      a => !a.e.role && !a.cutter && a !== T.sp && a.x.team !== T.sp.x.team && !a.x._surf && (a.x.r.s.plc || 65) >= 72
+    ).sort((p, q) => (q.x.r.s.plc || 65) - (p.x.r.s.plc || 65))[0];
+    if (cand && rnd() < 0.22 * (1 - T.lo.length / 4)) {
+      cand.d = T.sp.d;
+      cand.cutter = true;
+      T.sp.d += 1.6;
+      T.sp.x._cut = cand.x;
+      events.push({
+        t: 0,
+        id: T.sp.x.id,
+        txt: `✂️ ${riderName(cand.x.r)} (${cand.x.team.short}) coupe le train ${T.sp.x.team.short} et prend la roue !`,
+      });
+    }
+  }
   // la roue choisie (ordre « dans la roue de… ») : placé juste derrière ce coureur, si le placement le permet
   for (const a of R_) {
     if (a.x.wheelId == null) continue;
@@ -156,8 +188,7 @@ function sprintRun(sim, ents, fw, big) {
   let t = 0;
   // enregistrement pour la retransmission du sprint (positions toutes les 0,5 s, événements) : lecture seule
   const rec = R_.filter(a => !a.e.role || a.train);
-  const frames = [],
-    events = [];
+  const frames = [];
   let leader = null;
   for (let k = 0; k < 600 && R_.some(a => a.t == null); k++) {
     if (k % 2 === 0) {
@@ -732,7 +763,15 @@ function endStageSim(sim) {
         e: Math.round(x.energy),
         drop: x.st.drop,
         sp: x._sp
-          ? { ...x._sp, boxed: !!x._boxed, early: !!x._early, lost: !!x._lost, surf: !!x._surf, spr: x.r.s.spr }
+          ? {
+              ...x._sp,
+              boxed: !!x._boxed,
+              early: !!x._early,
+              lost: !!x._lost,
+              surf: !!x._surf,
+              cut: x._cut ? riderName(x._cut.r) : null,
+              spr: x.r.s.spr,
+            }
           : null,
         why: x.st.disobWhy || null,
       };
