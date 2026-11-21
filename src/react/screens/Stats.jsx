@@ -1,6 +1,8 @@
 // Statistiques (portage fidèle de viewStats) : saison en cours ou passée, historique des courses, records,
 // classement UCI individuel, watts, palmarès, rivaux, légendes, bilan individuel et équipes.
+import { useState } from 'react';
 import { Card, Btn, Info, RiderLink, Table, Tr, TeamDot } from '../ui.jsx';
+import { SprintReplay } from '../race/Finale.jsx';
 import { RivalsTable } from './Home.jsx';
 import { SeasonWhy, UciObjective, WtTable, RivalsChart } from './Insights.jsx';
 
@@ -499,16 +501,51 @@ function TeamsTab() {
   );
 }
 // Le film de la saison : récit des 5 dernières saisons (grandes victoires, coureur de l'année, révélations…).
+// Mes plus belles arrivées : les rejeux conservés (mes podiums), à revoir.
+function Replays() {
+  const [open, setOpen] = useState(null);
+  const L = (S.replays || []).slice().reverse();
+  if (!L.length) return null;
+  return (
+    <Card title="🎬 Mes plus belles arrivées">
+      <div className="divide-y divide-slate-800">
+        {L.map((e, k) => (
+          <div key={k} className="py-2">
+            <div className="flex items-center justify-between gap-2 text-sm">
+              <span className="min-w-0">
+                <b className="text-slate-100">
+                  {e.rk === 1 ? '🏆' : e.rk === 2 ? '🥈' : '🥉'} {e.who}
+                </b>{' '}
+                <span className="text-xs text-slate-400">
+                  {e.race}
+                  {e.stage ? ' · ' + e.stage : ''} · {e.s}
+                </span>
+              </span>
+              <Btn className="min-h-9 shrink-0" onClick={() => setOpen(open === k ? null : k)}>
+                {open === k ? 'Fermer' : '▶ Revoir'}
+              </Btn>
+            </div>
+            {open === k ? <SprintReplay key={k} tr={e.tr} /> : null}
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
 function FilmTab() {
   const films = S.films || [];
   if (!films.length)
     return (
-      <Card title="🎬 Le film de la saison">
-        <p className="text-sm text-slate-400">Le premier film sera tourné à la fin de la saison.</p>
-      </Card>
+      <>
+        <Replays />
+        <Card title="🎬 Le film de la saison">
+          <p className="text-sm text-slate-400">Le premier film sera tourné à la fin de la saison.</p>
+        </Card>
+      </>
     );
   return (
     <>
+      <Replays />
       {films.map((f, k) => (
         <details key={f.s} open={k === 0} className="rounded-2xl border border-slate-700/70 bg-slate-900 p-3.5">
           <summary className="cursor-pointer text-base font-semibold text-slate-100">🎬 Saison {f.s}</summary>

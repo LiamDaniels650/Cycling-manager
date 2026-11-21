@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { Card, Btn, RiderLink, Tabs } from '../ui.jsx';
 import { GapChart } from '../race/Broadcast.jsx';
+import { SprintReplay } from '../race/Finale.jsx';
 
 const Row = ({ mine, children }) => (
   <tr className={'border-t border-slate-800 ' + (mine ? 'bg-pink-500/10' : '')}>{children}</tr>
@@ -17,6 +18,23 @@ function NextBtn({ rc, big }) {
     <Btn primary className={'w-full ' + (big ? 'min-h-14 text-base' : '')} onClick={() => nextStage()}>
       {big ? `Étape suivante : ${rc.specs[rc.si].name}` : "Préparer l'étape suivante"}
     </Btn>
+  );
+}
+// Revoir l'arrivée de l'étape qu'on vient de courir (sprint, côte ou solitaire).
+function ReplayCard({ sim }) {
+  const [on, setOn] = useState(false);
+  const tr = sim ? stageReplay(sim) : null;
+  if (!tr) return null;
+  return (
+    <Card>
+      {on ? (
+        <SprintReplay tr={tr} />
+      ) : (
+        <Btn className="w-full" onClick={() => setOn(true)}>
+          🎬 Revoir l'arrivée
+        </Btn>
+      )}
+    </Card>
   );
 }
 // Le résumé de l'étape, comme à la télévision (tvRecap, 52-commentary.js).
@@ -512,6 +530,7 @@ export function StageResult() {
       {tab === 'resume' ? (
         <>
           <Commentary rc={rc} idx={L.idx} />
+          <ReplayCard sim={L.sim} />
           <Debrief rc={rc} L={L} st={st} mine={mine} />
         </>
       ) : null}

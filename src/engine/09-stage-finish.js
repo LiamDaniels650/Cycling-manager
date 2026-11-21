@@ -810,6 +810,7 @@ function endStageSim(sim) {
         why: x.st.disobWhy || null,
       };
   }
+  replayKeep(sim); // mes podiums : le rejeu de l'arrivée pour le film de la saison
   rc._brk = breakRecord(sim);
   rc._wxs = sim.wxShift && sim.wxShift.done ? { km: Math.round(sim.wxShift.km), to: sim.wxShift.to } : null;
   rc._moments = decisiveMoments(sim).map(h => ({ km: h.km, txt: h.txt, mine: h.mine }));

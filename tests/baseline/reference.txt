@@ -400,7 +400,7 @@ Plat — 198 km | t= 4h34'36" avg 43.3 km/h | ticks 566 | last +7'58" | DNF 0
    M. Gerber[spri]m.t., J. Kristensen[spri]m.t., I. Hernández[spri]m.t., P. Gil[spri]m.t., J. Ruiz[spri]m.t.
  GC: M. Gerber[spri] m.t., J. Kristensen[spri] +4", I. Hernández[spri] +6", P. Gil[spri] +10", J. Ruiz[spri] +10"
 
-season ok, budget 1928 riders 603 json 698679
+season ok, budget 1928 riders 603 json 762819
 
 === Grand Prix d'Ouverture ===
 Plat — 176 km | t= 3h53'22" avg 45.3 km/h | ticks 469 | last +51" | DNF 0
@@ -11888,8 +11888,8 @@ Plat — 198 km | t= 5h25'55" avg 36.5 km/h | ticks 739 | last +43'31" | DNF 0
      [198] 🏁 Sprint : le train AVE emmène T. Marchand ; J. Torres surfe dans les roues et s'impose (vent de côté).
  GC: J. Torres[spri] m.t., J. Christensen[spri] +4", T. Marchand[spri] +6", M. Huber[spri] +10", B. Guyot[spri] +10"
 
-S2027 rank 12 uci 1560 wins 3 budget 1560 conf 48 obj 1010 | roster 19 aca 2 youth 63 free 65 | avgAge 26.0 teamOv 75,79,79,77,77,77,76,76,74,75,74,74,73,72,72,72,72,70 | json 682KB
-S2028 rank 11 uci 2285 wins 2 budget 999 conf 57 obj 1110 | roster 17 aca 2 youth 67 free 65 | avgAge 26.0 teamOv 75,80,78,77,78,77,76,76,74,75,74,73,73,73,72,72,71,70 | json 842KB
+S2027 rank 12 uci 1560 wins 3 budget 1560 conf 48 obj 1010 | roster 19 aca 2 youth 63 free 65 | avgAge 26.0 teamOv 75,79,79,77,77,77,76,76,74,75,74,74,73,72,72,72,72,70 | json 733KB
+S2028 rank 11 uci 2285 wins 2 budget 999 conf 57 obj 1110 | roster 17 aca 2 youth 67 free 65 | avgAge 26.0 teamOv 75,80,78,77,78,77,76,76,74,75,74,73,73,73,72,72,71,70 | json 897KB
 {"2027":{"sal":-3695.3571428571413,"staff":-477.38095238095184,"spons":3527.960837526437,"prize":136,"transf":0,"aca":-43.428571428571416,"other":-887.5,"equip":134.7142857142858},"2028":{"sal":-3387.3809523809546,"staff":-414.88095238095195,"spons":3810.00436519132,"prize":207,"transf":0,"aca":-23.42857142857144,"other":-893.5,"equip":141.547619047619}}
 top ov 87,86,86,85,85,84,84,84,84,84 p50 76
 top20 ages 31,23,28,23,25,26,24,25,28,25,30,30,32,25,26,34,33,30,25,33 neo in top20 0
