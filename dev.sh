@@ -39,12 +39,14 @@ case "$1" in
     build; bash tests/lint.sh | tail -1; bash tests/typecheck.sh | tail -1
     fp_check || true
     node tests/features.js | grep -v '^✔' | tail -3
+    node tests/finals.js | tail -1
     bash tests/regress.sh | tail -1
     node tests/bias.js | tail -1
     node tests/audit.js | tail -1
     for t in ui_smoke_react ui_auto_react ui_worker; do python3 tests/$t.py 2>&1 | grep -i 'ERREURS JS\|errs \[' | head -1; done ;;
   carriere) build; node tests/career.js "${2:-8}" ;;
   economie) build; node tests/economy.js 4 3 ;;
+  finals) build; node tests/finals.js ;;
   calib)
     n=${2:-30}; build
     JOBS=1 node tests/calibrate.js "$n" 200 > /tmp/calib200.txt 2>&1 &

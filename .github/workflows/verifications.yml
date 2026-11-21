@@ -23,6 +23,8 @@ jobs:
         run: ./dev.sh check
       - name: Tests fonctionnels
         run: node tests/features.js
+      - name: Ordres de final (bancs d'essai du sprint et de la côte)
+        run: node tests/finals.js
       - name: Non-régression
         run: bash tests/regress.sh
       - name: Format (Prettier)

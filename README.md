@@ -69,6 +69,7 @@ tests/
   ui_smoke_react.py       interface dans Chrome sans écran (aucune erreur JS tolérée)
   ui_auto_react.py        chaque bouton « Auto » cliqué pour de vrai, appel radio, DS automatique
   ui_worker.py            simulation d'une course dans un Web Worker (même résultat qu'en direct)
+  finals.js               ordres de final : bancs d'essai du sprint et de la côte (chaque ordre garde son sens)
   calibrate.js            comparaison avec le cyclisme réel (vitesses, écarts, échappées, profils de vainqueurs)
   baseline/calibrage.txt  dernière mesure de calibration de référence
   fixtures/               anciennes sauvegardes pour tester la migration
@@ -223,6 +224,19 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     kilomètre, le moins bon en tête, le meilleur en dernier ; chacun mène à haute vitesse (aptitude à rouler,
     réserves) puis s'écarte, le dernier dépose le sprinteur juste avant son lancement. Le peloton suit dans les roues
     et s'étire. Remplace l'ancien bonus abstrait ; visible dans le rejeu (« 🚂 Le train … dépose … à 250 m »).
+  - Sprint, bataille du placement : un sprinteur sans train surfe physiquement dans la roue du sprinteur du meilleur
+    train ; un frotteur adverse peut couper un train (« ✂️ X coupe le train Y ») et prendre la roue du sprinteur.
+    Le train roule soudé (chacun tient la roue de l'équipier devant lui, le sprinteur celle du dernier) ; le peloton
+    suit les roues au rythme du train.
+  - Arrivées au sommet : les 3 derniers km d'une vraie montée finale (au moins 3 km à 5 %) sont simulés au détail
+    (attaques de loin, lâchés, retours) ; les ordres de final se donnent avant (boutons jusqu'à 5 km de la ligne).
+  - Météo qui change en route : une averse arrive (une étape sèche sur dix) ou la pluie cesse (une sur quatre) ; la
+    physique, les chutes et le commentateur en tiennent compte. Le vent qui tourne existait déjà.
+  - Neutralisation fair-play : si le leader du général (ou l'un des trois premiers) tombe à plus de 25 km de
+    l'arrivée, le peloton lève le pied quelques minutes et n'attaque pas.
+  - Rejeu d'une victoire en solitaire : l'écart des poursuivants encore en course est affiché comme une estimation.
+  - Nouveau test `tests/finals.js` (`./dev.sh finals`, intégration continue) : bancs d'essai du sprint et de la côte
+    qui vérifient que chaque ordre de final garde son sens (il a déjà attrapé un train qui desservait son sprinteur).
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

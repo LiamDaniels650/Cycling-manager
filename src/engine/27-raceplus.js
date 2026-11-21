@@ -578,13 +578,12 @@ function aiFinalOrders(sim) {
     finalAuto(sim, x.id, mode, x.player ? 'auto' : 'ai');
   }
 }
-// Conseil de lancement selon le profil et le vent de l'arrivée (banc d'essai du sprint simulé) : 'court' par vent
-// de face ou pour un finisseur peu endurant, 'long' pour un endurant ou par vent de dos, sinon null (son instinct).
+// Conseil de lancement selon le profil et le vent de l'arrivée (banc d'essai : tests/finals.js) : 'court' par vent
+// de face, 'long' pour un endurant ou par vent de dos, sinon null (son instinct).
 function sprintAdvice(x, fw) {
   const end = x.r.s.end || 70;
   if (fw === 'face') return 'court';
   if (end >= 75 || (fw === 'dos' && end >= 68)) return 'long';
-  if (end <= 64) return 'court';
   return null;
 }
 // Rival le plus rapide du groupe d'un coureur (bouton « dans la roue de… » du final).

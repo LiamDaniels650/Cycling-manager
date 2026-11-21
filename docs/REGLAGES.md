@@ -64,6 +64,7 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `R.sprintDraft` | `0.45` | … gain de vitesse (m/s) dans la roue d'un coureur à moins de 6 m (×1,6 vent de face) |
 | `R.sprintFade` | `0.7` | … perte de vitesse (m/s par s) une fois la pointe tenue (≈ 10 s) |
 | `R.sprintSpent` | `1.2` | … un sprinteur à bout de pointe tombe sous la vitesse du groupe (m/s) : lancer trop tôt se paie |
+| `R.climbFinKm` | `3` | final en côte simulé au détail : sur les 3 derniers km d'une vraie montée finale (1 km sinon) |
 | `R.climbFinK` | `0.006` | final en côte simulé : écart de vitesse (part) par point de capacité du jour |
 | `R.climbFinCost` | `0.33` | … réserve (W' relatif) brûlée par seconde et par unité de vitesse au-dessus de son allure |
 | `R.climbFinSurge` | `0.12` | … surcroît de vitesse d'une attaque (12 %) |
@@ -147,13 +148,13 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `WX_REGIME` | 04-calendar.js:573 | plusieurs semaines, avec des tendances de saison (giboulées de printemps, canicules d'été, automne humide). |
 | `SPEED_K` | 05-physics.js:50 | Calibrage 2024-2025 : plat ~44 km/h, montagne ~35-38, chrono ~52, CLM par équipes ~55 (voir tests/calibrate.js). |
 | `PHY` | 05-physics.js:67 | conditions du jour : air moins dense en altitude ou par la chaleur, vent de face ou de dos, pavés, pluie. |
-| `RADIO_ACTS` | 08-stage-sim.js:227 | Consigne effective d'un coureur (radio ponctuelle, rébellion ou consigne d'avant course). |
-| `ESCORT_ORD` | 08-stage-sim.js:228 |  |
-| `DT_MIN` | 08-stage-sim.js:328 | Un pas de simulation = 30 secondes de course. |
-| `SPRINT_NOISE` | 09-stage-finish.js:230 | Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints. |
-| `PW_BUCKETS` | 09-stage-finish.js:746 | Records de puissance : meilleur effort personnel par durée et palmarès mondial des ascensions (20 min et plus). |
-| `GC_CACHE` | 11-results.js:145 | Le général ne change qu'entre les étapes (ou sur abandon) : il est mis en cache et invalidé par gcDirty(). |
-| `UCI_COUNT` | 11-results.js:373 | Classement UCI par équipes (règle réelle) : somme des points de la saison de ses 20 meilleurs coureurs actuels. |
+| `RADIO_ACTS` | 08-stage-sim.js:235 | Consigne effective d'un coureur (radio ponctuelle, rébellion ou consigne d'avant course). |
+| `ESCORT_ORD` | 08-stage-sim.js:236 |  |
+| `DT_MIN` | 08-stage-sim.js:336 | Un pas de simulation = 30 secondes de course. |
+| `SPRINT_NOISE` | 09-stage-finish.js:344 | Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints. |
+| `PW_BUCKETS` | 09-stage-finish.js:882 | Records de puissance : meilleur effort personnel par durée et palmarès mondial des ascensions (20 min et plus). |
+| `GC_CACHE` | 11-results.js:147 | Le général ne change qu'entre les étapes (ou sur abandon) : il est mis en cache et invalidé par gcDirty(). |
+| `UCI_COUNT` | 11-results.js:379 | Classement UCI par équipes (règle réelle) : somme des points de la saison de ses 20 meilleurs coureurs actuels. |
 | `KG_BURN` | 12-season.js:5 | Perte de poids par semaine selon le plan d'entraînement (kg) ; 0,15 par défaut, reprise de poids au repos. |
 | `JOURNALS` | 14-press.js:2 |  |
 | `EQ_BIKES` | 15-equipment.js:5 | minRep : notoriété minimale pour que la marque vous fasse une offre ; pay : versement de base (k€/saison). |

@@ -143,7 +143,7 @@ function sprintRun(sim, ents, fw, big) {
     T.lo.forEach((a, k) => {
       a.d = T.sp.d - (n - k) * 1.6;
       a.train = T;
-      a.peel = T.sp.L + 40 + (n - 1 - k) * 200;
+      a.peel = T.sp.L + 10 + (n - 1 - k) * 200; // le dernier s'écarte au moment où son sprinteur lance
       a.pull = clamp(0.6 + (0.8 * (a.x.r.s.pla - 60)) / 30, 0.3, 1.4) * Math.min(1, a.x.energy / 40);
     });
   }
@@ -217,10 +217,27 @@ function sprintRun(sim, ents, fw, big) {
       }
       let target = v0;
       const ahead = i > 0 ? live[i - 1] : null;
-      // poisson-pilote : il mène jusqu'à son point d'écart, puis s'écarte et se laisse glisser
+      // sprinteur dans son train : il tient la roue de son dernier poisson-pilote (sauf si on la lui a prise) ;
+      // déposé, il garde l'élan jusqu'à son lancement
+      const tr0 = trains.find(T => T.sp === a);
+      let inTrain = false;
+      if (tr0 && tr0.lo.length && !a.on) {
+        const last = tr0.lo[tr0.lo.length - 1];
+        if (last.peeled) target = Math.max(v0, a.v);
+        else if (!a.x._cut && last.t == null && last.d < a.d && a.d - last.d < 10) {
+          target = Math.min(last.v + (a.d - last.d > 2 ? 0.4 : 0), v0 + 1.8);
+          inTrain = true;
+        }
+      }
+      // poisson-pilote : il mène jusqu'à son point d'écart, puis s'écarte et se laisse glisser ; le train roule à la
+      // vitesse de celui qui mène, chacun tient la roue de l'équipier devant lui
       if (a.train) {
-        if (a.d > a.peel) target = v0 + a.pull;
-        else {
+        if (a.d > a.peel) {
+          const on = a.train.lo.filter(y => !y.peeled && y.t == null);
+          const head = on[0];
+          const prev = on[on.indexOf(a) - 1];
+          target = v0 + (head ? head.pull : a.pull) + (prev && a.d - prev.d > 2 ? 0.4 : 0);
+        } else {
           target = v0 - 1.5;
           if (!a.peeled) {
             a.peeled = true;
@@ -235,9 +252,11 @@ function sprintRun(sim, ents, fw, big) {
         }
       }
       // pas encore lancé, collé à un coureur plus rapide : il suit dans sa roue (aspiration). Derrière un sprinteur
-      // lancé, ça entame un peu sa propre pointe ; derrière un train, c'est le rythme du peloton
+      // lancé, ça entame un peu sa propre pointe ; ailleurs (derrière un train, dans le peloton étiré), c'est le rythme
+      // du peloton, sans coût
       if (
         !a.on &&
+        !inTrain &&
         !(a.train && a.d > a.peel) &&
         ahead &&
         ahead.v > target &&
@@ -247,7 +266,7 @@ function sprintRun(sim, ents, fw, big) {
         if (ahead.on) {
           target = Math.min(ahead.v, a.vmax * 0.97);
           if (!a.e.role) a.fol += dt;
-        } else if (ahead.train && !ahead.peeled) target = Math.min(ahead.v, v0 + 1.4);
+        } else target = Math.min(ahead.v, v0 + 1.4); // le rythme du peloton derrière un train : on suit les roues
       }
       if (a.on) {
         const el = t - a.tOn;

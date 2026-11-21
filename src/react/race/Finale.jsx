@@ -304,7 +304,8 @@ function finishTrace(sim, ph) {
           c: xs.length === 1 ? lead.team.color : '#94a3b8',
           me: xs.some(x => x.player),
           D,
-          lbl: fmtGap(D),
+          lbl: '≈ ' + fmtGap(D), // encore en course : écart estimé à cet instant
+          est: true,
           np: xs.length === 1 ? riderName(lead.r) : i ? 'le groupe suivant' : 'les poursuivants',
           chase: true,
         });
@@ -336,6 +337,7 @@ function finishTrace(sim, ph) {
   const W = rs[0],
     S2 = rs[1];
   const ago = d => fmtGap(d).replace(/^\+/, ''); // « 1'04" d'avance »
+  const agoR = r => (r.est ? 'environ ' : '') + ago(r.D);
   const nm = r => r.np || r.n;
   const events = [];
   const top = lc && lc.end >= sim.dist - 0.5 ? ` au sommet de ${lc.name}` : '';
@@ -344,7 +346,7 @@ function finishTrace(sim, ph) {
     events.push({
       t: 0,
       txt: S2
-        ? `🚴 ${W.n} (${W.t}) seul en tête, ${ago(S2.D)} d'avance sur ${nm(S2)} !`
+        ? `🚴 ${W.n} (${W.t}) seul en tête, ${agoR(S2)} d'avance sur ${nm(S2)} !`
         : `🚴 ${W.n} (${W.t}) seul en tête !`,
     });
     const cap = t => t[0].toUpperCase() + t.slice(1);
@@ -353,13 +355,13 @@ function finishTrace(sim, ph) {
       events.push({ t: at(400), txt: `😬 ${cap(nm(S2))} revien${pl ? 'nent' : 't'} fort, il faut tenir !` });
       events.push({ t: at(80), txt: `💪 ${W.n} résiste jusqu'à la ligne !` });
     } else if (S2 && S2.D < 30) {
-      events.push({ t: at(300), txt: `👀 ${W.n} se retourne : ${nm(S2)} à ${ago(S2.D)} !` });
+      events.push({ t: at(300), txt: `👀 ${W.n} se retourne : ${nm(S2)} à ${agoR(S2)} !` });
       events.push({ t: at(60), txt: `🙌 C'est gagné, ${W.n} peut savourer !` });
     } else {
       events.push({ t: at(300), txt: `👀 ${W.n} se retourne… personne en vue !` });
       events.push({ t: at(60), txt: `🙌 ${W.n} peut lever les bras !` });
     }
-    win = `🏆 ${W.n} (${W.t}) s'impose en solitaire${top}${S2 ? `, ${ago(S2.D)} devant ${nm(S2)}` : ''} !`;
+    win = `🏆 ${W.n} (${W.t}) s'impose en solitaire${top}${S2 ? `, ${agoR(S2)} devant ${nm(S2)}` : ''} !`;
   } else {
     if (S2 && S2.m) {
       events.push({
@@ -377,7 +379,7 @@ function finishTrace(sim, ph) {
     win = S2
       ? S2.D < 0.5
         ? `🏆 ${W.n} (${W.t}) s'impose${top}, dans le même temps que ${S2.n} !`
-        : `🏆 ${W.n} (${W.t}) s'impose${top}, ${ago(S2.D)} devant ${S2.n} !`
+        : `🏆 ${W.n} (${W.t}) s'impose${top}, ${agoR(S2)} devant ${S2.n} !`
       : `🏆 ${W.n} (${W.t}) s'impose${top} !`;
   }
   // couloirs : ordre mélangé de façon fixe (l'ordre d'arrivée ne se devine pas), échappé en haut
