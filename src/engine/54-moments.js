@@ -7,14 +7,19 @@
 
 // Groupes passant un sommet ou une sortie de secteur ce pas-ci (appelé par tickCrossings, avant les points).
 function decisiveSplit(sim) {
-  // les moments retenus pour l'étape : les deux derniers grands cols (hors montée finale) et les deux derniers
-  // secteurs pavés difficiles (4 étoiles et plus) ; au plus quatre moments
+  // les moments retenus pour l'étape : le dernier grand col dans les 45 derniers km (hors montée finale) et les
+  // deux derniers secteurs pavés difficiles (4 étoiles et plus) ; au plus quatre moments
   if (!sim.momentPlan) {
     sim.momentPlan = true;
     sim.klimbs
-      .filter(c => c.end < sim.dist - 3 && (c.cat === 'HC' || c.cat === 1 || (c.len >= 4 && c.avg >= 6)))
+      .filter(
+        c =>
+          c.end < sim.dist - 3 &&
+          c.end >= sim.dist - 45 &&
+          (c.cat === 'HC' || c.cat === 1 || (c.len >= 4 && c.avg >= 6))
+      )
       .sort((a, b) => b.end - a.end)
-      .slice(0, 2)
+      .slice(0, 1)
       .forEach(c => (c.fineOk = true));
     (sim.P.sectors || [])
       .filter(sc => sc.end < sim.dist - 3 && sc.end - sc.start >= 1.5 && (sc.stars || 3) >= 4)
@@ -29,6 +34,12 @@ function decisiveSplit(sim) {
     if (xs.length < 4 || !xs.some(x => sim.favs.has(x.id) || x.player)) continue;
     for (const c of sim.klimbs) {
       if (!c.fineOk || c.fineDone || !(G.prev < c.end && G.pos >= c.end)) continue;
+      // seulement si la course se joue entre favoris : leur groupe en tête, ou à moins d'une minute de la tête
+      const head = sim.groups.filter(H => H.riders.some(x => !x.fin)).sort((a, b) => b.pos - a.pos)[0];
+      if (head && head !== G && gapSec(head, G) > 60) {
+        c.fineDone = true;
+        continue;
+      }
       c.fineDone = true;
       momentRun(sim, G, Math.min(2000, c.len * 1000), c.avg, 0, 'col', c.name, c.end);
       break;
