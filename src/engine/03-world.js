@@ -397,6 +397,16 @@ function pruneWorld(hard) {
       delete S.know[id];
       n++;
     }
+    // retraité notable gardé pour les palmarès : il n'a plus besoin de son état de course ni de sa progression
+    else if (r.retired && !r.slim) {
+      for (const k of ['sx', 'load', 'wkDays', 'training', 'fh', 'peakW', 'postPeak', 'altBoost', 'goal'])
+        delete r[k];
+      if (r.pb) {
+        const best = Object.entries(r.pb).sort((a, b) => (b[1] ? b[1].wkg : 0) - (a[1] ? a[1].wkg : 0))[0];
+        r.pb = best ? { [best[0]]: best[1] } : {};
+      }
+      r.slim = 1;
+    }
   }
   if (n && S.rel)
     for (const k in S.rel) {
