@@ -220,7 +220,7 @@ export function Home() {
         ) : null}
         <NextAction />
       </Card>
-      <Card title="À traiter">
+      <Card title={todoList().length ? '⚠️ À traiter' : 'À traiter'} tone={todoList().length ? 'action' : undefined}>
         <Todo />
       </Card>
       <Card title="Situation">

@@ -1,9 +1,11 @@
 // Briques d'interface partagées : cartes, boutons tactiles, jauges, pastilles d'équipe, liens vers les fiches.
 import { Icon } from './icons.jsx';
 
-export function Card({ title, right, children, className = '' }) {
+// tone « action » : une décision vous attend (bordure ambrée) ; sinon une carte d'information neutre.
+export function Card({ title, right, children, className = '', tone }) {
+  const t = tone === 'action' ? 'border-amber-400/60 bg-amber-400/[0.06]' : 'border-slate-700/70 bg-slate-900';
   return (
-    <section className={'rounded-2xl border border-slate-700/70 bg-slate-900 p-3.5 shadow-sm ' + className}>
+    <section className={'rounded-2xl border p-3.5 shadow-sm ' + t + ' ' + className}>
       {(title || right) && (
         <div className="mb-2 flex items-center justify-between gap-2">
           {title && <h3 className="text-[15px] font-semibold text-slate-50">{title}</h3>}
@@ -175,6 +177,37 @@ export function Bar({ v, max = 100, tone }) {
     <span className="inline-block h-1.5 w-16 overflow-hidden rounded-full bg-slate-800 align-middle">
       <span className={'block h-full rounded-full ' + c} style={{ width: p + '%' }} />
     </span>
+  );
+}
+// Petite courbe (16 dernières semaines) : forme (vert) et fraîcheur (bleu). Rien sous deux semaines d'historique.
+export function Spark({ pts, w = 96, h = 26, label }) {
+  if (!pts || pts.length < 2) return null;
+  const n = pts.length;
+  const X = i => (i / (n - 1)) * (w - 4) + 2;
+  // échelle ajustée aux valeurs du coureur (au moins 20 points d'amplitude) : les variations se voient
+  const all = pts.flatMap(p => [p[0], p[1]]);
+  let lo = Math.min(...all) - 4,
+    hi = Math.max(...all) + 4;
+  if (hi - lo < 20) {
+    const m = (hi + lo) / 2;
+    lo = m - 10;
+    hi = m + 10;
+  }
+  const Y = v => h - 2 - ((Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * (h - 4);
+  const line = k => pts.map((p, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(p[k]).toFixed(1)}`).join(' ');
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      width={w}
+      height={h}
+      className="inline-block align-middle"
+      role="img"
+      aria-label={label}
+    >
+      <path d={line(1)} fill="none" stroke="#38bdf8" strokeWidth="1.5" opacity="0.8" />
+      <path d={line(0)} fill="none" stroke="#34d399" strokeWidth="2" />
+      <circle cx={X(n - 1)} cy={Y(pts[n - 1][0])} r="2.2" fill="#34d399" />
+    </svg>
   );
 }
 // Étoiles de potentiel (même échelle que stars() : de ½ à 5).

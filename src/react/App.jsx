@@ -169,29 +169,79 @@ function BottomNav() {
     </nav>
   );
 }
+// Menu « Plus » : les écrans par famille, chacun avec une ligne d'explication ; ceux qui attendent une action
+// (compteur) ressortent.
+const NAV_GROUPS = [
+  ['Gérer l’équipe', ['team', 'market', 'aca', 'mgmt']],
+  ['Suivre la saison', ['home', 'cal', 'race', 'stories', 'press', 'inbox', 'stats']],
+  ['Réglages', ['opt']],
+];
+const NAV_DESC = {
+  home: 'Prochaine échéance, à traiter',
+  team: 'Effectif, entraînement, contrats',
+  cal: 'Courses, programme de la saison',
+  race: 'La course en cours',
+  market: 'Transferts et coureurs libres',
+  aca: 'Jeunes, détection',
+  mgmt: 'Budget, staff, sponsors',
+  stories: 'Décisions de vestiaire',
+  press: 'Conférences, réputation',
+  inbox: 'Messages et nouvelles',
+  stats: 'Palmarès, saison, film',
+  opt: 'Sauvegardes, aide, noms',
+};
 function NavSheet() {
+  const items = navItems();
   return (
-    <div className="grid grid-cols-3 gap-2">
-      {navItems().map(([k, ic, l, n]) => (
-        <button
-          key={k}
-          type="button"
-          onClick={() => {
-            closeModal();
-            go(k);
-          }}
-          className={
-            'relative flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl text-sm ' +
-            (UI.view === k ? 'bg-sky-500 text-slate-950' : 'bg-slate-800 text-slate-100')
-          }
-        >
-          <span className="relative text-xl">
-            {ic}
-            <Count n={k === 'home' ? 0 : n} />
-          </span>
-          {l}
-        </button>
-      ))}
+    <div className="space-y-3">
+      {NAV_GROUPS.map(([g, keys]) => {
+        const list = keys.map(k => items.find(x => x[0] === k)).filter(Boolean);
+        if (!list.length) return null;
+        return (
+          <div key={g}>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">{g}</div>
+            <div className="grid grid-cols-2 gap-2">
+              {list.map(([k, ic, l, n]) => {
+                const cnt = k === 'home' ? 0 : n;
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => {
+                      closeModal();
+                      go(k);
+                    }}
+                    className={
+                      'relative flex min-h-16 items-center gap-2.5 rounded-xl px-3 py-2 text-left ' +
+                      (UI.view === k
+                        ? 'bg-sky-500 text-slate-950'
+                        : cnt
+                          ? 'bg-amber-400/10 text-slate-100 ring-1 ring-amber-300/50'
+                          : 'bg-slate-800 text-slate-100')
+                    }
+                  >
+                    <span className="relative text-xl">
+                      {ic}
+                      <Count n={cnt} />
+                    </span>
+                    <span className="min-w-0">
+                      <b className="block text-sm">{l}</b>
+                      <span
+                        className={
+                          'line-clamp-2 block text-xs leading-tight ' +
+                          (UI.view === k ? 'text-slate-900' : 'text-slate-400')
+                        }
+                      >
+                        {NAV_DESC[k] || ''}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

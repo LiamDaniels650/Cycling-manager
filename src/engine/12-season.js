@@ -188,6 +188,13 @@ function weeklyUpdate() {
       }
     }
   }
+  // historique de forme et de fraîcheur de mes coureurs (16 dernières semaines), pour les courbes de l'interface
+  for (const id of S.teams[0].riders) {
+    const r = S.riders[id];
+    if (!r) continue;
+    (r.fh = r.fh || []).push([Math.round(r.forme), Math.round(100 - r.fatigue)]);
+    if (r.fh.length > 16) r.fh.shift();
+  }
   // marché IA : les équipes complètent leur effectif
   for (const T of S.teams) {
     if (T.player || T.riders.length >= aiTarget(T) - 2) continue;

@@ -246,6 +246,10 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     - Pastille aux couleurs de l'équipe devant chaque nom de coureur ; « Premiers pas » replié en une ligne.
     - Lisibilité : plus de texte sous 12 px, gris secondaire plus contrasté (≈ 6,9:1 au lieu de 3,9:1).
     - Grand écran : la course en direct sur deux colonnes (retransmission et groupes | mes coureurs et radio).
+    - Courbes de forme et de fraîcheur (16 dernières semaines) dans l'effectif déplié et sur la fiche coureur.
+    - Ce qui demande une décision ressort : carte « ⚠️ À traiter » et fins de contrat en encadré ambré.
+    - Menu « Plus » par familles (Gérer l'équipe · Suivre la saison · Réglages), chaque écran avec sa ligne
+      d'explication ; ceux qui attendent une action sont surlignés.
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

@@ -1,7 +1,7 @@
 // Liste de coureurs triable : sur téléphone, une ligne compacte par coureur qui se déplie d'un toucher (détail :
 // caractéristiques, forme, colonnes propres à l'écran) ; tableau complet sur grand écran. Filtres en pastilles
 // (profil, contrat qui finit, fatigués, blessés). Sert à l'effectif, au marché et à l'académie.
-import { Badge, Bar, Stars, RiderLink, Select, statColor } from '../ui.jsx';
+import { Badge, Bar, Spark, Stars, RiderLink, Select, statColor } from '../ui.jsx';
 
 function sortOptions(state) {
   return [
@@ -172,6 +172,15 @@ export function RiderList({ rs, state, cols = [], pre }) {
                         );
                       })}
                     </div>
+                    {state && r.fh && r.fh.length > 1 ? (
+                      <div className="flex items-center gap-2 text-xs text-slate-400">
+                        <Spark pts={r.fh} label="Forme et fraîcheur, 16 dernières semaines" />
+                        <span>
+                          <span className="text-emerald-300">forme</span> ·{' '}
+                          <span className="text-sky-300">fraîcheur</span>, {r.fh.length} sem.
+                        </span>
+                      </div>
+                    ) : null}
                     {state ? (
                       <div className="grid grid-cols-3 gap-2 text-xs text-slate-300">
                         <span>

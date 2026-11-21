@@ -74,7 +74,7 @@ export function Team() {
           . Touchez une ligne pour le détail et l'entraînement, le nom pour la fiche.
         </div>
         {ending.length ? (
-          <div className="mb-2 text-xs text-amber-300">
+          <div className="mb-2 rounded-xl bg-amber-400/10 px-2.5 py-2 text-xs text-amber-100 ring-1 ring-amber-300/50">
             ⚠️ Fin de contrat cette saison :{' '}
             {ending.map((r, k) => (
               <span key={r.id}>

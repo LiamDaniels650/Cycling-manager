@@ -2,7 +2,7 @@
 // contrat et statistiques, actions (discussions, contrat, académie, suivi), négociation avec chance estimée,
 // relations, courbe de progression, records de puissance. Portage fidèle de riderCard, negoForm, relCard,
 // ovChart et pbTable.
-import { Btn, Bar, Stars, RiderLink, KV, statColor } from '../ui.jsx';
+import { Btn, Bar, Spark, Stars, RiderLink, KV, statColor } from '../ui.jsx';
 import { Icon } from '../icons.jsx';
 
 function Tabs() {
@@ -325,6 +325,15 @@ function Fiche({ r }) {
               </div>
             ))}
           </div>
+          {mine && r.fh && r.fh.length > 1 ? (
+            <div className="mt-2 flex items-center gap-2 text-xs text-slate-400">
+              <Spark pts={r.fh} w={140} h={34} label="Forme et fraîcheur, 16 dernières semaines" />
+              <span>
+                <span className="text-emerald-300">forme</span> et <span className="text-sky-300">fraîcheur</span> sur{' '}
+                {r.fh.length} semaines
+              </span>
+            </div>
+          ) : null}
           <p className="mt-2 text-sm">
             <b>Caractère :</b> {r.trait === 'aucun' ? '' : TRAITS[r.trait].lbl + ' — '}
             <span className="text-slate-400">{TRAITS[r.trait].d}</span>
