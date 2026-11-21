@@ -53,6 +53,10 @@ function decisiveSplit(sim) {
       }
       c.fineDone = true;
       c.momentRan = true;
+      // les points du meilleur grimpeur se jouent dans la montée, avant l'accélération finale des favoris : les
+      // grimpeurs qui les visent (et les équipiers qui mènent) passent devant les leaders, comme dans le groupe
+      // d'avant l'éclatement
+      c.preOrd = jerseyOrder(G, 'kom', sim, c).map(x => x.id);
       momentRun(sim, G, Math.min(2000, c.len * 1000), c.avg, 0, 'col', c.name, c.end, 'c' + c.name);
       break;
     }

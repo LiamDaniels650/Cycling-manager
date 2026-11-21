@@ -29,9 +29,12 @@ function tickCrossings(sim) {
     const pts = komPts(sim.rc, c, c.end >= sim.dist - 0.5);
     for (const G of sim.groups.slice().sort((a, b) => b.pos - a.pos)) {
       if (G.prev < c.end && G.pos >= c.end) {
-        const ord = jerseyOrder(G, 'kom', sim, c);
+        const ord = c.preOrd
+          ? c.preOrd.map(id => sim.runners.find(x => x.id === id)).filter(x => x && !x.dnf)
+          : jerseyOrder(G, 'kom', sim, c);
+        if (c.preOrd) c.preOrd = null;
         for (const x of ord) {
-          if (c.order.length < pts.length) c.order.push(x.id);
+          if (c.order.length < pts.length && !c.order.includes(x.id)) c.order.push(x.id);
         }
       }
     }
