@@ -738,7 +738,12 @@ function tryEchelon(sim) {
 function echelon(sim, G, T) {
   const sc = G.riders.map(x => [
     x,
-    x.pos + (x.r.s.plc || 65) * 0.35 + (x.team === T ? 40 : 0) + (x.r.s.pla - 70) * 0.4 + gauss() * 14,
+    x.pos +
+      (x.r.s.plc || 65) * 0.35 +
+      (x.team === T ? 40 : 0) +
+      (x.r.s.pla - 70) * 0.4 +
+      (x.echFront > sim.t ? 30 : 0) +
+      gauss() * 14,
   ]);
   sc.sort((a, b) => b[1] - a[1]);
   const K = rint(16, 32);

@@ -549,7 +549,8 @@ function tickRoadEvents(sim) {
     commentLog(sim, `La course reprend ses droits après l'attente de ${riderName(sim.neutral.who.r)}.`);
     sim.neutral = null;
   }
-  // bordures
+  // bordures (mes coureurs demandent s'il faut remonter devant)
+  echelonAsk(sim);
   for (const G of sim.groups.slice()) {
     if (!G.expo || !sim.P.wind || G !== pel || G.riders.length < 30 || G.pos < 15 || sim.dist - G.pos < 3) continue;
     if (sim.echelonT && sim.t - sim.echelonT < 70) continue;

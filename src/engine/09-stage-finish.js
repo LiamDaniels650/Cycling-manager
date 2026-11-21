@@ -562,6 +562,8 @@ function climbRun(sim, ord, L, vg, fg) {
       D = L;
       x.radio = null;
     }
+    // consigne « reste à l'abri » d'un moment décisif : pas d'effort final, on garde la réserve
+    if (x._noAtt) D = 0;
     return {
       x,
       sc,
