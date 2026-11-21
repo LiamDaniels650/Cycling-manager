@@ -347,9 +347,9 @@ function sprintRun(sim, ents, fw, big) {
 // Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints.
 const SPRINT_NOISE = R.sprintNoise;
 // Au sommet de la hiérarchie, les écarts de vitesse pure se resserrent (plafond physiologique) :
-// au-delà de 84, un point de sprint ne vaut plus que 0,6 point au moment de lancer le sprint.
+// au-delà de 84, un point de sprint ne vaut plus que 0,85 point au moment de lancer le sprint.
 function sprintPeak(v) {
-  return v > 84 ? 84 + (v - 84) * 0.6 : v;
+  return v > 84 ? 84 + (v - 84) * 0.85 : v;
 }
 function finishGroup(sim, G, tcross, Lfine) {
   const kmLeftGrad = sim.P.finishGrad;

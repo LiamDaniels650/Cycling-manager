@@ -3044,7 +3044,7 @@ const R = {
   shelterSeen: 0.3, // chance d'être vu par les commissaires
 
   // --- Course ---
-  sprintNoise: 4.5, // aléa du sprint (placement, timing, jambes du jour)
+  sprintNoise: 3.6, // aléa du sprint (placement, timing, jambes du jour)
   sprintVk: 0.1, // sprint simulé : vitesse de pointe (m/s) gagnée par point de qualité de sprint (16,6 m/s à 75)
   sprintSpread: 0.8, // … mètres de retard sur la tête au dernier km par point de placement manquant (0-100)
   sprintDraft: 0.45, // … gain de vitesse (m/s) dans la roue d'un coureur à moins de 6 m (×1,6 vent de face)
@@ -8443,9 +8443,9 @@ function sprintRun(sim, ents, fw, big) {
 // Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints.
 const SPRINT_NOISE = R.sprintNoise;
 // Au sommet de la hiérarchie, les écarts de vitesse pure se resserrent (plafond physiologique) :
-// au-delà de 84, un point de sprint ne vaut plus que 0,6 point au moment de lancer le sprint.
+// au-delà de 84, un point de sprint ne vaut plus que 0,85 point au moment de lancer le sprint.
 function sprintPeak(v) {
-  return v > 84 ? 84 + (v - 84) * 0.6 : v;
+  return v > 84 ? 84 + (v - 84) * 0.85 : v;
 }
 function finishGroup(sim, G, tcross, Lfine) {
   const kmLeftGrad = sim.P.finishGrad;
@@ -19807,6 +19807,7 @@ function finishTrace(sim, ph) {
   const v = clamp(13 - 0.95 * Math.max(0, g), 4.5, 13); // m/s
   const from = 1000;
   const who = x => ({ id: x.id, n: riderName(x.r), t: x.team.short, c: x.team.color, me: !!x.player });
+  /** @type {any[]} */
   const rs = [];
   if (ph.kind === 'seul') {
     rs.push({ ...who(first), D: 0 });

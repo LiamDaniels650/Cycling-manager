@@ -14,6 +14,7 @@ function finishTrace(sim, ph) {
   const v = clamp(13 - 0.95 * Math.max(0, g), 4.5, 13); // m/s
   const from = 1000;
   const who = x => ({ id: x.id, n: riderName(x.r), t: x.team.short, c: x.team.color, me: !!x.player });
+  /** @type {any[]} */
   const rs = [];
   if (ph.kind === 'seul') {
     rs.push({ ...who(first), D: 0 });

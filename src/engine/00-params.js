@@ -63,7 +63,7 @@ const R = {
   shelterSeen: 0.3, // chance d'être vu par les commissaires
 
   // --- Course ---
-  sprintNoise: 4.5, // aléa du sprint (placement, timing, jambes du jour)
+  sprintNoise: 3.6, // aléa du sprint (placement, timing, jambes du jour)
   sprintVk: 0.1, // sprint simulé : vitesse de pointe (m/s) gagnée par point de qualité de sprint (16,6 m/s à 75)
   sprintSpread: 0.8, // … mètres de retard sur la tête au dernier km par point de placement manquant (0-100)
   sprintDraft: 0.45, // … gain de vitesse (m/s) dans la roue d'un coureur à moins de 6 m (×1,6 vent de face)
