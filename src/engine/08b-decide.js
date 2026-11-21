@@ -180,7 +180,17 @@ function decideRider(sim, x, ctx) {
     if (eo === 'leader' && G.riders.length > 2 && sim.stageRace === false && kmLeft > 10) w = 0.75;
     // le bluff : un malin de l'échappée (opportuniste, gagneur, ambitieux encore frais) joue les cuits entre 60 et
     // 15 km, ne passe presque plus ses relais et garde ses forces pour attaquer dans le final
-    if (!x.player && G.riders.length >= 3 && kmLeft < 60 && kmLeft > 15 && x.bluff == null) {
+    // (pas en montagne, où la pente ne permet guère de se cacher, ni pour un chasseur du maillot à pois)
+    const flatish = sim.spec.type !== 'montagne' && sim.spec.type !== 'sommet';
+    if (
+      !x.player &&
+      flatish &&
+      x.aim !== 'kom' &&
+      G.riders.length >= 3 &&
+      kmLeft < 60 &&
+      kmLeft > 15 &&
+      x.bluff == null
+    ) {
       const pB =
         x.r.trait === 'opportuniste' || x.r.trait === 'gagneur' ? 0.12 : x.r.amb > 70 && x.energy > 55 ? 0.05 : 0;
       x.bluff = pB > 0 && rnd() < pB;
