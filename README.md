@@ -310,6 +310,17 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     écran Rivaux enrichi des directeurs adverses (caractère, relation, objectifs, stage en cours, dernier souvenir,
     dernière pique, offre en cours) ; astuce de chaque écran réduite à une pastille ; frise de la saison dans le
     calendrier (courses, coureurs prévus, stages, pics de forme, objectifs adverses).
+  - Les directeurs adverses donnent aussi leurs consignes aux moments décisifs (le maillot marque le plus dangereux,
+    un rancunier ou un offensif attaque s'il est le plus fort, un favori en difficulté garde des forces, un bon
+    descendeur plonge) ; affichées à la radio quand je suis dans le groupe.
+  - Chutes dans la descente rejouée (adresse, pluie, technicité, prise de risque de ceux qui plongent).
+  - Bordure simulée seconde par seconde (90 s) : hors de l'éventail, chacun lutte dans le vent de côté selon sa
+    puissance et son énergie ; la cassure se fait là où l'écart dépasse 4 m. Le rejeu montre la vraie simulation.
+  - Zones dangereuses du final (ronds-points, rétrécissements, îlots, emplacements tirés de l'empreinte de
+    l'étape) : chutes plus probables pour les mal placés, accordéon qui coupe la queue du peloton.
+  - Sprint intermédiaire : un poisson-pilote dans le groupe lance son sprinteur ; le prétendant au maillot vert va
+    chercher les points dans l'échappée sur une étape accidentée.
+  - Coalition contre un leader dominant adoucie (×1,15) et chasseurs du maillot à pois dès 71 en montagne.
   - Marge du sprint : le meilleur sprinteur gagne 36 à 37 % des sprints massifs (contre 31 %).
   - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
     carrousel, presse, stages, tests d'effort, forme).
