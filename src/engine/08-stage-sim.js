@@ -108,6 +108,8 @@ function buildStageSim(rc) {
         cs: undefined,
         _surf: undefined,
         _cut: undefined,
+        bluff: undefined,
+        bluffShown: false,
         _early: undefined,
         _boxed: undefined,
         _lost: undefined,

@@ -144,7 +144,7 @@ function sprintRun(sim, ents, fw, big) {
       a.d = T.sp.d - (n - k) * 1.6;
       a.train = T;
       a.peel = T.sp.L + 10 + (n - 1 - k) * 200; // le dernier s'écarte au moment où son sprinteur lance
-      a.pull = clamp(0.6 + (0.8 * (a.x.r.s.pla - 60)) / 30, 0.3, 1.4) * Math.min(1, a.x.energy / 40);
+      a.pull = clamp(0.5 + (0.6 * (a.x.r.s.pla - 60)) / 30, 0.3, 1.1) * Math.min(1, a.x.energy / 40);
     });
   }
   // le surf : un sprinteur sans train se cale physiquement dans la roue du sprinteur du meilleur train

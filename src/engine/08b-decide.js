@@ -178,6 +178,22 @@ function decideRider(sim, x, ctx) {
     }
     if (kmLeft < 1.2) w = 0;
     if (eo === 'leader' && G.riders.length > 2 && sim.stageRace === false && kmLeft > 10) w = 0.75;
+    // le bluff : un malin de l'échappée (opportuniste, gagneur, ambitieux encore frais) joue les cuits entre 60 et
+    // 15 km, ne passe presque plus ses relais et garde ses forces pour attaquer dans le final
+    if (!x.player && G.riders.length >= 3 && kmLeft < 60 && kmLeft > 15 && x.bluff == null) {
+      const pB =
+        x.r.trait === 'opportuniste' || x.r.trait === 'gagneur' ? 0.12 : x.r.amb > 70 && x.energy > 55 ? 0.05 : 0;
+      x.bluff = pB > 0 && rnd() < pB;
+      if (x.bluff && G.riders.some(y => y.player && !y.fin)) {
+        const me = G.riders.find(y => y.player && !y.fin);
+        log(
+          sim,
+          `📻 ${riderName(me.r)} : « ${riderName(x.r)} (${x.team.short}) joue les cuits, il ne passe plus ses relais… je m'en méfie ! »`,
+          'att'
+        );
+      }
+    }
+    if (x.bluff && kmLeft > 15) w = Math.min(w, 0.2);
     x.work = w;
     // pactes et accords de relais (négociations dans l'échappée)
     const yields = (x.pact || x.coopUntil || x.sulkUntil) && pactWork(sim, x, G, kmLeft);
@@ -190,9 +206,19 @@ function decideRider(sim, x, ctx) {
       if (g >= 3.5) p = Math.max(p, 0.05 * (x.r.s.mon / 72));
       if (eo === 'leader') p *= x.att === 'defensif' ? 0.4 : 1.3;
       if (x.r.trait === 'tete') p *= 1.6;
+      if (x.bluff) p *= 1.8; // frais, il sort du bois
       p *= styleMul(x.team, 'att');
       if (p > 0 && rnd() < p * dtMin) {
-        doAttack(sim, x);
+        if (doAttack(sim, x) && x.bluff && !x.bluffShown) {
+          x.bluffShown = true;
+          const seen = G.riders.some(y => y.player && !y.fin);
+          log(
+            sim,
+            `🃏 Le bluff de ${riderName(x.r)} (${x.team.short}) : il jouait les cuits, il attaque !`,
+            seen ? 'att' : 'info'
+          );
+          if (seen) highlight(sim, `🃏 ${riderName(x.r)} bluffait : il attaque !`, false);
+        }
         return;
       }
     }
