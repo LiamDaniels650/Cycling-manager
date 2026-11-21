@@ -219,6 +219,10 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     « suivre » y agissent pour de vrai ; le rejeu montre ce kilomètre (attaques, lâchés, passages en tête).
   - Objectif « victoires » du sponsor recalé sur les victoires réelles des équipes de chaque rang (médianes mesurées
     sur des saisons simulées) : il était trop dur pour le milieu et le bas du classement.
+  - Vrai train de sprint : les poissons-pilotes (jusqu'à 3) roulent en file devant leur sprinteur dans le dernier
+    kilomètre, le moins bon en tête, le meilleur en dernier ; chacun mène à haute vitesse (aptitude à rouler,
+    réserves) puis s'écarte, le dernier dépose le sprinteur juste avant son lancement. Le peloton suit dans les roues
+    et s'étire. Remplace l'ancien bonus abstrait ; visible dans le rejeu (« 🚂 Le train … dépose … à 250 m »).
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

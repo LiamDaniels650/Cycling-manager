@@ -124,6 +124,28 @@ function sprintRun(sim, ents, fw, big) {
       t: null,
     };
   });
+  // le train : les poissons-pilotes (jusqu'à 3) en file devant leur sprinteur, le moins bon en tête, le meilleur
+  // en dernier ; chacun mène à haute vitesse (aptitude à rouler, réserves), puis s'écarte, le dernier juste avant
+  // le lancement de son sprinteur
+  const trains = [];
+  for (const a of R_)
+    if (!a.e.role && sim.teamSprinter && sim.teamSprinter[a.x.team.id] === a.x) trains.push({ sp: a, lo: [] });
+  for (const a of R_) {
+    if (!a.e.role || effOrder(a.x) !== 'leadout' || a.x.energy <= 8) continue;
+    const T = trains.find(T => T.sp.x.team === a.x.team);
+    if (T && T.lo.length < 3) T.lo.push(a);
+  }
+  for (const T of trains) {
+    const n = T.lo.length;
+    if (!n) continue;
+    T.lo.sort((p, q) => p.x.r.s.pla - q.x.r.s.pla);
+    T.lo.forEach((a, k) => {
+      a.d = T.sp.d - (n - k) * 1.6;
+      a.train = T;
+      a.peel = T.sp.L + 40 + (n - 1 - k) * 200;
+      a.pull = clamp(0.6 + (0.8 * (a.x.r.s.pla - 60)) / 30, 0.3, 1.4) * Math.min(1, a.x.energy / 40);
+    });
+  }
   // la roue choisie (ordre « dans la roue de… ») : placé juste derrière ce coureur, si le placement le permet
   for (const a of R_) {
     if (a.x.wheelId == null) continue;
@@ -133,16 +155,16 @@ function sprintRun(sim, ents, fw, big) {
   const dt = 0.25;
   let t = 0;
   // enregistrement pour la retransmission du sprint (positions toutes les 0,5 s, événements) : lecture seule
-  const rec = R_.filter(a => !a.e.role);
+  const rec = R_.filter(a => !a.e.role || a.train);
   const frames = [],
     events = [];
   let leader = null;
   for (let k = 0; k < 600 && R_.some(a => a.t == null); k++) {
     if (k % 2 === 0) {
       frames.push(rec.map(a => Math.max(0, +(a.t == null ? a.d : 0).toFixed(1))));
-      const lead = rec.filter(a => a.t == null).sort((a, b) => a.d - b.d)[0];
+      const lead = rec.filter(a => a.t == null && !a.e.role).sort((a, b) => a.d - b.d)[0];
       // (on ne suit plus la tête une fois la ligne franchie : le suivant n'est pas « en tête »)
-      if (lead && lead !== leader && lead.d < 400 && !rec.some(a => a.t != null)) {
+      if (lead && lead !== leader && lead.d < 400 && !rec.some(a => a.t != null && !a.e.role)) {
         if (leader) events.push({ t, id: lead.x.id, k: 'lead', m: Math.round(lead.d) });
         leader = lead;
       }
@@ -164,11 +186,37 @@ function sprintRun(sim, ents, fw, big) {
       }
       let target = v0;
       const ahead = i > 0 ? live[i - 1] : null;
-      // pas encore lancé, collé à un coureur qui a lancé : il suit l'accélération dans sa roue (aspiration),
-      // ce qui entame un peu sa propre pointe
-      if (!a.on && !a.e.role && ahead && ahead.on && a.d - ahead.d < 5 && a.d - ahead.d > 0.3) {
-        target = Math.min(ahead.v, a.vmax * 0.97);
-        a.fol += dt;
+      // poisson-pilote : il mène jusqu'à son point d'écart, puis s'écarte et se laisse glisser
+      if (a.train) {
+        if (a.d > a.peel) target = v0 + a.pull;
+        else {
+          target = v0 - 1.5;
+          if (!a.peeled) {
+            a.peeled = true;
+            const last = a.train.lo[a.train.lo.length - 1] === a;
+            if (last && !a.train.sp.on && a.train.sp.t == null && a.train.sp.d - a.d < 8)
+              events.push({
+                t,
+                id: a.train.sp.x.id,
+                txt: `🚂 Le train ${a.x.team.short} dépose ${riderName(a.train.sp.x.r)} à ${Math.round(a.d / 10) * 10} m !`,
+              });
+          }
+        }
+      }
+      // pas encore lancé, collé à un coureur plus rapide : il suit dans sa roue (aspiration). Derrière un sprinteur
+      // lancé, ça entame un peu sa propre pointe ; derrière un train, c'est le rythme du peloton
+      if (
+        !a.on &&
+        !(a.train && a.d > a.peel) &&
+        ahead &&
+        ahead.v > target &&
+        a.d - ahead.d < 5 &&
+        a.d - ahead.d > 0.3
+      ) {
+        if (ahead.on) {
+          target = Math.min(ahead.v, a.vmax * 0.97);
+          if (!a.e.role) a.fol += dt;
+        } else if (ahead.train && !ahead.peeled) target = Math.min(ahead.v, v0 + 1.4);
       }
       if (a.on) {
         const el = t - a.tOn;
@@ -208,20 +256,36 @@ function sprintRun(sim, ents, fw, big) {
   }
   const tw = res.get(sorted[0].x);
   const keep = sorted.filter((a, i) => i < 10 || a.x.player).slice(0, 14);
-  const idx = keep.map(a => rec.indexOf(a));
+  // les poissons-pilotes des sprinteurs montrés (dans le couloir de leur sprinteur)
+  const los = [];
+  for (const T of trains) if (keep.includes(T.sp)) for (const a of T.lo) if (rec.includes(a)) los.push([a, T.sp]);
+  const idx = keep.map(a => rec.indexOf(a)).concat(los.map(([a]) => rec.indexOf(a)));
   const ids = new Set(keep.map(a => a.x.id));
   sim._sprintTrace = {
     dt: 0.5,
-    riders: keep.map(a => ({
-      id: a.x.id,
-      n: riderName(a.x.r),
-      t: a.x.team.short,
-      c: a.x.team.color,
-      me: !!a.x.player,
-      gap: +((res.get(a.x) - tw) * a.v).toFixed(1),
-    })),
+    riders: keep
+      .map(a => ({
+        id: a.x.id,
+        n: riderName(a.x.r),
+        t: a.x.team.short,
+        c: a.x.team.color,
+        me: !!a.x.player,
+        gap: +((res.get(a.x) - tw) * a.v).toFixed(1),
+      }))
+      .concat(
+        los.map(([a, sp]) => ({
+          id: a.x.id,
+          n: riderName(a.x.r),
+          t: a.x.team.short,
+          c: a.x.team.color,
+          me: false,
+          lo: true,
+          of: sp.x.id,
+          gap: null,
+        }))
+      ),
     frames: frames.map(f => idx.map(j => f[j])),
-    events: events.filter(e => ids.has(e.id) && e.m <= 450),
+    events: events.filter(e => ids.has(e.id) && (e.m == null || e.m <= 450)),
   };
   return res;
 }
@@ -284,10 +348,6 @@ function finishGroup(sim, G, tcross, Lfine) {
           x._surf = true;
         }
         posS += ((x.r.s.plc || 65) - 65) * 0.9;
-        if (tr.sp === x) q += Math.min(2, tr.n) * 1.6;
-      } else if (sim.teamSprinter[x.team.id] === x) {
-        const lo = xs.filter(y => y.team === x.team && y !== x && effOrder(y) === 'leadout' && y.energy > 8).length;
-        q += Math.min(2, lo) * 2;
       }
       if (x.r.trait === 'gagneur') q += 1.5;
       // les équipiers (protéger, contrôler, poisson-pilote) ne disputent pas le sprint

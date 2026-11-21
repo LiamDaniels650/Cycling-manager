@@ -435,19 +435,25 @@ function SprintReplay({ tr, onDone }) {
   });
   const lead = Math.min(...pos);
   // couloirs dans l'ordre du peloton au début de la retransmission (l'ordre d'arrivée ne se devine pas)
-  const order = tr.lanes || tr.riders.map((_, j) => j).sort((a, b) => tr.frames[start][a] - tr.frames[start][b]);
+  // (les poissons-pilotes roulent dans le couloir de leur sprinteur, en petit sous la ligne)
+  const main = tr.riders.map((r, j) => j).filter(j => !tr.riders[j].lo);
+  const order = tr.lanes || main.sort((a, b) => tr.frames[start][a] - tr.frames[start][b]);
   const laneOf = new Map(order.map((j, q) => [j, q]));
+  tr.riders.forEach((r, j) => {
+    if (r.lo) laneOf.set(j, laneOf.get(tr.riders.findIndex(y => y.id === r.of)) ?? 0);
+  });
+  const nLanes = order.length;
   const W = 640,
     L = 8,
     Rr = 150,
     lane = 30,
-    H = tr.riders.length * lane + 14;
+    H = nLanes * lane + 14;
   const X = d => L + ((FROM - clamp(d, 0, FROM)) / FROM) * (W - L - Rr);
   const tNow = k * tr.dt;
   const said = tr.events.filter(e => e.t <= tNow).slice(-3);
   // sur la ligne : le vainqueur et son avance
   const atLine = k >= end;
-  const byGap = tr.riders.slice().sort((a, b) => a.gap - b.gap);
+  const byGap = tr.riders.filter(r => !r.lo).sort((a, b) => a.gap - b.gap);
   return (
     <div className="mt-2">
       <div className="flex items-baseline justify-between">
@@ -476,6 +482,19 @@ function SprintReplay({ tr, onDone }) {
         {tr.riders.map((r, j) => {
           const y = 16 + laneOf.get(j) * lane;
           const x = X(pos[j]);
+          if (r.lo)
+            return (
+              <circle
+                key={r.id}
+                cx={x}
+                cy={y + 13}
+                r={4}
+                fill={r.c}
+                stroke="#0f172a"
+                strokeWidth="1.5"
+                opacity="0.85"
+              />
+            );
           return (
             <g key={r.id}>
               <line x1={L} x2={X(0)} y1={y} y2={y} stroke="#1e293b" strokeWidth="1" />
