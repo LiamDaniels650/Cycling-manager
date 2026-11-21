@@ -167,7 +167,7 @@ function replayKeep(sim) {
   const k = top.findIndex(x => x.player);
   if (k < 0) return;
   const tr = stageReplay(sim);
-  if (!tr) return;
+  if (!tr || tr.riders.filter(r => !r.lo).length < 2) return; // une arrivée disputée, pas un coureur seul
   const rc = sim.rc;
   // compact : au plus 120 images (le rejeu interpole entre elles), 10 coureurs plus les miens, au mètre près
   const step = Math.max(1, Math.ceil(tr.frames.length / 120));

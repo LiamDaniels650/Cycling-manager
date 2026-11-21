@@ -91,7 +91,23 @@ export function LiveRace() {
       </div>
       <div className="space-y-3">
         <MyTeam sim={sim} />
-        <RadioFeed sim={sim} />
+        {/* téléphone : la radio repliée, son dernier message en titre ; grand écran : ouverte */}
+        {typeof window !== 'undefined' && window.innerWidth < 1280 ? (
+          <details className="rounded-2xl border border-slate-700/70 bg-slate-900">
+            <summary className="flex min-h-12 cursor-pointer items-center gap-2 px-3.5 text-sm text-slate-200">
+              <b className="shrink-0">📻 Radio</b>
+              <span
+                className="min-w-0 flex-1 truncate text-slate-400"
+                dangerouslySetInnerHTML={{ __html: (sim.log[sim.log.length - 1] || { txt: '' }).txt }}
+              />
+            </summary>
+            <div className="p-2 pt-0">
+              <RadioFeed sim={sim} />
+            </div>
+          </details>
+        ) : (
+          <RadioFeed sim={sim} />
+        )}
       </div>
       <Dock sim={sim} />
     </div>

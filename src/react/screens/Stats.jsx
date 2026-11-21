@@ -258,50 +258,113 @@ function RivalsTab() {
     </Card>
   );
 }
+// La saison en chiffres (historique de l'équipe) : classement, victoires, budget, objectifs du sponsor, primes.
+function SeasonSummary({ s }) {
+  const h = (S.teamHist || []).find(e => e.s === s);
+  if (!h) return null;
+  const prev = (S.teamHist || []).find(e => e.s === s - 1);
+  const kpi = (v, l, d) => (
+    <div className="rounded-xl bg-slate-800/70 px-2 py-2.5 text-center">
+      <div className="text-xl font-black tabular-nums text-slate-50">{v}</div>
+      <div className="text-xs text-slate-400">{l}</div>
+      {d ? <div className="text-xs">{d}</div> : null}
+    </div>
+  );
+  const delta = (a, b, inv) =>
+    b == null ? null : a === b ? (
+      <span className="text-slate-400">=</span>
+    ) : a > b !== !!inv ? (
+      <span className="text-emerald-300">▲ {Math.abs(a - b)}</span>
+    ) : (
+      <span className="text-rose-300">▼ {Math.abs(a - b)}</span>
+    );
+  return (
+    <Card title={`🏁 La saison ${s} en chiffres`}>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {kpi(h.rank + 'e', 'classement UCI', delta(h.rank, prev && prev.rank, true))}
+        {kpi(h.wins, 'victoires', delta(h.wins, prev && prev.wins))}
+        {kpi(fmtMoney(h.budget), 'budget', null)}
+        {kpi(
+          h.conf + '/100',
+          'confiance du sponsor',
+          h.dConf != null ? (
+            h.dConf >= 0 ? (
+              <span className="text-emerald-300">+{h.dConf}</span>
+            ) : (
+              <span className="text-rose-300">{h.dConf}</span>
+            )
+          ) : null
+        )}
+      </div>
+      {h.objs && h.objs.length ? (
+        <div className="mt-3 space-y-1 text-sm">
+          {h.objs.map((o, k) => (
+            <div key={k} className={o.ok ? 'text-emerald-200' : 'text-slate-300'}>
+              {o.ok ? '✅' : '❌'} {o.t}
+            </div>
+          ))}
+          {h.prime ? <div className="text-xs text-slate-400">Primes du sponsor : {fmtMoney(h.prime)}</div> : null}
+        </div>
+      ) : null}
+      <button
+        type="button"
+        className="mt-3 min-h-10 text-sm text-sky-300 underline"
+        onClick={() => ((UI.stats = 'film'), render())}
+      >
+        🎬 Voir le film de la saison
+      </button>
+    </Card>
+  );
+}
 function ReviewTab() {
   const rv = S.review;
+  const s = rv ? rv.s : (S.teamHist || []).length ? S.teamHist[S.teamHist.length - 1].s : null;
   return (
-    <Card title={`📋 Bilan individuel${rv ? ' ' + rv.s : ''}`}>
-      <p className="mb-2 text-xs text-slate-400">
-        Établi à la clôture de chaque saison : jours de course, résultats, évolution du niveau global et objectif
-        personnel.
-      </p>
-      {rv && rv.rows.length ? (
-        <Table head={['Coureur', 'Jours', 'Vict.', 'Pod.', 'UCI', 'Niveau', 'Objectif']}>
-          {rv.rows.map(x => {
-            const r = S.riders[x.id];
-            if (!r) return null;
-            return (
-              <Tr key={x.id}>
-                <td>
-                  <RiderLink r={r} />
-                </td>
-                <td>{x.d}</td>
-                <td>{x.w}</td>
-                <td>{x.p}</td>
-                <td>{x.u}</td>
-                <td className="whitespace-nowrap">
-                  {x.ov}
-                  {x.dov == null ? null : (
-                    <span
-                      className={
-                        'ml-1 ' + (x.dov > 0 ? 'text-emerald-400' : x.dov < 0 ? 'text-rose-400' : 'text-slate-400')
-                      }
-                    >
-                      {x.dov > 0 ? '+' : ''}
-                      {x.dov}
-                    </span>
-                  )}
-                </td>
-                <td className="text-xs">{x.goal ? `${x.goal.ok ? '✅' : '❌'} ${GOAL_SHORT[x.goal.k]}` : '—'}</td>
-              </Tr>
-            );
-          })}
-        </Table>
-      ) : (
-        <p className="text-sm text-slate-400">Le premier bilan sera établi à la fin de la saison.</p>
-      )}
-    </Card>
+    <>
+      {s != null ? <SeasonSummary s={s} /> : null}
+      {s != null ? <Replays season={s} title={`🎬 Mes arrivées de ${s}`} /> : null}
+      <Card title={`📋 Bilan individuel${rv ? ' ' + rv.s : ''}`}>
+        <p className="mb-2 text-xs text-slate-400">
+          Établi à la clôture de chaque saison : jours de course, résultats, évolution du niveau global et objectif
+          personnel.
+        </p>
+        {rv && rv.rows.length ? (
+          <Table head={['Coureur', 'Jours', 'Vict.', 'Pod.', 'UCI', 'Niveau', 'Objectif']}>
+            {rv.rows.map(x => {
+              const r = S.riders[x.id];
+              if (!r) return null;
+              return (
+                <Tr key={x.id}>
+                  <td>
+                    <RiderLink r={r} />
+                  </td>
+                  <td>{x.d}</td>
+                  <td>{x.w}</td>
+                  <td>{x.p}</td>
+                  <td>{x.u}</td>
+                  <td className="whitespace-nowrap">
+                    {x.ov}
+                    {x.dov == null ? null : (
+                      <span
+                        className={
+                          'ml-1 ' + (x.dov > 0 ? 'text-emerald-400' : x.dov < 0 ? 'text-rose-400' : 'text-slate-400')
+                        }
+                      >
+                        {x.dov > 0 ? '+' : ''}
+                        {x.dov}
+                      </span>
+                    )}
+                  </td>
+                  <td className="text-xs">{x.goal ? `${x.goal.ok ? '✅' : '❌'} ${GOAL_SHORT[x.goal.k]}` : '—'}</td>
+                </Tr>
+              );
+            })}
+          </Table>
+        ) : (
+          <p className="text-sm text-slate-400">Le premier bilan sera établi à la fin de la saison.</p>
+        )}
+      </Card>
+    </>
   );
 }
 function LegendsTab() {
@@ -502,12 +565,12 @@ function TeamsTab() {
 }
 // Le film de la saison : récit des 5 dernières saisons (grandes victoires, coureur de l'année, révélations…).
 // Mes plus belles arrivées : les rejeux conservés (mes podiums), à revoir.
-function Replays() {
+function Replays({ season, title = '🎬 Mes plus belles arrivées' }) {
   const [open, setOpen] = useState(null);
-  const L = (S.replays || []).slice().reverse();
+  const L = (S.replays || []).filter(e => season == null || e.s === season).reverse();
   if (!L.length) return null;
   return (
-    <Card title="🎬 Mes plus belles arrivées">
+    <Card title={title}>
       <div className="divide-y divide-slate-800">
         {L.map((e, k) => (
           <div key={k} className="py-2">

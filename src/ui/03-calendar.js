@@ -87,7 +87,9 @@ function doEndSeason() {
     idbBackup(); // copie de sécurité avant de tourner la page
     endSeason();
     save();
-    UI.view = 'inbox';
+    // le bilan de la saison : chiffres, objectifs, mes arrivées, bilan individuel, film
+    UI.stats = 'review';
+    UI.view = 'stats';
     render();
   });
 }

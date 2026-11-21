@@ -250,6 +250,17 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     - Ce qui demande une décision ressort : carte « ⚠️ À traiter » et fins de contrat en encadré ambré.
     - Menu « Plus » par familles (Gérer l'équipe · Suivre la saison · Réglages), chaque écran avec sa ligne
       d'explication ; ceux qui attendent une action sont surlignés.
+  - Rejeux : « 🎬 Revoir l'arrivée » sur l'écran de fin d'étape ; mes podiums conservés (16, compactés) et à revoir
+    dans le film de la saison et le bilan.
+  - Bilan de saison : la clôture mène à l'onglet Bilan (classement, victoires, budget, confiance et objectifs du
+    sponsor, primes, mes arrivées de l'année, bilan individuel, lien vers le film).
+  - Comparer deux coureurs (fiche → « ⚖️ Comparer », puis « Comparer avec … ») : âge, note, salaire, contrat, forme
+    et chaque caractéristique côte à côte, la meilleure en vert.
+  - Ordinateur : le bluff dans l'échappée (un malin joue les cuits, saute ses relais puis attaque dans le final ;
+    mon coureur prévient à la radio).
+  - Sauvegarde : retraités notables allégés ; bilan de santé de 2 × 15 saisons (équilibre stable, ≈ 31 s par saison,
+    sauvegarde ≈ +90 Ko par saison).
+  - Course sur téléphone : radio repliée (dernier message en titre) ; en-tête aligné sur la page en grand écran.
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

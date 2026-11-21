@@ -275,8 +275,10 @@ function endSeason() {
   let lines = [],
     dConf = 0,
     rew = 0;
+  const objR = []; // pour le bilan de la saison (écran « Bilan »)
   for (const o of S.obj) {
     const st = objStatus(o);
+    objR.push({ t: o.txt, ok: !!st.ok });
     if (st.ok) {
       dConf += 7;
       rew += o.rew;
@@ -310,6 +312,9 @@ function endSeason() {
     wins: seasonWins(0),
     budget: Math.round(S.budget),
     conf: S.conf,
+    objs: objR,
+    dConf,
+    prime: rew + bonus,
   });
   S.seasonRank = S.seasonRank || {};
   S.seasonRank[S.season] = rankArr.map(T => ({

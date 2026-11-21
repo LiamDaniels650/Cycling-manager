@@ -2,6 +2,7 @@
 // fenêtres. Les écrans pas encore convertis en composants React sont affichés par l'ancienne interface
 // (mêmes fonctions, mêmes boutons) : rien n'est perdu pendant la conversion.
 import { useEffect, useState } from 'react';
+import { Compare } from './screens/Compare.jsx';
 import { setBump, beginRender, endRender, takeFlash, refresh } from './bridge.js';
 import { Icon } from './icons.jsx';
 import { LiveRace } from './race/LiveRace.jsx';
@@ -88,9 +89,11 @@ function Count({ n }) {
 }
 function Header() {
   const T = P();
+  // pendant une course en direct, l'en-tête suit la largeur de la page (deux colonnes sur grand écran)
+  const wide = UI.view === 'race' && UI.sim ? ' xl:max-w-6xl' : '';
   return (
     <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
-      <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-3 py-2">
+      <div className={'mx-auto flex max-w-3xl items-center justify-between gap-2 px-3 py-2' + wide}>
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
@@ -108,7 +111,7 @@ function Header() {
           <b className={S.budget < 0 ? 'text-rose-400' : 'text-slate-50'}>{fmtMoney(S.budget)}</b>
         </div>
       </div>
-      <nav className="mx-auto hidden max-w-3xl flex-wrap gap-1.5 px-3 pb-2 md:flex">
+      <nav className={'mx-auto hidden max-w-3xl flex-wrap gap-1.5 px-3 pb-2 md:flex' + wide}>
         {navItems().map(([k, ic, l, n]) => (
           <button
             key={k}
@@ -252,6 +255,7 @@ function Modal() {
   let body;
   if (m.type === 'rider') body = S && S.car ? <CarRiderSheet r={S.riders[m.id]} /> : <RiderSheet r={S.riders[m.id]} />;
   else if (m.type === 'team') body = <TeamCard T={teamById(m.id)} />;
+  else if (m.type === 'cmp') body = <Compare a={m.a} b={m.b} />;
   else if (m.type === 'nav') body = S && S.car ? <CarNav /> : <NavSheet />;
   else if (m.type === 'radio') body = <RadioPanel id={m.id} />;
   else if (m.type === 'msg')

@@ -4,6 +4,7 @@
 // ovChart et pbTable.
 import { Btn, Bar, Spark, Stars, RiderLink, KV, statColor } from '../ui.jsx';
 import { Icon } from '../icons.jsx';
+import { CompareBtn } from './Compare.jsx';
 
 function Tabs() {
   return (
@@ -504,6 +505,9 @@ export function RiderSheet({ r }) {
         · Popularité {Math.round(r.pop || 0)} · Global <b className="text-slate-100">{svOv(r)}</b> · Potentiel{' '}
         <Stars v={potEst(r)} />
         {potKnow(r) < 70 ? <span className="text-xs"> (estimé)</span> : null}
+      </div>
+      <div className="mt-2">
+        <CompareBtn r={r} />
       </div>
       <Tabs />
       {UI.riderTab === 'fiche' ? <Fiche r={r} /> : UI.riderTab === 'car' ? <Career r={r} /> : <Palmares r={r} />}

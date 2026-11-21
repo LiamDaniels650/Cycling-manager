@@ -400,7 +400,7 @@ Plat — 198 km | t= 4h34'33" avg 43.3 km/h | ticks 573 | last +11'31" | DNF 0
    S. Christensen[spri]m.t., I. Hernández[spri]m.t., V. Marchand[spri]m.t., M. Gerber[spri]m.t., P. Gil[spri]m.t.
  GC: S. Christensen[spri] m.t., I. Hernández[spri] +4", V. Marchand[spri] +6", M. Gerber[spri] +10", P. Gil[spri] +10"
 
-season ok, budget 2348 riders 609 json 762828
+season ok, budget 2348 riders 609 json 763126
 
 === Grand Prix d'Ouverture ===
 Plat — 176 km | t= 3h53'24" avg 45.2 km/h | ticks 469 | last +50" | DNF 0
@@ -12375,7 +12375,7 @@ Plat — 198 km | t= 5h15'13" avg 37.7 km/h | ticks 633 | last +59" | DNF 0
      [198] 🏁 Sprint : le train AVE emmène T. Marchand ; T. Van den Broeck surfe dans les roues et s'impose (vent de côté).
  GC: T. Van den Broeck[spri] m.t., T. Marchand[spri] +4", J. Christensen[spri] +6", M. Huber[spri] +10", S. Garnier[spri] +10"
 
-S2027 rank 9 uci 3685 wins 6 budget 2271 conf 62 obj 1110 | roster 20 aca 2 youth 63 free 65 | avgAge 26.0 teamOv 75,79,79,78,77,77,77,75,74,75,74,74,73,73,73,72,72,71 | json 741KB
+S2027 rank 9 uci 3685 wins 6 budget 2271 conf 62 obj 1110 | roster 20 aca 2 youth 63 free 65 | avgAge 26.0 teamOv 75,79,79,78,77,77,77,75,74,75,74,74,73,73,73,72,72,71 | json 742KB
 S2028 rank 9 uci 3960 wins 11 budget 1447 conf 74 obj 1110 | roster 19 aca 2 youth 69 free 65 | avgAge 26.1 teamOv 76,80,80,78,76,77,77,76,75,75,75,74,73,72,71,71,72,72 | json 885KB
 {"2027":{"sal":-3696.7857142857124,"staff":-477.38095238095184,"spons":3972.8187229835103,"prize":404,"transf":0,"aca":-43.428571428571416,"other":-887.5,"equip":134.7142857142858},"2028":{"sal":-4162.380952380952,"staff":-414.88095238095195,"spons":4035.7390239151287,"prize":454,"transf":0,"aca":-23.42857142857144,"other":-904,"equip":190.35714285714278}}
 top ov 87,86,86,85,85,85,84,84,84,84 p50 76
