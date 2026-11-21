@@ -52,6 +52,10 @@ src/
     28-image.js           image de l'équipe (identité construite par les résultats) et ses effets
     29-ai-economy.js      économie des équipes IA (budget selon le standing, masse salariale, standing qui évolue)
     52-commentary.js      le résumé du commentateur à la fin de chaque étape (lecture seule des relevés d'étape)
+    53-replay.js          rejeux des arrivées (reconstitution des solitaires, podiums conservés pour le film)
+    54-moments.js         moments décisifs simulés au détail en cours d'étape (sommets, secteurs pavés)
+    55-directors.js       directeurs adverses : identité, caractère, mémoire, objectifs de saison
+    56-prep.js            préparation : stages d'équipe, test d'effort, entraîneur en chef
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -261,6 +265,17 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   - Sauvegarde : retraités notables allégés ; bilan de santé de 2 × 15 saisons (équilibre stable, ≈ 31 s par saison,
     sauvegarde ≈ +90 Ko par saison).
   - Course sur téléphone : radio repliée (dernier message en titre) ; en-tête aligné sur la page en grand écran.
+  - Moments décisifs simulés au détail en cours d'étape (pas seulement l'arrivée) : au sommet du dernier grand col
+    (dans les 45 derniers km, quand la course se joue entre favoris) et à la sortie des deux derniers secteurs pavés
+    difficiles, les deux derniers km sont rejoués comme un final (allures, réserves, roues, attaques) ; le groupe
+    éclate selon les écarts et la course continue. Carte « ⚡ Moment décisif » avec son rejeu en direct, à revoir dans
+    le bilan d'étape.
+  - Directeurs adverses : chaque équipe a un directeur (nom, âge, caractère rancunier / pragmatique / loyal, style de
+    jeu), qui retient ce que je lui fais (pactes, alliances, coureurs pris) ; un rancunier fâché roule derrière mon
+    échappée ; deux courses objectifs par saison (coureurs mieux préparés, annonce au départ). Visible sur la fiche
+    de chaque équipe.
+  - Préparation (écran Gestion) : stages d'équipe (altitude, train de sprint, montagne, cohésion), test d'effort
+    (vrai potentiel et profil de puissance d'un coureur), entraîneur en chef spécialisé parmi trois candidats.
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :
