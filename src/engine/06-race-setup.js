@@ -323,7 +323,7 @@ function komHunter(rc, teamId, rest, leader) {
     return k && k <= 3 && r.s.mon >= 68;
   });
   if (ranked) return (rc.komHunt[teamId] = ranked.id);
-  if (rc.si < 2 || cur === -1) return null;
+  if (rc.si < 1 || cur === -1) return null;
   const gcDead = !leader || !gcSituation(rc, leader.id).alive;
   const climber = rest.filter(r => r.s.mon >= R.hunterMon).sort((a, b) => b.s.mon - a.s.mon)[0];
   // décision prise une fois pour toutes (hasard figé par équipe et par course)

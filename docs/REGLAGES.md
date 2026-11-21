@@ -76,7 +76,7 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `R.hunterTry` | `0.6` | idem pour le chasseur du maillot de la montagne (× max(baroud, montagne) / 72) |
 | `R.hunterBridge` | `180` | le chasseur part en contre tant que l'échappée a moins de 180 s |
 | `R.hunterShare` | `85` | % des équipes sans ambition au général qui désignent un chasseur de maillot |
-| `R.hunterMon` | `77` | note de montagne minimale du chasseur |
+| `R.hunterMon` | `74` | note de montagne minimale du chasseur |
 | `R.sitUpPace` | `0.74` | allure d'un chasseur relevé (part de la capacité médiane du groupe) |
 | `R.classicCatchKm` | `50` | classique : l'échappée matinale doit être reprise vers 50 km de l'arrivée… |
 | `R.classicGapKm` | `3` | … l'écart toléré diminuant de 3 s par km |
@@ -148,11 +148,11 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `WX_REGIME` | 04-calendar.js:573 | plusieurs semaines, avec des tendances de saison (giboulées de printemps, canicules d'été, automne humide). |
 | `SPEED_K` | 05-physics.js:50 | Calibrage 2024-2025 : plat ~44 km/h, montagne ~35-38, chrono ~52, CLM par équipes ~55 (voir tests/calibrate.js). |
 | `PHY` | 05-physics.js:67 | conditions du jour : air moins dense en altitude ou par la chaleur, vent de face ou de dos, pavés, pluie. |
-| `RADIO_ACTS` | 08-stage-sim.js:235 | Consigne effective d'un coureur (radio ponctuelle, rébellion ou consigne d'avant course). |
-| `ESCORT_ORD` | 08-stage-sim.js:236 |  |
-| `DT_MIN` | 08-stage-sim.js:336 | Un pas de simulation = 30 secondes de course. |
-| `SPRINT_NOISE` | 09-stage-finish.js:344 | Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints. |
-| `PW_BUCKETS` | 09-stage-finish.js:882 | Records de puissance : meilleur effort personnel par durée et palmarès mondial des ascensions (20 min et plus). |
+| `RADIO_ACTS` | 08-stage-sim.js:242 | Consigne effective d'un coureur (radio ponctuelle, rébellion ou consigne d'avant course). |
+| `ESCORT_ORD` | 08-stage-sim.js:243 |  |
+| `DT_MIN` | 08-stage-sim.js:343 | Un pas de simulation = 30 secondes de course. |
+| `SPRINT_NOISE` | 09-stage-finish.js:348 | Aléa du sprint (placement, timing, jambes du jour) : le meilleur sprinteur ne gagne pas tous les sprints. |
+| `PW_BUCKETS` | 09-stage-finish.js:887 | Records de puissance : meilleur effort personnel par durée et palmarès mondial des ascensions (20 min et plus). |
 | `GC_CACHE` | 11-results.js:147 | Le général ne change qu'entre les étapes (ou sur abandon) : il est mis en cache et invalidé par gcDirty(). |
 | `UCI_COUNT` | 11-results.js:379 | Classement UCI par équipes (règle réelle) : somme des points de la saison de ses 20 meilleurs coureurs actuels. |
 | `KG_BURN` | 12-season.js:5 | Perte de poids par semaine selon le plan d'entraînement (kg) ; 0,15 par défaut, reprise de poids au repos. |
@@ -247,3 +247,7 @@ Fichier généré par `python3 tools/reglages.py` (ne pas modifier à la main).
 | `DB_TYPE` | 51-database.js:5 |  |
 | `TYPE_OK` | 51-database.js:188 |  |
 | `TV_ARCH` | 52-commentary.js:6 |  |
+| `DS_TEMPER` | 55-directors.js:6 |  |
+| `DS_STYLE_LBL` | 55-directors.js:11 |  |
+| `CAMPS` | 56-prep.js:5 |  |
+| `COACH_SPEC` | 56-prep.js:72 | Entraîneurs en chef candidats de la saison (trois profils, fixes pour la saison). |
