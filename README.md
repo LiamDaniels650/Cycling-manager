@@ -237,6 +237,15 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   - Rejeu d'une victoire en solitaire : l'écart des poursuivants encore en course est affiché comme une estimation.
   - Nouveau test `tests/finals.js` (`./dev.sh finals`, intégration continue) : bancs d'essai du sprint et de la côte
     qui vérifient que chaque ordre de final garde son sens (il a déjà attrapé un train qui desservait son sprinteur).
+  - Interface plus compacte et plus lisible :
+    - Effectif (et marché, académie) : une ligne par coureur (pastille de forme, note, potentiel) qui se déplie
+      d'un toucher ; filtres en pastilles (profil, contrat à prolonger, fatigués, blessés). 5 300 → 2 000 px.
+    - Fin d'étape en onglets (Résumé · Arrivée · Équipe · Général · Plus) : 3 300 → 1 100 px.
+    - Calendrier par mois repliables (mois en cours et suivant ouverts) : 4 850 → 2 000 px.
+    - Briefing : le plan de course en une ligne en tête, une ligne par coureur avec sa consigne à côté.
+    - Pastille aux couleurs de l'équipe devant chaque nom de coureur ; « Premiers pas » replié en une ligne.
+    - Lisibilité : plus de texte sous 12 px, gris secondaire plus contrasté (≈ 6,9:1 au lieu de 3,9:1).
+    - Grand écran : la course en direct sur deux colonnes (retransmission et groupes | mes coureurs et radio).
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

@@ -27,7 +27,7 @@ function Mercato() {
           return (
             <div key={k} className={'border-t border-slate-800 py-2 text-sm ' + (e.my ? 'bg-pink-500/10' : '')}>
               <div className="flex flex-wrap items-baseline gap-x-2">
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-slate-400">
                   {e.s} · S{e.w}
                 </span>
                 <span className="text-xs text-slate-300">{MERC_KIND[e.k] || e.k}</span>
@@ -60,7 +60,7 @@ function Profiles() {
           >
             <b className="block text-lg text-slate-50">{o ? o.n : 0}</b>
             <span className="text-xs text-slate-300">{ARCH[k].lbl}</span>
-            <i className="block text-[11px] not-italic text-slate-500">{o ? 'meilleur ' + o.best : 'aucun'}</i>
+            <i className="block text-xs not-italic text-slate-400">{o ? 'meilleur ' + o.best : 'aucun'}</i>
           </div>
         );
       })}

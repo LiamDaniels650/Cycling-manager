@@ -55,7 +55,7 @@ const CLS = { me: 'text-pink-200', bad: 'text-rose-300', att: 'text-amber-200', 
 function FeedRow({ l }) {
   return (
     <div className="flex gap-2 border-b border-slate-800 py-1.5 text-[13px] last:border-0">
-      <span className="w-12 shrink-0 tabular-nums text-slate-500">km {l.km.toFixed(0)}</span>
+      <span className="w-12 shrink-0 tabular-nums text-slate-400">km {l.km.toFixed(0)}</span>
       <Html className={CLS[l.cls] || 'text-slate-200'} html={l.txt} />
     </div>
   );

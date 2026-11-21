@@ -39,48 +39,60 @@ export function LiveRace() {
           </b>
           <span className="shrink-0 tabular-nums">{fmtTime(Math.max(0, sim.t * 60 - 30 + frac * 30))}</span>
         </div>
-        <Finale sim={sim}>{sim.photo ? null : <FinalActions sim={sim} />}</Finale>
-        {sim.photo ? null : (
-          <div className="space-y-2 empty:hidden">
-            <Nego sim={sim} />
+        {/* sur grand écran : le final à gauche, le détail à droite */}
+        <div className="space-y-3 xl:grid xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:items-start xl:gap-3 xl:space-y-0">
+          <div className="space-y-3">
+            <Finale sim={sim}>{sim.photo ? null : <FinalActions sim={sim} />}</Finale>
+            {sim.photo ? null : (
+              <div className="space-y-2 empty:hidden">
+                <Nego sim={sim} />
+              </div>
+            )}
           </div>
-        )}
-        <Fold title="📺 Retransmission complète (profil, écarts)">
-          <Card>
-            <RaceHeader sim={sim} rc={rc} />
-            <Clock sim={sim} frac={frac} />
-            <StageProfile spec={sim.spec} Pf={UI.Pf} sim={sim} frac={frac} />
-            <GapChart sim={sim} />
-            <VirtualLeader sim={sim} />
-          </Card>
-        </Fold>
-        <Fold title="👥 Tous mes coureurs et ordres d'équipe">
-          <MyTeam sim={sim} />
-        </Fold>
-        <Fold title="🚴 Détail des groupes">
-          <Peloton sim={sim} />
-        </Fold>
-        <Fold title="📻 Radio-course">
-          <RadioFeed sim={sim} />
-        </Fold>
+          <div className="space-y-3">
+            <Fold title="📺 Retransmission complète (profil, écarts)">
+              <Card>
+                <RaceHeader sim={sim} rc={rc} />
+                <Clock sim={sim} frac={frac} />
+                <StageProfile spec={sim.spec} Pf={UI.Pf} sim={sim} frac={frac} />
+                <GapChart sim={sim} />
+                <VirtualLeader sim={sim} />
+              </Card>
+            </Fold>
+            <Fold title="👥 Tous mes coureurs et ordres d'équipe">
+              <MyTeam sim={sim} />
+            </Fold>
+            <Fold title="🚴 Détail des groupes">
+              <Peloton sim={sim} />
+            </Fold>
+            <Fold title="📻 Radio-course">
+              <RadioFeed sim={sim} />
+            </Fold>
+          </div>
+        </div>
         <Dock sim={sim} />
       </div>
     );
   return (
-    <div className="space-y-3 pb-36">
-      <Card className="border-sky-500/30">
-        <RaceHeader sim={sim} rc={rc} />
-        <Clock sim={sim} frac={frac} />
-        <StageProfile spec={sim.spec} Pf={UI.Pf} sim={sim} frac={frac} />
-        <RoadStrip sim={sim} frac={frac} />
-        <GapChart sim={sim} />
-        <div className="min-h-5">
-          <VirtualLeader sim={sim} />
-        </div>
-      </Card>
-      <MyTeam sim={sim} />
-      <Peloton sim={sim} />
-      <RadioFeed sim={sim} />
+    <div className="space-y-3 pb-36 xl:grid xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:items-start xl:gap-3 xl:space-y-0">
+      {/* sur grand écran : la retransmission et les groupes à gauche, mes coureurs et la radio à droite */}
+      <div className="space-y-3">
+        <Card className="border-sky-500/30">
+          <RaceHeader sim={sim} rc={rc} />
+          <Clock sim={sim} frac={frac} />
+          <StageProfile spec={sim.spec} Pf={UI.Pf} sim={sim} frac={frac} />
+          <RoadStrip sim={sim} frac={frac} />
+          <GapChart sim={sim} />
+          <div className="min-h-5">
+            <VirtualLeader sim={sim} />
+          </div>
+        </Card>
+        <Peloton sim={sim} />
+      </div>
+      <div className="space-y-3">
+        <MyTeam sim={sim} />
+        <RadioFeed sim={sim} />
+      </div>
       <Dock sim={sim} />
     </div>
   );

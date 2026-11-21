@@ -7,25 +7,32 @@ const INPUT = 'min-h-11 w-full min-w-0 rounded-xl border border-slate-700 bg-sla
 const AREA = 'w-full min-w-0 rounded-xl border border-slate-700 bg-slate-800 p-2 text-sm text-slate-100';
 const saveText = () => JSON.stringify({ S, sd: _sd, rid: _rid });
 
-// Bulle « Premiers pas » d'un écran.
+// Bulle « Premiers pas » d'un écran : une seule ligne repliée (la première phrase), qu'on déplie pour lire la suite.
 export function TipCard({ view }) {
   S.tipsSeen = S.tipsSeen || {};
   if (S.tipsOff || S.tipsSeen[view] || !TIPS[view]) return null;
+  const first = String(TIPS[view])
+    .replace(/<[^>]+>/g, '')
+    .split(/(?<=[.!?])\s/)[0];
   return (
-    <div className="mb-3 rounded-2xl bg-amber-400/10 p-3 ring-1 ring-amber-300/40">
-      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-        <b className="text-sm text-amber-100">💡 Premiers pas</b>
-        <span className="flex gap-2">
+    <details className="group mb-3 rounded-xl bg-amber-400/10 ring-1 ring-amber-300/40">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 text-sm text-amber-100">
+        <span>💡</span>
+        <span className="min-w-0 flex-1 truncate">{first}</span>
+        <span className="shrink-0 text-xs text-amber-200/80 group-open:hidden">plus</span>
+      </summary>
+      <div className="px-3 pb-3">
+        <Html as="div" className="text-sm text-slate-200" html={TIPS[view]} />
+        <div className="mt-2 flex flex-wrap gap-2">
           <Btn className="min-h-9" onClick={() => tipDone(view)}>
             Compris
           </Btn>
           <Btn className="min-h-9" onClick={() => ((S.tipsOff = true), save(), render())}>
-            Masquer l'aide
+            Masquer toute l'aide
           </Btn>
-        </span>
+        </div>
       </div>
-      <Html as="div" className="text-sm text-slate-200" html={TIPS[view]} />
-    </div>
+    </details>
   );
 }
 // Banc d'essai du moteur sur l'appareil : six étapes d'une partie neuve (graine fixe) calculées dans un processus

@@ -234,7 +234,7 @@ function PowerRecords({ r }) {
                 <td className="text-center">{q.w}</td>
                 <td className="text-xs">
                   {q.climb} ({fmtTime(q.dur)}){' '}
-                  <span className="text-slate-500">
+                  <span className="text-slate-400">
                     {q.race} {q.season}
                   </span>
                 </td>
@@ -441,7 +441,7 @@ function Career({ r }) {
             ))}
           </tbody>
         </table>
-        <p className="text-xs text-slate-500">* saison en cours</p>
+        <p className="text-xs text-slate-400">* saison en cours</p>
       </div>
     </>
   );
@@ -458,7 +458,7 @@ function Palmares({ r }) {
             <td className="pr-2">{p.k === 1 ? '🥇' : p.k === 2 ? '🥈' : '🥉'}</td>
             <td className="pr-2">{p.r}</td>
             <td className="pr-2 text-xs">{p.e}</td>
-            <td className="text-xs text-slate-500">{p.t}</td>
+            <td className="text-xs text-slate-400">{p.t}</td>
           </tr>
         ))}
       </tbody>

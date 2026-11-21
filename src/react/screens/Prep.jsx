@@ -86,7 +86,7 @@ export function Prep() {
                     </span>
                   ))}
                 </div>
-                <div className="mt-1 grid grid-cols-3 gap-2 pl-9 text-[11px] text-slate-400">
+                <div className="mt-1 grid grid-cols-3 gap-2 pl-9 text-xs text-slate-400">
                   <span>
                     Forme <Bar v={r.forme} />
                   </span>

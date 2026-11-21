@@ -2,7 +2,7 @@
 // stagePowerCard et climbWattsCard) : bilan, arrivée, analyse de mes coureurs, désobéissances, classements,
 // résumé à copier, puissances.
 import { useState } from 'react';
-import { Card, Btn, RiderLink } from '../ui.jsx';
+import { Card, Btn, RiderLink, Tabs } from '../ui.jsx';
 import { GapChart } from '../race/Broadcast.jsx';
 
 const Row = ({ mine, children }) => (
@@ -162,9 +162,6 @@ function Debrief({ rc, L, st, mine }) {
           </div>
         ))}
       </div>
-      <div className="mt-3">
-        <NextBtn rc={rc} />
-      </div>
     </Card>
   );
 }
@@ -197,7 +194,7 @@ export function Standings({ rc, brief }) {
                 <td className="w-8 py-1.5">{i + 1}</td>
                 <td>
                   <RiderLink r={r} />
-                  {r.age <= 25 ? <span className="ml-1 text-xs text-slate-500">j</span> : null}
+                  {r.age <= 25 ? <span className="ml-1 text-xs text-slate-400">j</span> : null}
                 </td>
                 <td className="text-xs text-slate-400">{tshort(r)}</td>
                 <td className="text-right tabular-nums">{i === 0 ? fmtTime(t0) : fmtGap(rc.gc[id] - t0)}</td>
@@ -364,14 +361,14 @@ function Power({ power }) {
               <Row key={e.id} mine={r.team === 0}>
                 <td className="px-1 py-1.5">{e.rk || 'ab.'}</td>
                 <td className="px-1">
-                  <RiderLink r={r} /> <span className="text-xs text-slate-500">{e.kg} kg</span>
+                  <RiderLink r={r} /> <span className="text-xs text-slate-400">{e.kg} kg</span>
                 </td>
                 <td className="px-1">
                   <b>{e.avg} W</b>
                 </td>
                 <td className="px-1">{fmtDec(e.wkg, 2)}</td>
                 <td className="px-1">
-                  {e.np} W<div className="text-xs text-slate-500">{fmtDec(e.npkg, 2)} W/kg</div>
+                  {e.np} W<div className="text-xs text-slate-400">{fmtDec(e.npkg, 2)} W/kg</div>
                 </td>
                 <td className="px-1">{e.p5} W</td>
                 <td className="px-1">{e.kj} kJ</td>
@@ -427,7 +424,7 @@ function ClimbWatts({ climbs, mine }) {
                     return [
                       gap ? (
                         <tr key={'g' + e.id}>
-                          <td colSpan="7" className="text-slate-500">
+                          <td colSpan="7" className="text-slate-400">
                             …
                           </td>
                         </tr>
@@ -435,7 +432,7 @@ function ClimbWatts({ climbs, mine }) {
                       <Row key={e.id} mine={mine.has(e.id)}>
                         <td className="px-1 py-1.5">{e.rk}</td>
                         <td className="px-1">
-                          <RiderLink r={r} /> <span className="text-xs text-slate-500">{r.kg || '?'} kg</span>
+                          <RiderLink r={r} /> <span className="text-xs text-slate-400">{r.kg || '?'} kg</span>
                         </td>
                         <td className="px-1">{fmtTime(e.dur)}</td>
                         <td className="px-1">{fmtDec(e.kmh, 1)}</td>
@@ -467,9 +464,26 @@ export function StageResult() {
   const sim = L.sim;
   const bad = sim ? [...new Set([...(sim.disob || []), ...(sim.refusals ? [...sim.refusals] : [])])] : [];
   const ids = st.stats ? Object.keys(st.stats).map(Number) : [];
+  // onglets : on revient sur « Résumé » à chaque nouvelle étape
+  const tabKey = `${rc.key}|${L.idx}`;
+  if (UI.resTabFor !== tabKey) {
+    UI.resTabFor = tabKey;
+    UI.resTab = 'resume';
+  }
+  const tabs = [
+    ['resume', 'Résumé'],
+    ['arrivee', 'Arrivée'],
+    ...(st.stats || bad.length ? [['equipe', 'Équipe']] : []),
+    ...(rc.specs.length > 1 ? [['general', 'Général']] : []),
+    ['plus', 'Plus'],
+  ];
+  const tab = tabs.some(t => t[0] === UI.resTab) ? UI.resTab : 'resume';
   return (
     <div className="space-y-3">
-      {L.ttt && rc.tttLog ? (
+      <div className="sticky top-[3.75rem] z-10 -mx-1 bg-slate-950/95 px-1 py-1 backdrop-blur">
+        <Tabs items={tabs} value={tab} onChange={k => ((UI.resTab = k), render(), window.scrollTo(0, 0))} />
+      </div>
+      {tab === 'arrivee' && L.ttt && rc.tttLog ? (
         <Card title={rc.name}>
           <div className="text-sm text-slate-400">{st.name} — Classement des équipes</div>
           <table className="mt-1 w-full text-sm">
@@ -495,57 +509,63 @@ export function StageResult() {
           </table>
         </Card>
       ) : null}
-      <Commentary rc={rc} idx={L.idx} />
-      <Debrief rc={rc} L={L} st={st} mine={mine} />
-      <Card title={rc.name}>
-        <div className="text-sm text-slate-400">{st.name} — Arrivée</div>
-        <table className="mt-1 w-full text-sm">
-          <tbody>
-            {show.map(([e, i]) => {
-              const gap = i !== prev + 1;
-              prev = i;
-              const r = S.riders[e.id];
-              return [
-                gap ? (
-                  <tr key={'g' + i}>
-                    <td colSpan="4" className="text-slate-500">
-                      …
+      {tab === 'resume' ? (
+        <>
+          <Commentary rc={rc} idx={L.idx} />
+          <Debrief rc={rc} L={L} st={st} mine={mine} />
+        </>
+      ) : null}
+      {tab === 'arrivee' ? (
+        <Card title={rc.name}>
+          <div className="text-sm text-slate-400">{st.name} — Arrivée</div>
+          <table className="mt-1 w-full text-sm">
+            <tbody>
+              {show.map(([e, i]) => {
+                const gap = i !== prev + 1;
+                prev = i;
+                const r = S.riders[e.id];
+                return [
+                  gap ? (
+                    <tr key={'g' + i}>
+                      <td colSpan="4" className="text-slate-400">
+                        …
+                      </td>
+                    </tr>
+                  ) : null,
+                  <Row key={e.id} mine={mine.has(e.id)}>
+                    <td className="w-8 py-1.5">{i + 1}</td>
+                    <td>
+                      <RiderLink r={r} />
                     </td>
-                  </tr>
-                ) : null,
-                <Row key={e.id} mine={mine.has(e.id)}>
-                  <td className="w-8 py-1.5">{i + 1}</td>
-                  <td>
-                    <RiderLink r={r} />
-                  </td>
-                  <td className="text-xs text-slate-400">{tshort(r)}</td>
-                  <td className="text-right tabular-nums">{i === 0 ? fmtTime(e.time) : fmtGap(e.gap)}</td>
-                </Row>,
-              ];
-            })}
-          </tbody>
-        </table>
-        {rc.specs[L.idx] && rc.specs[L.idx].rest && !rc.done ? (
-          <p className="mt-2 text-sm">🛌 Journée de repos : récupération accrue avant l'étape suivante.</p>
-        ) : null}
-        {st.komb ? (
-          <p className="mt-2 text-sm">
-            🔥 Prix de la combativité : <RiderLink r={S.riders[st.komb]} />
-          </p>
-        ) : null}
-        {st.cut && st.cut.length ? (
-          <p className="mt-2 text-sm text-amber-300">
-            ⏱ Hors délais (éliminés) :{' '}
-            {st.cut.map((id, k) => (
-              <span key={id}>
-                {k ? ', ' : ''}
-                <RiderLink r={S.riders[id]} />
-              </span>
-            ))}
-          </p>
-        ) : null}
-      </Card>
-      {st.stats ? (
+                    <td className="text-xs text-slate-400">{tshort(r)}</td>
+                    <td className="text-right tabular-nums">{i === 0 ? fmtTime(e.time) : fmtGap(e.gap)}</td>
+                  </Row>,
+                ];
+              })}
+            </tbody>
+          </table>
+          {rc.specs[L.idx] && rc.specs[L.idx].rest && !rc.done ? (
+            <p className="mt-2 text-sm">🛌 Journée de repos : récupération accrue avant l'étape suivante.</p>
+          ) : null}
+          {st.komb ? (
+            <p className="mt-2 text-sm">
+              🔥 Prix de la combativité : <RiderLink r={S.riders[st.komb]} />
+            </p>
+          ) : null}
+          {st.cut && st.cut.length ? (
+            <p className="mt-2 text-sm text-amber-300">
+              ⏱ Hors délais (éliminés) :{' '}
+              {st.cut.map((id, k) => (
+                <span key={id}>
+                  {k ? ', ' : ''}
+                  <RiderLink r={S.riders[id]} />
+                </span>
+              ))}
+            </p>
+          ) : null}
+        </Card>
+      ) : null}
+      {tab === 'equipe' && st.stats ? (
         <Card title="Analyse de mes coureurs">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -585,16 +605,16 @@ export function StageResult() {
           <EnergyChart stats={st.stats} ids={ids} />
         </Card>
       ) : null}
-      {bad.length ? (
+      {tab === 'equipe' && bad.length ? (
         <Card title="Désobéissances">
           {bad.map(id => (
             <Disob key={id} id={id} st={st} />
           ))}
         </Card>
       ) : null}
-      {rc.specs.length > 1 ? <Standings rc={rc} /> : null}
-      <Summary rc={rc} idx={L.idx} sim={L.sim} />
-      {(st.power && st.power.length) || (st.climbs && st.climbs.length) ? (
+      {tab === 'general' && rc.specs.length > 1 ? <Standings rc={rc} /> : null}
+      {tab === 'plus' ? <Summary rc={rc} idx={L.idx} sim={L.sim} /> : null}
+      {tab === 'plus' && ((st.power && st.power.length) || (st.climbs && st.climbs.length)) ? (
         <details className="rounded-2xl border border-slate-700/70 bg-slate-900 p-3.5">
           <summary className="cursor-pointer text-sm font-semibold text-slate-100">
             ⚡ Puissances : étape et montées

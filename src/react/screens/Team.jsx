@@ -1,6 +1,6 @@
 // Effectif : demande d'augmentation, délégation à l'adjoint, fins de contrat, liste des coureurs avec liens,
 // objectif, contrat et plan d'entraînement (portage de viewTeam, raiseCard et trainSel).
-import { Card, Btn, H2, RiderLink, Select } from '../ui.jsx';
+import { Card, Btn, H2, Info, RiderLink, Select } from '../ui.jsx';
 import { RiderList } from './Riders.jsx';
 
 function AutoBtn({ k, lbl }) {
@@ -71,7 +71,7 @@ export function Team() {
           ) : (
             'fin de saison'
           )}
-          . Touchez un coureur pour sa fiche, sa carrière et les discussions.
+          . Touchez une ligne pour le détail et l'entraînement, le nom pour la fiche.
         </div>
         {ending.length ? (
           <div className="mb-2 text-xs text-amber-300">
@@ -96,15 +96,15 @@ export function Team() {
           ]}
         />
       </Card>
-      <Card>
-        <p className="text-xs text-slate-400">
+      <Info label="Comment marche l'entraînement ?">
+        <p className="text-xs text-slate-300">
           <b className="text-slate-200">Entraînement</b> : « Repos » fait baisser la fatigue mais aussi la forme ; «
           Bloc intensif » monte la forme vite mais fatigue ; « Pic de forme » vise ~92 de forme la semaine de la course
           choisie, puis un creux ; « Stage en altitude » (10 k€/sem.) : forme, montagne et endurance. Les plans
           spécifiques font progresser une caractéristique, d'autant plus que le coureur est jeune, loin de son potentiel
           et que vos entraîneurs sont bons.
         </p>
-      </Card>
+      </Info>
     </div>
   );
 }

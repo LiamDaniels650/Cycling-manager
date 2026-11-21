@@ -80,36 +80,40 @@ function Orders({ rc, spec, ids }) {
     spr = ids.filter(id => (rc.orders[id] || {}).o === 'sprint').length;
   return (
     <Card title="Consignes d'avant-course" right={<Btn onClick={() => autoMine()}>🧑‍💼 Auto</Btn>}>
-      <div className="space-y-2">
+      {/* le plan d'un coup d'œil, puis une ligne par coureur (pastille : énergie et forme réunies) */}
+      {!ttt && !itt ? <PlanSummary rc={rc} ids={ids} /> : null}
+      <div className="divide-y divide-slate-800 overflow-hidden rounded-xl bg-slate-800/40">
         {ids.map(id => {
           const r = S.riders[id];
           const o = rc.orders[id] || { o: 'protect' };
           const ob = obeyPct(r);
+          const st = Math.min(rc.energy[id] ?? 100, r.forme);
           return (
-            <div key={id} className="rounded-xl bg-slate-800/60 p-2.5">
-              <div className="flex items-center justify-between gap-2 text-sm">
-                <span className="min-w-0">
-                  <RiderLink r={r} /> <span className="text-xs text-slate-400">{ARCH[r.arch].lbl}</span>
-                </span>
+            <div key={id} className="flex flex-wrap items-center gap-x-2 gap-y-1.5 px-2.5 py-2">
+              <div className="flex min-w-[44%] flex-1 items-center gap-2 text-sm">
                 <span
                   className={
-                    'shrink-0 text-xs font-semibold ' +
-                    (ob > 85 ? 'text-emerald-300' : ob > 70 ? 'text-sky-300' : 'text-rose-300')
+                    'inline-block h-2.5 w-2.5 shrink-0 rounded-full ' +
+                    (st > 66 ? 'bg-emerald-400' : st > 40 ? 'bg-yellow-300' : 'bg-rose-500')
                   }
-                  title="Probabilité estimée de respecter une consigne d'équipier"
-                >
-                  obéit {ob} %
+                  title={`Énergie ${Math.round(rc.energy[id] ?? 100)} · forme ${Math.round(r.forme)}`}
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate">
+                    <RiderLink r={r} />
+                  </span>
+                  <span className="block truncate text-xs text-slate-400">
+                    {ARCH[r.arch].lbl} ·{' '}
+                    <span
+                      className={ob > 85 ? 'text-emerald-300' : ob > 70 ? 'text-sky-300' : 'text-rose-300'}
+                      title="Probabilité estimée de respecter une consigne d'équipier"
+                    >
+                      obéit {ob} %
+                    </span>
+                  </span>
                 </span>
               </div>
-              <div className="mt-1 flex gap-3 text-[11px] text-slate-400">
-                <span>
-                  Énergie <Bar v={rc.energy[id]} />
-                </span>
-                <span>
-                  Forme <Bar v={r.forme} />
-                </span>
-              </div>
-              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="grid min-w-[52%] flex-1 grid-cols-1 gap-1.5">
                 {ttt ? (
                   <span className="text-xs text-slate-400">
                     {rc.tttLeader === id ? '⭐ leader du chrono' : 'rouleur'}
@@ -147,9 +151,9 @@ function Orders({ rc, spec, ids }) {
                             render()
                           )}
                           options={[
-                            ['auto', 'Lancement : à son idée'],
-                            ['long', 'Lancement long (≈ 280 m : endurant, vent de dos)'],
-                            ['court', 'Lancement court (≈ 170 m : vent de face, explosif)'],
+                            ['auto', 'Lancement : instinct'],
+                            ['long', 'Long ≈ 280 m (endurant, vent de dos)'],
+                            ['court', 'Court ≈ 170 m (vent de face)'],
                           ]}
                         />
                         <Select
@@ -160,11 +164,8 @@ function Orders({ rc, spec, ids }) {
                             render()
                           )}
                           options={[
-                            ['', 'Roue : aucune en particulier'],
-                            ...rivalSprinters(rc, id).map(y => [
-                              String(y.id),
-                              `Dans la roue de ${riderName(y)} (${y.s.spr})`,
-                            ]),
+                            ['', 'Roue : libre'],
+                            ...rivalSprinters(rc, id).map(y => [String(y.id), `Roue de ${riderName(y)} (${y.s.spr})`]),
                           ]}
                         />
                       </>
@@ -339,6 +340,23 @@ function Plan({ rc, ids }) {
       )}
     </Card>
   );
+}
+// Le plan de course en une ligne : leader, sprinteur, carte libre, et le nombre d'équipiers par rôle.
+function PlanSummary({ rc, ids }) {
+  const by = {};
+  for (const id of ids) {
+    const k = (rc.orders[id] || { o: 'protect' }).o;
+    (by[k] = by[k] || []).push(id);
+  }
+  const nm = k => (by[k] || []).map(id => riderName(S.riders[id])).join(', ');
+  const parts = [];
+  if (by.leader) parts.push(`👑 Leader : ${nm('leader')}`);
+  if (by.sprint) parts.push(`🏁 Sprinteur : ${nm('sprint')}`);
+  if (by.free) parts.push(`🎯 Carte libre : ${nm('free')}`);
+  for (const [k, v] of Object.entries(by))
+    if (!['leader', 'sprint', 'free'].includes(k))
+      parts.push(`${v.length} ${ORDERS[k] ? ORDERS[k].lbl.toLowerCase() : k}`);
+  return <div className="mb-2 rounded-lg bg-sky-500/10 px-2.5 py-2 text-sm text-sky-100">{parts.join(' · ')}</div>;
 }
 export function Briefing() {
   const rc = S.rc;

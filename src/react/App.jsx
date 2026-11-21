@@ -81,7 +81,7 @@ const NAV_ICON = { home: 'home', team: 'users', cal: 'calendar', race: 'flag', m
 function Count({ n }) {
   if (!n) return null;
   return (
-    <i className="absolute -right-2 -top-1.5 rounded-full bg-rose-500 px-1.5 text-[10px] font-bold not-italic leading-4 text-white">
+    <i className="absolute -right-2 -top-1.5 rounded-full bg-rose-500 px-1.5 text-xs font-bold not-italic leading-4 text-white">
       {n > 9 ? '9+' : n}
     </i>
   );
@@ -139,7 +139,7 @@ function BottomNav() {
       type="button"
       onClick={onClick}
       className={
-        'flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] ' +
+        'flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-xs ' +
         (on ? 'text-sky-300' : 'text-slate-400')
       }
     >
@@ -284,7 +284,7 @@ export function App() {
       return (
         <>
           {live ? null : <CarHeader />}
-          <main id="main" className={'mx-auto max-w-3xl px-3 pt-3 ' + (live ? '' : 'pb-24')}>
+          <main id="main" className={'mx-auto max-w-3xl px-3 pt-3 ' + (live ? 'xl:max-w-6xl' : 'pb-24')}>
             {flash ? (
               <div
                 className="mb-3 rounded-xl bg-sky-500/15 px-3 py-2 text-sm text-sky-100 ring-1 ring-sky-400/40"
@@ -316,7 +316,7 @@ export function App() {
     return (
       <>
         <Header />
-        <main id="main" className={'mx-auto max-w-3xl px-3 pt-3 ' + (live ? '' : 'pb-24 md:pb-6')}>
+        <main id="main" className={'mx-auto max-w-3xl px-3 pt-3 ' + (live ? 'xl:max-w-6xl' : 'pb-24 md:pb-6')}>
           {flash ? (
             <div
               className="mb-3 rounded-xl bg-sky-500/15 px-3 py-2 text-sm text-sky-100 ring-1 ring-sky-400/40"

@@ -49,7 +49,19 @@ export function Jersey({ id }) {
     </span>
   ) : null;
 }
-export function RiderLink({ r, className = '' }) {
+// Pastille aux couleurs de l'équipe d'un coureur (rien pour un coureur libre).
+export function RiderDot({ r }) {
+  const T = r && r.team != null ? teamById(r.team) : null;
+  if (!T) return null;
+  return (
+    <span
+      aria-hidden="true"
+      className="mr-1 inline-block h-2 w-2 shrink-0 rounded-full align-middle ring-1 ring-black/40"
+      style={{ background: T.color }}
+    />
+  );
+}
+export function RiderLink({ r, className = '', dot = true }) {
   if (!r) return <span>?</span>;
   return (
     <button
@@ -62,6 +74,7 @@ export function RiderLink({ r, className = '' }) {
         className
       }
     >
+      {dot ? <RiderDot r={r} /> : null}
       {riderName(r)}
       {wearsRainbow(r) ? (
         <span className="ml-1 no-underline" title="Champion du monde">
@@ -138,7 +151,7 @@ export function Badge({ children, tone = 'slate' }) {
     red: 'bg-rose-500/15 text-rose-200 ring-rose-500/40',
     sky: 'bg-sky-500/15 text-sky-200 ring-sky-500/40',
   }[tone];
-  return <span className={'ml-1 inline-block rounded-md px-1.5 py-0.5 text-[11px] ring-1 ' + t}>{children}</span>;
+  return <span className={'ml-1 inline-block rounded-md px-1.5 py-0.5 text-xs ring-1 ' + t}>{children}</span>;
 }
 // Effort du moment : facile, régulier, dur, à bloc.
 export function Effort({ I }) {
@@ -187,7 +200,7 @@ export function statColor(v) {
         ? 'text-sky-300'
         : v >= 60
           ? 'text-slate-200'
-          : 'text-slate-500';
+          : 'text-slate-400';
 }
 export function H2({ children, right }) {
   return (
@@ -222,7 +235,7 @@ export function KV({ rows }) {
     <div className="grid grid-cols-2 gap-2">
       {rows.map(([k, v], i) => (
         <div key={i} className="rounded-xl bg-slate-800/60 px-2.5 py-2">
-          <div className="text-[11px] uppercase tracking-wide text-slate-400">{k}</div>
+          <div className="text-xs uppercase tracking-wide text-slate-400">{k}</div>
           <div className="font-semibold text-slate-100">{v}</div>
         </div>
       ))}
@@ -261,7 +274,7 @@ export function Pills({ items }) {
   return (
     <span className="flex flex-wrap gap-1">
       {items.map(([k, t], i) => (
-        <span key={i} className={'rounded-md px-1.5 py-0.5 text-[11px] ring-1 ' + (T[k] || T.info)}>
+        <span key={i} className={'rounded-md px-1.5 py-0.5 text-xs ring-1 ' + (T[k] || T.info)}>
           {t}
         </span>
       ))}

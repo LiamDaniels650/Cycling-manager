@@ -111,7 +111,7 @@ export function Todo() {
         >
           <span className="text-lg">{ic}</span>
           <span className="flex-1">{t}</span>
-          <span className="text-slate-500">›</span>
+          <span className="text-slate-400">›</span>
         </button>
       ))}
     </div>
@@ -171,12 +171,12 @@ export function RivalsTable({ rows }) {
                   className={
                     'text-right tabular-nums ' +
                     (T.player
-                      ? 'text-slate-500'
+                      ? 'text-slate-400'
                       : d > 0
                         ? 'text-rose-400'
                         : d < 0
                           ? 'text-emerald-400'
-                          : 'text-slate-500')
+                          : 'text-slate-400')
                   }
                 >
                   {T.player ? '—' : (d > 0 ? '+' : '') + d}
@@ -277,7 +277,7 @@ export function Home() {
                 (m.read ? 'text-slate-400' : 'text-slate-100')
               }
             >
-              <b className={m.read ? '' : 'text-sky-300'}>{m.title}</b> <span className="text-slate-500">S{m.w}</span>
+              <b className={m.read ? '' : 'text-sky-300'}>{m.title}</b> <span className="text-slate-400">S{m.w}</span>
             </div>
           ))}
         </Card>

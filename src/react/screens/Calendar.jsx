@@ -207,6 +207,31 @@ function Planner() {
     </div>
   );
 }
+const MONTHS = [
+  'janvier',
+  'février',
+  'mars',
+  'avril',
+  'mai',
+  'juin',
+  'juillet',
+  'août',
+  'septembre',
+  'octobre',
+  'novembre',
+  'décembre',
+];
+// Mois d'une semaine de la saison (semaine 1 = début janvier).
+const monthOf = w => Math.min(11, Math.floor(((Math.floor(w) - 1) * 7 + 3) / 30.44));
+function months(rows) {
+  const g = new Map();
+  for (const r of rows) {
+    const m = monthOf(r.w);
+    if (!g.has(m)) g.set(m, []);
+    g.get(m).push(r);
+  }
+  return [...g.entries()];
+}
 export function Calendar() {
   if (UI.calTab === 'plan' && discoOpen('plan'))
     return (
@@ -222,20 +247,22 @@ export function Calendar() {
   for (const e of ESP_CAL)
     rows.push({
       w: e.w + 0.5,
+      esp: true,
       past: e.w < S.week,
       el: (
         <div
           key={'e' + e.w + e.name}
           className={'flex gap-3 border-t border-slate-800 py-2 text-xs ' + (e.w < S.week ? 'opacity-50' : '')}
         >
-          <span className="w-7 shrink-0 text-center tabular-nums text-slate-500">{e.w}</span>
+          <span className="w-7 shrink-0 text-center tabular-nums text-slate-400">{e.w}</span>
           <span className="text-slate-300">
-            🎓 {e.name} <span className="text-slate-500">({isJun(e) ? 'juniors' : 'espoirs'})</span>
+            🎓 {e.name} <span className="text-slate-400">({isJun(e) ? 'juniors' : 'espoirs'})</span>
           </span>
         </div>
       ),
     });
   rows.sort((a, b) => a.w - b.w);
+  const nm = i >= 0 ? monthOf(S.cal[i].w) : 0; // mois de la prochaine course
   return (
     <div className="space-y-3">
       <Tabs />
@@ -258,7 +285,21 @@ export function Calendar() {
         >
           Calendrier {S.season}
         </H2>
-        {rows.filter(r => showPast || !r.past).map(r => r.el)}
+        {/* par mois : le mois en cours et le suivant ouverts, les autres repliés (nombre de courses en tête) */}
+        {months(rows.filter(r => showPast || !r.past)).map(([m, list]) => {
+          const nRace = list.filter(r => !r.esp).length;
+          return (
+            <details key={m} open={m === nm || m === nm + 1} className="group border-t border-slate-800 first:border-0">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 py-1">
+                <b className="text-sm capitalize text-slate-100">{MONTHS[m]}</b>
+                <span className="text-xs text-slate-400">
+                  {nRace} course{nRace > 1 ? 's' : ''} <span className="inline-block group-open:rotate-90">›</span>
+                </span>
+              </summary>
+              {list.map(r => r.el)}
+            </details>
+          );
+        })}
         <p className="mt-2 text-xs text-slate-400">
           Chaque semaine : entraînement, forme, salaires, staff et sponsor ({fmtMoney(sponsorWeekly())}/sem.).
         </p>

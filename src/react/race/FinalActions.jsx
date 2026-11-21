@@ -8,7 +8,7 @@ import { RADIO_HELP, doingNow, orderInfo } from './orders.js';
 function Gauge({ v, color, label }) {
   const p = Math.max(0, Math.min(100, v));
   return (
-    <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+    <div className="flex items-center gap-1.5 text-xs text-slate-400">
       <span className="w-7">{label}</span>
       <span className="h-2 flex-1 overflow-hidden rounded-full bg-slate-700">
         <span className={'block h-full rounded-full ' + (p < 25 ? 'bg-rose-500' : color)} style={{ width: p + '%' }} />
@@ -226,7 +226,7 @@ export function FinalActions({ sim }) {
                         </b>
                         <span
                           className={
-                            'text-[11px] leading-tight ' +
+                            'text-xs leading-tight ' +
                             (a[0] === 'attack' || a[0] === 'bridge' || sp ? 'text-slate-900' : 'text-slate-400')
                           }
                         >
@@ -247,7 +247,7 @@ export function FinalActions({ sim }) {
                     <b className="flex items-center gap-1 text-[13px]">
                       <Icon name="radio" size={15} /> Tous les ordres
                     </b>
-                    <span className="text-[11px] leading-tight text-slate-400">expliqués un par un</span>
+                    <span className="text-xs leading-tight text-slate-400">expliqués un par un</span>
                   </button>
                 </div>
               </div>

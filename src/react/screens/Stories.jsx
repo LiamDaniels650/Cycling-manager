@@ -50,7 +50,7 @@ function Thread({ t, open }) {
         <ol className="mt-1.5 space-y-1 border-l border-slate-700 pl-3">
           {t.log.map((l, i) => (
             <li key={i} className="text-[13px] text-slate-300">
-              <span className="text-slate-500">
+              <span className="text-slate-400">
                 {l.s !== S.season ? l.s + ' · ' : ''}sem. {l.w} ·{' '}
               </span>
               <Html html={l.txt} />

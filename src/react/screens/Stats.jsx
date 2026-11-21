@@ -163,7 +163,7 @@ function RacesTab() {
       {S.cal.map(c => {
         const hs = (S.raceHist[c.key] || []).slice().reverse();
         return (
-          <details key={c.key} className={'border-t border-slate-800 py-1 ' + (hs.length ? '' : 'text-slate-500')}>
+          <details key={c.key} className={'border-t border-slate-800 py-1 ' + (hs.length ? '' : 'text-slate-400')}>
             <summary className="cursor-pointer py-1.5 text-sm">
               <b>{c.name}</b> <span className="text-xs text-slate-400">{hs.length} édition(s)</span>
             </summary>
@@ -283,7 +283,7 @@ function ReviewTab() {
                   {x.dov == null ? null : (
                     <span
                       className={
-                        'ml-1 ' + (x.dov > 0 ? 'text-emerald-400' : x.dov < 0 ? 'text-rose-400' : 'text-slate-500')
+                        'ml-1 ' + (x.dov > 0 ? 'text-emerald-400' : x.dov < 0 ? 'text-rose-400' : 'text-slate-400')
                       }
                     >
                       {x.dov > 0 ? '+' : ''}
@@ -316,7 +316,7 @@ function LegendsTab() {
             <Tr key={x.r.id} mine={x.r.team === 0}>
               <td>{i + 1}</td>
               <td>
-                <RiderLink r={x.r} /> <span className="text-[11px] text-slate-400">{x.r.nat}</span>
+                <RiderLink r={x.r} /> <span className="text-xs text-slate-400">{x.r.nat}</span>
               </td>
               <td>
                 <b>{x.s}</b>

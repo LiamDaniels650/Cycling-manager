@@ -329,7 +329,7 @@ function FeedList({ n }) {
   const F = S.car.feed.slice(0, n);
   return F.map((f, i) => (
     <div key={i} className="border-t border-slate-800 py-2 first:border-0">
-      <div className="text-xs text-slate-500">
+      <div className="text-xs text-slate-400">
         {f.s !== S.season ? f.s + ' · ' : ''}sem. {f.w}
       </div>
       <b className="text-sm text-slate-100">{f.title}</b>
@@ -582,7 +582,7 @@ function ProProgram() {
         const sel = carProSelected(T, c) && !L.slice(0, j).some(o => o.w === c.w && carProSelected(T, o));
         return (
           <div key={c.key} className="flex items-center gap-2 border-t border-slate-800 py-2 first:border-0">
-            <span className="w-9 text-xs text-slate-500">S{c.w}</span>
+            <span className="w-9 text-xs text-slate-400">S{c.w}</span>
             <div className="min-w-0 flex-1">
               <div className="text-sm font-medium text-slate-100">{c.name}</div>
               <div className="text-xs text-slate-400">
@@ -606,7 +606,7 @@ function ProProgram() {
                 pressenti · souffler ?
               </button>
             ) : (
-              <span className="text-xs text-slate-500">non retenu</span>
+              <span className="text-xs text-slate-400">non retenu</span>
             )}
           </div>
         );
@@ -698,7 +698,7 @@ function CarEnd() {
             {carDreamDone(d) ? (
               <b className="text-emerald-300">accompli</b>
             ) : (
-              <span className="text-slate-500">non</span>
+              <span className="text-slate-400">non</span>
             )}
           </div>
         ))}
@@ -753,7 +753,7 @@ function CarRaces() {
             const past = d.w < S.week || S.car.raced[k];
             return (
               <div key={d.key} className="flex items-center gap-2 border-t border-slate-800 py-2 first:border-0">
-                <span className="w-9 text-xs text-slate-500">S{d.w}</span>
+                <span className="w-9 text-xs text-slate-400">S{d.w}</span>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium text-slate-100">{d.name}</div>
                   <div className="text-xs text-slate-400">
@@ -766,9 +766,9 @@ function CarRaces() {
                       {r.rank ? `${r.rank}e/${r.n}` : 'abandon'}
                     </b>
                   ) : S.car.skip[k] ? (
-                    <span className="text-slate-500">impasse</span>
+                    <span className="text-slate-400">impasse</span>
                   ) : past ? (
-                    <span className="text-slate-500">—</span>
+                    <span className="text-slate-400">—</span>
                   ) : (
                     <button
                       type="button"
@@ -813,7 +813,7 @@ function relTag(v) {
         ? ['tendu', 'text-rose-300']
         : v <= -10
           ? ['froid', 'text-amber-300']
-          : ['—', 'text-slate-500'];
+          : ['—', 'text-slate-400'];
 }
 function CarTeam() {
   const me = carMe();
@@ -964,7 +964,7 @@ function CarProfile() {
           S.car.res.slice(0, 40).map((x, i) => (
             <div key={i} className="flex justify-between gap-2 border-t border-slate-800 py-1.5 text-sm first:border-0">
               <span className="text-slate-200">
-                <span className="text-xs text-slate-500">{x.s} · </span>
+                <span className="text-xs text-slate-400">{x.s} · </span>
                 {x.name}
               </span>
               <b className={x.rank && x.rank <= 3 ? 'text-amber-300' : 'text-slate-300'}>
@@ -1015,11 +1015,11 @@ function CarImage() {
         {P.nick ? <div className="text-sm text-amber-200">Surnom : « {P.nick} »</div> : null}
         <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
           <div className="rounded-xl bg-slate-800/60 px-2.5 py-2">
-            <div className="text-[11px] uppercase tracking-wide text-slate-400">Abonnés</div>
+            <div className="text-xs uppercase tracking-wide text-slate-400">Abonnés</div>
             <b className="text-slate-100">{P.fans.toLocaleString('fr-FR')}</b>
           </div>
           <div className="rounded-xl bg-slate-800/60 px-2.5 py-2">
-            <div className="text-[11px] uppercase tracking-wide text-slate-400">Légendes du peloton</div>
+            <div className="text-xs uppercase tracking-wide text-slate-400">Légendes du peloton</div>
             <b className="text-slate-100">{L ? carOrd(L) : 'pas encore'}</b>
           </div>
         </div>
@@ -1666,14 +1666,14 @@ export function CarBottomNav() {
               type="button"
               onClick={() => (k === 'more' ? ((UI.modal = { type: 'nav' }), render()) : go(k))}
               className={
-                'flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] ' +
+                'flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-xs ' +
                 (on ? 'text-sky-300' : 'text-slate-400')
               }
             >
               <span className="relative">
                 <Icon name={icon} size={22} />
                 {n ? (
-                  <i className="absolute -right-2 -top-1.5 rounded-full bg-rose-500 px-1.5 text-[10px] font-bold not-italic leading-4 text-white">
+                  <i className="absolute -right-2 -top-1.5 rounded-full bg-rose-500 px-1.5 text-xs font-bold not-italic leading-4 text-white">
                     {n}
                   </i>
                 ) : null}

@@ -27,7 +27,7 @@ export function Inbox() {
           L.map((m, i) => (
             <div key={i}>
               {!i || L[i - 1].w !== m.w || L[i - 1].season !== m.season ? (
-                <div className="mb-1 mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500 first:mt-0">
+                <div className="mb-1 mt-3 text-xs font-semibold uppercase tracking-wide text-slate-400 first:mt-0">
                   Semaine {m.w}
                   {m.season !== S.season ? ' · ' + m.season : ''}
                 </div>

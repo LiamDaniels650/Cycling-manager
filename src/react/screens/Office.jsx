@@ -239,7 +239,7 @@ function Equipment() {
                   on = S.eqChoice[cat] === k;
                 if (o.gone)
                   return (
-                    <div key={k} className="border-t border-slate-800 py-2 text-sm text-slate-500">
+                    <div key={k} className="border-t border-slate-800 py-2 text-sm text-slate-400">
                       <s>{b.name}</s> · offre retirée
                     </div>
                   );

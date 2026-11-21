@@ -1,5 +1,6 @@
-// Liste de coureurs triable : cartes sur téléphone, tableau complet sur grand écran (portage de riderTable et
-// riderCards). Sert à l'effectif (et servira au marché et à l'académie).
+// Liste de coureurs triable : sur téléphone, une ligne compacte par coureur qui se déplie d'un toucher (détail :
+// caractéristiques, forme, colonnes propres à l'écran) ; tableau complet sur grand écran. Filtres en pastilles
+// (profil, contrat qui finit, fatigués, blessés). Sert à l'effectif, au marché et à l'académie.
 import { Badge, Bar, Stars, RiderLink, Select, statColor } from '../ui.jsx';
 
 function sortOptions(state) {
@@ -45,8 +46,45 @@ function Flags({ r }) {
     </>
   );
 }
+// Filtres en pastilles (UI.riderFilter) : profil, puis états qui demandent une action.
+const ARCH_CHIPS = [
+  ['sprinteur', 'Sprinteurs'],
+  ['grimpeur', 'Grimpeurs'],
+  ['complet', 'Leaders GC'],
+  ['puncheur', 'Puncheurs'],
+  ['rouleur', 'Rouleurs'],
+  ['flahute', 'Flandriens'],
+  ['baroudeur', 'Baroudeurs'],
+];
+function filterOf(rs, state) {
+  const chips = [['', 'Tous']];
+  for (const [k, l] of ARCH_CHIPS) if (rs.some(r => r.arch === k)) chips.push([k, l]);
+  if (state) {
+    if (rs.some(r => r.team === 0 && r.contract <= 1 && r.nextTeam == null)) chips.push(['@contrat', '⏳ Contrat']);
+    if (rs.some(r => r.fatigue > 50)) chips.push(['@fatigue', '😮‍💨 Fatigués']);
+    if (rs.some(r => r.injury > 0)) chips.push(['@blesse', '🩹 Blessés']);
+  }
+  const f = chips.some(c => c[0] === UI.riderFilter) ? UI.riderFilter || '' : '';
+  const keep = r =>
+    !f ||
+    (f === '@contrat'
+      ? r.contract <= 1 && r.nextTeam == null
+      : f === '@fatigue'
+        ? r.fatigue > 50
+        : f === '@blesse'
+          ? r.injury > 0
+          : r.arch === f);
+  return { chips, f, keep };
+}
+// Pastille de forme du jour : verte, jaune ou rouge (forme, fraîcheur et moral réunis).
+function StateDot({ r }) {
+  const v = Math.min(r.forme, 100 - r.fatigue, r.moral);
+  const c = v > 66 ? 'bg-emerald-400' : v > 40 ? 'bg-yellow-300' : 'bg-rose-500';
+  return <span className={'inline-block h-2.5 w-2.5 shrink-0 rounded-full ' + c} title="Forme, fraîcheur, moral" />;
+}
 export function RiderList({ rs, state, cols = [], pre }) {
-  const list = sorted(rs);
+  const { chips, f, keep } = filterOf(rs, state);
+  const list = sorted(rs.filter(keep));
   const cards = narrowScreen();
   return (
     <div>
@@ -63,65 +101,99 @@ export function RiderList({ rs, state, cols = [], pre }) {
           {cards ? 'Vue tableau complet' : 'Vue cartes'}
         </button>
       </div>
+      {chips.length > 2 ? (
+        <div className="-mx-1 mb-2 flex gap-1.5 overflow-x-auto px-1 pb-1">
+          {chips.map(([k, l]) => (
+            <button
+              key={k || 'all'}
+              type="button"
+              onClick={() => ((UI.riderFilter = k), render())}
+              className={
+                'min-h-9 shrink-0 rounded-full px-3 text-xs font-semibold ' +
+                (f === k ? 'bg-sky-500 text-slate-950' : 'bg-slate-800 text-slate-200 ring-1 ring-slate-700')
+              }
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+      ) : null}
       {cards ? (
-        <div className="space-y-2">
+        <div className="divide-y divide-slate-800 overflow-hidden rounded-xl bg-slate-800/40">
           {list.map(r => {
             const keys = [...new Set([...(PRIMARY[r.arch] || []), 'end', 'rec'])].slice(0, 5);
+            const open = UI.openRider === r.id;
             return (
-              <div
-                key={r.id}
-                className={'rounded-xl bg-slate-800/60 p-2.5 ' + (r.injury > 0 ? 'ring-1 ring-rose-500/50' : '')}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 text-sm">
-                    {pre ? pre(r) : null}
-                    <RiderLink r={r} />{' '}
-                    <span className="text-xs text-slate-400">
-                      {r.age}a · {ARCH[r.arch].lbl}
-                    </span>
-                    <Flags r={r} />
+              <div key={r.id} className={r.injury > 0 ? 'bg-rose-500/5' : ''}>
+                {/* la ligne : touchez-la pour déplier le détail (le nom ouvre la fiche) */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={open}
+                  onClick={() => ((UI.openRider = open ? null : r.id), render())}
+                  onKeyDown={e => e.key === 'Enter' && ((UI.openRider = open ? null : r.id), render())}
+                  className="flex min-h-14 cursor-pointer items-center gap-2.5 px-2.5 py-2"
+                >
+                  {state ? <StateDot r={r} /> : null}
+                  <div className="min-w-0 flex-1 text-sm">
+                    <div className="truncate" onClick={e => e.stopPropagation()}>
+                      {pre ? pre(r) : null}
+                      <RiderLink r={r} />
+                      <Flags r={r} />
+                    </div>
+                    <div className="truncate text-xs text-slate-400">
+                      {r.age} ans · {ARCH[r.arch].lbl}
+                      {state && r.team === 0 && r.contract <= 1 && r.nextTeam == null ? (
+                        <span className="text-amber-300"> · contrat à prolonger</span>
+                      ) : null}
+                    </div>
                   </div>
-                  <div className="shrink-0 text-right">
-                    <b className="text-lg text-slate-50">{svOv(r)}</b>
+                  <div className="shrink-0 text-right leading-tight">
+                    <b className="text-lg tabular-nums text-slate-50">{svOv(r)}</b>
                     <div className="text-xs">
                       <Stars v={potEst(r)} />
                     </div>
                   </div>
+                  <span className={'shrink-0 text-slate-400 transition-transform ' + (open ? 'rotate-90' : '')}>›</span>
                 </div>
-                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-300">
-                  {keys.map(k => {
-                    const v = shownStat(r, k);
-                    return (
-                      <span key={k}>
-                        {STAT_LBL[k]}{' '}
-                        <b className={statColor(v)}>
-                          {isEst(r) ? '~' : ''}
-                          {v}
-                        </b>
-                      </span>
-                    );
-                  })}
-                </div>
-                {state ? (
-                  <div className="mt-1.5 grid grid-cols-3 gap-2 text-[11px] text-slate-400">
-                    <span>
-                      Forme <Bar v={r.forme} />
-                    </span>
-                    <span>
-                      Fraîcheur <Bar v={100 - r.fatigue} />
-                    </span>
-                    <span>
-                      Moral <Bar v={r.moral} />
-                    </span>
-                  </div>
-                ) : null}
-                {cols.length ? (
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-300">
-                    {cols.map(([l, f], i) => (
-                      <span key={i} className="flex min-w-0 max-w-full items-center gap-1">
-                        <span className="text-slate-500">{l}</span> {f(r)}
-                      </span>
-                    ))}
+                {open ? (
+                  <div className="space-y-2 px-2.5 pb-3" style={{ animation: 'fadeIn .2s both' }}>
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-300">
+                      {keys.map(k => {
+                        const v = shownStat(r, k);
+                        return (
+                          <span key={k}>
+                            {STAT_LBL[k]}{' '}
+                            <b className={statColor(v)}>
+                              {isEst(r) ? '~' : ''}
+                              {v}
+                            </b>
+                          </span>
+                        );
+                      })}
+                    </div>
+                    {state ? (
+                      <div className="grid grid-cols-3 gap-2 text-xs text-slate-300">
+                        <span>
+                          Forme <Bar v={r.forme} />
+                        </span>
+                        <span>
+                          Fraîcheur <Bar v={100 - r.fatigue} />
+                        </span>
+                        <span>
+                          Moral <Bar v={r.moral} />
+                        </span>
+                      </div>
+                    ) : null}
+                    {cols.length ? (
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-slate-200">
+                        {cols.map(([l, fn], i) => (
+                          <span key={i} className="flex min-w-0 max-w-full items-center gap-1">
+                            <span className="text-slate-400">{l}</span> {fn(r)}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
               </div>
@@ -160,7 +232,7 @@ export function RiderList({ rs, state, cols = [], pre }) {
                 <tr key={r.id} className={'border-t border-slate-800 ' + (r.injury > 0 ? 'bg-rose-500/5' : '')}>
                   {pre ? <td>{pre(r)}</td> : null}
                   <td className="py-1.5">
-                    <RiderLink r={r} /> <span className="text-slate-500">{r.age}a</span>
+                    <RiderLink r={r} /> <span className="text-slate-400">{r.age}a</span>
                     <Flags r={r} />
                   </td>
                   <td className="text-xs">{ARCH[r.arch].lbl}</td>
