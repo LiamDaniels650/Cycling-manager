@@ -95,11 +95,13 @@ function applyStageResult(rc, spec, res, dnfIds) {
     stats: rc._stats || null,
     brk: rc._brk || null,
     moments: rc._moments || null,
+    wxs: rc._wxs || null,
     komb: rc._komb || null,
     climbs: rc._climbs || null,
     power: rc._power || null,
   });
   rc._climbs = null;
+  rc._wxs = null;
   rc._power = null;
   rc._stats = null;
   rc._komb = null;
@@ -283,7 +285,11 @@ function finishRace(rc) {
     if (story.length) lines.push('<br><b>Le récit</b> :<br>' + story.join('<br>'));
     // course d'un jour confiée à l'adjoint : le résumé du commentateur
     const tv = !multi && rc.delegated ? tvRecap(rc, 0) : null;
-    if (tv) lines.push('<br><b>🎙️ Le résumé du commentateur</b> :<br>' + tv.map(t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;')).join('<br>'));
+    if (tv)
+      lines.push(
+        '<br><b>🎙️ Le résumé du commentateur</b> :<br>' +
+          tv.map(t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;')).join('<br>')
+      );
   }
   msg(`Bilan : ${rc.name}`, lines.join('<br>'));
   S.hist.push({

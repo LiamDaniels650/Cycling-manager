@@ -108,6 +108,13 @@ function tvRecap(rc, idx) {
     )
   );
 
+  if (st.wxs)
+    P[0] +=
+      ' ' +
+      (st.wxs.to === 'pluie'
+        ? `Et la pluie s'invite en cours de route, vers le kilomètre ${st.wxs.km}.`
+        : `La pluie cesse vers le kilomètre ${st.wxs.km}, la route sèche peu à peu.`);
+
   // 2. l'échappée (courses en ligne)
   const b = st.brk;
   if (!tt && b && b.n >= 1 && b.n <= 35 && b.max >= 30) {

@@ -190,6 +190,13 @@ function buildStageSim(rc) {
   sim.finWind = P.wind >= 2 ? pick(['face', 'dos', 'travers']) : 'neutre';
   genWindAxis(sim, spec.dist, P.wind, sim.finWind);
   sim.windShift = P.wind ? { km: spec.dist * rf(0.35, 0.75), to: clamp(P.wind + pick([-1, 1]), 0, 3) } : null;
+  // la météo change en route : une averse qui arrive (1 étape sèche sur 10), ou la pluie qui cesse (1 sur 4)
+  sim.wxShift =
+    sim.wx === 'sec' && rnd() < 0.1
+      ? { km: spec.dist * rf(0.3, 0.85), to: 'pluie' }
+      : sim.wx === 'pluie' && rnd() < 0.25
+        ? { km: spec.dist * rf(0.3, 0.8), to: 'sec' }
+        : null;
   log(
     sim,
     `Départ de ${spec.name}. ${P.climbs.length} difficulté(s) répertoriée(s)${
@@ -517,6 +524,23 @@ function tickRoadEvents(sim) {
       commentLog(sim, t);
       if (ws.to >= 2 && ws.to > from) highlight(sim, '🌬️ ' + t);
     }
+  }
+  const wsx = sim.wxShift;
+  if (wsx && !wsx.done && sim.groups[0] && sim.groups[0].pos >= wsx.km) {
+    wsx.done = true;
+    sim.wx = wsx.to;
+    for (const x of sim.runners) x.wet = wsx.to === 'pluie';
+    const t =
+      wsx.to === 'pluie'
+        ? 'La pluie se met à tomber : chaussée glissante, prudence dans les descentes !'
+        : 'La pluie cesse, la route sèche peu à peu.';
+    commentLog(sim, t);
+    highlight(sim, (wsx.to === 'pluie' ? '🌧️ ' : '🌤️ ') + t);
+  }
+  // fin de la neutralisation (fair-play après la chute d'un favori)
+  if (sim.neutral && sim.t >= sim.neutral.until) {
+    commentLog(sim, `La course reprend ses droits après l'attente de ${riderName(sim.neutral.who.r)}.`);
+    sim.neutral = null;
   }
   // bordures
   for (const G of sim.groups.slice()) {

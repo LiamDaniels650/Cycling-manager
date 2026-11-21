@@ -383,6 +383,7 @@ function dsBrain(sim, T) {
 }
 // Attaque (ou jonction) d'un coureur : nouveau groupe en effort maximal pendant quelques pas.
 function doAttack(sim, x, opts = {}) {
+  if (sim.neutral && x.g === sim.neutral.G && !opts.bridge) return false; // on n'attaque pas un peloton qui attend
   const G = x.g;
   if (!G || x.fin) return false;
   const [g, surf] = terrainAt(sim, G.pos);

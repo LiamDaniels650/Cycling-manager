@@ -131,6 +131,7 @@ function tickPhysics(sim) {
       (n >= 10 && g < 2.5 && ws.length ? 1 + 0.08 * Math.min(1, (n - 10) / 40) : 1);
     G.cond = roadCond(sim, G);
     G.speed = physSpeed(vRef, g, G.cond, n >= 2 ? 0.2 : PHY.cda, g < -2 ? descentTech(sim, G.pos) : 0.5);
+    if (sim.neutral && sim.neutral.G === G) G.speed *= 0.8; // le peloton attend un favori tombé
     // retour dans la file des voitures : un petit groupe juste derrière le peloton, hors montée, profite de l'abri de la caravane
     const pel = sim.pel;
     if (pel && G !== pel && G.pos < pel.pos && g < 3 && !surf && sim.dist - G.pos > 8 && sim.spec.type !== 'montagne') {
@@ -376,6 +377,19 @@ function incident(sim, x, type) {
   if (type === 'chute' && (x.player || sim.favs.has(x.id)))
     highlight(sim, `💥 Chute de ${riderName(x.r)} (${x.team.short}) !`, x.player);
   if (type === 'chute') {
+    // fair-play : le leader du général (ou l'un des trois premiers) tombe loin de l'arrivée, le peloton l'attend
+    const rc = sim.rc;
+    const top3 = sim.stageRace && rc.gc ? gcList(rc).slice(0, 3) : [];
+    const lead = top3.includes(x.id);
+    if (sim.stageRace && !sim.neutral && G === sim.pel && lead && sim.dist - G.pos > 25 && G.riders.length >= 20) {
+      sim.neutral = { G, until: sim.t + 5, who: x };
+      log(
+        sim,
+        `🤝 Chute de ${riderName(x.r)} : le peloton se relève et l'attend, course neutralisée.`,
+        x.player ? 'me' : 'info'
+      );
+      highlight(sim, `🤝 Le peloton attend ${riderName(x.r)} après sa chute`, x.player);
+    }
     x.energy = Math.max(0, x.energy - rf(6, 25));
     x.punch = Math.max(0, x.punch - 30);
     if (G.riders.length >= 25 && rnd() < 0.35) {
