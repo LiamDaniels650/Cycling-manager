@@ -37,6 +37,31 @@ function ReplayCard({ sim }) {
     </Card>
   );
 }
+// Les moments décisifs de l'étape (sommets des grands cols, secteurs pavés), à revoir.
+function MomentsCard({ sim }) {
+  const [open, setOpen] = useState(null);
+  const L = (sim && sim.momentTraces) || [];
+  if (!L.length) return null;
+  return (
+    <Card title="⚡ Moments décisifs">
+      <div className="divide-y divide-slate-800">
+        {L.map((e, k) => (
+          <div key={k} className="py-2">
+            <div className="flex items-center justify-between gap-2 text-sm">
+              <span className="min-w-0 text-slate-200">
+                {e.kind === 'pave' ? '🧱' : '⛰️'} {e.name} <span className="text-xs text-slate-400">· km {e.km}</span>
+              </span>
+              <Btn className="min-h-9 shrink-0" onClick={() => setOpen(open === k ? null : k)}>
+                {open === k ? 'Fermer' : '▶ Revoir'}
+              </Btn>
+            </div>
+            {open === k ? <SprintReplay key={k} tr={e.tr} /> : null}
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
 // Le résumé de l'étape, comme à la télévision (tvRecap, 52-commentary.js).
 function Commentary({ rc, idx }) {
   const p = tvRecap(rc, idx);
@@ -531,6 +556,7 @@ export function StageResult() {
         <>
           <Commentary rc={rc} idx={L.idx} />
           <ReplayCard sim={L.sim} />
+          <MomentsCard sim={L.sim} />
           <Debrief rc={rc} L={L} st={st} mine={mine} />
         </>
       ) : null}

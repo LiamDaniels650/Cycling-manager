@@ -395,10 +395,72 @@ function Image() {
     </Card>
   );
 }
+// Préparation : stages d'équipe (un à la fois) et entraîneur en chef spécialisé.
+function Prep() {
+  const cur = S.camp && S.week <= S.camp.until ? S.camp : null;
+  const say = t => ((UI.flash = t), save(), render());
+  return (
+    <Card title="🏕️ Préparation">
+      {cur ? (
+        <div className="mb-2 rounded-lg bg-emerald-500/10 px-2.5 py-2 text-sm text-emerald-100 ring-1 ring-emerald-400/40">
+          En cours : {CAMPS[cur.k].lbl}, jusqu'à la semaine {cur.until}.
+        </div>
+      ) : null}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {Object.entries(CAMPS).map(([k, C]) => (
+          <div key={k} className="rounded-xl bg-slate-800/60 p-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <b className="text-sm text-slate-100">{C.lbl}</b>
+              <span className="shrink-0 text-xs text-slate-300">{fmtMoney(C.cost)}</span>
+            </div>
+            <p className="mt-1 text-xs text-slate-300">{C.d}</p>
+            <Btn className="mt-2 w-full" disabled={!!cur || S.budget < C.cost} onClick={() => say(campStart(k))}>
+              Organiser
+            </Btn>
+          </div>
+        ))}
+      </div>
+      <h3 className="mt-3 text-sm font-semibold text-slate-100">🧑‍🏫 Entraîneur en chef</h3>
+      {S.coach ? (
+        <p className="mt-1 text-sm text-slate-200">
+          {S.coach.n}, spécialiste de {COACH_SPEC[S.coach.k]} : progression renforcée dans ce domaine pour tout
+          l'effectif.
+        </p>
+      ) : (
+        <p className="mt-1 text-xs text-slate-400">
+          Aucun : la progression suit seulement l'entraînement et vos entraîneurs.
+        </p>
+      )}
+      <div className="mt-2 space-y-1.5">
+        {coachCandidates().map((c, i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between gap-2 rounded-lg bg-slate-800/50 px-2.5 py-1.5 text-sm"
+          >
+            <span className="min-w-0">
+              <b className="text-slate-100">
+                {c.fn} {c.ln}
+              </b>{' '}
+              <span className="text-xs text-slate-400">· {COACH_SPEC[c.k]}</span>
+            </span>
+            <Btn
+              className="min-h-9 shrink-0"
+              disabled={S.budget < c.fee || (S.coach && S.coach.n === `${c.fn} ${c.ln}`)}
+              onClick={() => say(hireCoach(i))}
+            >
+              Engager ({fmtMoney(c.fee)})
+            </Btn>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
 export function Office() {
   return (
     <div className="space-y-3">
       <Sponsor />
+      <Prep />
       <Finances />
       {discoOpen('staff') ? <Staff /> : null}
       <History />

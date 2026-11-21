@@ -76,8 +76,10 @@ function hungerCheck(sim, x) {
 function teamRelOf(id) {
   return (S.teamRel && S.teamRel[id]) || 0;
 }
-function addTeamRel(id, v) {
+function addTeamRel(id, v, txt) {
   S.teamRel = S.teamRel || {};
+  const T = teamById(id);
+  if (T && !T.player) v = dsRemember(T, v, txt); // le caractère du directeur, et sa mémoire
   S.teamRel[id] = clamp(teamRelOf(id) + v, -3, 3);
 }
 // L'équipe a-t-elle intérêt à reprendre l'échappée (sprinteur sur une étape pour lui, leader au général) ?
@@ -156,10 +158,10 @@ function allyDecide(sim, yes, silent) {
   sim.allyOffer = null;
   if (yes) {
     sim.ally = { T: o.T, until: sim.t + 40 };
-    addTeamRel(o.T.id, 1);
+    addTeamRel(o.T.id, 1, 'Alliance de poursuite acceptée');
     log(sim, `🤝 Alliance conclue avec ${o.T.name} : vos équipiers prennent leurs relais.`, 'me');
   } else {
-    addTeamRel(o.T.id, -1);
+    addTeamRel(o.T.id, -1, 'Alliance de poursuite refusée');
     if (!silent) log(sim, `🤝 Vous déclinez la proposition de ${o.T.name}. Ils s'en souviendront.`, 'bad');
   }
 }
@@ -182,7 +184,7 @@ function allyRequest(sim) {
     log(sim, `🤝 ${T.name} accepte de rouler avec vous derrière l'échappée.`, 'me');
     return `${T.name} accepte l'alliance.`;
   }
-  addTeamRel(T.id, -0.5);
+  addTeamRel(T.id, -0.5, 'Vous lui avez demandé une alliance, il a refusé');
   log(sim, `🤝 ${T.name} refuse : « Ce n'est pas notre course aujourd'hui. »`, 'bad');
   return `${T.name} refuse.`;
 }
@@ -190,7 +192,7 @@ function allyRequest(sim) {
 function allyBreak(sim) {
   if (!sim.ally) return;
   log(sim, `🤝 Vous rompez l'alliance avec ${sim.ally.T.name}.`, 'bad');
-  addTeamRel(sim.ally.T.id, -1.5);
+  addTeamRel(sim.ally.T.id, -1.5, 'Alliance rompue en pleine course');
   sim.ally = null;
 }
 // DS automatique : demande d'alliance quand l'échappée menace le sprint ou le leader.

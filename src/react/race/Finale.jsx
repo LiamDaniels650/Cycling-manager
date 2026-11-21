@@ -313,7 +313,7 @@ export function SprintReplay({ tr, onDone = () => {} }) {
     <div className="mt-2">
       <div className="flex items-baseline justify-between">
         <span className="text-3xl font-black tabular-nums text-amber-200">
-          {lead > 0.5 ? `${Math.ceil(lead / 10) * 10} m` : 'Ligne !'}
+          {lead > 0.5 ? `${Math.ceil(lead / 10) * 10} m` : tr.endLbl || 'Ligne !'}
         </span>
         <span className="flex gap-2">
           <button type="button" className="text-xs text-sky-300 underline" onClick={() => setRun(run + 1)}>

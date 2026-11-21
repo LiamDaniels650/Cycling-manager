@@ -53,7 +53,11 @@ function buildStageSim(rc) {
         id,
         team: T,
         energy: rc.energy[id],
-        dayForm: clamp(r.forme + gauss() * fv - (sansJour ? rf(7, 13) : 0) - (r.sick > 0 ? 6 : 0), 25, 100),
+        dayForm: clamp(
+          r.forme + gauss() * fv - (sansJour ? rf(7, 13) : 0) - (r.sick > 0 ? 6 : 0) + dsGoalBoost(rc, T),
+          25,
+          100
+        ),
         sansJour,
         sansF: sansJour ? rf(0.93, 0.97) : 1,
         order: ord.o,
@@ -171,6 +175,7 @@ function buildStageSim(rc) {
       .map(x => x.id)
   );
   jerseyAims(sim);
+  if (!rc.si) dsAnnounce(sim); // les directeurs qui ont fait de cette course leur objectif l'annoncent
   if (rc.autoDS) sim.autoDS = true; // course confiée à l'adjoint
   sim.feedAt = spec.dist > 110 ? Math.round(spec.dist * 0.52) : 0;
   feedSetup(sim, rc, spec);

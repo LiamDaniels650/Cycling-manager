@@ -91,6 +91,7 @@ function weeklyUpdate() {
       finAdd('other', -10);
       r.altBoost = Math.max(r.altBoost || 0, 3);
     }
+    tgt += campFormBonus(r); // stage en altitude d'équipe
     // charge de la saison : au-delà de ~75 jours de course, la forme plafonne plus bas (fatigue chronique)
     tgt -= Math.max(0, r.stats.days - R.daysCap) * R.daysMalus;
     const noise = mine ? 2.4 - 0.3 * S.staff.coach : 2;
@@ -126,6 +127,7 @@ function weeklyUpdate() {
     const loadF = 0.9 + Math.min(0.3, (r.load || 0) * 0.04);
     const g0 = ageF * gapF * cm * loadF;
     trainGain(r, pl, g0);
+    prepGain(r, g0); // stage de montagne, entraîneur en chef spécialisé (mon équipe)
     // poids de forme : le poids pris à l'intersaison fond à l'entraînement et en course (pas au repos)
     if (r.kgOpt == null) r.kgOpt = r.kg;
     const burn = pl === 'repos' ? -0.1 : (KG_BURN[pl] || 0.15) + Math.min(0.2, (r.load || 0) * 0.03);

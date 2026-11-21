@@ -244,7 +244,7 @@ function askPacteOffer(sim, x) {
         log(sim, `🤝 Pacte conclu : ${pactTxt(pc)}.`, 'me');
       } else {
         a.sulkUntil = sim.t + 20;
-        addTeamRel(a.team.id, -0.5);
+        addTeamRel(a.team.id, -0.5, 'Pacte refusé dans l’échappée');
         log(sim, `🤝 ${na} est vexé : « Tant pis, je ne roule plus non plus. »`, 'bad');
       }
     },
@@ -328,7 +328,7 @@ function pactBreak(sim) {
   if (!pc) return;
   pc.done = true;
   pc.p.pact = pc.a.pact = null;
-  addTeamRel(pc.a.team.id, -2);
+  addTeamRel(pc.a.team.id, -2, 'Pacte trahi dans l’échappée');
   log(sim, `🤝 Vous rompez le pacte avec ${riderName(pc.a.r)}. ${pc.a.team.name} ne l'oubliera pas.`, 'bad');
 }
 // Comportement dans l'échappée : effet des pactes, des accords de relais et des bouderies.
@@ -356,7 +356,7 @@ function pactFinish(sim, ord) {
     if (iy > ib) {
       if (!pc.ai) {
         log(sim, `🤝 Pacte respecté : ${riderName(bn.r)} devance ${riderName(yl.r)}.`, cls);
-        addTeamRel(pc.a.team.id, 0.5);
+        addTeamRel(pc.a.team.id, 0.5, 'Pacte respecté');
       }
       continue;
     }
@@ -369,7 +369,7 @@ function pactFinish(sim, ord) {
           0.35
         );
     if (betray) {
-      if (!pc.ai) addTeamRel(yl.team.id, -2);
+      if (!pc.ai) addTeamRel(yl.team.id, -2, 'Son coureur a trahi le pacte');
       log(
         sim,
         `🗡️ Trahison ! ${riderName(yl.r)} ne respecte pas le pacte et sprinte devant ${riderName(bn.r)}.`,
@@ -382,7 +382,7 @@ function pactFinish(sim, ord) {
     const jb = ord.findIndex(o => o[0] === bn);
     e[1] = Math.min(e[1], ord[jb][1] - 0.05); // un souffle derrière (arrivée en côte : quelques dixièmes)
     ord.splice(jb + 1, 0, e);
-    if (!pc.ai) addTeamRel(pc.a.team.id, 0.5);
+    if (!pc.ai) addTeamRel(pc.a.team.id, 0.5, 'Pacte respecté');
     const how = win ? `laisse la victoire à ${riderName(bn.r)}` : `laisse passer ${riderName(bn.r)}`;
     if (!pc.ai || win)
       log(sim, `🤝 ${pc.ai ? 'Entente respectée' : 'Pacte respecté'} : ${riderName(yl.r)} ${how}.`, cls);

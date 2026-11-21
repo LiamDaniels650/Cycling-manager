@@ -506,8 +506,18 @@ export function RiderSheet({ r }) {
         <Stars v={potEst(r)} />
         {potKnow(r) < 70 ? <span className="text-xs"> (estimé)</span> : null}
       </div>
-      <div className="mt-2">
+      <div className="mt-2 flex flex-wrap gap-1.5">
         <CompareBtn r={r} />
+        {r.team === 0 && (S.know[r.id] || 0) < 100 ? (
+          <button
+            type="button"
+            className="min-h-9 rounded-lg bg-slate-800 px-2.5 text-xs font-semibold text-slate-200 ring-1 ring-slate-700"
+            title="Révèle son vrai potentiel et son profil de puissance"
+            onClick={() => ((UI.flash = effortTest(r.id)), save(), renderModal(), render())}
+          >
+            🧪 Test d'effort (8 k€)
+          </button>
+        ) : null}
       </div>
       <Tabs />
       {UI.riderTab === 'fiche' ? <Fiche r={r} /> : UI.riderTab === 'car' ? <Career r={r} /> : <Palmares r={r} />}

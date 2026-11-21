@@ -23,6 +23,7 @@ function tickCrossings(sim) {
       }
     }
   });
+  decisiveSplit(sim); // moments décisifs : sommets des grands cols et secteurs pavés rejoués au détail
   for (const c of sim.klimbs) {
     if (c.done) continue;
     const pts = komPts(sim.rc, c, c.end >= sim.dist - 0.5);
@@ -144,7 +145,10 @@ function sprintRun(sim, ents, fw, big) {
       a.d = T.sp.d - (n - k) * 1.6;
       a.train = T;
       a.peel = T.sp.L + 10 + (n - 1 - k) * 200; // le dernier s'écarte au moment où son sprinteur lance
-      a.pull = clamp(0.5 + (0.6 * (a.x.r.s.pla - 60)) / 30, 0.3, 1.1) * Math.min(1, a.x.energy / 40);
+      a.pull =
+        clamp(0.5 + (0.6 * (a.x.r.s.pla - 60)) / 30, 0.3, 1.1) *
+        Math.min(1, a.x.energy / 40) *
+        (a.x.player && campOn('train') ? 1.15 : 1); // stage du train de sprint
     });
   }
   // le surf : un sprinteur sans train se cale physiquement dans la roue du sprinteur du meilleur train

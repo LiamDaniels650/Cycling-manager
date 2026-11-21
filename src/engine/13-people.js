@@ -147,6 +147,8 @@ function negotiate(id, salary, years, promise) {
   }
   if (kind === 'transfer') {
     T.riders.splice(T.riders.indexOf(id), 1);
+    // son directeur s'en souvient (d'autant plus que le coureur était bon)
+    if (!T.player) addTeamRel(T.id, overall(r.s) >= 76 ? -1 : -0.5, `Vous lui avez pris ${riderName(r)}`);
   }
   if (kind === 'free') {
     const fi = S.free.indexOf(id);

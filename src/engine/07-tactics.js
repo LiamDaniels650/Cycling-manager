@@ -2,7 +2,7 @@
 function obeyCheck(x, ord, sim) {
   if (sim && sim.carId === x.id) return true; // mode carrière : le joueur est le coureur
   const r = x.r;
-  let p = 0.42 + (r.dis / 100) * 0.52 + (r.moral - 55) / 350;
+  let p = 0.42 + (r.dis / 100) * 0.52 + (r.moral - 55) / 350 + (x.player && campOn('cohesion') ? 0.05 : 0);
   if (r.trait === 'modele') p += 0.22;
   if (r.trait === 'fragile') p += (r.moral - 55) / 160;
   if (SUBORD.includes(ord)) {
@@ -122,7 +122,12 @@ function fetchBottles(sim, x) {
 function obeyCheckPre(x, sim) {
   if (sim && sim.carId === x.id) return true;
   const r = x.r;
-  let p = 0.62 + (r.dis / 100) * 0.4 + (r.moral - 55) / 300 - (r.amb / 100) * 0.18;
+  let p =
+    0.62 +
+    (r.dis / 100) * 0.4 +
+    (r.moral - 55) / 300 -
+    (r.amb / 100) * 0.18 +
+    (x.player && campOn('cohesion') ? 0.05 : 0);
   const ld = sim && sim.teamLeader[x.team.id];
   if (x.player && ld && ld !== x) p += rel(x.id, ld.id) / 300;
   if (r.trait === 'modele') p += 0.3;
@@ -481,9 +486,9 @@ function teamChaseLevel(sim, T, G, kmLeft) {
   ) {
     const win = Math.floor(sim.t / 8);
     const h = (((T.id + 7) * 73856093) ^ (win * 19349663)) >>> 0;
-    if (h % 100 < 30) return [out[0] * 0.6, Math.max(1, out[1] - 1)];
+    if (h % 100 < 30) return dsGrudgeChase(sim, T, G, [out[0] * 0.6, Math.max(1, out[1] - 1)]);
   }
-  return out;
+  return dsGrudgeChase(sim, T, G, out);
 }
 function teamChaseLevel1(sim, T, G, kmLeft) {
   const pm = planMode(sim, T, G);

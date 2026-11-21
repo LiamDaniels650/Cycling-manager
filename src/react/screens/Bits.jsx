@@ -187,6 +187,51 @@ export function WorldsCard({ i }) {
 function H3({ children }) {
   return <h4 className="mb-1.5 mt-3 text-sm font-semibold text-slate-100">{children}</h4>;
 }
+// Le directeur sportif d'une équipe adverse : identité, caractère, style, relation avec moi, objectifs, mémoire.
+function DirectorBox({ T }) {
+  const d = dsOf(T);
+  if (!d) return null;
+  if (d.gs !== S.season) dsSeasonGoals();
+  const rel = teamRelOf(T.id);
+  const relTxt = rel >= 2 ? 'excellente' : rel >= 1 ? 'bonne' : rel > -1 ? 'neutre' : rel > -2 ? 'tendue' : 'hostile';
+  const goals = d.goals.map(k => S.cal.find(c => c.key === k)).filter(Boolean);
+  return (
+    <div className="mt-3 rounded-xl bg-slate-800/60 p-2.5 text-sm">
+      <div className="flex items-baseline justify-between gap-2">
+        <b className="text-slate-100">
+          🧑‍💼 {d.fn} {d.ln}
+        </b>
+        <span className="text-xs text-slate-400">{d.age} ans</span>
+      </div>
+      <div className="mt-0.5 text-slate-300">
+        {DS_TEMPER[d.temper].lbl}, {DS_STYLE_LBL[T.style] || 'pragmatique'}.{' '}
+        <span className="text-xs text-slate-400">{DS_TEMPER[d.temper].d}</span>
+      </div>
+      <div className="mt-1 text-xs">
+        Relation avec vous :{' '}
+        <b className={rel >= 1 ? 'text-emerald-300' : rel <= -1 ? 'text-rose-300' : 'text-slate-200'}>{relTxt}</b>
+      </div>
+      {goals.length ? (
+        <div className="mt-1 text-xs text-slate-300">
+          🎯 Objectifs {S.season} : {goals.map(c => c.name).join(' · ')}
+        </div>
+      ) : null}
+      {d.mem.length ? (
+        <div className="mt-1.5 space-y-0.5 text-xs">
+          {d.mem
+            .slice()
+            .reverse()
+            .slice(0, 4)
+            .map((m, k) => (
+              <div key={k} className={m.v < 0 ? 'text-rose-200' : 'text-emerald-200'}>
+                {m.v < 0 ? '🗡️' : '🤝'} {m.txt} <span className="text-slate-400">({m.s})</span>
+              </div>
+            ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 export function TeamCard({ T }) {
   if (!T) return <p>Équipe introuvable.</p>;
   const ord = uciOrder();
@@ -239,6 +284,7 @@ export function TeamCard({ T }) {
           ]}
         />
       </div>
+      {!T.player ? <DirectorBox T={T} /> : null}
       {!T.player ? (
         <>
           <H3>Moyens</H3>
