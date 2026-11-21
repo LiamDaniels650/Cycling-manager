@@ -10,397 +10,397 @@ Plat — 176 km | t= 4h05'36" avg 43.0 km/h | ticks 538 | last +22'56" | DNF 0
    S. Christensen[spri]m.t., M. Picard[spri]m.t., P. Gil[spri]m.t., N. Renaud[spri]m.t., M. Marty[spri]m.t.
 Étape 3 — Vallonné — 176 km | t= 4h05'06" avg 43.1 km/h | ticks 518 | last +13'40" | DNF 0
    S. Christensen[spri]m.t., P. Gil[spri]m.t., T. Olsen[spri]m.t., S. Meijer[spri]m.t., J. Martínez[spri]m.t.
-Étape 4 — Arrivée au sommet — 164 km | t= 4h06'46" avg 39.9 km/h | ticks 551 | last +28'22" | DNF 0
-   D. Ricci[comp]m.t., I. Pérez[comp]+27", S. Mertens[comp]+52", T. Janssens[comp]+54", J. Bernard[grim]+1'01"
-Étape 5 — Plat — 170 km | t= 3h54'10" avg 43.6 km/h | ticks 523 | last +27'16" | DNF 0
-   S. Christensen[spri]m.t., P. Gil[spri]m.t., J. Ruiz[spri]m.t., H. Rodríguez[spri]m.t., M. Picard[spri]m.t.
- GC: D. Ricci[comp] m.t., S. Mertens[comp] +26", I. Pérez[comp] +35", T. Janssens[comp] +1'06", J. Van Dijk[comp] +1'27"
+Étape 4 — Arrivée au sommet — 164 km | t= 4h13'37" avg 38.8 km/h | ticks 586 | last +39'00" | DNF 1
+   T. Janssens[comp]m.t., A. Marchand[comp]+1'30", D. Ricci[comp]+2'40", J. Bernard[grim]+2'42", S. Mulder[baro]+2'54"
+Étape 5 — Plat — 170 km | t= 3h33'41" avg 47.7 km/h | ticks 463 | last +17'39" | DNF 0
+   S. Meijer[spri]m.t., N. Renaud[spri]m.t., I. Hernández[spri]m.t., S. Christensen[spri]m.t., P. Gil[spri]m.t.
+ GC: T. Janssens[comp] m.t., A. Marchand[comp] +1'53", Q. Breton[comp] +2'27", D. Ricci[comp] +2'45", S. Mulder[baro] +2'56"
 
 === Semi-classique flamande ===
-Pavés — 202 km | t= 5h13'45" avg 38.6 km/h | ticks 677 | last +24'37" | DNF 0
-   S. Lombardi[flah]m.t., I. Ruiz[flah]+27", T. Blanc[roul]+35", S. Christensen[spri]+38", I. Hernández[spri]+38"
- GC: S. Lombardi[flah] m.t., I. Ruiz[flah] +31", T. Blanc[roul] +41", S. Christensen[spri] +48", I. Hernández[spri] +48"
+Pavés — 202 km | t= 5h13'11" avg 38.7 km/h | ticks 675 | last +23'58" | DNF 0
+   I. Ruiz[flah]m.t., B. Roche[flah]+27", T. Guyot[roul]+46", I. Hernández[spri]+1'00", S. Christensen[spri]+1'00"
+ GC: I. Ruiz[flah] m.t., B. Roche[flah] +31", T. Guyot[roul] +52", I. Hernández[spri] +1'10", S. Christensen[spri] +1'10"
 
 === Tour de la Côte ===
-Étape 1 — Plat — 168 km | t= 4h04'49" avg 41.2 km/h | ticks 546 | last +28'04" | DNF 1
-   N. Renaud[spri]m.t., W. Maes[spri]m.t., M. Mitchell[spri]m.t., T. Olsen[spri]m.t., S. Lombardi[flah]m.t.
-Étape 2 — Vallonné — 182 km | t= 4h13'35" avg 43.1 km/h | ticks 528 | last +10'08" | DNF 0
-   D. Ricci[comp]m.t., J. Van Dijk[comp]m.t., G. Mertens[comp]+23", G. Huber[comp]+23", N. Laurent[punc]+23"
-Étape 3 — Arrivée au sommet — 151 km | t= 4h40'28" avg 32.3 km/h | ticks 640 | last +39'27" | DNF 0
-   A. Lemoine[grim]m.t., J. Bernard[grim]+1'39", K. Marino[grim]+1'47", B. Duval[grim]+1'47", G. Huber[comp]+1'50"
-Étape 4 — Contre-la-montre — 18 km | 1. I. Ospina 16'50" | 10e +48"
-Étape 5 — Vallonné — 160 km | t= 3h49'25" avg 41.8 km/h | ticks 494 | last +17'32" | DNF 0
-   W. Maes[spri]m.t., R. De Vries[roul]m.t., G. Baumann[flah]m.t., L. Breton[roul]m.t., I. Ospina[roul]m.t.
- GC: G. Mertens[comp] m.t., D. Ricci[comp] +20", A. Lemoine[grim] +28", S. Mertens[comp] +50", G. Huber[comp] +1'19"
+Étape 1 — Plat — 168 km | t= 4h00'36" avg 41.9 km/h | ticks 540 | last +29'08" | DNF 1
+   M. Ferri[roul]m.t., L. Breton[roul]+31", I. Ospina[roul]+31", D. Ricci[comp]+31", M. Lefèvre[flah]+31"
+Étape 2 — Vallonné — 182 km | t= 4h13'53" avg 43.0 km/h | ticks 561 | last +26'21" | DNF 0
+   W. Maes[spri]m.t., R. De Vries[roul]m.t., B. Roche[flah]m.t., L. Breton[roul]m.t., S. Lombardi[flah]m.t.
+Étape 3 — Arrivée au sommet — 151 km | t= 3h40'03" avg 41.2 km/h | ticks 498 | last +28'28" | DNF 0
+   A. Lemoine[grim]m.t., J. Bernard[grim]+2'20", D. Ricci[comp]+2'22", G. Huber[comp]+2'24", V. Vasseur[grim]+2'29"
+Étape 4 — Contre-la-montre — 18 km | 1. I. Ospina 16'51" | 10e +45"
+Étape 5 — Vallonné — 160 km | t= 3h39'48" avg 43.7 km/h | ticks 475 | last +17'53" | DNF 1
+   M. Berg[baro]m.t., H. Quintero[comp]m.t., G. Becker[flah]+9", R. Quintero[roul]+9", M. Nowak[punc]+22"
+ GC: D. Ricci[comp] m.t., G. Mertens[comp] +2'59", A. Lemoine[grim] +3'30", G. Huber[comp] +3'42", J. Bernard[grim] +4'02"
 
 === Grand Prix des Briques ===
-Pavés — 198 km | t= 4h55'39" avg 40.2 km/h | ticks 657 | last +32'43" | DNF 0
-   A. Bernard[flah]m.t., I. Hernández[spri]+19", A. Barbieri[roul]+19", M. Torres[flah]+19", T. Evans[flah]+19"
- GC: A. Bernard[flah] m.t., I. Hernández[spri] +23", A. Barbieri[roul] +25", M. Torres[flah] +29", T. Evans[flah] +29"
+Pavés — 198 km | t= 4h56'15" avg 40.1 km/h | ticks 674 | last +40'16" | DNF 0
+   A. Barbieri[roul]m.t., A. Bernard[flah]m.t., T. Royer[flah]m.t., I. Hernández[spri]+13", G. Brunner[spri]+13"
+ GC: A. Barbieri[roul] m.t., A. Bernard[flah] +4", T. Royer[flah] +6", I. Hernández[spri] +23", G. Brunner[spri] +23"
 
 === Classique des Chemins blancs ===
-Pavés — 184 km | t= 4h28'42" avg 41.1 km/h | ticks 604 | last +33'00" | DNF 1
-   A. Bernard[flah]m.t., I. Ruiz[flah]+2'10", L. Breton[roul]+3'30", B. Roche[flah]+3'30", I. Ospina[roul]+3'33"
- GC: A. Bernard[flah] m.t., I. Ruiz[flah] +2'14", L. Breton[roul] +3'36", B. Roche[flah] +3'40", I. Ospina[roul] +3'43"
+Pavés — 184 km | t= 4h27'47" avg 41.2 km/h | ticks 600 | last +31'48" | DNF 1
+   A. Bernard[flah]m.t., I. Ruiz[flah]+2'41", P. Gil[spri]+4'14", S. Lombardi[flah]+4'14", N. Van Leeuwen[flah]+4'14"
+ GC: A. Bernard[flah] m.t., I. Ruiz[flah] +2'45", P. Gil[spri] +4'20", S. Lombardi[flah] +4'24", N. Van Leeuwen[flah] +4'24"
 
 === Course au Soleil ===
-Étape 1 — Plat — 172 km | t= 3h52'22" avg 44.4 km/h | ticks 520 | last +27'36" | DNF 0
-   V. Marchand[spri]m.t., P. Gil[spri]m.t., S. Johansen[spri]m.t., J. Martínez[spri]m.t., S. Christensen[spri]m.t.
-Étape 2 — Plat — 188 km | t= 4h03'26" avg 46.3 km/h | ticks 501 | last +6'38" | DNF 1
-   I. Hernández[spri]m.t., N. Renaud[spri]m.t., H. Rodríguez[spri]m.t., A. Marchand[comp]m.t., A. Bernard[flah]m.t.
-Étape 3 — Contre-la-montre — 21 km | 1. I. Ospina 27'49" | 10e +1'45"
-Étape 4 — Vallonné — 192 km | t= 4h15'14" avg 45.1 km/h | ticks 549 | last +19'02" | DNF 0
-   A. Bernard[flah]m.t., G. Mertens[comp]+7", J. Van Dijk[comp]+7", Ł. Lewandowski[comp]+7", R. Huet[comp]+7"
-Étape 5 — Arrivée en côte — 178 km | t= 3h52'19" avg 46.0 km/h | ticks 523 | last +28'50" | DNF 0
-   H. Perrin[baro]m.t., G. Vermeulen[roul]+24", K. Barbier[punc]+31", I. Ruiz[flah]+35", M. Zupan[baro]+36"
-Étape 6 — Montagne — 186 km | t= 4h30'20" avg 41.3 km/h | ticks 605 | last +32'03" | DNF 0
-   T. Renaud[punc]m.t., M. Nowak[punc]m.t., D. Ricci[comp]m.t., I. Pérez[comp]m.t., H. Quintero[comp]m.t.
-Étape 7 — Arrivée au sommet — 162 km | t= 4h19'47" avg 37.4 km/h | ticks 591 | last +35'37" | DNF 0
-   T. Christensen[grim]m.t., I. Pérez[comp]+7", T. Janssens[comp]+9", A. Gallo[grim]+13", A. Lemoine[grim]+16"
-Étape 8 — Vallonné — 150 km | t= 4h05'58" avg 36.6 km/h | ticks 569 | last +38'29" | DNF 0
-   S. Frei[punc]m.t., G. Fontana[punc]m.t., E. Chaves[punc]m.t., T. Fabre[punc]m.t., K. Barbier[punc]m.t.
- GC: D. Ricci[comp] m.t., I. Pérez[comp] +42", G. Mertens[comp] +1'00", T. Janssens[comp] +1'37", H. Quintero[comp] +2'23"
+Étape 1 — Plat — 172 km | t= 3h56'38" avg 43.6 km/h | ticks 504 | last +15'04" | DNF 1
+   I. Hernández[spri]m.t., W. Maes[spri]m.t., S. Christensen[spri]m.t., V. Marchand[spri]m.t., L. Lombardi[spri]m.t.
+Étape 2 — Plat — 188 km | t= 4h16'32" avg 44.0 km/h | ticks 607 | last +46'40" | DNF 0
+   V. Marchand[spri]m.t., S. Huber[spri]m.t., M. Picard[spri]m.t., A. Berger[spri]m.t., J. Martínez[spri]m.t.
+Étape 3 — Contre-la-montre — 21 km | 1. I. Ospina 27'13" | 10e +2'11"
+Étape 4 — Vallonné — 192 km | t= 4h20'04" avg 44.3 km/h | ticks 556 | last +17'32" | DNF 0
+   M. Baumann[grim]m.t., S. Christensen[spri]+4", I. Hernández[spri]+4", I. Buitrago[spri]+4", W. Maes[spri]+4"
+Étape 5 — Arrivée en côte — 178 km | t= 4h14'40" avg 41.9 km/h | ticks 570 | last +30'13" | DNF 0
+   D. Ricci[comp]m.t., E. Chaves[punc]+5", G. Fontana[punc]+15", A. Marchand[comp]+19", J. Van Dijk[comp]+20"
+Étape 6 — Montagne — 186 km | t= 4h37'48" avg 40.2 km/h | ticks 629 | last +36'13" | DNF 0
+   H. Perrin[baro]m.t., A. Marchand[comp]+1'01", D. Ricci[comp]+2'10", G. Mertens[comp]+2'10", H. Leclerc[comp]+2'26"
+Étape 7 — Arrivée au sommet — 162 km | t= 4h35'17" avg 35.3 km/h | ticks 615 | last +32'06" | DNF 0
+   B. Breton[grim]m.t., K. De Smet[grim]+5", A. Gallo[grim]+32", K. Marino[grim]+47", A. Lemoine[grim]+49"
+Étape 8 — Vallonné — 150 km | t= 4h18'40" avg 34.8 km/h | ticks 619 | last +50'33" | DNF 0
+   A. Bernard[flah]m.t., P. Ortega[punc]m.t., S. Mulder[baro]m.t., A. Moreau[comp]m.t., E. Chaves[punc]+1'08"
+ GC: D. Ricci[comp] m.t., T. Vasseur[comp] +2'14", H. Perrin[baro] +2'20", G. Mertens[comp] +2'31", H. Leclerc[comp] +2'39"
 
 === Course des Deux Mers ===
-Étape 1 — CLM par équipes — 19 km | 1. G. Huber 20'41" | 10e +14"
-Étape 2 — Plat — 190 km | t= 4h26'01" avg 42.9 km/h | ticks 549 | last +8'05" | DNF 1
-   M. Gerber[spri]m.t., M. Marty[spri]m.t., R. Meijer[spri]m.t., B. Mertens[spri]m.t., V. Laurent[spri]m.t.
-Étape 3 — Vallonné — 202 km | t= 4h45'34" avg 42.4 km/h | ticks 659 | last +43'30" | DNF 0
-   P. Moreno[baro]m.t., P. Ortega[punc]+36", B. Mulder[roul]+46", J. Mitchell[roul]+1'20", T. Vidal[roul]+1'26"
-Étape 4 — Arrivée au sommet — 168 km | t= 5h00'26" avg 33.6 km/h | ticks 674 | last +36'20" | DNF 2
-   I. Gómez[grim]m.t., T. Huet[comp]+25", M. Conti[punc]+28", G. Huber[comp]+36", H. Leclerc[comp]+52"
-Étape 5 — Arrivée en côte — 182 km | t= 4h18'14" avg 42.3 km/h | ticks 549 | last +16'01" | DNF 0
-   P. Schwarz[punc]m.t., N. Laurent[punc]m.t., S. Henao[punc]+2", T. Peeters[punc]+2", P. Ortega[punc]+2"
-Étape 6 — Plat — 174 km | t= 4h01'19" avg 43.3 km/h | ticks 513 | last +14'45" | DNF 0
-   B. Mertens[spri]m.t., P. Gómez[spri]m.t., T. Lund[spri]m.t., V. Laurent[spri]m.t., S. Haugen[spri]m.t.
-Étape 7 — Contre-la-montre — 10 km | 1. R. De Vries 9'54" | 10e +19"
- GC: P. Moreno[baro] m.t., L. Breton[roul] +44", H. Leclerc[comp] +1'11", G. Huber[comp] +1'25", T. Huet[comp] +1'26"
+Étape 1 — CLM par équipes — 19 km | 1. G. Huber 20'45" | 10e +35"
+Étape 2 — Plat — 190 km | t= 4h10'45" avg 45.5 km/h | ticks 527 | last +12'31" | DNF 0
+   B. Mertens[spri]m.t., G. Brunner[spri]m.t., M. Marty[spri]m.t., T. Olsen[spri]m.t., M. Torres[flah]m.t.
+Étape 3 — Vallonné — 202 km | t= 5h21'03" avg 37.8 km/h | ticks 664 | last +10'52" | DNF 0
+   R. Zieliński[spri]m.t., M. Lefèvre[flah]m.t., P. Vos[roul]m.t., B. Roche[flah]m.t., P. Gómez[spri]+1"
+Étape 4 — Arrivée au sommet — 168 km | t= 4h45'32" avg 35.3 km/h | ticks 609 | last +18'48" | DNF 0
+   H. Cousin[grim]m.t., A. Huet[grim]+7", Ł. Lewandowski[comp]+24", M. Conti[punc]+29", E. Conti[punc]+40"
+Étape 5 — Arrivée en côte — 182 km | t= 4h22'36" avg 41.6 km/h | ticks 574 | last +23'55" | DNF 0
+   N. Laurent[punc]m.t., T. Renaud[punc]+1", T. Fabre[punc]+1", P. Schwarz[punc]+2", A. Huet[grim]+3"
+Étape 6 — Plat — 174 km | t= 3h53'25" avg 44.7 km/h | ticks 504 | last +18'29" | DNF 1
+   G. Brunner[spri]m.t., M. Gerber[spri]m.t., T. Peeters[punc]m.t., M. Marty[spri]m.t., T. Lund[spri]m.t.
+Étape 7 — Contre-la-montre — 10 km | 1. R. De Vries 9'51" | 10e +31"
+ GC: F. Frei[roul] m.t., S. Henao[punc] +8", T. Huet[comp] +13", G. Huber[comp] +35", T. Peeters[punc] +40"
 
 === Classicissima ===
-Vallonné — 288 km | t= 6h41'29" avg 43.0 km/h | ticks 911 | last +53'52" | DNF 0
-   A. Huet[grim]m.t., A. Marchand[comp]m.t., K. Joly[comp]m.t., I. Pérez[comp]m.t., T. Huet[comp]m.t.
- GC: A. Huet[grim] m.t., A. Marchand[comp] +4", K. Joly[comp] +6", I. Pérez[comp] +10", T. Huet[comp] +10"
+Vallonné — 288 km | t= 6h46'25" avg 42.5 km/h | ticks 925 | last +56'02" | DNF 0
+   D. Ricci[comp]m.t., M. Conti[punc]+13", Ó. López[grim]+13", G. Fontana[punc]+18", T. Fabre[punc]+18"
+ GC: D. Ricci[comp] m.t., M. Conti[punc] +17", Ó. López[grim] +19", G. Fontana[punc] +28", T. Fabre[punc] +28"
 
 === Prix de Harelbeke ===
-Pavés — 204 km | t= 4h51'49" avg 41.9 km/h | ticks 658 | last +36'49" | DNF 0
-   M. Gil[roul]m.t., S. Christensen[spri]+2'10", I. Hernández[spri]+2'10", R. Zieliński[spri]+2'10", M. Ferri[roul]+2'10"
- GC: M. Gil[roul] m.t., S. Christensen[spri] +2'14", I. Hernández[spri] +2'16", R. Zieliński[spri] +2'20", M. Ferri[roul] +2'20"
+Pavés — 204 km | t= 4h48'18" avg 42.5 km/h | ticks 620 | last +21'26" | DNF 0
+   P. Vos[roul]m.t., G. Becker[flah]m.t., L. Breton[roul]m.t., T. Barbier[roul]m.t., R. Zieliński[spri]+1"
+ GC: P. Vos[roul] m.t., G. Becker[flah] +4", L. Breton[roul] +6", T. Barbier[roul] +10", R. Zieliński[spri] +11"
 
 === Tour des Pyrénées catalanes ===
-Étape 1 — Plat — 178 km | t= 4h05'58" avg 43.4 km/h | ticks 535 | last +21'03" | DNF 0
-   V. Marchand[spri]m.t., T. Olsen[spri]m.t., J. Martínez[spri]m.t., J. Ruiz[spri]m.t., P. Gil[spri]m.t.
-Étape 2 — Vallonné — 186 km | t= 4h32'23" avg 41.0 km/h | ticks 597 | last +25'52" | DNF 0
-   E. Chaves[punc]m.t., P. Gil[spri]m.t., Q. Breton[comp]m.t., T. Renaud[punc]m.t., H. Perrin[baro]m.t.
-Étape 3 — Arrivée au sommet — 172 km | t= 4h33'04" avg 37.8 km/h | ticks 624 | last +50'22" | DNF 0
-   A. Lemoine[grim]m.t., K. De Smet[grim]+35", Ó. Navarro[grim]+1'23", D. Ricci[comp]+1'24", B. Duval[grim]+1'38"
-Étape 4 — Montagne — 168 km | t= 4h35'25" avg 36.6 km/h | ticks 646 | last +47'06" | DNF 0
-   J. De Boer[comp]m.t., K. Marino[grim]+35", M. Nowak[punc]+35", K. Joly[comp]+35", K. De Smet[grim]+35"
-Étape 5 — Arrivée en côte — 174 km | t= 3h33'30" avg 48.9 km/h | ticks 490 | last +31'13" | DNF 0
-   H. Perrin[baro]m.t., E. Chaves[punc]+3'28", T. Fabre[punc]+3'29", G. Fontana[punc]+3'29", N. Laurent[punc]+3'30"
-Étape 6 — Vallonné — 180 km | t= 4h12'29" avg 42.8 km/h | ticks 579 | last +36'33" | DNF 0
-   H. Perrin[baro]m.t., G. Vermeulen[roul]+19", E. Chaves[punc]+2'47", D. Ricci[comp]+2'47", K. Joly[comp]+2'47"
-Étape 7 — Plat — 152 km | t= 3h25'15" avg 44.4 km/h | ticks 439 | last +13'57" | DNF 1
-   V. Marchand[spri]m.t., J. Ruiz[spri]m.t., M. Nowak[punc]m.t., K. Barbier[punc]m.t., I. Hernández[spri]m.t.
- GC: D. Ricci[comp] m.t., J. De Boer[comp] +24", K. Joly[comp] +31", G. Huber[comp] +44", Q. Breton[comp] +44"
+Étape 1 — Plat — 178 km | t= 3h55'24" avg 45.4 km/h | ticks 532 | last +30'10" | DNF 1
+   B. Bouvier[roul]m.t., L. Mitchell[baro]m.t., K. Joly[comp]m.t., M. Lefèvre[flah]+13", T. Huet[comp]+24"
+Étape 2 — Vallonné — 186 km | t= 4h09'04" avg 44.8 km/h | ticks 560 | last +30'49" | DNF 1
+   M. Torres[flah]m.t., B. Higuita[punc]m.t., O. Visser[grim]m.t., K. Joly[comp]m.t., A. Moreau[comp]m.t.
+Étape 3 — Arrivée au sommet — 172 km | t= 4h23'17" avg 39.2 km/h | ticks 581 | last +26'47" | DNF 0
+   A. Moulin[grim]m.t., A. Gallo[grim]+42", K. De Smet[grim]+1'14", K. Marino[grim]+1'28", T. Janssens[comp]+1'32"
+Étape 4 — Montagne — 168 km | t= 4h14'45" avg 39.6 km/h | ticks 607 | last +48'26" | DNF 0
+   A. Moulin[grim]m.t., T. Vasseur[comp]+14", T. Fleury[comp]+14", T. Renaud[punc]+1'14", K. Joly[comp]+1'14"
+Étape 5 — Arrivée en côte — 174 km | t= 3h57'55" avg 43.9 km/h | ticks 530 | last +27'05" | DNF 0
+   H. Perrin[baro]m.t., G. Vermeulen[roul]+11", E. Chaves[punc]+4'48", T. Fabre[punc]+4'50", G. Fontana[punc]+4'51"
+Étape 6 — Vallonné — 180 km | t= 3h45'10" avg 48.0 km/h | ticks 481 | last +15'10" | DNF 0
+   E. Chaves[punc]m.t., G. Fontana[punc]m.t., P. Schwarz[punc]m.t., K. Barbier[punc]m.t., B. Higuita[punc]m.t.
+Étape 7 — Plat — 152 km | t= 3h30'07" avg 43.4 km/h | ticks 464 | last +21'27" | DNF 0
+   P. Moreno[baro]m.t., A. Barbieri[roul]+2", I. Pérez[comp]+4", S. Frei[punc]+9", I. Hernández[spri]+16"
+ GC: T. Janssens[comp] m.t., K. Joly[comp] +17", B. Bouvier[roul] +1'08", I. Pérez[comp] +1'45", B. Higuita[punc] +2'20"
 
 === Course des Digues ===
-Plat — 248 km | t= 5h19'58" avg 46.5 km/h | ticks 672 | last +15'40" | DNF 1
-   B. Mertens[spri]m.t., S. Haugen[spri]m.t., V. Laurent[spri]m.t., M. Barbieri[spri]m.t., P. Gómez[spri]m.t.
- GC: B. Mertens[spri] m.t., S. Haugen[spri] +4", V. Laurent[spri] +6", M. Barbieri[spri] +10", P. Gómez[spri] +10"
+Plat — 248 km | t= 5h22'17" avg 46.2 km/h | ticks 649 | last +1'56" | DNF 0
+   B. Mertens[spri]m.t., A. Chevalier[spri]m.t., V. Laurent[spri]m.t., P. Gómez[spri]m.t., L. Roche[spri]m.t.
+ GC: B. Mertens[spri] m.t., A. Chevalier[spri] +4", V. Laurent[spri] +6", P. Gómez[spri] +10", L. Roche[spri] +10"
 
 === Ronde des Monts flamands ===
-Pavés — 258 km | t= 5h05'07" avg 50.7 km/h | ticks 648 | last +18'31" | DNF 0
-   A. Bernard[flah]m.t., B. Bouvier[roul]+41", M. Lefèvre[flah]+1'01", P. Becker[flah]+1'01", M. Meijer[roul]+1'01"
- GC: A. Bernard[flah] m.t., B. Bouvier[roul] +45", M. Lefèvre[flah] +1'07", P. Becker[flah] +1'11", M. Meijer[roul] +1'11"
+Pavés — 258 km | t= 5h05'06" avg 50.7 km/h | ticks 654 | last +21'42" | DNF 0
+   A. Bernard[flah]m.t., B. Bouvier[roul]+1'40", S. Lombardi[flah]+2'23", M. Ferri[roul]+2'57", R. De Vries[roul]+2'58"
+ GC: A. Bernard[flah] m.t., B. Bouvier[roul] +1'44", S. Lombardi[flah] +2'29", M. Ferri[roul] +3'07", R. De Vries[roul] +3'08"
 
 === Ronde des Pavés ===
-Pavés — 256 km | t= 6h29'18" avg 39.5 km/h | ticks 827 | last +23'46" | DNF 2
-   P. Gil[spri]m.t., I. Hernández[spri]m.t., S. Lombardi[flah]m.t., G. Becker[flah]m.t., G. Brunner[spri]m.t.
- GC: P. Gil[spri] m.t., I. Hernández[spri] +4", S. Lombardi[flah] +6", G. Becker[flah] +10", G. Brunner[spri] +10"
+Pavés — 256 km | t= 6h42'57" avg 38.1 km/h | ticks 897 | last +45'14" | DNF 0
+   P. Gil[spri]m.t., P. Vos[roul]m.t., N. Van Leeuwen[flah]m.t., H. Jacquet[roul]m.t., G. Brunner[spri]+7"
+ GC: P. Gil[spri] m.t., P. Vos[roul] +4", N. Van Leeuwen[flah] +6", H. Jacquet[roul] +10", G. Brunner[spri] +17"
 
 === Tour des Collines basques ===
-Étape 1 — Arrivée en côte — 162 km | t= 4h32'54" avg 35.6 km/h | ticks 541 | last +1'19" | DNF 0
-   T. Taylor[grim]m.t., S. Kamiński[comp]+2", T. Vasseur[comp]+2", E. Chaves[punc]+3", K. Marino[grim]+4"
-Étape 2 — Vallonné — 176 km | t= 4h35'06" avg 38.4 km/h | ticks 615 | last +32'19" | DNF 0
-   M. Conti[punc]m.t., A. Renard[comp]m.t., M. Nowak[punc]m.t., P. Schwarz[punc]m.t., M. Kowalski[comp]m.t.
-Étape 3 — Arrivée en côte — 168 km | t= 4h07'08" avg 40.8 km/h | ticks 520 | last +17'00" | DNF 0
-   E. Chaves[punc]m.t., T. Taylor[grim]+18", C. Jones[grim]+18", I. Jiménez[grim]+18", A. Lemoine[grim]+19"
-Étape 4 — Vallonné — 182 km | t= 4h20'42" avg 41.9 km/h | ticks 575 | last +26'32" | DNF 0
-   M. Nowak[punc]m.t., A. Gómez[punc]m.t., M. Conti[punc]m.t., S. Henao[punc]m.t., E. Chaves[punc]m.t.
-Étape 5 — Montagne — 158 km | t= 3h57'15" avg 40.0 km/h | ticks 523 | last +24'07" | DNF 1
-   K. De Smet[grim]m.t., A. Renard[comp]+37", P. Schwarz[punc]+1'07", A. Lemoine[grim]+1'07", Ł. Lewandowski[comp]+1'07"
-Étape 6 — Contre-la-montre — 18 km | 1. I. Pérez 24'55" | 10e +48"
- GC: T. Vasseur[comp] m.t., K. De Smet[grim] +4", A. Renard[comp] +15", J. De Boer[comp] +32", J. Goossens[comp] +1'05"
+Étape 1 — Arrivée en côte — 162 km | t= 4h11'46" avg 38.6 km/h | ticks 522 | last +8'54" | DNF 1
+   E. Chaves[punc]m.t., P. Schwarz[punc]+4", K. Barbier[punc]+8", A. Lemoine[grim]+8", T. Janssens[comp]+10"
+Étape 2 — Vallonné — 176 km | t= 4h04'28" avg 43.2 km/h | ticks 509 | last +9'48" | DNF 0
+   M. Conti[punc]m.t., K. Sørensen[punc]m.t., K. Barbier[punc]m.t., M. Andersen[punc]m.t., F. Fontaine[punc]m.t.
+Étape 3 — Arrivée en côte — 168 km | t= 4h28'10" avg 37.6 km/h | ticks 550 | last +9'55" | DNF 0
+   T. Taylor[grim]m.t., K. Sørensen[punc]m.t., A. Gómez[punc]+1", S. Gerber[grim]+2", P. Navarro[punc]+6"
+Étape 4 — Vallonné — 182 km | t= 4h24'07" avg 41.3 km/h | ticks 565 | last +17'55" | DNF 1
+   K. Sørensen[punc]m.t., L. Dekker[baro]m.t., J. De Boer[comp]m.t., A. Renard[comp]m.t., S. Mulder[baro]m.t.
+Étape 5 — Montagne — 158 km | t= 4h10'02" avg 37.9 km/h | ticks 536 | last +17'57" | DNF 0
+   T. Vasseur[comp]m.t., M. Kowalski[comp]m.t., K. De Smet[grim]m.t., A. Moulin[grim]m.t., B. Mitchell[grim]m.t.
+Étape 6 — Contre-la-montre — 18 km | 1. T. Vasseur 24'55" | 10e +41"
+ GC: T. Vasseur[comp] m.t., J. De Boer[comp] +1'00", A. Renard[comp] +1'00", I. Navarro[comp] +1'06", M. Conti[punc] +1'16"
 
 === Course de l'Or ===
-Arrivée en côte — 252 km | t= 5h38'56" avg 44.6 km/h | ticks 738 | last +34'30" | DNF 0
-   T. Fabre[punc]m.t., T. Janssens[comp]+7", I. Pérez[comp]+8", G. Mertens[comp]+12", A. Marchand[comp]+12"
- GC: T. Fabre[punc] m.t., T. Janssens[comp] +11", I. Pérez[comp] +14", G. Mertens[comp] +22", A. Marchand[comp] +22"
+Arrivée en côte — 252 km | t= 5h56'26" avg 42.4 km/h | ticks 762 | last +24'04" | DNF 0
+   T. Renaud[punc]m.t., B. Higuita[punc]+8", K. De Vries[comp]+10", L. Dekker[baro]+10", T. Huet[comp]+16"
+ GC: T. Renaud[punc] m.t., B. Higuita[punc] +12", K. De Vries[comp] +16", L. Dekker[baro] +20", T. Huet[comp] +26"
 
 === Flèche des Collines ===
-Arrivée en côte — 201 km | t= 4h47'18" avg 42.0 km/h | ticks 651 | last +38'13" | DNF 0
-   A. Bernard[flah]m.t., T. Fabre[punc]+10", T. Renaud[punc]+14", E. Chaves[punc]+15", Q. Breton[comp]+22"
- GC: A. Bernard[flah] m.t., T. Fabre[punc] +14", T. Renaud[punc] +20", E. Chaves[punc] +25", Q. Breton[comp] +32"
+Arrivée en côte — 201 km | t= 5h00'03" avg 40.2 km/h | ticks 637 | last +21'00" | DNF 0
+   T. Renaud[punc]m.t., Q. Breton[comp]+2", P. Schwarz[punc]+2", T. Fabre[punc]+3", J. Brouwer[punc]+3"
+ GC: T. Renaud[punc] m.t., Q. Breton[comp] +6", P. Schwarz[punc] +8", T. Fabre[punc] +13", J. Brouwer[punc] +13"
 
 === Doyenne des Ardennes ===
-Vallonné — 256 km | t= 5h48'47" avg 44.0 km/h | ticks 813 | last +57'22" | DNF 0
-   K. Joly[comp]m.t., M. De Backer[baro]+40", T. Fabre[punc]+58", L. Dekker[baro]+58", D. Ricci[comp]+58"
- GC: K. Joly[comp] m.t., M. De Backer[baro] +44", T. Fabre[punc] +1'04", L. Dekker[baro] +1'08", D. Ricci[comp] +1'08"
+Vallonné — 256 km | t= 6h08'14" avg 41.7 km/h | ticks 835 | last +49'03" | DNF 2
+   J. De Boer[comp]m.t., T. Renaud[punc]+19", E. Chaves[punc]+19", T. Peeters[punc]+19", A. Huet[grim]+19"
+ GC: J. De Boer[comp] m.t., T. Renaud[punc] +23", E. Chaves[punc] +25", T. Peeters[punc] +29", A. Huet[grim] +29"
 
 === Tour des Lacs alpins ===
-Étape 1 — Contre-la-montre — 15 km | 1. H. Leclerc 12'53" | 10e +36"
-Étape 2 — Vallonné — 172 km | t= 3h48'03" avg 45.3 km/h | ticks 513 | last +28'09" | DNF 0
-   K. Barbier[punc]m.t., T. Peeters[punc]m.t., G. Fontana[punc]m.t., T. Renaud[punc]m.t., P. Schwarz[punc]m.t.
-Étape 3 — Arrivée en côte — 165 km | t= 3h54'12" avg 42.3 km/h | ticks 540 | last +35'45" | DNF 1
-   T. Fabre[punc]m.t., P. Schwarz[punc]+1", Q. Breton[comp]+2", G. Fontana[punc]+2", I. Jiménez[grim]+3"
-Étape 4 — Arrivée au sommet — 160 km | t= 4h44'21" avg 33.8 km/h | ticks 627 | last +28'58" | DNF 0
-   A. Gallo[grim]m.t., A. Lemoine[grim]+45", J. Vos[grim]+1'06", C. Jones[grim]+1'08", A. Marchand[comp]+1'11"
-Étape 5 — Montagne — 175 km | t= 3h57'52" avg 44.1 km/h | ticks 537 | last +30'15" | DNF 0
-   B. Breton[grim]m.t., T. Christensen[grim]+25", A. Marchand[comp]+58", S. Kamiński[comp]+58", K. Marino[grim]+1'25"
-Étape 6 — Contre-la-montre — 18 km | 1. H. Leclerc 20'55" | 10e +48"
- GC: A. Marchand[comp] m.t., S. Kamiński[comp] +1'18", T. Vasseur[comp] +1'42", D. Ricci[comp] +1'49", B. Breton[grim] +2'03"
+Étape 1 — Contre-la-montre — 15 km | 1. H. Leclerc 12'53" | 10e +39"
+Étape 2 — Vallonné — 172 km | t= 4h17'33" avg 40.1 km/h | ticks 603 | last +43'32" | DNF 0
+   G. Vermeulen[roul]m.t., T. Renaud[punc]m.t., S. Mertens[comp]m.t., B. Bouvier[roul]m.t., R. Jensen[comp]m.t.
+Étape 3 — Arrivée en côte — 165 km | t= 3h43'52" avg 44.2 km/h | ticks 493 | last +22'12" | DNF 0
+   T. Renaud[punc]m.t., P. Schwarz[punc]+1", G. Fontana[punc]+2", Q. Breton[comp]+2", O. Visser[grim]+2"
+Étape 4 — Arrivée au sommet — 160 km | t= 3h50'37" avg 41.6 km/h | ticks 495 | last +16'39" | DNF 0
+   A. Huet[grim]m.t., K. De Smet[grim]+6", K. Marino[grim]+6", D. De Clercq[grim]+9", C. Jones[grim]+1'23"
+Étape 5 — Montagne — 175 km | t= 4h51'43" avg 36.0 km/h | ticks 641 | last +28'22" | DNF 0
+   L. Romano[punc]m.t., H. Cousin[grim]m.t., Q. Breton[comp]+1", T. Berger[grim]+8", B. Breton[grim]+8"
+Étape 6 — Contre-la-montre — 18 km | 1. G. Vermeulen 20'44" | 10e +1'06"
+ GC: H. Leclerc[comp] m.t., H. Perrin[baro] +19", T. Vasseur[comp] +41", J. De Boer[comp] +1'15", K. De Vries[comp] +1'34"
 
 === Tour des Deux Côtes ===
-Étape 1 — Contre-la-montre — 16 km | 1. I. Ospina 15'23" | 10e +1'09"
-Étape 2 — Plat — 190 km | t= 3h24'31" avg 55.7 km/h | ticks 443 | last +16'53" | DNF 0
-   V. Marchand[spri]m.t., S. Christensen[spri]m.t., W. Maes[spri]m.t., A. Marchand[comp]m.t., M. Gil[roul]m.t.
-Étape 3 — Vallonné — 182 km | t= 4h21'51" avg 41.7 km/h | ticks 581 | last +28'28" | DNF 0
-   A. Marchand[comp]m.t., M. Kowalski[comp]+7", G. García[comp]+16", M. Baumann[grim]+16", A. Bernard[flah]+27"
-Étape 4 — Arrivée en côte — 168 km | t= 3h56'39" avg 42.6 km/h | ticks 516 | last +21'14" | DNF 0
-   G. Fontana[punc]m.t., A. Bernard[flah]+1", K. Barbier[punc]+4", F. Fontaine[punc]+8", M. Torres[flah]+8"
-Étape 5 — Plat — 204 km | t= 4h28'34" avg 45.6 km/h | ticks 555 | last +8'55" | DNF 0
-   S. Christensen[spri]m.t., S. Haugen[spri]m.t., W. Maes[spri]m.t., T. Olsen[spri]m.t., L. Laporte[spri]m.t.
-Étape 6 — Arrivée au sommet — 158 km | t= 3h54'17" avg 40.5 km/h | ticks 532 | last +31'15" | DNF 0
-   L. Barbier[grim]m.t., A. Gallo[grim]+1", G. García[comp]+4", T. Fleury[comp]+11", L. Berger[grim]+34"
-Étape 7 — Vallonné — 176 km | t= 4h25'13" avg 39.8 km/h | ticks 615 | last +42'13" | DNF 0
-   S. Christensen[spri]m.t., L. Laporte[spri]m.t., K. Barbier[punc]m.t., F. Rincón[punc]m.t., K. Madsen[roul]m.t.
-Étape 8 — Plat — 186 km | t= 3h48'46" avg 48.8 km/h | ticks 492 | last +17'13" | DNF 0
-   N. Renaud[spri]m.t., V. Marchand[spri]m.t., H. Rodríguez[spri]m.t., S. Christensen[spri]m.t., S. Meijer[spri]m.t.
-Étape 9 — Montagne — 167 km | t= 4h26'44" avg 37.6 km/h | ticks 592 | last +29'00" | DNF 0
-   A. Marchand[comp]m.t., H. Leclerc[comp]+2'59", G. García[comp]+2'59", M. Baumann[grim]+2'59", N. De Vries[grim]+2'59"
-Étape 10 — Contre-la-montre — 34 km | 1. I. Ospina 30'38" | 10e +1'33"
-Étape 11 — Plat — 199 km | t= 4h26'54" avg 44.7 km/h | ticks 615 | last +40'36" | DNF 0
-   V. Marchand[spri]m.t., W. Maes[spri]m.t., N. Renaud[spri]m.t., S. Haugen[spri]m.t., S. Christensen[spri]m.t.
-Étape 12 — Vallonné — 187 km | t= 4h37'52" avg 40.4 km/h | ticks 561 | last +2'16" | DNF 0
-   S. Christensen[spri]m.t., C. Hernández[roul]m.t., S. Lombardi[flah]m.t., K. Madsen[roul]m.t., L. Breton[roul]m.t.
-Étape 13 — Arrivée au sommet — 172 km | t= 4h17'52" avg 40.0 km/h | ticks 549 | last +27'54" | DNF 0
-   T. Fleury[comp]m.t., A. Marchand[comp]+3", N. De Vries[grim]+13", H. Leclerc[comp]+20", L. Barbier[grim]+39"
-Étape 14 — Montagne — 165 km | t= 4h42'49" avg 35.0 km/h | ticks 671 | last +52'24" | DNF 0
-   A. Marchand[comp]m.t., H. Leclerc[comp]m.t., G. García[comp]+1'53", A. Renard[comp]+1'56", N. De Vries[grim]+2'38"
-Étape 15 — Plat — 210 km | t= 4h42'27" avg 44.6 km/h | ticks 625 | last +29'49" | DNF 1
-   S. Meijer[spri]m.t., W. Maes[spri]m.t., L. Gauthier[roul]m.t., A. Ortega[flah]m.t., R. Meijer[spri]m.t.
-Étape 16 — Arrivée au sommet — 184 km | t= 5h00'42" avg 36.7 km/h | ticks 720 | last +58'57" | DNF 0
-   G. García[comp]m.t., T. Fleury[comp]+1", A. Marchand[comp]+7", N. De Vries[grim]+19", L. Barbier[grim]+23"
-Étape 17 — Montagne — 156 km | t= 4h05'46" avg 38.1 km/h | ticks 541 | last +24'20" | DNF 0
-   K. Joly[comp]m.t., A. Renard[comp]+57", A. Marchand[comp]+2'52", T. Fleury[comp]+2'52", M. Larsen[grim]+3'04"
-Étape 18 — Plat — 178 km | t= 3h29'24" avg 51.0 km/h | ticks 478 | last +29'30" | DNF 0
-   V. Marchand[spri]m.t., L. Lombardi[spri]m.t., A. Chevalier[spri]m.t., M. Torres[flah]m.t., L. Gauthier[roul]m.t.
-Étape 19 — Arrivée au sommet — 163 km | t= 4h21'08" avg 37.5 km/h | ticks 573 | last +25'11" | DNF 0
-   A. Renard[comp]m.t., A. Marchand[comp]m.t., M. Larsen[grim]+1", T. Fleury[comp]+3", S. Cárdenas[grim]+6"
-Étape 20 — Montagne — 189 km | t= 4h55'32" avg 38.4 km/h | ticks 672 | last +40'08" | DNF 0
-   A. Renard[comp]m.t., A. Barbier[comp]+1'27", T. Fleury[comp]+1'27", K. Joly[comp]+1'49", A. Marchand[comp]+1'49"
-Étape 21 — Plat — 141 km | t= 3h12'38" avg 43.9 km/h | ticks 415 | last +14'46" | DNF 0
-   M. Gil[roul]m.t., S. Huber[spri]m.t., S. Lombardi[flah]m.t., K. Madsen[roul]m.t., F. Frei[roul]m.t.
- GC: A. Marchand[comp] m.t., H. Leclerc[comp] +8'20", G. García[comp] +9'24", T. Fleury[comp] +15'23", N. De Vries[grim] +17'35"
+Étape 1 — Contre-la-montre — 16 km | 1. I. Ospina 15'37" | 10e +54"
+Étape 2 — Plat — 190 km | t= 4h33'14" avg 41.7 km/h | ticks 621 | last +37'09" | DNF 0
+   S. Meijer[spri]m.t., S. Haugen[spri]m.t., A. Chevalier[spri]m.t., B. Mertens[spri]m.t., M. Gerber[spri]m.t.
+Étape 3 — Vallonné — 182 km | t= 4h32'49" avg 40.0 km/h | ticks 609 | last +31'39" | DNF 0
+   T. Berger[grim]m.t., F. Meier[grim]m.t., S. Christensen[spri]+11", M. Gerber[spri]+11", H. Rodríguez[spri]+11"
+Étape 4 — Arrivée en côte — 168 km | t= 3h53'58" avg 43.1 km/h | ticks 529 | last +30'03" | DNF 0
+   T. Fabre[punc]m.t., G. Fontana[punc]+2", A. Bernard[flah]+4", M. Nowak[punc]+5", K. Barbier[punc]+6"
+Étape 5 — Plat — 204 km | t= 4h23'16" avg 46.5 km/h | ticks 531 | last +2'13" | DNF 0
+   S. Meijer[spri]m.t., V. Marchand[spri]m.t., L. Laporte[spri]m.t., T. Wouters[flah]m.t., M. Picard[spri]m.t.
+Étape 6 — Arrivée au sommet — 158 km | t= 3h39'57" avg 43.1 km/h | ticks 453 | last +17'31" | DNF 1
+   A. Gallo[grim]m.t., L. Barbier[grim]+1", E. Colombo[grim]+16", A. Caron[grim]+20", T. Fleury[comp]+24"
+Étape 7 — Vallonné — 176 km | t= 4h25'59" avg 39.7 km/h | ticks 603 | last +35'50" | DNF 0
+   M. Ferri[roul]m.t., A. Marchand[comp]+2", G. García[comp]+2", T. Fleury[comp]+2", L. Ferrari[grim]+2"
+Étape 8 — Plat — 186 km | t= 3h48'34" avg 48.8 km/h | ticks 463 | last +2'32" | DNF 0
+   V. Marchand[spri]m.t., S. Haugen[spri]m.t., A. Berger[spri]m.t., T. Wouters[flah]m.t., A. Ortega[flah]m.t.
+Étape 9 — Montagne — 167 km | t= 4h41'27" avg 35.6 km/h | ticks 654 | last +45'29" | DNF 0
+   A. Marchand[comp]m.t., K. Joly[comp]m.t., A. Renard[comp]m.t., G. García[comp]m.t., L. Breton[roul]+1'24"
+Étape 10 — Contre-la-montre — 34 km | 1. I. Ospina 30'30" | 10e +1'45"
+Étape 11 — Plat — 199 km | t= 4h31'23" avg 44.0 km/h | ticks 568 | last +12'28" | DNF 0
+   S. Christensen[spri]m.t., W. Maes[spri]m.t., V. Marchand[spri]m.t., H. Rodríguez[spri]m.t., L. Laporte[spri]m.t.
+Étape 12 — Vallonné — 187 km | t= 4h36'25" avg 40.6 km/h | ticks 601 | last +23'44" | DNF 0
+   S. Christensen[spri]m.t., M. Nowak[punc]m.t., K. Madsen[roul]m.t., K. Barbier[punc]m.t., A. Bernard[flah]m.t.
+Étape 13 — Arrivée au sommet — 172 km | t= 4h30'43" avg 38.1 km/h | ticks 610 | last +33'51" | DNF 0
+   G. Romano[comp]m.t., M. Caruso[grim]+5", K. De Vries[comp]+22", T. Fleury[comp]+2'59", G. García[comp]+3'01"
+Étape 14 — Montagne — 165 km | t= 4h26'27" avg 37.2 km/h | ticks 602 | last +34'25" | DNF 0
+   A. Marchand[comp]m.t., K. Joly[comp]m.t., H. Leclerc[comp]m.t., G. García[comp]m.t., A. Renard[comp]m.t.
+Étape 15 — Plat — 210 km | t= 4h44'50" avg 44.2 km/h | ticks 650 | last +39'46" | DNF 0
+   W. Maes[spri]m.t., V. Marchand[spri]m.t., H. Rodríguez[spri]m.t., A. Berger[spri]m.t., L. Breton[roul]m.t.
+Étape 16 — Arrivée au sommet — 184 km | t= 4h44'40" avg 38.8 km/h | ticks 630 | last +30'17" | DNF 0
+   A. Renard[comp]m.t., N. De Vries[grim]+3", K. De Vries[comp]+5", A. Marchand[comp]+7", K. Joly[comp]+8"
+Étape 17 — Montagne — 156 km | t= 4h02'31" avg 38.6 km/h | ticks 557 | last +35'37" | DNF 0
+   G. García[comp]m.t., A. Barbier[comp]m.t., A. Gallo[grim]m.t., H. Leclerc[comp]+8", N. Schwarz[grim]+8"
+Étape 18 — Plat — 178 km | t= 4h12'56" avg 42.2 km/h | ticks 553 | last +23'14" | DNF 1
+   V. Marchand[spri]m.t., S. Haugen[spri]m.t., M. Picard[spri]m.t., M. Gerber[spri]m.t., W. Maes[spri]m.t.
+Étape 19 — Arrivée au sommet — 163 km | t= 4h22'34" avg 37.2 km/h | ticks 584 | last +29'09" | DNF 0
+   L. Barbier[grim]m.t., T. Fleury[comp]+4", N. De Vries[grim]+9", A. Marchand[comp]+15", I. Gómez[grim]+17"
+Étape 20 — Montagne — 189 km | t= 4h50'11" avg 39.1 km/h | ticks 641 | last +30'12" | DNF 0
+   M. Nowak[punc]m.t., A. Marchand[comp]m.t., K. Joly[comp]m.t., G. García[comp]m.t., N. De Vries[grim]m.t.
+Étape 21 — Plat — 141 km | t= 3h29'20" avg 40.4 km/h | ticks 446 | last +13'14" | DNF 0
+   S. Haugen[spri]m.t., V. Marchand[spri]m.t., A. Berger[spri]m.t., L. Breton[roul]m.t., M. Meijer[roul]m.t.
+ GC: G. García[comp] m.t., A. Marchand[comp] +2'02", K. Joly[comp] +2'42", A. Renard[comp] +6'11", K. De Vries[comp] +7'45"
 
 === Tour des Polders ===
-Étape 1 — Plat — 188 km | t= 3h59'15" avg 47.1 km/h | ticks 482 | last +1'28" | DNF 0
-   H. Rodríguez[spri]m.t., W. Maes[spri]m.t., A. Berger[spri]m.t., M. Torres[flah]m.t., R. De Vries[roul]m.t.
-Étape 2 — Pavés — 176 km | t= 3h43'19" avg 47.3 km/h | ticks 464 | last +8'41" | DNF 1
-   H. Perrin[baro]m.t., T. Peeters[punc]+1'18", M. Torres[flah]+1'18", J. De Clercq[flah]+1'18", L. Dekker[baro]+1'18"
-Étape 3 — Contre-la-montre — 14 km | 1. D. Ricci 17'13" | 10e +51"
-Étape 4 — Vallonné — 190 km | t= 4h28'31" avg 42.5 km/h | ticks 579 | last +20'51" | DNF 0
-   G. Vermeulen[roul]m.t., H. Perrin[baro]+1'09", D. Ricci[comp]+1'09", S. Henao[punc]+1'46", P. Moreno[baro]+1'46"
-Étape 5 — Plat — 182 km | t= 4h12'54" avg 43.2 km/h | ticks 512 | last +2'47" | DNF 0
-   W. Maes[spri]m.t., N. Renaud[spri]m.t., J. Ruiz[spri]m.t., V. Marchand[spri]m.t., L. Lombardi[spri]m.t.
- GC: G. Vermeulen[roul] m.t., H. Perrin[baro] +27", L. Breton[roul] +1'58", P. Moreno[baro] +2'23", M. Berg[baro] +3'42"
+Étape 1 — Plat — 188 km | t= 3h51'46" avg 48.7 km/h | ticks 481 | last +8'24" | DNF 1
+   W. Maes[spri]m.t., G. Brunner[spri]m.t., J. De Clercq[flah]m.t., B. Roche[flah]m.t., M. Torres[flah]m.t.
+Étape 2 — Pavés — 176 km | t= 3h45'13" avg 46.9 km/h | ticks 468 | last +8'42" | DNF 0
+   A. Bernard[flah]m.t., T. Evans[flah]m.t., G. Baumann[flah]m.t., M. Conti[punc]m.t., G. Vermeulen[roul]m.t.
+Étape 3 — Contre-la-montre — 14 km | 1. G. Mertens 17'23" | 10e +32"
+Étape 4 — Vallonné — 190 km | t= 4h25'44" avg 42.9 km/h | ticks 555 | last +11'42" | DNF 0
+   V. Marchand[spri]m.t., T. Olsen[spri]m.t., H. Rodríguez[spri]m.t., T. Evans[flah]m.t., G. Vermeulen[roul]m.t.
+Étape 5 — Plat — 182 km | t= 4h14'37" avg 42.9 km/h | ticks 519 | last +4'37" | DNF 0
+   V. Marchand[spri]m.t., W. Maes[spri]m.t., S. Huber[spri]m.t., N. Renaud[spri]m.t., L. Lombardi[spri]m.t.
+ GC: R. De Vries[roul] m.t., G. Vermeulen[roul] +4", F. Frei[roul] +14", A. Bernard[flah] +20", L. Ferri[roul] +25"
 
 === Critérium des Alpes ===
-Étape 1 — Plat — 181 km | t= 3h23'42" avg 53.3 km/h | ticks 467 | last +29'38" | DNF 1
-   G. Huber[comp]m.t., O. Visser[grim]m.t., I. Rincón[comp]m.t., D. Ricci[comp]+6", B. Breton[grim]+6"
-Étape 2 — Contre-la-montre — 24 km | 1. H. Leclerc 27'08" | 10e +1'20"
-Étape 3 — Vallonné — 178 km | t= 4h56'50" avg 36.0 km/h | ticks 691 | last +48'25" | DNF 0
-   S. Mulder[baro]m.t., M. Conti[punc]+7", N. Laurent[punc]+7", B. Breton[grim]+7", T. Huet[comp]+7"
-Étape 4 — Montagne — 165 km | t= 4h22'47" avg 37.7 km/h | ticks 588 | last +30'44" | DNF 0
-   T. Vasseur[comp]m.t., G. Mertens[comp]m.t., Ł. Lewandowski[comp]m.t., T. Huet[comp]+20", J. Van Dijk[comp]+37"
-Étape 5 — Arrivée au sommet — 148 km | t= 4h11'49" avg 35.3 km/h | ticks 549 | last +34'04" | DNF 0
-   Ó. Ramos[grim]m.t., D. De Clercq[grim]+3", A. Gallo[grim]+3", B. Breton[grim]+4", A. Moulin[grim]+1'14"
-Étape 6 — Montagne — 158 km | t= 3h57'32" avg 39.9 km/h | ticks 528 | last +26'18" | DNF 1
-   Ó. Ramos[grim]m.t., T. Christensen[grim]m.t., Ł. Lewandowski[comp]+7", D. Ricci[comp]+7", B. Breton[grim]+7"
-Étape 7 — Arrivée au sommet — 152 km | t= 4h10'36" avg 36.4 km/h | ticks 544 | last +20'56" | DNF 0
-   A. Moulin[grim]m.t., A. Gallo[grim]+11", O. Visser[grim]+27", B. Breton[grim]+41", D. Ricci[comp]+50"
- GC: B. Breton[grim] m.t., D. Ricci[comp] +26", A. Moulin[grim] +2'56", Ł. Lewandowski[comp] +3'41", G. García[comp] +5'42"
+Étape 1 — Plat — 181 km | t= 3h29'01" avg 52.0 km/h | ticks 444 | last +12'45" | DNF 0
+   P. Gil[spri]m.t., I. Hernández[spri]m.t., V. Marchand[spri]m.t., G. Brunner[spri]m.t., J. Ruiz[spri]m.t.
+Étape 2 — Contre-la-montre — 24 km | 1. H. Leclerc 27'26" | 10e +58"
+Étape 3 — Vallonné — 178 km | t= 4h44'52" avg 37.5 km/h | ticks 585 | last +7'15" | DNF 0
+   D. Ricci[comp]m.t., N. Laurent[punc]m.t., B. Higuita[punc]m.t., T. Janssens[comp]m.t., G. Mertens[comp]m.t.
+Étape 4 — Montagne — 165 km | t= 4h07'27" avg 40.0 km/h | ticks 558 | last +31'22" | DNF 1
+   B. Breton[grim]m.t., D. Ricci[comp]+52", Ł. Lewandowski[comp]+52", G. Huber[comp]+1'03", T. Janssens[comp]+1'03"
+Étape 5 — Arrivée au sommet — 148 km | t= 3h35'37" avg 41.2 km/h | ticks 495 | last +31'35" | DNF 2
+   I. Pérez[comp]m.t., A. Moulin[grim]+1'26", A. Lemoine[grim]+2'04", D. De Clercq[grim]+2'06", A. Gallo[grim]+2'08"
+Étape 6 — Montagne — 158 km | t= 3h59'04" avg 39.7 km/h | ticks 532 | last +26'53" | DNF 1
+   K. De Smet[grim]m.t., D. Ricci[comp]+1'53", B. Breton[grim]+2'11", A. Moulin[grim]+2'11", T. Christensen[grim]+2'13"
+Étape 7 — Arrivée au sommet — 152 km | t= 4h18'23" avg 35.3 km/h | ticks 588 | last +35'09" | DNF 0
+   Ł. Lewandowski[comp]m.t., Ó. Ramos[grim]+36", L. Barbier[grim]+48", A. Moulin[grim]+1'45", A. Gallo[grim]+1'53"
+ GC: D. Ricci[comp] m.t., B. Breton[grim] +4'27", T. Janssens[comp] +6'33", G. Huber[comp] +6'42", Ł. Lewandowski[comp] +7'48"
 
 === Tour des Cantons ===
-Étape 1 — Contre-la-montre — 10 km | 1. I. Ospina 10'54" | 10e +42"
-Étape 2 — Vallonné — 176 km | t= 4h16'03" avg 41.2 km/h | ticks 567 | last +27'07" | DNF 0
-   H. Perrin[baro]m.t., T. Janssens[comp]+42", A. Lemoine[grim]+42", E. Chaves[punc]+42", D. Ricci[comp]+42"
-Étape 3 — Plat — 182 km | t= 4h11'42" avg 43.4 km/h | ticks 510 | last +3'05" | DNF 0
-   V. Marchand[spri]m.t., G. Brunner[spri]m.t., J. Ruiz[spri]m.t., S. Meijer[spri]m.t., S. Johansen[spri]m.t.
-Étape 4 — Montagne — 171 km | t= 4h15'28" avg 40.2 km/h | ticks 576 | last +32'30" | DNF 0
-   B. Breton[grim]m.t., T. Janssens[comp]+31", D. Ricci[comp]+31", A. Moulin[grim]+37", G. García[comp]+1'03"
-Étape 5 — Arrivée au sommet — 160 km | t= 4h14'33" avg 37.7 km/h | ticks 596 | last +42'57" | DNF 0
-   A. Moulin[grim]m.t., C. Jones[grim]+45", Ł. Lewandowski[comp]+46", T. Janssens[comp]+48", D. De Clercq[grim]+49"
-Étape 6 — Vallonné — 168 km | t= 4h12'34" avg 39.9 km/h | ticks 551 | last +22'27" | DNF 0
-   M. Nowak[punc]m.t., E. Chaves[punc]m.t., B. Higuita[punc]m.t., M. Conti[punc]m.t., H. Perrin[baro]m.t.
-Étape 7 — Contre-la-montre — 26 km | 1. I. Ospina 22'11" | 10e +1'20"
-Étape 8 — Montagne — 149 km | t= 3h52'04" avg 38.5 km/h | ticks 509 | last +22'00" | DNF 0
-   T. Janssens[comp]m.t., D. Ricci[comp]+16", B. Breton[grim]+16", J. Ramos[grim]+1'48", Ł. Lewandowski[comp]+1'48"
- GC: D. Ricci[comp] m.t., T. Janssens[comp] +19", B. Breton[grim] +2'48", I. Pérez[comp] +4'25", G. García[comp] +6'14"
+Étape 1 — Contre-la-montre — 10 km | 1. I. Ospina 10'58" | 10e +30"
+Étape 2 — Vallonné — 176 km | t= 4h05'21" avg 43.0 km/h | ticks 522 | last +15'39" | DNF 0
+   T. Vasseur[comp]m.t., G. Romano[comp]m.t., A. Moulin[grim]m.t., N. Laurent[punc]+32", E. Chaves[punc]+32"
+Étape 3 — Plat — 182 km | t= 4h23'58" avg 41.4 km/h | ticks 550 | last +10'54" | DNF 0
+   S. Meijer[spri]m.t., S. Huber[spri]m.t., G. Brunner[spri]m.t., V. Marchand[spri]m.t., J. Ruiz[spri]m.t.
+Étape 4 — Montagne — 171 km | t= 5h03'39" avg 33.8 km/h | ticks 693 | last +42'39" | DNF 1
+   B. Breton[grim]m.t., K. Joly[comp]+1'51", H. Leclerc[comp]+1'51", K. De Smet[grim]+1'51", A. Moulin[grim]+1'51"
+Étape 5 — Arrivée au sommet — 160 km | t= 4h25'59" avg 36.1 km/h | ticks 608 | last +37'56" | DNF 0
+   K. De Smet[grim]m.t., B. Breton[grim]+6", D. De Clercq[grim]+11", I. Pérez[comp]+33", D. Ricci[comp]+40"
+Étape 6 — Vallonné — 168 km | t= 3h36'54" avg 46.5 km/h | ticks 471 | last +18'27" | DNF 1
+   T. Vasseur[comp]m.t., F. Frei[roul]+1'06", B. Higuita[punc]+1'37", D. Ricci[comp]+1'37", J. De Boer[comp]+1'37"
+Étape 7 — Contre-la-montre — 26 km | 1. I. Ospina 22'27" | 10e +58"
+Étape 8 — Montagne — 149 km | t= 3h41'41" avg 40.3 km/h | ticks 490 | last +22'56" | DNF 0
+   K. De Smet[grim]m.t., G. Mertens[comp]+24", D. De Clercq[grim]+24", J. De Boer[comp]+24", I. Jiménez[grim]+24"
+ GC: K. De Smet[grim] m.t., G. Mertens[comp] +52", J. De Boer[comp] +1'06", D. Ricci[comp] +1'21", B. Breton[grim] +1'58"
 
 === Championnat national ===
-Vallonné — 224 km | t= 5h16'44" avg 42.4 km/h | ticks 676 | last +21'04" | DNF 0
-   I. Ospina[roul]m.t., H. Perrin[baro]m.t., A. Bernard[flah]+8", G. Vermeulen[roul]+8", E. Chaves[punc]+15"
- GC: I. Ospina[roul] m.t., H. Perrin[baro] +4", A. Bernard[flah] +14", G. Vermeulen[roul] +18", E. Chaves[punc] +25"
+Vallonné — 224 km | t= 5h21'12" avg 41.8 km/h | ticks 691 | last +24'16" | DNF 1
+   A. Barbieri[roul]m.t., G. Vermeulen[roul]m.t., I. Ruiz[flah]m.t., M. Torres[flah]m.t., K. Barbier[punc]m.t.
+ GC: A. Barbieri[roul] m.t., G. Vermeulen[roul] +4", I. Ruiz[flah] +6", M. Torres[flah] +10", K. Barbier[punc] +10"
 
 === Grande Boucle ===
-Étape 1 — Plat — 184 km | t= 3h40'21" avg 50.1 km/h | ticks 487 | last +23'06" | DNF 0
-   N. Renaud[spri]m.t., H. Rodríguez[spri]m.t., S. Christensen[spri]m.t., W. Maes[spri]m.t., G. Becker[flah]m.t.
-Étape 2 — Vallonné — 178 km | t= 3h57'27" avg 45.0 km/h | ticks 512 | last +18'08" | DNF 1
-   H. Perrin[baro]m.t., M. Conti[punc]+1'00", G. Romano[comp]+1'00", I. Pérez[comp]+1'00", P. Ortega[punc]+1'00"
-Étape 3 — Plat — 195 km | t= 4h31'53" avg 43.0 km/h | ticks 630 | last +42'42" | DNF 0
-   J. Ruiz[spri]m.t., P. Gil[spri]m.t., N. Renaud[spri]m.t., W. Maes[spri]m.t., H. Rodríguez[spri]m.t.
-Étape 4 — CLM par équipes — 27 km | 1. H. Perrin 28'37" | 10e +31"
-Étape 5 — Plat — 176 km | t= 4h09'25" avg 42.3 km/h | ticks 517 | last +9'03" | DNF 1
-   N. Renaud[spri]m.t., V. Marchand[spri]m.t., E. Chaves[punc]m.t., W. Maes[spri]m.t., I. Hernández[spri]m.t.
-Étape 6 — Pavés — 162 km | t= 3h22'05" avg 48.1 km/h | ticks 465 | last +30'08" | DNF 0
-   L. Breton[roul]m.t., A. Bernard[flah]+16", K. Joly[comp]+16", H. Perrin[baro]+16", S. Meijer[spri]+20"
-Étape 7 — Vallonné — 189 km | t= 4h05'35" avg 46.2 km/h | ticks 563 | last +35'42" | DNF 0
-   P. Gil[spri]m.t., T. Fabre[punc]m.t., A. Bernard[flah]m.t., B. Bouvier[roul]m.t., S. Bianchi[punc]m.t.
-Étape 8 — Montagne — 178 km | t= 4h25'34" avg 40.2 km/h | ticks 597 | last +32'32" | DNF 0
-   B. Breton[grim]m.t., Ó. Ramos[grim]+40", K. Marino[grim]+1'15", T. Janssens[comp]+1'19", A. Lemoine[grim]+1'25"
-Étape 9 — Arrivée au sommet — 165 km | t= 4h44'33" avg 34.8 km/h | ticks 673 | last +51'47" | DNF 0
-   B. Breton[grim]m.t., A. Lemoine[grim]+50", T. Janssens[comp]+1'07", K. Marino[grim]+1'10", T. Christensen[grim]+1'12"
-Étape 10 — Plat — 201 km | t= 4h37'38" avg 43.4 km/h | ticks 569 | last +6'22" | DNF 0
-   J. Ruiz[spri]m.t., M. Gerber[spri]m.t., B. Higuita[punc]m.t., H. Rodríguez[spri]m.t., P. Gil[spri]m.t.
-Étape 11 — Arrivée en côte — 175 km | t= 4h18'02" avg 40.7 km/h | ticks 561 | last +22'25" | DNF 0
-   P. Moreno[baro]m.t., E. Chaves[punc]+20", Q. Breton[comp]+23", E. Conti[punc]+23", T. Fabre[punc]+23"
-Étape 12 — Montagne — 182 km | t= 4h33'31" avg 39.9 km/h | ticks 601 | last +26'37" | DNF 0
-   K. Marino[grim]m.t., B. Breton[grim]m.t., Ó. Ramos[grim]+3", K. De Smet[grim]+3", J. De Boer[comp]+34"
-Étape 13 — Arrivée au sommet — 158 km | t= 4h23'28" avg 36.0 km/h | ticks 593 | last +32'59" | DNF 0
-   K. De Smet[grim]m.t., B. Breton[grim]+2", K. Marino[grim]+10", Ł. Lewandowski[comp]+2'01", T. Christensen[grim]+2'14"
-Étape 14 — Vallonné — 186 km | t= 4h10'20" avg 44.6 km/h | ticks 555 | last +26'51" | DNF 0
-   P. Gil[spri]m.t., E. Conti[punc]m.t., A. Bernard[flah]m.t., I. Pérez[comp]m.t., P. Moreno[baro]m.t.
-Étape 15 — Plat — 179 km | t= 4h11'45" avg 42.7 km/h | ticks 565 | last +30'39" | DNF 0
-   N. Renaud[spri]m.t., H. Rodríguez[spri]m.t., V. Marchand[spri]m.t., W. Maes[spri]m.t., J. Ruiz[spri]m.t.
-Étape 16 — Montagne — 172 km | t= 4h37'22" avg 37.2 km/h | ticks 607 | last +25'41" | DNF 0
-   H. Leclerc[comp]m.t., M. Nowak[punc]+1'27", E. Chaves[punc]+1'27", B. Higuita[punc]+1'27", T. Peeters[punc]+1'27"
-Étape 17 — Arrivée au sommet — 149 km | t= 3h43'57" avg 39.9 km/h | ticks 499 | last +25'31" | DNF 0
-   K. De Smet[grim]m.t., B. Breton[grim]+6", K. Marino[grim]+8", C. Jones[grim]+13", A. Renard[comp]+23"
-Étape 18 — Plat — 188 km | t= 4h02'16" avg 46.6 km/h | ticks 508 | last +11'18" | DNF 0
-   N. Renaud[spri]m.t., V. Marchand[spri]m.t., P. Gil[spri]m.t., I. Hernández[spri]m.t., T. Olsen[spri]m.t.
-Étape 19 — Contre-la-montre — 36 km | 1. I. Ospina 42'20" | 10e +2'34"
-Étape 20 — Arrivée au sommet — 141 km | t= 3h40'11" avg 38.4 km/h | ticks 478 | last +27'05" | DNF 1
-   K. De Smet[grim]m.t., B. Breton[grim]+1", K. Marino[grim]+12", T. Janssens[comp]+38", C. Jones[grim]+1'09"
-Étape 21 — Plat — 112 km | t= 2h33'26" avg 43.8 km/h | ticks 312 | last +2'23" | DNF 0
-   H. Rodríguez[spri]m.t., M. Gerber[spri]m.t., N. Renaud[spri]m.t., J. Ruiz[spri]m.t., V. Marchand[spri]m.t.
- GC: T. Janssens[comp] m.t., K. De Smet[grim] +57", B. Breton[grim] +1'29", A. Renard[comp] +2'08", H. Perrin[baro] +4'46"
+Étape 1 — Plat — 184 km | t= 3h34'59" avg 51.4 km/h | ticks 460 | last +14'46" | DNF 0
+   S. Christensen[spri]m.t., N. Renaud[spri]m.t., L. Lombardi[spri]m.t., S. Frei[punc]m.t., W. Maes[spri]m.t.
+Étape 2 — Vallonné — 178 km | t= 3h57'02" avg 45.1 km/h | ticks 554 | last +39'42" | DNF 0
+   A. Bernard[flah]m.t., D. Ricci[comp]m.t., S. Mulder[baro]+30", S. Frei[punc]+1'16", E. Chaves[punc]+1'16"
+Étape 3 — Plat — 195 km | t= 4h16'20" avg 45.6 km/h | ticks 528 | last +7'34" | DNF 0
+   V. Marchand[spri]m.t., S. Christensen[spri]m.t., I. Hernández[spri]m.t., H. Rodríguez[spri]m.t., N. Renaud[spri]m.t.
+Étape 4 — CLM par équipes — 27 km | 1. T. Janssens 28'30" | 10e +23"
+Étape 5 — Plat — 176 km | t= 4h10'00" avg 42.2 km/h | ticks 504 | last +1'58" | DNF 0
+   H. Rodríguez[spri]m.t., P. Gil[spri]m.t., M. Gerber[spri]m.t., V. Marchand[spri]m.t., E. Chaves[punc]m.t.
+Étape 6 — Pavés — 162 km | t= 3h27'04" avg 46.9 km/h | ticks 461 | last +23'02" | DNF 0
+   L. Breton[roul]m.t., B. Roche[flah]m.t., T. Guyot[roul]+2", A. Bernard[flah]+2", F. Frei[roul]+2"
+Étape 7 — Vallonné — 189 km | t= 4h06'30" avg 46.0 km/h | ticks 521 | last +13'36" | DNF 0
+   C. Smith[baro]m.t., M. De Backer[baro]+9", W. Maes[spri]+15", M. Gerber[spri]+15", I. Buitrago[spri]+15"
+Étape 8 — Montagne — 178 km | t= 4h14'46" avg 41.9 km/h | ticks 560 | last +25'00" | DNF 0
+   A. Lemoine[grim]m.t., B. Breton[grim]m.t., C. Jones[grim]+10", Ł. Lewandowski[comp]+45", I. Pérez[comp]+45"
+Étape 9 — Arrivée au sommet — 165 km | t= 4h18'02" avg 38.4 km/h | ticks 563 | last +23'40" | DNF 0
+   B. Breton[grim]m.t., C. Jones[grim]+39", T. Janssens[comp]+1'28", Ł. Lewandowski[comp]+1'28", I. Pérez[comp]+1'35"
+Étape 10 — Plat — 201 km | t= 4h19'26" avg 46.5 km/h | ticks 595 | last +38'03" | DNF 0
+   W. Maes[spri]m.t., M. Picard[spri]m.t., V. Marchand[spri]m.t., N. Renaud[spri]m.t., A. Bernard[flah]m.t.
+Étape 11 — Arrivée en côte — 175 km | t= 4h26'58" avg 39.3 km/h | ticks 565 | last +16'36" | DNF 0
+   E. Chaves[punc]m.t., T. Fabre[punc]m.t., O. Visser[grim]+2", P. Schwarz[punc]+2", A. Bernard[flah]+3"
+Étape 12 — Montagne — 182 km | t= 4h38'59" avg 39.1 km/h | ticks 606 | last +23'50" | DNF 0
+   A. Lemoine[grim]m.t., B. Breton[grim]m.t., I. Navarro[comp]+56", T. Peeters[punc]+57", M. Conti[punc]+57"
+Étape 13 — Arrivée au sommet — 158 km | t= 4h58'28" avg 31.8 km/h | ticks 696 | last +49'03" | DNF 1
+   B. Breton[grim]m.t., T. Janssens[comp]+14", A. Lemoine[grim]+38", Ł. Lewandowski[comp]+55", A. Huet[grim]+1'04"
+Étape 14 — Vallonné — 186 km | t= 4h15'52" avg 43.6 km/h | ticks 550 | last +19'01" | DNF 0
+   P. Moreno[baro]m.t., N. Van Leeuwen[flah]m.t., I. Ruiz[flah]m.t., C. Smith[baro]m.t., K. Madsen[roul]m.t.
+Étape 15 — Plat — 179 km | t= 4h14'27" avg 42.2 km/h | ticks 580 | last +35'05" | DNF 1
+   S. Meijer[spri]m.t., P. Gil[spri]m.t., A. Berger[spri]m.t., E. Chaves[punc]m.t., G. Vermeulen[roul]m.t.
+Étape 16 — Montagne — 172 km | t= 5h00'21" avg 34.4 km/h | ticks 663 | last +30'43" | DNF 0
+   D. Ricci[comp]m.t., T. Janssens[comp]m.t., Ł. Lewandowski[comp]m.t., I. Pérez[comp]m.t., A. Lemoine[grim]+13"
+Étape 17 — Arrivée au sommet — 149 km | t= 4h04'51" avg 36.5 km/h | ticks 558 | last +33'56" | DNF 0
+   B. Breton[grim]m.t., A. Lemoine[grim]m.t., I. Pérez[comp]+2", K. Marino[grim]+9", T. Janssens[comp]+11"
+Étape 18 — Plat — 188 km | t= 4h05'43" avg 45.9 km/h | ticks 564 | last +36'11" | DNF 1
+   P. Gil[spri]m.t., H. Rodríguez[spri]m.t., S. Meijer[spri]m.t., V. Marchand[spri]m.t., L. Lombardi[spri]m.t.
+Étape 19 — Contre-la-montre — 36 km | 1. I. Ospina 42'39" | 10e +2'05"
+Étape 20 — Arrivée au sommet — 141 km | t= 3h33'19" avg 39.7 km/h | ticks 480 | last +26'36" | DNF 0
+   A. Lemoine[grim]m.t., Ł. Lewandowski[comp]+8", B. Breton[grim]+8", D. Ricci[comp]+11", I. Pérez[comp]+12"
+Étape 21 — Plat — 112 km | t= 2h25'09" avg 46.3 km/h | ticks 318 | last +13'35" | DNF 0
+   I. Hernández[spri]m.t., S. Christensen[spri]m.t., W. Maes[spri]m.t., V. Marchand[spri]m.t., H. Rodríguez[spri]m.t.
+ GC: I. Pérez[comp] m.t., D. Ricci[comp] +1'18", Q. Breton[comp] +1'29", Ł. Lewandowski[comp] +3'24", B. Breton[grim] +3'41"
 
 === Route d'Occitanie ===
-Étape 1 — Plat — 175 km | t= 3h32'58" avg 49.3 km/h | ticks 429 | last +1'28" | DNF 1
-   I. Hernández[spri]m.t., H. Rodríguez[spri]m.t., M. Picard[spri]m.t., G. Brunner[spri]m.t., M. Mitchell[spri]m.t.
-Étape 2 — Arrivée au sommet — 158 km | t= 4h35'57" avg 34.4 km/h | ticks 600 | last +32'44" | DNF 0
-   A. Gallo[grim]m.t., Ó. Navarro[grim]+1'23", I. Jiménez[grim]+1'27", A. Marchand[comp]+1'32", G. Huber[comp]+1'32"
-Étape 3 — Vallonné — 172 km | t= 4h27'27" avg 38.6 km/h | ticks 579 | last +21'46" | DNF 0
-   B. Bouvier[roul]m.t., K. Barbier[punc]+41", T. Fabre[punc]+41", S. Henao[punc]+41", K. Sørensen[punc]+41"
-Étape 4 — Plat — 168 km | t= 3h29'04" avg 48.2 km/h | ticks 442 | last +11'47" | DNF 0
-   J. Kristensen[spri]m.t., V. Laurent[spri]m.t., H. Rodríguez[spri]m.t., R. Meijer[spri]m.t., G. Brunner[spri]m.t.
- GC: A. Gallo[grim] m.t., I. Jiménez[grim] +1'09", G. Huber[comp] +2'06", A. Barbier[comp] +2'12", Ó. Navarro[grim] +2'31"
+Étape 1 — Plat — 175 km | t= 3h29'13" avg 50.2 km/h | ticks 452 | last +16'28" | DNF 0
+   S. Huber[spri]m.t., M. Picard[spri]m.t., G. Brunner[spri]m.t., A. Chevalier[spri]m.t., B. Roche[flah]m.t.
+Étape 2 — Arrivée au sommet — 158 km | t= 3h53'13" avg 40.6 km/h | ticks 537 | last +35'14" | DNF 0
+   A. Moulin[grim]m.t., T. Christensen[grim]+1'41", H. Cousin[grim]+2'16", J. Goossens[comp]+2'30", A. Marchand[comp]+2'39"
+Étape 3 — Vallonné — 172 km | t= 4h25'30" avg 38.9 km/h | ticks 590 | last +29'11" | DNF 0
+   B. Bouvier[roul]m.t., C. Hernández[roul]+4", K. Barbier[punc]+36", F. Frei[roul]+36", T. Blanc[roul]+36"
+Étape 4 — Plat — 168 km | t= 3h21'37" avg 50.0 km/h | ticks 438 | last +17'18" | DNF 0
+   I. Hernández[spri]m.t., V. Laurent[spri]m.t., J. Kristensen[spri]m.t., A. Chevalier[spri]m.t., R. Meijer[spri]m.t.
+ GC: A. Moulin[grim] m.t., T. Christensen[grim] +1'45", H. Cousin[grim] +2'22", J. Goossens[comp] +2'40", Ó. Navarro[grim] +2'57"
 
 === Classique de la Côte basque ===
-Vallonné — 230 km | t= 5h12'51" avg 44.1 km/h | ticks 679 | last +26'18" | DNF 0
-   A. Marchand[comp]m.t., S. Henao[punc]+31", F. Fontaine[punc]+31", L. Dekker[baro]+31", T. Vasseur[comp]+31"
- GC: A. Marchand[comp] m.t., S. Henao[punc] +35", F. Fontaine[punc] +37", L. Dekker[baro] +41", T. Vasseur[comp] +41"
+Vallonné — 230 km | t= 5h55'42" avg 38.8 km/h | ticks 785 | last +36'41" | DNF 0
+   B. Bouvier[roul]m.t., P. Gil[spri]+1'47", N. Laurent[punc]+1'47", I. Ruiz[flah]+1'47", A. Barbieri[roul]+1'47"
+ GC: B. Bouvier[roul] m.t., P. Gil[spri] +1'51", N. Laurent[punc] +1'53", I. Ruiz[flah] +1'57", A. Barbieri[roul] +1'57"
 
 === Clásica de la Bahía ===
-Vallonné — 228 km | t= 5h29'29" avg 41.5 km/h | ticks 707 | last +23'35" | DNF 2
-   G. Fontana[punc]m.t., E. Chaves[punc]m.t., N. Laurent[punc]m.t., T. Fabre[punc]m.t., A. Marchand[comp]m.t.
- GC: G. Fontana[punc] m.t., E. Chaves[punc] +4", N. Laurent[punc] +6", T. Fabre[punc] +10", A. Marchand[comp] +10"
+Vallonné — 228 km | t= 5h10'23" avg 44.1 km/h | ticks 659 | last +18'53" | DNF 0
+   G. Fontana[punc]m.t., E. Chaves[punc]m.t., G. Huber[comp]m.t., P. Schwarz[punc]m.t., O. Visser[grim]m.t.
+ GC: G. Fontana[punc] m.t., E. Chaves[punc] +4", G. Huber[comp] +6", P. Schwarz[punc] +10", O. Visser[grim] +10"
 
 === Tour de la Toscane ===
-Étape 1 — Vallonné — 190 km | t= 4h43'57" avg 40.1 km/h | ticks 619 | last +25'33" | DNF 0
-   V. Laurent[spri]m.t., G. Brunner[spri]m.t., K. Olsen[punc]m.t., J. Brouwer[punc]m.t., P. Vos[roul]m.t.
-Étape 2 — Arrivée en côte — 176 km | t= 4h14'12" avg 41.5 km/h | ticks 544 | last +17'19" | DNF 0
-   A. Moulin[grim]m.t., S. Cárdenas[grim]+10", T. Kovačič[grim]+11", J. Brouwer[punc]+13", F. Fontaine[punc]+15"
-Étape 3 — Plat — 170 km | t= 3h55'13" avg 43.4 km/h | ticks 472 | last +45" | DNF 0
-   J. Ruiz[spri]m.t., S. Johansen[spri]m.t., H. Rodríguez[spri]m.t., G. Brunner[spri]m.t., R. Meijer[spri]m.t.
- GC: A. Moulin[grim] m.t., J. Brouwer[punc] +23", G. Brunner[spri] +24", A. Lombardi[roul] +30", J. López[baro] +29"
+Étape 1 — Vallonné — 190 km | t= 4h15'13" avg 44.7 km/h | ticks 551 | last +20'11" | DNF 0
+   M. Ferri[roul]m.t., V. Laurent[spri]+1'08", G. Brunner[spri]+1'08", R. Meijer[spri]+1'08", J. Faure[flah]+1'08"
+Étape 2 — Arrivée en côte — 176 km | t= 4h08'57" avg 42.4 km/h | ticks 509 | last +9'00" | DNF 0
+   L. Ferrari[grim]m.t., T. Kovačič[grim]+3", J. López[baro]+4", F. Baumann[grim]+5", M. Martínez[grim]+6"
+Étape 3 — Plat — 170 km | t= 3h42'11" avg 45.9 km/h | ticks 446 | last +39" | DNF 0
+   R. Meijer[spri]m.t., J. Martínez[spri]m.t., J. Ruiz[spri]m.t., T. Olsen[spri]m.t., M. Marty[spri]m.t.
+ GC: M. Ferri[roul] m.t., G. Brunner[spri] +56", C. Smith[baro] +1'05", F. Evans[roul] +1'06", S. De Vries[baro] +1'06"
 
 === Cyclassique du Nord ===
-Plat — 205 km | t= 4h12'30" avg 48.7 km/h | ticks 525 | last +9'31" | DNF 0
-   N. Renaud[spri]m.t., I. Hernández[spri]m.t., M. Gerber[spri]m.t., M. Picard[spri]m.t., V. Laurent[spri]m.t.
- GC: N. Renaud[spri] m.t., I. Hernández[spri] +4", M. Gerber[spri] +6", M. Picard[spri] +10", V. Laurent[spri] +10"
+Plat — 205 km | t= 4h12'39" avg 48.7 km/h | ticks 534 | last +14'13" | DNF 1
+   I. Hernández[spri]m.t., V. Laurent[spri]m.t., P. Gil[spri]m.t., J. Kristensen[spri]m.t., N. Renaud[spri]m.t.
+ GC: I. Hernández[spri] m.t., V. Laurent[spri] +4", P. Gil[spri] +6", J. Kristensen[spri] +10", N. Renaud[spri] +10"
 
 === Ronde Ibérique ===
-Étape 1 — CLM par équipes — 16 km | 1. A. Huet 15'51" | 10e +8"
-Étape 2 — Vallonné — 176 km | t= 4h24'08" avg 40.0 km/h | ticks 572 | last +21'24" | DNF 0
-   I. Buitrago[spri]m.t., L. Mitchell[baro]+39", M. De Backer[baro]+57", A. Barbieri[roul]+1'26", A. Marchand[comp]+1'26"
-Étape 3 — Arrivée en côte — 181 km | t= 4h30'31" avg 40.1 km/h | ticks 577 | last +17'33" | DNF 0
-   P. Schwarz[punc]m.t., T. Fabre[punc]m.t., G. Fontana[punc]+2", T. Renaud[punc]+2", I. Jiménez[grim]+2"
-Étape 4 — Plat — 172 km | t= 4h18'22" avg 39.9 km/h | ticks 544 | last +13'22" | DNF 0
-   I. Hernández[spri]m.t., V. Laurent[spri]m.t., A. Berger[spri]m.t., G. Brunner[spri]m.t., S. Christensen[spri]m.t.
-Étape 5 — Arrivée au sommet — 157 km | t= 4h39'09" avg 33.7 km/h | ticks 596 | last +26'56" | DNF 0
-   L. Garnier[grim]m.t., H. Quintero[comp]+1", T. Renaud[punc]+20", N. De Vries[grim]+22", M. Martínez[grim]+27"
-Étape 6 — Vallonné — 190 km | t= 4h30'20" avg 42.2 km/h | ticks 625 | last +41'56" | DNF 0
-   P. Schwarz[punc]m.t., G. Vermeulen[roul]m.t., A. Marchand[comp]m.t., G. Becker[flah]m.t., H. Quintero[comp]m.t.
-Étape 7 — Montagne — 168 km | t= 4h23'45" avg 38.2 km/h | ticks 578 | last +25'08" | DNF 0
-   L. Fontana[grim]m.t., H. Quintero[comp]m.t., L. Barbier[grim]m.t., A. Marchand[comp]m.t., F. Ospina[grim]m.t.
-Étape 8 — Arrivée au sommet — 163 km | t= 4h28'36" avg 36.4 km/h | ticks 595 | last +28'26" | DNF 1
-   M. Larsen[grim]m.t., A. Caron[grim]+5", E. Buitrago[grim]+25", T. Berger[grim]+36", A. Huet[grim]+1'12"
-Étape 9 — Plat — 185 km | t= 4h08'35" avg 44.7 km/h | ticks 539 | last +21'05" | DNF 0
-   I. Hernández[spri]m.t., S. Haugen[spri]m.t., V. Laurent[spri]m.t., A. Chevalier[spri]m.t., S. Christensen[spri]m.t.
-Étape 10 — Arrivée en côte — 176 km | t= 4h14'43" avg 41.5 km/h | ticks 557 | last +24'03" | DNF 0
-   T. Renaud[punc]m.t., G. Huber[comp]+5", L. Fontana[grim]+5", L. Garnier[grim]+5", H. Quintero[comp]+9"
-Étape 11 — Contre-la-montre — 30 km | 1. G. Vermeulen 39'02" | 10e +2'56"
-Étape 12 — Arrivée au sommet — 168 km | t= 4h20'30" avg 38.7 km/h | ticks 550 | last +14'21" | DNF 0
-   L. Barbier[grim]m.t., D. De Clercq[grim]+39", G. Huber[comp]+48", A. Marchand[comp]+51", H. Quintero[comp]+53"
-Étape 13 — Montagne — 174 km | t= 4h20'38" avg 40.1 km/h | ticks 556 | last +17'00" | DNF 0
-   G. Huber[comp]m.t., Ó. Navarro[grim]m.t., A. Huet[grim]+14", A. Marchand[comp]+34", H. Quintero[comp]+47"
-Étape 14 — Arrivée au sommet — 155 km | t= 4h07'59" avg 37.5 km/h | ticks 531 | last +17'10" | DNF 0
-   L. Barbier[grim]m.t., F. Ospina[grim]+12", H. Quintero[comp]+16", A. Huet[grim]+28", Ó. Navarro[grim]+33"
-Étape 15 — Vallonné — 188 km | t= 4h13'29" avg 44.5 km/h | ticks 559 | last +25'58" | DNF 0
-   G. Fontana[punc]m.t., T. Fabre[punc]m.t., G. Vermeulen[roul]m.t., P. Schwarz[punc]m.t., S. Mulder[baro]m.t.
-Étape 16 — Plat — 182 km | t= 3h52'25" avg 47.0 km/h | ticks 533 | last +33'43" | DNF 1
-   V. Laurent[spri]m.t., P. Gómez[spri]m.t., S. Haugen[spri]m.t., A. Chevalier[spri]m.t., S. Mulder[baro]m.t.
-Étape 17 — Arrivée au sommet — 152 km | t= 4h28'14" avg 34.0 km/h | ticks 573 | last +30'52" | DNF 0
-   A. Huet[grim]m.t., A. Marchand[comp]+9", L. Barbier[grim]+14", Ó. Navarro[grim]+14", D. De Clercq[grim]+17"
-Étape 18 — Montagne — 176 km | t= 4h15'40" avg 41.3 km/h | ticks 584 | last +36'15" | DNF 0
-   A. Marchand[comp]m.t., G. Huber[comp]m.t., M. Baumann[grim]+1'28", Ó. Navarro[grim]+1'28", H. Quintero[comp]+1'28"
-Étape 19 — Arrivée en côte — 170 km | t= 4h02'20" avg 42.1 km/h | ticks 526 | last +20'33" | DNF 0
-   T. Fabre[punc]m.t., P. Schwarz[punc]+1", I. Jiménez[grim]+1", G. Fontana[punc]+3", B. Mitchell[grim]+6"
-Étape 20 — Arrivée au sommet — 165 km | t= 4h31'12" avg 36.5 km/h | ticks 609 | last +33'10" | DNF 0
-   L. Barbier[grim]m.t., N. De Vries[grim]+1'19", G. García[comp]+1'21", A. Moreau[comp]+1'22", I. Etxeberria[grim]+1'33"
-Étape 21 — Plat — 101 km | t= 2h24'40" avg 41.9 km/h | ticks 294 | last +1'54" | DNF 0
-   P. Gómez[spri]m.t., R. Meijer[spri]m.t., G. Becker[flah]m.t., J. Martínez[spri]m.t., G. Brunner[spri]m.t.
- GC: G. Huber[comp] m.t., A. Marchand[comp] +2'37", H. Quintero[comp] +9'01", Ó. Navarro[grim] +11'41", T. Renaud[punc] +13'34"
+Étape 1 — CLM par équipes — 16 km | 1. A. Renard 15'42" | 10e +2"
+Étape 2 — Vallonné — 176 km | t= 4h13'19" avg 41.7 km/h | ticks 545 | last +18'49" | DNF 0
+   G. Fontana[punc]m.t., M. Kowalski[comp]m.t., I. Molina[baro]m.t., G. Romano[comp]m.t., L. Mitchell[baro]m.t.
+Étape 3 — Arrivée en côte — 181 km | t= 4h32'59" avg 39.8 km/h | ticks 593 | last +25'54" | DNF 1
+   T. Huet[comp]m.t., G. García[comp]m.t., G. Romano[comp]+1", I. Molina[baro]+2", M. Kowalski[comp]+4"
+Étape 4 — Plat — 172 km | t= 3h59'15" avg 43.1 km/h | ticks 539 | last +29'50" | DNF 0
+   V. Laurent[spri]m.t., J. Kristensen[spri]m.t., I. Hernández[spri]m.t., A. Chevalier[spri]m.t., P. Schwarz[punc]m.t.
+Étape 5 — Arrivée au sommet — 157 km | t= 4h47'00" avg 32.8 km/h | ticks 607 | last +16'05" | DNF 0
+   B. Mitchell[grim]m.t., M. Frei[grim]+3", T. Christensen[grim]+6", Ó. Navarro[grim]+29", G. García[comp]+30"
+Étape 6 — Vallonné — 190 km | t= 4h52'33" avg 39.0 km/h | ticks 672 | last +42'59" | DNF 0
+   I. Hernández[spri]m.t., V. Laurent[spri]m.t., S. Haugen[spri]m.t., P. Gómez[spri]m.t., K. Barbier[punc]m.t.
+Étape 7 — Montagne — 168 km | t= 4h30'07" avg 37.3 km/h | ticks 610 | last +34'40" | DNF 0
+   M. Kowalski[comp]m.t., A. Marchand[comp]m.t., Ó. Navarro[grim]m.t., H. Quintero[comp]m.t., L. Romano[punc]+34"
+Étape 8 — Arrivée au sommet — 163 km | t= 4h12'46" avg 38.7 km/h | ticks 551 | last +22'21" | DNF 1
+   L. Barbier[grim]m.t., G. García[comp]+50", T. Christensen[grim]+54", M. Larsen[grim]+55", Ó. Navarro[grim]+1'03"
+Étape 9 — Plat — 185 km | t= 3h47'05" avg 48.9 km/h | ticks 476 | last +10'42" | DNF 0
+   J. Kristensen[spri]m.t., S. Haugen[spri]m.t., I. Hernández[spri]m.t., S. Henao[punc]m.t., V. Laurent[spri]m.t.
+Étape 10 — Arrivée en côte — 176 km | t= 3h45'57" avg 46.7 km/h | ticks 484 | last +20'05" | DNF 1
+   P. Schwarz[punc]m.t., J. Van Dijk[comp]+1", K. Barbier[punc]+1", I. Jiménez[grim]+2", A. Marchand[comp]+3"
+Étape 11 — Contre-la-montre — 30 km | 1. B. Bouvier 39'53" | 10e +1'53"
+Étape 12 — Arrivée au sommet — 168 km | t= 4h08'15" avg 40.6 km/h | ticks 544 | last +23'35" | DNF 1
+   H. Quintero[comp]m.t., G. Romano[comp]+16", B. Mitchell[grim]+27", M. Frei[grim]+36", M. Kowalski[comp]+37"
+Étape 13 — Montagne — 174 km | t= 4h28'45" avg 38.8 km/h | ticks 583 | last +22'16" | DNF 1
+   T. Christensen[grim]m.t., L. Barbier[grim]+13", M. Frei[grim]+13", G. García[comp]+27", B. Mitchell[grim]+27"
+Étape 14 — Arrivée au sommet — 155 km | t= 4h12'24" avg 36.8 km/h | ticks 538 | last +28'19" | DNF 0
+   L. Barbier[grim]m.t., T. Christensen[grim]+5", B. Mitchell[grim]+10", Ó. Navarro[grim]+54", T. Kovačič[grim]+57"
+Étape 15 — Vallonné — 188 km | t= 4h28'30" avg 42.0 km/h | ticks 594 | last +28'30" | DNF 0
+   M. Desmet[baro]m.t., V. Chevalier[roul]+3", I. Navarro[comp]+3", I. Molina[baro]+3", M. Kowalski[comp]+1'11"
+Étape 16 — Plat — 182 km | t= 4h15'49" avg 42.7 km/h | ticks 517 | last +2'12" | DNF 0
+   V. Laurent[spri]m.t., I. Hernández[spri]m.t., R. Meijer[spri]m.t., P. Gómez[spri]m.t., S. Haugen[spri]m.t.
+Étape 17 — Arrivée au sommet — 152 km | t= 4h44'52" avg 32.0 km/h | ticks 648 | last +38'57" | DNF 2
+   M. Larsen[grim]m.t., G. Romano[comp]+4", L. Barbier[grim]+10", F. Ospina[grim]+11", J. Van Dijk[comp]+13"
+Étape 18 — Montagne — 176 km | t= 4h27'40" avg 39.5 km/h | ticks 586 | last +24'53" | DNF 0
+   M. Frei[grim]m.t., Ó. Navarro[grim]m.t., G. García[comp]m.t., G. Romano[comp]+23", K. De Vries[comp]+45"
+Étape 19 — Arrivée en côte — 170 km | t= 3h55'25" avg 43.3 km/h | ticks 493 | last +14'05" | DNF 0
+   L. Dekker[baro]m.t., J. Goossens[comp]+3", G. Fontana[punc]+12", G. Romano[comp]+14", K. Barbier[punc]+16"
+Étape 20 — Arrivée au sommet — 165 km | t= 4h35'02" avg 36.0 km/h | ticks 590 | last +31'29" | DNF 0
+   B. Bouvier[roul]m.t., M. Frei[grim]+1'51", F. Ospina[grim]+2'05", L. Barbier[grim]+2'08", S. Gerber[grim]+2'13"
+Étape 21 — Plat — 101 km | t= 2h21'17" avg 42.9 km/h | ticks 300 | last +8'41" | DNF 0
+   I. Hernández[spri]m.t., V. Laurent[spri]m.t., J. Kristensen[spri]m.t., S. Haugen[spri]m.t., P. Gómez[spri]m.t.
+ GC: G. Romano[comp] m.t., G. García[comp] +2'00", M. Kowalski[comp] +2'45", J. Van Dijk[comp] +6'31", T. Christensen[grim] +8'15"
 
 === Grand Prix des Lacs ===
-Arrivée en côte — 201 km | t= 4h49'54" avg 41.6 km/h | ticks 631 | last +29'08" | DNF 1
-   E. Chaves[punc]m.t., P. Schwarz[punc]+1", N. Laurent[punc]+2", T. Fabre[punc]+3", I. Jiménez[grim]+12"
- GC: E. Chaves[punc] m.t., P. Schwarz[punc] +5", N. Laurent[punc] +8", T. Fabre[punc] +13", I. Jiménez[grim] +22"
+Arrivée en côte — 201 km | t= 4h55'06" avg 40.9 km/h | ticks 639 | last +27'37" | DNF 0
+   T. Fabre[punc]m.t., N. Laurent[punc]+1", P. Schwarz[punc]+2", A. Bernard[flah]+4", M. Nowak[punc]+5"
+ GC: T. Fabre[punc] m.t., N. Laurent[punc] +5", P. Schwarz[punc] +8", A. Bernard[flah] +14", M. Nowak[punc] +15"
 
-=== Championnats du monde === G. Fontana
+=== Championnats du monde === A. Bernard
 
 === Chrono des Nations ===
-Contre-la-montre — 44 km | 1. R. De Vries 47'24" | 10e +1'31"
- GC: R. De Vries[roul] m.t., M. Ferri[roul] +7", I. Ospina[roul] +10", L. Breton[roul] +21", M. Meijer[roul] +45"
+Contre-la-montre — 44 km | 1. I. Ospina 47'26" | 10e +1'23"
+ GC: I. Ospina[roul] m.t., M. Ferri[roul] +10", R. De Vries[roul] +11", L. Breton[roul] +26", D. Ricci[comp] +43"
 
 === Course des Feuilles ===
-Plat — 213 km | t= 4h30'56" avg 47.2 km/h | ticks 561 | last +9'30" | DNF 0
-   V. Marchand[spri]m.t., H. Rodríguez[spri]m.t., M. Picard[spri]m.t., T. Olsen[spri]m.t., S. Johansen[spri]m.t.
- GC: V. Marchand[spri] m.t., H. Rodríguez[spri] +4", M. Picard[spri] +6", T. Olsen[spri] +10", S. Johansen[spri] +10"
+Plat — 213 km | t= 4h33'02" avg 46.8 km/h | ticks 607 | last +30'14" | DNF 0
+   S. Huber[spri]m.t., J. Ruiz[spri]m.t., S. Meijer[spri]m.t., S. Johansen[spri]m.t., I. Buitrago[spri]m.t.
+ GC: S. Huber[spri] m.t., J. Ruiz[spri] +4", S. Meijer[spri] +6", S. Johansen[spri] +10", I. Buitrago[spri] +10"
 
 === Classique des Feuilles mortes ===
-Montagne — 243 km | t= 5h55'09" avg 41.1 km/h | ticks 857 | last +73'10" | DNF 2
-   K. De Smet[grim]m.t., K. Marino[grim]+20", M. Kowalski[comp]+20", F. Ospina[grim]+20", H. Quintero[comp]+20"
- GC: K. De Smet[grim] m.t., K. Marino[grim] +24", M. Kowalski[comp] +26", F. Ospina[grim] +30", H. Quintero[comp] +30"
+Montagne — 243 km | t= 5h58'25" avg 40.7 km/h | ticks 867 | last +74'55" | DNF 0
+   K. Marino[grim]m.t., M. Kowalski[comp]m.t., H. Quintero[comp]m.t., H. Cousin[grim]m.t., Ó. Navarro[grim]m.t.
+ GC: K. Marino[grim] m.t., M. Kowalski[comp] +4", H. Quintero[comp] +6", H. Cousin[grim] +10", Ó. Navarro[grim] +10"
 
 === Grand Prix de Clôture ===
-Plat — 198 km | t= 4h22'48" avg 45.2 km/h | ticks 560 | last +16'53" | DNF 0
-   V. Marchand[spri]m.t., M. Gerber[spri]m.t., I. Hernández[spri]m.t., S. Christensen[spri]m.t., S. Meijer[spri]m.t.
- GC: V. Marchand[spri] m.t., M. Gerber[spri] +4", I. Hernández[spri] +6", S. Christensen[spri] +10", S. Meijer[spri] +10"
+Plat — 198 km | t= 4h23'30" avg 45.1 km/h | ticks 602 | last +37'26" | DNF 0
+   W. Maes[spri]m.t., P. Gil[spri]m.t., S. Meijer[spri]m.t., I. Hernández[spri]m.t., J. Ruiz[spri]m.t.
+ GC: W. Maes[spri] m.t., P. Gil[spri] +4", S. Meijer[spri] +6", I. Hernández[spri] +10", J. Ruiz[spri] +10"
 
-season ok, budget 1342 riders 602 json 771494
+season ok, budget 2274 riders 609 json 763569
 
 === Grand Prix d'Ouverture ===
 Plat — 176 km | t= 3h53'24" avg 45.2 km/h | ticks 469 | last +50" | DNF 0
@@ -12461,9 +12461,9 @@ Plat — 198 km | t= 5h21'28" avg 37.0 km/h | ticks 714 | last +35'25" | DNF 0
      [198] 🏁 Sprint : le train AVE emmène L. Jacquet ; M. Rasmussen s'impose (vent de côté).
  GC: M. Rasmussen[spri] m.t., A. Rousseau[spri] +4", L. Smith[spri] +6", L. Jacquet[spri] +10", T. Van den Broeck[spri] +10"
 
-S2027 rank 10 uci 3010 wins 5 budget 2142 conf 62 obj 1110 | roster 16 aca 2 youth 66 free 65 | avgAge 26.0 teamOv 75,79,78,77,78,77,77,76,74,76,75,73,73,72,73,72,71,71 | json 758KB
-S2028 rank 13 uci 2130 wins 3 budget 1517 conf 59 obj 1010 | roster 16 aca 1 youth 67 free 65 | avgAge 26.2 teamOv 75,79,78,78,78,77,76,76,74,75,75,74,73,71,74,72,71,70 | json 918KB
-{"2027":{"sal":-3691.071428571428,"staff":-477.38095238095184,"spons":3911.0456325297378,"prize":332,"transf":0,"aca":-43.428571428571416,"other":-889,"equip":134.7142857142858},"2028":{"sal":-3369.9999999999995,"staff":-414.88095238095195,"spons":3557.6144458886642,"prize":324,"transf":0,"aca":-23.42857142857144,"other":-859,"equip":161.0714285714285}}
+S2027 rank 9 uci 3055 wins 6 budget 2229 conf 62 obj 1110 | roster 16 aca 2 youth 64 free 63 | avgAge 26.1 teamOv 75,80,78,78,77,77,76,76,75,75,75,75,74,73,73,72,72,71 | json 753KB
+S2028 rank 11 uci 2480 wins 3 budget 2143 conf 72 obj 1110 | roster 16 aca 2 youth 66 free 65 | avgAge 26.2 teamOv 76,80,78,78,77,76,75,77,75,75,74,74,74,72,73,72,71,72 | json 911KB
+{"2027":{"sal":-3691.071428571428,"staff":-477.38095238095184,"spons":3960.9606141489317,"prize":370,"transf":0,"aca":-43.428571428571416,"other":-889.5,"equip":134.7142857142858},"2028":{"sal":-3104.5238095238087,"staff":-414.88095238095195,"spons":3901.4899108572017,"prize":241,"transf":0,"aca":-23.42857142857144,"other":-871,"equip":185.47619047619037}}
 top ov 87,86,85,85,85,85,84,84,84,84 p50 76
-top20 ages 31,28,29,23,25,25,26,24,25,25,28,25,30,32,26,34,26,27,33,30 neo in top20 0
-best neos 20a ov81 ceil84 | 21a ov79 ceil87 | 21a ov73 ceil78 | 20a ov70 ceil73 | 21a ov68 ceil84
+top20 ages 31,23,29,28,23,25,26,24,25,28,25,25,30,32,26,23,26,27,33,30 neo in top20 0
+best neos 21a ov79 ceil87 | 21a ov73 ceil78 | 20a ov73 ceil85 | 21a ov68 ceil82 | 19a ov67 ceil78
