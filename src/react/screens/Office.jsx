@@ -449,15 +449,16 @@ function Prep() {
           En cours : {CAMPS[cur.k].lbl}, jusqu'à la semaine {cur.until}.
         </div>
       ) : null}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="divide-y divide-slate-800 rounded-xl bg-slate-800/40">
         {Object.entries(CAMPS).map(([k, C]) => (
-          <div key={k} className="rounded-xl bg-slate-800/60 p-2.5">
-            <div className="flex items-start justify-between gap-2">
-              <b className="text-sm text-slate-100">{C.lbl}</b>
-              <span className="shrink-0 text-xs text-slate-300">{fmtMoney(C.cost)}</span>
+          <div key={k} className="flex items-center gap-2 px-2.5 py-2">
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold text-slate-100">
+                {C.lbl} <span className="font-normal text-slate-400">· {fmtMoney(C.cost)}</span>
+              </div>
+              <p className="text-xs leading-snug text-slate-400">{C.d}</p>
             </div>
-            <p className="mt-1 text-xs text-slate-300">{C.d}</p>
-            <Btn className="mt-2 w-full" disabled={!!cur || S.budget < C.cost} onClick={() => say(campStart(k))}>
+            <Btn className="min-h-9 shrink-0" disabled={!!cur || S.budget < C.cost} onClick={() => say(campStart(k))}>
               Organiser
             </Btn>
           </div>

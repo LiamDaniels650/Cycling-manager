@@ -48,6 +48,38 @@ function BidBanner() {
     </div>
   );
 }
+// Fins de contrat : un compteur, la liste à déplier avec la demande de chacun et un bouton pour prolonger.
+function EndingBox({ ending }) {
+  const ext = r => ((UI.flash = extendRider(r.id, 2) || `${riderName(r)} prolonge de 2 ans.`), save(), render());
+  return (
+    <details className="mb-2 rounded-xl bg-amber-400/10 text-sm text-amber-100 ring-1 ring-amber-300/50">
+      <summary className="flex min-h-11 cursor-pointer items-center gap-2 px-2.5">
+        <span>
+          ⚠️ <b>{ending.length}</b> contrat{ending.length > 1 ? 's' : ''} à prolonger{' '}
+          <span className="text-xs text-amber-200/80">(sinon pré-contrats ailleurs)</span>
+        </span>
+      </summary>
+      <div className="divide-y divide-amber-300/20 px-2.5 pb-2">
+        {ending
+          .slice()
+          .sort((a, b) => svOv(b) - svOv(a))
+          .map(r => (
+            <div key={r.id} className="flex items-center justify-between gap-2 py-1.5">
+              <span className="min-w-0">
+                <RiderLink r={r} />{' '}
+                <span className="text-xs text-slate-300">
+                  {r.age} ans · {svOv(r)} · demande {fmtMoney(contractDemand(r))}/an
+                </span>
+              </span>
+              <Btn className="min-h-9 shrink-0" onClick={() => ext(r)}>
+                +2 ans
+              </Btn>
+            </div>
+          ))}
+      </div>
+    </details>
+  );
+}
 export function TrainSelect({ r }) {
   return (
     <span className="flex w-full min-w-0 flex-col gap-1 sm:w-auto">
@@ -99,18 +131,7 @@ export function Team() {
           )}
           . Touchez une ligne pour le détail et l'entraînement, le nom pour la fiche.
         </div>
-        {ending.length ? (
-          <div className="mb-2 rounded-xl bg-amber-400/10 px-2.5 py-2 text-xs text-amber-100 ring-1 ring-amber-300/50">
-            ⚠️ Fin de contrat cette saison :{' '}
-            {ending.map((r, k) => (
-              <span key={r.id}>
-                {k ? ', ' : ''}
-                <RiderLink r={r} />
-              </span>
-            ))}{' '}
-            — prolongez-les avant que d'autres équipes ne leur fassent signer un pré-contrat.
-          </div>
-        ) : null}
+        {ending.length ? <EndingBox ending={ending} /> : null}
         <RiderList
           rs={rs}
           state

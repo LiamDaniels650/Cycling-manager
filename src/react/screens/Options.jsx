@@ -9,30 +9,38 @@ const saveText = () => JSON.stringify({ S, sd: _sd, rid: _rid });
 
 // Bulle « Premiers pas » d'un écran : une seule ligne repliée (la première phrase), qu'on déplie pour lire la suite.
 export function TipCard({ view }) {
+  const [open, setOpen] = useState(false);
   S.tipsSeen = S.tipsSeen || {};
   if (S.tipsOff || S.tipsSeen[view] || !TIPS[view]) return null;
-  const first = String(TIPS[view])
-    .replace(/<[^>]+>/g, '')
-    .split(/(?<=[.!?])\s/)[0];
-  return (
-    <details className="group mb-3 rounded-xl bg-amber-400/10 ring-1 ring-amber-300/40">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 text-sm text-amber-100">
-        <span>💡</span>
-        <span className="min-w-0 flex-1 truncate">{first}</span>
-        <span className="shrink-0 text-xs text-amber-200/80 group-open:hidden">plus</span>
-      </summary>
-      <div className="px-3 pb-3">
-        <Html as="div" className="text-sm text-slate-200" html={TIPS[view]} />
-        <div className="mt-2 flex flex-wrap gap-2">
-          <Btn className="min-h-9" onClick={() => tipDone(view)}>
-            Compris
-          </Btn>
-          <Btn className="min-h-9" onClick={() => ((S.tipsOff = true), save(), render())}>
-            Masquer toute l'aide
-          </Btn>
-        </div>
+  // replié : une simple pastille à droite, qui ne prend pas de ligne entière
+  if (!open)
+    return (
+      <div className="-mt-1 mb-1.5 flex justify-end">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="inline-flex h-7 items-center gap-1 rounded-full bg-amber-400/15 px-2.5 text-xs font-semibold text-amber-100 ring-1 ring-amber-300/40"
+          title="Astuce pour cet écran"
+        >
+          💡 Astuce
+        </button>
       </div>
-    </details>
+    );
+  return (
+    <div className="mb-3 rounded-xl bg-amber-400/10 p-3 ring-1 ring-amber-300/40">
+      <Html as="div" className="text-sm text-slate-200" html={TIPS[view]} />
+      <div className="mt-2 flex flex-wrap gap-2">
+        <Btn className="min-h-9" onClick={() => tipDone(view)}>
+          Compris
+        </Btn>
+        <Btn className="min-h-9" onClick={() => setOpen(false)}>
+          Replier
+        </Btn>
+        <Btn className="min-h-9" onClick={() => ((S.tipsOff = true), save(), render())}>
+          Masquer toute l'aide
+        </Btn>
+      </div>
+    </div>
   );
 }
 // Banc d'essai du moteur sur l'appareil : six étapes d'une partie neuve (graine fixe) calculées dans un processus

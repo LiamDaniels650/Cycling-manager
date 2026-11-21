@@ -258,6 +258,70 @@ function RivalsTab() {
     </Card>
   );
 }
+// Les directeurs adverses réunis : caractère, relation avec vous, objectifs de la saison, dernier souvenir, dernière
+// pique dans la presse, offre en cours. Les plus fâchés et les plus amicaux en tête.
+function Directors() {
+  const [all, setAll] = useState(false);
+  const Ts = S.teams
+    .filter(T => !T.player)
+    .map(T => ({ T, d: dsOf(T), rel: teamRelOf(T.id) }))
+    .sort((a, b) => Math.abs(b.rel) - Math.abs(a.rel) || (b.T.uci || 0) - (a.T.uci || 0));
+  if (Ts.length && Ts[0].d.gs !== S.season) dsSeasonGoals();
+  const relTxt = v => (v >= 2 ? 'excellente' : v >= 1 ? 'bonne' : v > -1 ? 'neutre' : v > -2 ? 'tendue' : 'hostile');
+  const relCls = v => (v >= 1 ? 'text-emerald-300' : v <= -1 ? 'text-rose-300' : 'text-slate-300');
+  const jab = T => (S.press || []).find(p => p.s === S.season && p.title === `${T.name} annonce la couleur`);
+  const shown = all ? Ts : Ts.slice(0, 6);
+  return (
+    <Card title="🧑‍💼 Les directeurs adverses">
+      <p className="mb-2 text-xs text-slate-400">
+        Leur caractère, ce qu'ils pensent de vous et ce qu'ils visent cette saison. Les plus fâchés et les plus amicaux
+        d'abord.
+      </p>
+      <div className="divide-y divide-slate-800">
+        {shown.map(({ T, d, rel }) => {
+          const goals = d.goals.map(k => S.cal.find(c => c.key === k)).filter(Boolean);
+          const nx = goals.filter(c => !c.done).sort((a, b) => a.w - b.w)[0];
+          const j = jab(T);
+          const bid = S.bid && S.bid.t === T.id ? S.riders[S.bid.id] : null;
+          return (
+            <div key={T.id} className="py-2 text-sm">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+                <button
+                  type="button"
+                  className="text-left font-semibold text-slate-100 underline decoration-dotted"
+                  onClick={() => openTeam(T.id)}
+                >
+                  <i className="mr-1 inline-block h-2.5 w-2.5 rounded-sm" style={{ background: T.color }} />
+                  {d.fn} {d.ln} <span className="font-normal text-slate-400">· {T.name}</span>
+                </button>
+                <span className="text-xs">
+                  {DS_TEMPER[d.temper].lbl} · relation <b className={relCls(rel)}>{relTxt(rel)}</b>
+                </span>
+              </div>
+              <div className="mt-0.5 text-xs text-slate-300">
+                🎯 {goals.map(c => c.name).join(' · ') || '—'}
+                {nx ? <span className="text-slate-400"> (prochain : semaine {nx.w})</span> : null}
+                {aiCampOn(T.id) ? <span className="text-amber-200"> · 🏔️ en stage en altitude</span> : null}
+              </div>
+              {d.mem.length ? (
+                <div className="text-xs text-slate-400">
+                  {d.mem[d.mem.length - 1].v > 0 ? '👍' : '👎'} {d.mem[d.mem.length - 1].txt}
+                </div>
+              ) : null}
+              {j ? <div className="text-xs italic text-slate-400">🎙️ {j.body.replace(/^[^:]*: /, '')}</div> : null}
+              {bid ? <div className="text-xs text-emerald-300">💰 Offre en cours pour {riderName(bid)}</div> : null}
+            </div>
+          );
+        })}
+      </div>
+      {Ts.length > 6 ? (
+        <Btn className="mt-1 min-h-9" onClick={() => setAll(!all)}>
+          {all ? 'Moins' : `Les ${Ts.length} directeurs`}
+        </Btn>
+      ) : null}
+    </Card>
+  );
+}
 // La saison en chiffres (historique de l'équipe) : classement, victoires, budget, objectifs du sponsor, primes.
 function SeasonSummary({ s }) {
   const h = (S.teamHist || []).find(e => e.s === s);
@@ -635,7 +699,12 @@ const VIEWS = {
   season: SeasonTab,
   races: RacesTab,
   records: RecordsTab,
-  rivals: RivalsTab,
+  rivals: () => (
+    <>
+      <RivalsTab />
+      <Directors />
+    </>
+  ),
   review: ReviewTab,
   film: FilmTab,
   legends: LegendsTab,

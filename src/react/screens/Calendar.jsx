@@ -232,6 +232,120 @@ function months(rows) {
   }
   return [...g.entries()];
 }
+// Frise de la saison : une colonne par semaine ; mes courses (grands rendez-vous en couleur, coureurs prévus),
+// mes stages, les pics de forme visés par mes coureurs, les objectifs des directeurs adverses (et leurs stages).
+function SeasonStrip() {
+  const N = Math.max(...S.cal.map(c => c.w));
+  const W = Array.from({ length: N }, (_, i) => i + 1);
+  const races = w => S.cal.filter(c => c.w === w);
+  const camps = [];
+  if (S.camp && S.camp.s === S.season) camps.push([S.camp.until - CAMPS[S.camp.k].weeks + 1, S.camp.until, S.camp.k]);
+  for (const c of S.campLog || [])
+    if (c.s === S.season && !camps.some(a => a[1] === c.w1)) camps.push([c.w0, c.w1, c.k]);
+  const campAt = w => camps.find(([a, b]) => w >= a && w <= b);
+  const peaks = w => myRiders().filter(r => r.training === 'pic' && r.peakW === w);
+  const aiGoals = w => {
+    let n = 0;
+    for (const T of S.teams)
+      if (!T.player && dsOf(T).gs === S.season)
+        n += dsOf(T).goals.filter(k => (S.cal.find(c => c.key === k) || {}).w === w).length;
+    return n;
+  };
+  const cell = 'h-5 border-l border-slate-800/70 first:border-l-0';
+  const Row = ({ lbl, f }) => (
+    <>
+      <div className="sticky left-0 z-10 bg-slate-900 pr-2 text-[11px] leading-5 text-slate-400">{lbl}</div>
+      {W.map(w => (
+        <div key={w} className={cell + (w === S.week ? ' bg-sky-500/15' : '')}>
+          {f(w)}
+        </div>
+      ))}
+    </>
+  );
+  return (
+    <Card title="🗓️ La saison d'un coup d'œil">
+      <div className="overflow-x-auto overscroll-x-contain">
+        <div
+          className="grid gap-y-1"
+          style={{ gridTemplateColumns: `auto repeat(${N}, minmax(12px, 1fr))`, minWidth: 90 + N * 13 }}
+        >
+          <Row
+            lbl="Sem."
+            f={w =>
+              w % 5 === 0 || w === S.week ? (
+                <span
+                  className={
+                    'block text-center text-[10px] ' + (w === S.week ? 'font-bold text-sky-300' : 'text-slate-500')
+                  }
+                >
+                  {w}
+                </span>
+              ) : null
+            }
+          />
+          <Row
+            lbl="Courses"
+            f={w => {
+              const L = races(w);
+              if (!L.length) return null;
+              const top = L.slice().sort((a, b) => a.cat - b.cat)[0];
+              const pl = L.some(c => S.plan && S.plan[c.key] && S.plan[c.key].length);
+              return (
+                <span
+                  title={L.map(c => c.name).join(', ')}
+                  className={
+                    'mx-auto mt-1 block h-3 w-3 rounded-full ' +
+                    (top.cat === 0 ? 'bg-amber-300' : top.cat === 1 ? 'bg-sky-400' : 'bg-slate-500') +
+                    (pl ? ' ring-2 ring-pink-400' : '') +
+                    (top.done ? ' opacity-40' : '')
+                  }
+                />
+              );
+            }}
+          />
+          <Row
+            lbl="Mes stages"
+            f={w => {
+              const c = campAt(w);
+              return c ? (
+                <span title={CAMPS[c[2]] ? CAMPS[c[2]].lbl : c[2]} className="mt-1 block h-3 bg-emerald-400/70" />
+              ) : null;
+            }}
+          />
+          <Row
+            lbl="Pics de forme"
+            f={w => {
+              const p = peaks(w);
+              return p.length ? (
+                <span title={p.map(r => riderName(r)).join(', ')} className="block text-center text-[11px]">
+                  ⭐
+                </span>
+              ) : null;
+            }}
+          />
+          <Row
+            lbl="Objectifs adverses"
+            f={w => {
+              const n = aiGoals(w);
+              return n ? (
+                <span
+                  title={`${n} directeur(s) visent cette semaine`}
+                  className="mx-auto mt-1 block h-3 rounded-sm bg-rose-400"
+                  style={{ opacity: Math.min(1, 0.25 + n * 0.18), width: '70%' }}
+                />
+              ) : null;
+            }}
+          />
+        </div>
+      </div>
+      <p className="mt-1.5 text-[11px] text-slate-400">
+        <span className="text-amber-300">●</span> grand tour · <span className="text-sky-400">●</span> course majeure ·
+        cercle rose : coureurs prévus · <span className="text-emerald-300">▬</span> stage · ⭐ pic visé ·{' '}
+        <span className="text-rose-300">▬</span> objectifs adverses (plus foncé : plusieurs)
+      </p>
+    </Card>
+  );
+}
 export function Calendar() {
   if (UI.calTab === 'plan' && discoOpen('plan'))
     return (
@@ -269,6 +383,7 @@ export function Calendar() {
       <Card className="border-sky-500/40">
         <NextAction />
       </Card>
+      <SeasonStrip />
       <Card>
         <H2
           right={

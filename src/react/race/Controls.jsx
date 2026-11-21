@@ -1,5 +1,6 @@
 // Appel radio en attente, journal Radio-course, barre de commandes (vitesse, moments clés, fin, DS auto, pauses)
 // et fenêtre radio d'un coureur (portage de askHTML, du journal de liveHTML, dockHTML et radioCard).
+import { useState } from 'react';
 import { RADIO_GROUPS, RADIO_HELP, doingNow, orderInfo } from './orders.js';
 import { Ally } from './Team.jsx';
 import { Card, Btn, Html, Effort } from '../ui.jsx';
@@ -60,8 +61,49 @@ function FeedRow({ l }) {
     </div>
   );
 }
+// Filtre du journal : mes coureurs, l'essentiel (moi + faits marquants), tout. Les messages consécutifs d'un même
+// moment (même kilomètre, même sujet) sont regroupés sur une ligne qu'on déplie.
+const KEY_RX = /^(⛰️|🧱|⤵️|🌬️|💥|🏆|🟢|🤝|⚡|🗡️|🃏|🌧️|🌤️|🔝)/u;
+const FEED_F = [
+  ['cles', 'L’essentiel'],
+  ['mine', 'Mes coureurs'],
+  ['tout', 'Tout'],
+];
+function feedKeep(l, f) {
+  if (f === 'tout') return true;
+  const mine = l.cls === 'me' || l.cls === 'bad';
+  if (f === 'mine') return mine;
+  return mine || l.cls === 'att' || KEY_RX.test(l.txt);
+}
+function feedGroups(lg) {
+  const out = [];
+  for (const l of lg) {
+    const p = out[out.length - 1];
+    const head = t => Array.from(t.replace(/<[^>]+>/g, ''))[0];
+    if (p && Math.round(p[0].km) === Math.round(l.km) && head(p[0].txt) === head(l.txt) && p[0].cls === l.cls)
+      p.push(l);
+    else out.push([l]);
+  }
+  return out;
+}
+function FeedGroup({ g }) {
+  const [open, setOpen] = useState(false);
+  if (g.length === 1) return <FeedRow l={g[0]} />;
+  return (
+    <div className="border-b border-slate-800 last:border-0">
+      <FeedRow l={g[0]} />
+      {open ? g.slice(1).map((l, i) => <FeedRow key={i} l={l} />) : null}
+      <button type="button" className="mb-1 ml-14 text-xs text-slate-400 underline" onClick={() => setOpen(!open)}>
+        {open ? 'replier' : `+ ${g.length - 1} message${g.length > 2 ? 's' : ''} du même moment`}
+      </button>
+    </div>
+  );
+}
 export function RadioFeed({ sim }) {
-  const lg = sim.log.slice().reverse();
+  const f = UI.feedF || 'cles';
+  const all = sim.log.slice().reverse();
+  const lg = all.filter(l => feedKeep(l, f));
+  const groups = feedGroups(lg);
   return (
     <Card
       title={
@@ -70,18 +112,37 @@ export function RadioFeed({ sim }) {
         </span>
       }
     >
-      <div className="h-72 overflow-y-auto overscroll-contain pr-1">
-        {lg.slice(0, 12).map((l, i) => (
-          <FeedRow key={i} l={l} />
+      <div className="mb-1.5 flex gap-1.5" role="tablist">
+        {FEED_F.map(([k, l]) => (
+          <button
+            key={k}
+            type="button"
+            role="tab"
+            aria-selected={f === k}
+            onClick={() => ((UI.feedF = k), renderLive())}
+            className={
+              'min-h-8 rounded-full px-2.5 text-xs font-semibold ring-1 ' +
+              (f === k ? 'bg-sky-500 text-slate-950 ring-sky-400' : 'bg-slate-800 text-slate-300 ring-slate-700')
+            }
+          >
+            {l}
+            {k !== 'tout' ? null : <span className="ml-1 opacity-70">{all.length}</span>}
+          </button>
         ))}
       </div>
-      {lg.length > 12 ? (
+      <div className="h-72 overflow-y-auto overscroll-contain pr-1">
+        {groups.slice(0, 14).map((g, i) => (
+          <FeedGroup key={lg.length - lg.indexOf(g[0])} g={g} />
+        ))}
+        {!groups.length ? <p className="py-2 text-xs text-slate-400">Rien pour l’instant dans ce filtre.</p> : null}
+      </div>
+      {groups.length > 14 ? (
         <details className="mt-1">
           <summary className="cursor-pointer py-1 text-xs text-slate-400">
-            Plus ancien ({Math.min(28, lg.length - 12)})
+            Plus ancien ({Math.min(30, groups.length - 14)})
           </summary>
-          {lg.slice(12, 40).map((l, i) => (
-            <FeedRow key={i} l={l} />
+          {groups.slice(14, 44).map((g, i) => (
+            <FeedGroup key={i} g={g} />
           ))}
         </details>
       ) : null}
