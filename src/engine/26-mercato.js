@@ -114,12 +114,12 @@ function uciTrack(final) {
   }
 }
 // Mercato entre équipes IA : les équipes fortes recrutent les meilleurs éléments des équipes plus faibles.
-function aiTransfers() {
+function aiTransfers(maxMoves = 5, p = 0.4) {
   const ai = S.teams.filter(T => !T.player).sort((a, b) => b.tier - a.tier);
   let moves = 0;
   for (const T of ai) {
-    if (moves >= 5) break;
-    if (rnd() > 0.4) continue;
+    if (moves >= maxMoves) break;
+    if (rnd() > p) continue;
     const bar = T.riders.map(id => overall(S.riders[id].s)).sort((a, b) => b - a)[5] || 0;
     const cands = [];
     for (const U of ai) {

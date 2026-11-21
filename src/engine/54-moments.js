@@ -7,8 +7,9 @@
 
 // Groupes passant un sommet ou une sortie de secteur ce pas-ci (appelé par tickCrossings, avant les points).
 function decisiveSplit(sim) {
-  // les moments retenus pour l'étape : le dernier grand col dans les 45 derniers km (hors montée finale) et les
-  // deux derniers secteurs pavés difficiles (4 étoiles et plus) ; au plus quatre moments
+  // les moments retenus pour l'étape : le dernier grand col dans les 45 derniers km (hors montée finale) et sa
+  // descente, l'avant-dernier col hors catégorie (80 derniers km), les deux derniers secteurs pavés difficiles
+  // (4 étoiles et plus) ; au plus cinq moments (les bordures en plus)
   if (!sim.momentPlan) {
     sim.momentPlan = true;
     sim.klimbs
@@ -24,6 +25,12 @@ function decisiveSplit(sim) {
         c.fineOk = true;
         sim.descMoment = descentAfter(sim, c);
       });
+    // l'avant-dernier très grand col (hors catégorie, dans les 80 derniers km) : une attaque lointaine s'y joue aussi
+    sim.klimbs
+      .filter(c => !c.fineOk && c.cat === 'HC' && c.end < sim.dist - 10 && c.end >= sim.dist - 80)
+      .sort((a, b) => b.end - a.end)
+      .slice(0, 1)
+      .forEach(c => (c.fineOk = true));
     (sim.P.sectors || [])
       .filter(sc => sc.end < sim.dist - 3 && sc.end - sc.start >= 1.5 && (sc.stars || 3) >= 4)
       .sort((a, b) => b.end - a.end)
@@ -31,7 +38,7 @@ function decisiveSplit(sim) {
       .forEach(sc => (sc.fineOk = true));
   }
   momentAsk(sim);
-  if ((sim.momentTraces || []).length >= 4) return;
+  if ((sim.momentTraces || []).filter(m => m.kind !== 'bord').length >= 5) return;
   for (const G of sim.groups.slice().sort((a, b) => b.pos - a.pos)) {
     if (!(G.speed > 0) || G.prev == null) continue;
     const xs = G.riders.filter(x => !x.fin && !x.dnf);
@@ -288,4 +295,226 @@ function echelonAsk(sim) {
     },
   });
   if (ok) sim.echAsks = (sim.echAsks || 0) + 1;
+}
+
+/* Bordure au détail. L'équipe T met le peloton en éventail : la largeur de la route ne laisse de l'abri qu'à 16 à
+   32 coureurs (selon le vent). Le classement à la cassure vient du placement (position, frotteurs, équipiers de T,
+   mes coureurs remontés devant) ; puis la lutte à la cassure : les coureurs juste derrière tentent de sauter dans la
+   bordure (rouleurs puissants, encore frais) au prix d'un gros effort ; les équipes dont le leader est piégé le
+   ramènent (équipiers qui attendent) ; par grand vent, le groupe piégé se casse lui-même en deuxième bordure.
+   Rejeu reconstruit de la cassure (90 s), carte dans le bilan d'étape. */
+function echelonSplit(sim, G, T) {
+  const sc = G.riders.map(x => [
+    x,
+    x.pos +
+      (x.r.s.plc || 65) * 0.35 +
+      (x.team === T ? 40 : 0) +
+      (x.r.s.pla - 70) * 0.4 +
+      (x.echFront > sim.t ? 30 : 0) +
+      gauss() * 14,
+  ]);
+  sc.sort((a, b) => b[1] - a[1]);
+  const W = sim.P.wind || 2;
+  const K = rint(16, 32) - (W >= 3 ? 3 : 0);
+  let front = sc.slice(0, K).map(a => a[0]);
+  let back = sc.slice(K).map(a => a[0]);
+  if (back.length < 5) return;
+  // la lutte à la cassure : les 10 premiers piégés tentent le saut
+  const jumped = [],
+    failed = [];
+  for (const x of back.slice(0, 10)) {
+    const pw = ((x.r.s.pla || 70) + (x.r.s.plc || 65)) / 2 + (x.energy - 60) * 0.3 + gauss() * 6;
+    if (x.energy > 40 && pw > 74) {
+      x.energy = Math.max(0, x.energy - 4);
+      jumped.push(x);
+    } else if (pw > 66) failed.push(x);
+  }
+  front = front.concat(jumped);
+  back = back.filter(x => !jumped.includes(x));
+  // deuxième bordure : le groupe piégé, long et exposé, se casse à son tour
+  let third = [];
+  if (W >= 3 && back.length >= 30 && rnd() < 0.5) {
+    const K2 = rint(16, 26);
+    third = back.slice(K2);
+    back = back.slice(0, K2);
+    if (third.length < 5) {
+      back = back.concat(third);
+      third = [];
+    }
+  }
+  if (back.length < 5) return;
+  const BG = newGroupFrom(sim, back, G.pos - 0.03);
+  BG.noMerge = 6;
+  if (third.length) {
+    const TG = newGroupFrom(sim, third, G.pos - 0.07);
+    TG.noMerge = 6;
+  }
+  sim.echelon = { T, until: sim.t + 20 };
+  sim.echelonT = sim.t;
+  // les équipes dont le leader (ou le sprinteur) est piégé : ses équipiers piégés avec lui roulent pour le ramener
+  const rescue = [];
+  for (const U of new Set(back.concat(third).map(x => x.team))) {
+    const ld = sim.teamLeader[U.id] || sim.teamSprinter[U.id];
+    if (!ld || front.includes(ld) || ld.fin) continue;
+    const mates = back.concat(third).filter(y => y.team === U && y !== ld && y.energy > 35);
+    if (mates.length >= 2) rescue.push([U, ld, mates.length]);
+  }
+  const trapped = back.concat(third);
+  const mineB = trapped.filter(x => x.player),
+    mineF = front.filter(x => x.player);
+  log(
+    sim,
+    `🌬️ BORDURE ! ${T.name} met le peloton en éventail : ${front.length} devant, ${trapped.length} piégés derrière${third.length >= 5 ? ' (deuxième bordure : trois groupes)' : ''}.${mineB.length ? ' Piégés : ' + mineB.map(x => riderName(x.r)).join(', ') + '.' : ''}${mineF.length ? ' Devant : ' + mineF.map(x => riderName(x.r)).join(', ') + '.' : ''}`,
+    mineB.length ? 'bad' : 'att'
+  );
+  for (const x of jumped.filter(x => x.player || sim.favs.has(x.id)))
+    log(sim, `🌬️ ${riderName(x.r)} saute dans la bordure à la force des jambes !`, x.player ? 'me' : 'info');
+  for (const [U, ld, n] of rescue.slice(0, 2))
+    log(sim, `🌬️ ${U.name} : ${n} équipiers roulent pour ramener ${riderName(ld.r)}.`, ld.player ? 'me' : 'info');
+  if (sim.autoPause && (mineB.length || mineF.length)) sim.pauseReq = 'Bordure !';
+  highlight(
+    sim,
+    `🌬️ BORDURE ! ${T.name} coupe le peloton : ${trapped.length} coureurs piégés.`,
+    mineB.length || mineF.length
+  );
+  // rejeu reconstruit : la cassure s'ouvre sur 90 s (1 m/s de moins pour les piégés, 1,6 m/s pour la 2e bordure)
+  const v = Math.max(10, G.speed / 3.6);
+  const pickF = front
+    .slice(0, 6)
+    .concat(front.filter(x => x.player && front.indexOf(x) >= 6))
+    .slice(0, 8);
+  const pickB = back
+    .slice(0, 4)
+    .concat(back.filter(x => x.player && back.indexOf(x) >= 4))
+    .slice(0, 6);
+  const pickT = third
+    .slice(0, 2)
+    .concat(third.filter(x => x.player && third.indexOf(x) >= 2))
+    .slice(0, 3);
+  const ridersR = [...pickF, ...pickB, ...pickT];
+  if (ridersR.length < 4) return;
+  const L0 = 1350;
+  const start = new Map(),
+    slow = new Map();
+  ridersR.forEach((x, i) => {
+    const k = pickF.includes(x) ? i : pickB.includes(x) ? K + (i - pickF.length) : K + 20 + i;
+    start.set(x, L0 + k * 1.6);
+    slow.set(x, pickF.includes(x) ? 0 : pickB.includes(x) ? 1 : 1.6);
+  });
+  const frames = [];
+  const ev = [];
+  for (let t = 0; t <= 90; t++) {
+    frames.push(
+      ridersR.map(x => {
+        // les sauteurs : partis derrière, ils comblent l'écart dans les 25 premières secondes
+        const jump = jumped.includes(x) && pickF.includes(x);
+        const lag = jump ? Math.max(0, 1 - t / 25) * 1.2 : 0;
+        const ramp = Math.min(1, t / 15);
+        const d = start.get(x) - v * t + slow.get(x) * ramp * Math.max(0, t - 7.5) + lag * t * 0.4;
+        return Math.max(0, +d.toFixed(1));
+      })
+    );
+  }
+  ev.push({ t: 2, txt: `🌬️ ${T.name} accélère, vent de côté : l'éventail se forme.` });
+  if (jumped.length)
+    ev.push({
+      t: 12,
+      txt: `💪 ${jumped.length} coureur${jumped.length > 1 ? 's sautent' : ' saute'} dans la bordure.`,
+    });
+  ev.push({ t: 30, txt: `✂️ La cassure : ${trapped.length} coureurs piégés.` });
+  if (third.length >= 5) ev.push({ t: 50, txt: `✂️ Deuxième bordure : le groupe piégé se casse à son tour.` });
+  if (rescue.length)
+    ev.push({ t: 70, txt: `🚴 ${rescue[0][0].name} organise la chasse pour ${riderName(rescue[0][1].r)}.` });
+  const last = frames[frames.length - 1];
+  const t0 = Math.min(...last);
+  const tr = {
+    dt: 1,
+    from: L0,
+    speed: 9,
+    riders: ridersR.map((x, j) => ({
+      id: x.id,
+      n: riderName(x.r),
+      t: x.team.short,
+      c: x.team.color,
+      me: !!x.player,
+      gap: +(last[j] - t0).toFixed(1),
+    })),
+    frames,
+    events: ev,
+    win: `🌬️ ${front.length} coureurs dans la bonne bordure, ${trapped.length} piégés.`,
+    endLbl: 'La cassure est faite !',
+  };
+  if ((sim.momentTraces || []).length < 6) {
+    (sim.momentTraces = sim.momentTraces || []).push({
+      name: `bordure de ${T.name}`,
+      kind: 'bord',
+      km: Math.round(G.pos),
+      tr,
+    });
+    if (mineB.length || mineF.length) sim.liveMoment = { i: sim.momentTraces.length - 1, until: sim.t + 4 };
+  }
+}
+
+/* Peloton nerveux : dans les 12 à 3 derniers km d'une arrivée pour sprinteurs, tout le monde veut être devant ; une
+   touche de roues au milieu du peloton fait tomber plusieurs coureurs voisins (ceux qui étaient mal placés). Une
+   chute collective au plus par étape, environ une étape plate sur six (plus sous la pluie ou par vent). */
+function massCrashTick(sim) {
+  const G = sim.pel;
+  if (sim.massCrash || !G || sim.P.finishGrad >= 3 || G.g >= 3 || G.riders.length < 40) return;
+  const kmL = sim.dist - G.pos;
+  if (kmL > 12 || kmL < 3) return;
+  const p = 0.006 * (sim.wx === 'pluie' ? 1.6 : 1) * ((sim.P.wind || 0) >= 2 ? 1.3 : 1);
+  if (rnd() >= p) return;
+  sim.massCrash = true;
+  const live = G.riders.filter(x => !x.fin && !x.dnf);
+  const mid = live.filter(x => x.pos > 25 && x.pos < 70);
+  if (mid.length < 4) return;
+  const piv = mid[Math.floor(rnd() * mid.length)];
+  const n = rint(2, 4);
+  const down = live
+    .slice()
+    .sort((a, b) => Math.abs(a.pos - piv.pos) - Math.abs(b.pos - piv.pos))
+    .slice(0, n);
+  const txt = `💥 Chute collective à ${Math.round(kmL)} km de l'arrivée, dans un peloton nerveux : ${down.map(x => riderName(x.r)).join(', ')} au sol.`;
+  log(sim, txt, down.some(x => x.player) ? 'bad' : 'info');
+  highlight(
+    sim,
+    txt,
+    down.some(x => x.player)
+  );
+  for (const x of down) incident(sim, x, 'chute');
+}
+
+/* Sprint intermédiaire disputé : dans un groupe d'au moins 10 coureurs, les prétendants au maillot vert (ceux qui
+   le visent, les cinq premiers du classement par points qui savent sprinter) sortent du groupe pour se disputer les
+   points : vraie pointe de vitesse (forme et énergie du jour), effort payé (énergie, jus). Les autres suivent. */
+function ispOrder(sim, G) {
+  const ord = jerseyOrder(G, 'pts', sim);
+  if (G.riders.length < 10) return ord;
+  const rc = sim.rc;
+  const cont = G.riders.filter(x => {
+    if (x.fin || x.dnf || ['protect', 'control', 'leadout'].includes(effOrder(x))) return false;
+    const k = jerseyRank(rc, rc.pts || {}, x.id);
+    return x.aim === 'pts' || (k > 0 && k <= 5 && x.r.s.spr >= 72);
+  });
+  if (cont.length < 2) return ord;
+  const sc = new Map(
+    cont.map(x => [x, sprintPeak(x.r.s.spr) * (0.75 + 0.25 * Math.min(1, x.energy / 50)) + gauss() * 2.5])
+  );
+  cont.sort((a, b) => sc.get(b) - sc.get(a));
+  for (const x of cont) {
+    x.energy = Math.max(0, x.energy - 2);
+    x.punch = Math.max(0, x.punch - 15);
+  }
+  const head = G === sim.groups.slice().sort((a, b) => b.pos - a.pos)[0];
+  if (cont.some(x => x.player) || cont.length >= 2)
+    log(
+      sim,
+      `🟢 Bataille au sprint intermédiaire${head ? '' : ' du peloton'} : ${riderName(cont[0].r)} devance ${cont
+        .slice(1, 3)
+        .map(x => riderName(x.r))
+        .join(' et ')}.`,
+      cont.some(x => x.player) ? 'me' : 'info'
+    );
+  return cont.concat(ord.filter(x => !cont.includes(x)));
 }

@@ -49,7 +49,7 @@ function MomentsCard({ sim }) {
           <div key={k} className="py-2">
             <div className="flex items-center justify-between gap-2 text-sm">
               <span className="min-w-0 text-slate-200">
-                {e.kind === 'pave' ? '🧱' : e.kind === 'desc' ? '⤵️' : '⛰️'} {e.name}{' '}
+                {e.kind === 'pave' ? '🧱' : e.kind === 'desc' ? '⤵️' : e.kind === 'bord' ? '🌬️' : '⛰️'} {e.name}{' '}
                 <span className="text-xs text-slate-400">· km {e.km}</span>
               </span>
               <Btn className="min-h-9 shrink-0" onClick={() => setOpen(open === k ? null : k)}>

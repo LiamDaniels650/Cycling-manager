@@ -254,7 +254,8 @@ function finishRace(rc) {
   });
   // connaissance des adversaires
   const capK = 70 + S.staff.scout * 5;
-  for (const T of S.teams) for (const id of rc.sel[T.id]) S.know[id] = Math.max(S.know[id] || 0, Math.min(capK, (S.know[id] || 20) + 5));
+  for (const T of S.teams)
+    for (const id of rc.sel[T.id]) S.know[id] = Math.max(S.know[id] || 0, Math.min(capK, (S.know[id] || 20) + 5));
   // moral & bilan
   const myIds = rc.sel[0] || [];
   let lines = [];

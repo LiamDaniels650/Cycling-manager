@@ -911,7 +911,10 @@ check(
   check(kinds.col > 0, `moments : ${kinds.col || 0} col(s) décisif(s) rejoué(s) au détail sur ${cal.name}`);
   check(rep > 0 && rep === Object.values(kinds).reduce((a, b) => a + b, 0), 'moments : chaque moment a son rejeu');
   check(asked > 0, `moments : ${asked} consigne(s) du directeur avant un moment décisif`);
-  check((S.replays || []).every(t => t.tr.frames.length <= 121 && t.tr.riders.length <= 14), `rejeux conservés (${(S.replays || []).length}) : 120 images au plus`);
+  check(
+    (S.replays || []).every(t => t.tr.frames.length <= 121 && t.tr.riders.length <= 14),
+    `rejeux conservés (${(S.replays || []).length}) : 120 images au plus`
+  );
 }
 {
   newGame('D', 32);
@@ -953,7 +956,7 @@ check(
   check(/organisé/.test(campStart('altitude')) && S.budget === 880, 'stage en altitude : organisé et payé');
   check(/déjà/.test(campStart('train')), 'un seul stage à la fois');
   const r = S.riders[S.teams[0].riders[0]];
-  check(campFormBonus(r) === 4, "stage en altitude : forme visée +4");
+  check(campFormBonus(r) === 4, 'stage en altitude : forme visée +4');
   // bilan du stage : formWeekly le consigne à la fin
   formWeekly();
   S.week = S.camp.until + 1;
@@ -963,13 +966,68 @@ check(
   // tests d'effort de recrutement : cinq par saison, valeurs exactes ensuite
   const ys = S.youth.slice(0, 6).map(id => S.riders[id]);
   const outs = ys.map(y => effortTest(y.id));
-  check(ys.slice(0, 5).every(y => S.know[y.id] === 100), 'test d’effort : les jeunes testés sont connus exactement');
+  check(
+    ys.slice(0, 5).every(y => S.know[y.id] === 100),
+    'test d’effort : les jeunes testés sont connus exactement'
+  );
   check(/Plus de test/.test(outs[5]), `test d’effort : cinq par saison (${outs[5]})`);
   const y = ys[0];
-  check(STATS.every(k => shownStat(y, k) === clamp(Math.round(y.s[k]), 30, 99)), 'test d’effort : caractéristiques exactes');
+  check(
+    STATS.every(k => shownStat(y, k) === clamp(Math.round(y.s[k]), 30, 99)),
+    'test d’effort : caractéristiques exactes'
+  );
   S.know[y.id] = Math.max(S.know[y.id] || 0, Math.min(60, (S.know[y.id] || 0) + 5));
   check(S.know[y.id] === 100, 'la connaissance acquise ne redescend pas');
-  check(/Test réservé/.test(effortTest(Object.values(S.riders).find(x => x.team > 0 && x.age >= 28).id)), 'pas de test sur un pro confirmé adverse');
+  check(
+    /Test réservé/.test(effortTest(Object.values(S.riders).find(x => x.team > 0 && x.age >= 28).id)),
+    'pas de test sur un pro confirmé adverse'
+  );
+}
+
+// ---- Moteur : préparation de l'ordinateur, bordures, sprints intermédiaires, coalitions ----
+{
+  newGame('E', 34);
+  const T = S.teams[2];
+  dsSeasonGoals();
+  const c = S.cal.find(c => c.key === dsOf(T).goals[0]);
+  S.week = c.w - 2;
+  const r = S.riders[T.riders[0]];
+  check(campFormBonus(r) === 3 && aiCampOn(T.id) === c, `ordinateur : ${T.name} en stage en altitude avant ${c.name}`);
+  S.week = c.w + 1;
+  check(campFormBonus(r) === 0, 'ordinateur : le stage s’arrête après la course');
+  // bordure au détail : un éventail coupe le peloton, avec son rejeu
+  const fi = S.cal.findIndex(c => c.stagesSpec.length > 1 && c.stagesSpec[0][0] === 'plat');
+  S.week = S.cal[fi].w;
+  const rc = startRace(fi, aiSelect(S.teams[0], S.cal[fi], prepareRaceSpecs(S.cal[fi])));
+  Object.assign(rc.orders, autoOrders(0, rc.specs[rc.si], rc));
+  const sim = newStageSim(rc);
+  for (let k = 0; k < 40 && !sim.done; k++) simTick(sim);
+  const pel = sim.groups.slice().sort((a, b) => b.riders.length - a.riders.length)[0],
+    n0 = pel.riders.length,
+    g0 = sim.groups.length;
+  sim.P.wind = 3;
+  echelonSplit(sim, pel, pel.riders[0].team);
+  const bt = (sim.momentTraces || []).find(m => m.kind === 'bord');
+  check(
+    sim.groups.length > g0 && pel.riders.length < n0,
+    `bordure : ${pel.riders.length} devant sur ${n0}, ${sim.groups.length - g0} groupe(s) piégé(s)`
+  );
+  check(!!bt && bt.tr.frames.length === 91 && bt.tr.riders.length >= 4, 'bordure : rejeu de la cassure');
+  // sprint intermédiaire disputé : les prétendants passent devant
+  const G = sim.groups.slice().sort((a, b) => b.riders.length - a.riders.length)[0];
+  G.riders.slice(0, 2).forEach(x => (x.aim = 'pts'));
+  const o = ispOrder(sim, G);
+  check(
+    o.length === G.riders.length && o.slice(0, 2).every(x => x.aim === 'pts'),
+    'sprint intermédiaire : les prétendants au maillot vert se le disputent'
+  );
+}
+{
+  newGame('C', 35);
+  check(typeof coalitionStart === 'function' && styleMul(S.teams[1], 'att') > 0, 'coalitions : en place');
+  const n0 = (S.merc || []).length;
+  aiTransfers(2, 1);
+  check((S.merc || []).filter(m => m.k === 'transfert').length - n0 <= 2, 'mercato d’été : deux transferts au plus');
 }
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

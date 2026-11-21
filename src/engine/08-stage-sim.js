@@ -175,6 +175,7 @@ function buildStageSim(rc) {
       .map(x => x.id)
   );
   jerseyAims(sim);
+  coalitionStart(sim);
   if (!rc.si) dsAnnounce(sim); // les directeurs qui ont fait de cette course leur objectif l'annoncent
   if (rc.autoDS) sim.autoDS = true; // course confiée à l'adjoint
   sim.feedAt = spec.dist > 110 ? Math.round(spec.dist * 0.52) : 0;
@@ -588,7 +589,7 @@ function tickRoadEvents(sim) {
   if (sim.isp && !sim.isp.done) {
     for (const G of sim.groups) {
       if (G.prev < sim.isp.at && G.pos >= sim.isp.at) {
-        const ord = jerseyOrder(G, 'pts', sim);
+        const ord = ispOrder(sim, G);
         for (const x of ord) if (sim.isp.order.length < 15) sim.isp.order.push(x.id);
       }
     }

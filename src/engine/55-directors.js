@@ -307,3 +307,37 @@ function dsGoalWon(rc, winnerTeamId) {
   const d = T && !T.player ? dsOf(T) : null;
   if (d && d.goals.includes(rc.key)) d.goalsWon = S.season;
 }
+
+/* Coalition contre un leader dominant : sur une étape de montagne d'une course par étapes (à partir de la troisième),
+   si le premier du général a plus de 90 s d'avance, les équipes de l'ordinateur dont le leader est dans les dix
+   premiers (à moins de 6 min) s'entendent pour le faire craquer : leurs coureurs attaquent plus volontiers
+   (styleMul 'att' ×1,35). Valable pour l'étape en cours seulement. */
+let COAL = null;
+function coalitionStart(sim) {
+  COAL = null;
+  const rc = sim.rc;
+  if (!sim.stageRace || rc.si < 2 || !['montagne', 'sommet'].includes(sim.spec.type) || !rc.gc) return;
+  const g = gcList(rc);
+  if (g.length < 10) return;
+  const lead = S.riders[g[0]];
+  if (!lead || lead.team == null || rc.gc[g[1]] - rc.gc[g[0]] <= 90) return;
+  const teams = [];
+  for (const id of g.slice(1, 10)) {
+    const r = S.riders[id];
+    const T = r && r.team != null ? teamById(r.team) : null;
+    if (!T || T.player || T.id === lead.team || teams.includes(T) || rc.gc[id] - rc.gc[g[0]] > 360) continue;
+    if (!sim.runners.some(x => x.id === id && !x.dnf)) continue;
+    teams.push(T);
+  }
+  if (teams.length < 2) return;
+  COAL = new Set(teams.map(T => T.id));
+  sim.coalition = { vs: lead.id, teams: teams.map(T => T.id) };
+  log(
+    sim,
+    `🤝 Coalition contre ${riderName(lead)} (${fmtGap(rc.gc[g[1]] - rc.gc[g[0]]).replace(/^\+/, '')} d'avance) : ${teams
+      .slice(0, 4)
+      .map(T => T.name)
+      .join(', ')} veulent faire craquer le leader.`,
+    lead.team === 0 ? 'bad' : 'info'
+  );
+}

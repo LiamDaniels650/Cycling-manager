@@ -45,7 +45,42 @@ function campStart(k) {
 }
 // Semaine d'entraînement d'un de mes coureurs : bonus de forme visée (altitude).
 function campFormBonus(r) {
-  return r.team === 0 && campOn('altitude') ? 4 : 0;
+  if (r.team === 0) return campOn('altitude') ? 4 : 0;
+  return aiCampOn(r.team) ? 3 : 0;
+}
+/* Les équipes de l'ordinateur se préparent aussi : trois semaines avant chacune de leurs courses objectifs (choisies
+   par leur directeur), l'effectif part en stage en altitude (forme visée +3), ce qui fait culminer leur forme au bon
+   moment. La presse l'annonce pour les grands rendez-vous. Aucun tirage. */
+let AI_CAMP = null;
+function aiCampOn(tid) {
+  const key = S.season * 100 + S.week;
+  if (!AI_CAMP || AI_CAMP.key !== key) {
+    AI_CAMP = { key, on: {} };
+    for (const T of S.teams) {
+      const d = T.player ? null : dsOf(T);
+      if (!d) continue;
+      if (d.gs !== S.season) dsSeasonGoals();
+      for (const k of d.goals) {
+        const c = S.cal.find(c => c.key === k);
+        const dw = c ? c.w - S.week : -1;
+        if (dw >= 1 && dw <= 3) AI_CAMP.on[T.id] = c;
+      }
+    }
+  }
+  return AI_CAMP.on[tid] || null;
+}
+// Annonce de la presse (au début du stage, pour une course majeure).
+function aiCampPress() {
+  for (const T of S.teams) {
+    const c = aiCampOn(T.id);
+    if (!c || c.w - S.week !== 3 || c.cat > 1) continue;
+    press(
+      `${T.name} en stage en altitude`,
+      `Trois semaines avant ${c.name}, ${T.name} s'isole en altitude : ${dsName(T)} veut une équipe au sommet de sa forme.`,
+      0,
+      []
+    );
+  }
 }
 // Progression supplémentaire de la semaine (stage de montagne, entraîneur en chef spécialisé).
 function prepGain(r, g0) {

@@ -235,6 +235,9 @@ function weeklyUpdate() {
   pressWeekly();
   mercWeekly();
   dsBidWeekly();
+  aiCampPress();
+  // mercato d'été entre équipes de l'ordinateur (semaine 26) : deux transferts au plus
+  if (S.week === 26) aiTransfers(2, 0.25);
   dsPressWeekly();
   uciTrack();
   eqWeekly();

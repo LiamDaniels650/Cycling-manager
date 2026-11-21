@@ -736,36 +736,7 @@ function tryEchelon(sim) {
 }
 // Coupe un groupe en bordure : les mieux placés passent, les autres sont piégés.
 function echelon(sim, G, T) {
-  const sc = G.riders.map(x => [
-    x,
-    x.pos +
-      (x.r.s.plc || 65) * 0.35 +
-      (x.team === T ? 40 : 0) +
-      (x.r.s.pla - 70) * 0.4 +
-      (x.echFront > sim.t ? 30 : 0) +
-      gauss() * 14,
-  ]);
-  sc.sort((a, b) => b[1] - a[1]);
-  const K = rint(16, 32);
-  const back = sc.slice(K).map(a => a[0]);
-  if (back.length < 5) return;
-  const BG = newGroupFrom(sim, back, G.pos - 0.03);
-  BG.noMerge = 6;
-  sim.echelon = { T, until: sim.t + 20 };
-  sim.echelonT = sim.t;
-  const mineF = G.riders.filter(x => x.player),
-    mineB = back.filter(x => x.player);
-  log(
-    sim,
-    `🌬️ BORDURE ! ${T.name} met le peloton en éventail : ${G.riders.length} devant, ${back.length} piégés derrière.${mineB.length ? ' Piégés : ' + mineB.map(x => riderName(x.r)).join(', ') + '.' : ''}${mineF.length ? ' Devant : ' + mineF.map(x => riderName(x.r)).join(', ') + '.' : ''}`,
-    mineB.length ? 'bad' : 'att'
-  );
-  if (sim.autoPause && (mineB.length || mineF.length)) sim.pauseReq = 'Bordure !';
-  highlight(
-    sim,
-    `🌬️ BORDURE ! ${T.name} coupe le peloton : ${back.length} coureurs piégés.`,
-    mineB.length || mineF.length
-  );
+  echelonSplit(sim, G, T); // au détail : 54-moments.js
 }
 // Intérêt d'une attaque (gain attendu − coût) : chance de tenir jusqu'à l'arrivée (supériorité physique, pente,
 // distance restante), valeur de la victoire (temps au général pour un leader), fraîcheur (jus, réserves).

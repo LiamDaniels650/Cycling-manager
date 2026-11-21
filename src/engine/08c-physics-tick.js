@@ -234,7 +234,8 @@ function tickPhysics(sim) {
           (1.45 - x.r.s.end / 120) *
           // pavés : vibrations, relances, maniement du vélo usent bien plus ceux qui ne savent pas y rouler
           (surf ? clamp(1.5 - (x.r.s.pav || 60) / 100, 0.6, 1.2) : 1) *
-          (sim.wx === 'chaleur' ? 1.15 : 1) *
+          // chaleur : les gabarits lourds évacuent mal la chaleur (≈ +1 % d'usure par kilo au-dessus de 66 kg)
+          (sim.wx === 'chaleur' ? 1.15 * clamp(1 + ((x.r.kg || 68) - 66) * 0.01, 0.95, 1.15) : 1) *
           (x.food < 25 ? 1.35 : 1) *
           (coldHigh ? 1.12 : 1);
       x.food = Math.max(
@@ -349,6 +350,7 @@ function tickIncidents(sim, live) {
       incident(sim, x, 'chute');
     }
   }
+  massCrashTick(sim);
 }
 // Crevaison ou chute d'un coureur : perte de temps, blessure éventuelle, coureurs piégés derrière.
 function incident(sim, x, type) {
