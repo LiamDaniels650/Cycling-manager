@@ -304,7 +304,7 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   - Sprints intermédiaires disputés par les prétendants au maillot vert (vraie pointe de vitesse, effort payé).
   - Chaleur : les gabarits lourds s'usent davantage.
   - Coalition contre un leader dominant (plus de 90 s d'avance) : les équipes dont le leader est dans les dix
-    premiers attaquent plus volontiers en montagne. Mercato d'été (semaine 26) entre équipes de l'ordinateur.
+    premiers durcissent la course en montagne. Mercato d'été (semaine 26) entre équipes de l'ordinateur.
   - Interface : journal de course filtrable (l'essentiel / mes coureurs / tout) avec les messages d'un même moment
     regroupés ; stages d'équipe en lignes compactes ; fins de contrat en compteur dépliable avec bouton « +2 ans » ;
     écran Rivaux enrichi des directeurs adverses (caractère, relation, objectifs, stage en cours, dernier souvenir,
@@ -320,7 +320,8 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     l'étape) : chutes plus probables pour les mal placés, accordéon qui coupe la queue du peloton.
   - Sprint intermédiaire : un poisson-pilote dans le groupe lance son sprinteur ; le prétendant au maillot vert va
     chercher les points dans l'échappée sur une étape accidentée.
-  - Coalition contre un leader dominant adoucie (×1,15) et chasseurs du maillot à pois dès 71 en montagne.
+  - Coalition contre un leader dominant : les équipes coalisées durcissent la course (poursuite ×1,25) plutôt que
+    d'attaquer plus ; chasseurs du maillot à pois dès 71 en montagne.
   - Marge du sprint : le meilleur sprinteur gagne 36 à 37 % des sprints massifs (contre 31 %).
   - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
     carrousel, presse, stages, tests d'effort, forme).

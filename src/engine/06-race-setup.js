@@ -427,11 +427,12 @@ function aiPlan(T, spec, rc) {
 function styleMul(T, k) {
   const s = T.style;
   if (k === 'att')
+    return s === 'agressif' ? 1.5 : s === 'defensif' ? 0.6 : s === 'opportuniste' ? 1.2 : 1;
+  if (k === 'chase')
     return (
-      (s === 'agressif' ? 1.5 : s === 'defensif' ? 0.6 : s === 'opportuniste' ? 1.2 : 1) *
-      (COAL && COAL.has(T.id) ? 1.15 : 1)
+      (s === 'defensif' ? 1.15 : s === 'sprint' ? 1.1 : s === 'agressif' ? 0.9 : 1) *
+      (COAL && COAL.has(T.id) ? 1.25 : 1) // coalition : ils durcissent la course pour user le leader
     );
-  if (k === 'chase') return s === 'defensif' ? 1.15 : s === 'sprint' ? 1.1 : s === 'agressif' ? 0.9 : 1;
   if (k === 'break')
     return s === 'agressif' ? 1.6 : s === 'opportuniste' ? 1.4 : s === 'defensif' ? 0.6 : s === 'gc' ? 0.8 : 1;
   return 1;

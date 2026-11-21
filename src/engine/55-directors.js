@@ -310,8 +310,8 @@ function dsGoalWon(rc, winnerTeamId) {
 
 /* Coalition contre un leader dominant : sur une étape de montagne d'une course par étapes (à partir de la troisième),
    si le premier du général a plus de 90 s d'avance, les équipes de l'ordinateur dont le leader est dans les dix
-   premiers (à moins de 6 min) s'entendent pour le faire craquer : leurs coureurs attaquent plus volontiers
-   (styleMul 'att' ×1,15). Valable pour l'étape en cours seulement. */
+   premiers (à moins de 6 min) s'entendent pour le faire craquer : leurs équipiers durcissent la course et
+   poursuivent plus volontiers (styleMul 'chase' ×1,25) pour user l'équipe du leader. Valable pour l'étape en cours. */
 let COAL = null;
 function coalitionStart(sim) {
   COAL = null;
@@ -337,7 +337,7 @@ function coalitionStart(sim) {
     `🤝 Coalition contre ${riderName(lead)} (${fmtGap(rc.gc[g[1]] - rc.gc[g[0]]).replace(/^\+/, '')} d'avance) : ${teams
       .slice(0, 4)
       .map(T => T.name)
-      .join(', ')} veulent faire craquer le leader.`,
+      .join(', ')} durcissent la course pour faire craquer le leader.`,
     lead.team === 0 ? 'bad' : 'info'
   );
 }
