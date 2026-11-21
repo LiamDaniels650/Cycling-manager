@@ -294,6 +294,18 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     caractéristiques et potentiel exacts ensuite. La connaissance d'un coureur ne redescend plus.
   - Forme : courbe de forme de toute la saison sur la fiche, forme moyenne et pic de chaque saison dans la carrière,
     forme et fraîcheur de l'effectif semaine par semaine et bilan de chaque stage (écran Gestion → Préparation).
+  - Équipes de l'ordinateur qui se préparent : stage en altitude dans les trois semaines avant chacune de leurs
+    courses objectifs (forme visée +3), annoncé par la presse pour les grands rendez-vous.
+  - Bordures au détail : largeur de l'éventail selon le vent, lutte à la cassure (les rouleurs encore frais sautent
+    dans la bordure), équipiers qui ramènent leur leader piégé, deuxième bordure par grand vent ; rejeu 🌬️.
+  - L'avant-dernier col hors catégorie (80 derniers km) est lui aussi rejoué au détail.
+  - Peloton nerveux : chute collective possible entre 12 et 3 km d'une arrivée pour sprinteurs (plus sous la pluie
+    et par vent), qui touche les coureurs mal placés.
+  - Sprints intermédiaires disputés par les prétendants au maillot vert (vraie pointe de vitesse, effort payé).
+  - Chaleur : les gabarits lourds s'usent davantage.
+  - Coalition contre un leader dominant (plus de 90 s d'avance) : les équipes dont le leader est dans les dix
+    premiers attaquent plus volontiers en montagne. Mercato d'été (semaine 26) entre équipes de l'ordinateur.
+  - Marge du sprint : le meilleur sprinteur gagne 36 à 37 % des sprints massifs (contre 31 %).
   - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
     carrousel, presse, stages, tests d'effort, forme).
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :
