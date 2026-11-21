@@ -53,9 +53,9 @@ src/
     29-ai-economy.js      économie des équipes IA (budget selon le standing, masse salariale, standing qui évolue)
     52-commentary.js      le résumé du commentateur à la fin de chaque étape (lecture seule des relevés d'étape)
     53-replay.js          rejeux des arrivées (reconstitution des solitaires, podiums conservés pour le film)
-    54-moments.js         moments décisifs simulés au détail en cours d'étape (sommets, secteurs pavés)
-    55-directors.js       directeurs adverses : identité, caractère, mémoire, objectifs de saison
-    56-prep.js            préparation : stages d'équipe, test d'effort, entraîneur en chef
+    54-moments.js         moments décisifs au détail (sommets, descentes, pavés), consignes, bordures
+    55-directors.js       directeurs adverses : caractère, mémoire, objectifs, offres, presse, carrousel
+    56-prep.js            préparation : stages, tests d'effort, entraîneur en chef, statistiques de forme
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -278,6 +278,24 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     (vrai potentiel et profil de puissance d'un coureur), entraîneur en chef spécialisé parmi trois candidats.
   - Économie : prime de lancement selon la masse salariale héritée (plus de faillite en saison 1), objectifs du
     sponsor adaptés au rang de l'équipe. Nouveau test `./dev.sh economie`.
+  - Agir pendant un moment décisif : à 3 km du sommet du col décisif (ou avant le secteur pavé décisif), mon meilleur
+    coureur du groupe appelle la voiture : attaquer dans les 2 derniers km, s'accrocher à la roue du plus fort, ou
+    garder des forces pour plonger dans la descente (pavés : frotter pour entrer devant, attaquer, rester à l'abri).
+    Bilan à la radio (bon groupe ou secondes concédées).
+  - Descentes au détail : la descente qui suit le col décisif (3 km et plus à −5 %) est rejouée à son tour, à
+    l'adresse (descente, pluie), sans puiser dans la réserve d'effort ; carte ⤵️ et rejeu.
+  - Bordures : à l'entrée d'une portion exposée au vent de côté, mes coureurs demandent s'il faut remonter devant
+    (−3 d'énergie, devant si l'éventail se forme dans les 25 minutes) ou rester abrités.
+  - Directeurs plus vivants : offres de rachat pour mes coureurs (vendre, contre-offre +30 % selon le caractère du
+    directeur, refuser — un ambitieux le prend mal), piques dans la presse avant leurs courses objectifs (répondre
+    du tac au tac, avec respect, ou pas du tout), carrousel des directeurs en fin de saison (retraite, limogeage
+    après une saison très en dessous de son rang, sauf objectif gagné ; le successeur arrive sans mémoire).
+  - Tests d'effort au recrutement : jeunes du vivier et coureurs de 23 ans et moins (12 k€, cinq par saison),
+    caractéristiques et potentiel exacts ensuite. La connaissance d'un coureur ne redescend plus.
+  - Forme : courbe de forme de toute la saison sur la fiche, forme moyenne et pic de chaque saison dans la carrière,
+    forme et fraîcheur de l'effectif semaine par semaine et bilan de chaque stage (écran Gestion → Préparation).
+  - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
+    carrousel, presse, stages, tests d'effort, forme).
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :
   - Bilan d'étape : pourquoi ils ont lâché, sprint perdu ou gagné (placement, train, lancement, enfermement),
     échappée reprise ou allée au bout, raisons des désobéissances, moments décisifs. Récit des courses confiées à
