@@ -556,7 +556,8 @@ function aiFinalOrders(sim) {
   const G = live[0];
   if (!G || sim.photo) return;
   const kmL = sim.dist - G.pos;
-  if (kmL > 3) return;
+  const up0 = sim.P.finishGrad >= 3;
+  if (kmL > (up0 ? climbFineKm(sim) + 0.5 : 3)) return; // avant que le final en côte ne se joue au détail
   const P = sim.P;
   const up = P.finishGrad >= 3 || P.climbs.some(c => c.end >= sim.dist - 0.5);
   const xs = G.riders.filter(x => !x.fin && !x.dnf);

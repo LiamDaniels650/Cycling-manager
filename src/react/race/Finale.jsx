@@ -470,7 +470,7 @@ function SprintReplay({ tr, onDone }) {
         </span>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-1 w-full" aria-label="Retransmission du sprint">
-        {(FROM > 500 ? [750, 500, 250] : [400, 300, 200, 100]).map(m => (
+        {(FROM > 1500 ? [2000, 1000, 500] : FROM > 500 ? [750, 500, 250] : [400, 300, 200, 100]).map(m => (
           <g key={m}>
             <line x1={X(m)} x2={X(m)} y1={0} y2={H} stroke="#334155" strokeDasharray="4 6" />
             <text x={X(m)} y={H} fontSize="14" fill="#64748b" textAnchor="middle">

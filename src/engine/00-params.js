@@ -69,6 +69,7 @@ const R = {
   sprintDraft: 0.45, // … gain de vitesse (m/s) dans la roue d'un coureur à moins de 6 m (×1,6 vent de face)
   sprintFade: 0.7, // … perte de vitesse (m/s par s) une fois la pointe tenue (≈ 10 s)
   sprintSpent: 1.2, // … un sprinteur à bout de pointe tombe sous la vitesse du groupe (m/s) : lancer trop tôt se paie
+  climbFinKm: 3, // final en côte simulé au détail : sur les 3 derniers km d'une vraie montée finale (1 km sinon)
   climbFinK: 0.006, // final en côte simulé : écart de vitesse (part) par point de capacité du jour
   climbFinCost: 0.33, // … réserve (W' relatif) brûlée par seconde et par unité de vitesse au-dessus de son allure
   climbFinSurge: 0.12, // … surcroît de vitesse d'une attaque (12 %)

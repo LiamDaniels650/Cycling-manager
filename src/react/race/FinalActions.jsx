@@ -68,7 +68,7 @@ function actionsFor(sim, x, head) {
   const contender =
     ['leader', 'free'].includes(x.order) ||
     G.riders.filter(y => !y.fin && y !== x && cap(y, fg, 0) > cap(x, fg, 0)).length < 10;
-  if (upFin && G === head && n > 1 && kmL <= 3 && contender) {
+  if (upFin && G === head && n > 1 && kmL <= climbFineKm(sim) + 2 && contender) {
     const rv = bestClimberRival(sim, x);
     A.push([
       'attack',

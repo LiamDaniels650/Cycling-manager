@@ -59,7 +59,7 @@ function tickCrossings(sim) {
       finishGroup(sim, G, tcross);
     } else if (
       sim.P.finishGrad >= 3 &&
-      sim.dist - G.pos <= 1 &&
+      sim.dist - G.pos <= climbFineKm(sim) &&
       G.speed > 0 &&
       G.riders.filter(x => !x.fin).length >= 2
     ) {
@@ -503,6 +503,12 @@ function finishGroup(sim, G, tcross, Lfine) {
   }
   G.riders = [];
 }
+// Distance (km) simulée au détail à la fin d'une arrivée en côte : les 3 derniers km d'une vraie montée finale
+// (au moins 3 km à 5 %), le dernier kilomètre sinon (bosse, arrivée en faux plat montant).
+function climbFineKm(sim) {
+  const lc = sim.P.climbs.filter(c => c.end >= sim.dist - 0.5).slice(-1)[0];
+  return lc && lc.len >= 3 && lc.avg >= 5 ? Math.min(R.climbFinKm, lc.len) : 1;
+}
 // Dernier kilomètre d'une arrivée en côte, simulé à la demi-seconde pour un groupe. Chacun a son allure
 // soutenable (capacité du jour, comme avant : même hiérarchie) et sa réserve (W' restant, relatif) : tenir la roue
 // d'un plus rapide (l'aspiration aide un peu sous 7 %) ou attaquer la vide ; à sec, il lâche. Le plus fort grimpeur
@@ -527,7 +533,12 @@ function climbRun(sim, ord, L, vg, fg) {
     if (x.climbPlan === 'last') D = 300;
     else if (x.climbPlan === 'follow') D = 200;
     else if (punchy) D = 220 + rf(0, 280);
-    else if (strongest && !role) D = Math.min(L - 40, 600 + rf(0, 450));
+    else if (strongest && !role) D = L <= 1200 ? Math.min(L - 40, 600 + rf(0, 450)) : L * rf(0.25, 0.7);
+    // une attaque ordonnée juste avant (radio) part tout de suite
+    if (x.radio === 'attack' && !role) {
+      D = L;
+      x.radio = null;
+    }
     return {
       x,
       sc,
@@ -569,7 +580,7 @@ function climbRun(sim, ord, L, vg, fg) {
           events.push({
             t,
             id: a.x.id,
-            txt: `⚡ ${name(a)} attaque à ${Math.round(a.d / 10) * 10} m !`,
+            txt: `⚡ ${name(a)} attaque à ${a.d >= 1000 ? (a.d / 1000).toFixed(1).replace('.', ',') + ' km' : Math.round(a.d / 10) * 10 + ' m'} !`,
           });
       }
       if (a.mode === 'att') {
@@ -598,8 +609,12 @@ function climbRun(sim, ord, L, vg, fg) {
           a.fol = tgt;
         } else if (!a.dropped && a.fol) {
           a.dropped = true;
-          if (a.d < 900)
-            events.push({ t, id: a.x.id, txt: `💥 ${name(a)} lâche prise à ${Math.round(a.d / 10) * 10} m.` });
+          if (a.d < L * 0.9)
+            events.push({
+              t,
+              id: a.x.id,
+              txt: `💥 ${name(a)} lâche prise à ${a.d >= 1000 ? (a.d / 1000).toFixed(1).replace('.', ',') + ' km' : Math.round(a.d / 10) * 10 + ' m'}.`,
+            });
         }
       }
       a.v = want;
