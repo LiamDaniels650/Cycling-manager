@@ -3128,7 +3128,7 @@ const R = {
   hunterTry: 0.6, // idem pour le chasseur du maillot de la montagne (× max(baroud, montagne) / 72)
   hunterBridge: 180, // le chasseur part en contre tant que l'échappée a moins de 180 s
   hunterShare: 85, // % des équipes sans ambition au général qui désignent un chasseur de maillot
-  hunterMon: 73, // note de montagne minimale du chasseur
+  hunterMon: 71, // note de montagne minimale du chasseur
   sitUpPace: 0.74, // allure d'un chasseur relevé (part de la capacité médiane du groupe)
   // classiques d'un jour : les équipes des favoris contrôlent l'échappée (écart toléré = (km restants − catchKm) × gapKm s)
   classicCatchKm: 50, // classique : l'échappée matinale doit être reprise vers 50 km de l'arrivée…
@@ -5503,6 +5503,19 @@ function autoOrders(teamId, spec, rc) {
   if (T_ && T_.style === 'defensif' && nBreak > 0 && rnd() < 0.5) nBreak--;
   if (sprinter && t === 'plat') nBreak = 0;
   if (leader && rc.si > 0 && leaderGcRank(rc, leader.id) <= 3) nBreak = Math.min(nBreak, 1);
+  // le prétendant au maillot vert (trois premiers du classement par points, rapide) part chercher les points du
+  // sprint intermédiaire dans l'échappée sur une étape accidentée, où il ne disputera pas l'arrivée
+  if (stageRace && rc.si > 0 && (t === 'vallonne' || t === 'punch')) {
+    const pr = rest.find(r => {
+      const k = jerseyRank(rc, rc.pts || {}, r.id);
+      return k && k <= 3 && r.s.spr >= 70 && (!leader || r.id !== leader.id);
+    });
+    if (pr && rest.indexOf(pr) >= nBreak && fixedRnd(pr.id + rc.si * 31) < 0.5) {
+      rest.splice(rest.indexOf(pr), 1);
+      rest.unshift(pr);
+      nBreak = Math.max(nBreak, 1);
+    }
+  }
   // le chasseur de maillot de la montagne de l'équipe prend l'échappée dès qu'il y a des cols à grimper
   if (stageRace && (t === 'montagne' || t === 'sommet' || (t === 'vallonne' && rc.specs.length > 15))) {
     const hid = komHunter(rc, teamId, rest, leader);
@@ -5685,7 +5698,7 @@ function styleMul(T, k) {
   if (k === 'att')
     return (
       (s === 'agressif' ? 1.5 : s === 'defensif' ? 0.6 : s === 'opportuniste' ? 1.2 : 1) *
-      (COAL && COAL.has(T.id) ? 1.35 : 1)
+      (COAL && COAL.has(T.id) ? 1.15 : 1)
     );
   if (k === 'chase') return s === 'defensif' ? 1.15 : s === 'sprint' ? 1.1 : s === 'agressif' ? 0.9 : 1;
   if (k === 'break')
@@ -7029,6 +7042,7 @@ function tickRoadEvents(sim) {
   }
   // bordures (mes coureurs demandent s'il faut remonter devant)
   echelonAsk(sim);
+  dangerTick(sim);
   for (const G of sim.groups.slice()) {
     if (!G.expo || !sim.P.wind || G !== pel || G.riders.length < 30 || G.pos < 15 || sim.dist - G.pos < 3) continue;
     if (sim.echelonT && sim.t - sim.echelonT < 70) continue;
@@ -7997,6 +8011,7 @@ function tickIncidents(sim, live) {
           (wet ? 0.7 + 0.6 * descentTech(sim, G.pos) : 1)
         : 1) *
       (kmLeft < 5 && G.riders.length > 20 ? 3 : 1) *
+      (sim.dangerT === sim.t && G === sim.pel && x.pos < 40 ? 2 : 1) * // rond-point, rétrécissement
       (G.riders.length >= 20 ? clamp(1.6 - x.pos / 100, 0.6, 1.6) : 1) *
       (wet && x.eqf.tyres === 'larges' ? 0.8 : 1) * // pneus larges sous la pluie
       (sim.P.wind >= 2 && x.eqf.wheels === 'hautes' ? 1.25 : 1) * // roues hautes par grand vent
@@ -20140,44 +20155,89 @@ function momentRun(sim, G, L, grad, surf, kind, name, km, key) {
   // le choix du directeur (momentAsk) pour mon coureur
   const ch = (sim.momentChoice || {})[key];
   const me = ch ? xs.find(x => x.id === ch.id) : null;
+  // les consignes : la mienne, et celles des directeurs adverses pour leurs favoris (aiMomentPlan)
+  const plans = new Map();
+  if (me) plans.set(me, ch.k);
+  for (const x of xs)
+    if (x !== me && !x.player && sim.favs.has(x.id) && !['protect', 'control', 'leadout'].includes(effOrder(x))) {
+      const k = aiMomentPlan(sim, x, xs, kind, fg, surf);
+      if (k) plans.set(x, k);
+    }
   const ord = xs.map(x => {
     // en descente : l'adresse (cap en pente négative), plus de part de hasard (trajectoires, prise de risque)
     let s = cap(x, fg, surf) + gauss() * (kind === 'desc' ? 2 : 1.4);
     if (x.r.trait === 'gagneur') s += 0.5;
     if (['protect', 'control', 'leadout'].includes(effOrder(x))) s -= 3;
-    if (x === me && ch.k === 'devant') s += 1; // bien placé à l'entrée du secteur : pas piégé derrière une chute
-    if (x === me && kind === 'desc' && ch.k === 'desc') s += 1.2; // des forces gardées pour plonger à fond
+    const k = plans.get(x);
+    if (k === 'devant') s += 1; // bien placé à l'entrée du secteur : pas piégé derrière une chute
+    if (x === me && kind === 'desc' && k === 'desc') s += 1.2; // des forces gardées pour plonger à fond
     return [x, s];
   });
-  const keep = me ? { cp: me.climbPlan, fid: me.followId, _cp: me._cp, _cpR: me._cpRival } : null;
-  if (me) {
-    if (ch.k === 'att' || (kind === 'desc' && ch.k === 'desc')) me.radio = 'attack';
-    else if (ch.k === 'roue' && kind !== 'desc') {
-      const best = ord.filter(a => a[0] !== me).sort((a, b) => b[1] - a[1])[0];
+  const keep = new Map();
+  for (const [x, k] of plans) {
+    keep.set(x, { cp: x.climbPlan, fid: x.followId, _cp: x._cp, _cpR: x._cpRival });
+    if (k === 'att' || k === 'plonge' || (kind === 'desc' && k === 'desc')) x.radio = 'attack';
+    else if (k === 'roue' && kind !== 'desc') {
+      const best = ord.filter(a => a[0] !== x).sort((a, b) => b[1] - a[1])[0];
       if (best) {
-        me.climbPlan = 'follow';
-        me.followId = best[0].id;
+        x.climbPlan = 'follow';
+        x.followId = best[0].id;
       }
-    } else if ((ch.k === 'desc' || ch.k === 'abri') && kind !== 'desc') me._noAtt = true;
-    else if (ch.k === 'devant') me.energy = Math.max(0, me.energy - 2);
+    } else if ((k === 'desc' || k === 'abri') && kind !== 'desc') x._noAtt = true;
+    else if (k === 'devant') x.energy = Math.max(0, x.energy - 2);
   }
   // la descente ne puise pas dans la réserve d'effort (W′), seulement dans l'adresse
   const wb = kind === 'desc' ? xs.map(x => x.wbal) : null;
   // (sur les pavés, l'aspiration compte peu : on la règle comme dans une forte pente)
   const T = climbRun(sim, ord, L, G.speed / 3.6, kind === 'pave' ? 6 : kind === 'desc' ? 5 : fg);
   if (wb) xs.forEach((x, i) => (x.wbal = wb[i]));
-  if (me) {
-    me.climbPlan = keep.cp;
-    me.followId = keep.fid;
-    me._cp = keep._cp;
-    me._cpRival = keep._cpR;
-    me._noAtt = false;
-    if (me.radio === 'attack') me.radio = null;
+  for (const [x, o] of keep) {
+    x.climbPlan = o.cp;
+    x.followId = o.fid;
+    x._cp = o._cp;
+    x._cpRival = o._cpR;
+    x._noAtt = false;
+    if (x.radio === 'attack') x.radio = null;
+  }
+  // les consignes adverses, quand je suis dans le groupe
+  if (xs.some(x => x.player)) {
+    const LBL = {
+      att: 'attaque',
+      roue: 'prend les roues',
+      desc: 'garde des forces',
+      devant: 'frotte devant',
+      plonge: 'plonge',
+    };
+    const said = [...plans].filter(([x]) => x !== me).slice(0, 3);
+    if (said.length)
+      log(
+        sim,
+        `🧑‍💼 Consignes adverses : ${said.map(([x, k]) => `${riderName(x.r)} ${LBL[k] || k}`).join(', ')}.`,
+        'info'
+      );
+  }
+  // chutes dans la descente : adresse, pluie, technicité, prise de risque (ceux qui plongent)
+  const fell = [];
+  if (kind === 'desc') {
+    const wet = sim.wx === 'pluie';
+    for (const x of xs) {
+      const risk =
+        0.008 *
+        clamp(1 + (70 - (x.r.s.des || 68)) / 25, 0.6, 2.2) *
+        (wet ? 2 : 1) *
+        (0.6 + 0.8 * descentTech(sim, km - L / 2000)) *
+        (plans.get(x) === 'plonge' || plans.get(x) === 'desc' ? 1.8 : 1);
+      if (rnd() < risk) fell.push(x);
+    }
   }
   const tr = sim._climbTrace;
   sim._climbTrace = null;
   if (tr && kind === 'desc')
     tr.events = tr.events.map(e => ({ ...e, txt: e.txt.replace(/^⚡ (.*) attaque à/, '⤵️ $1 plonge à') }));
+  if (tr && fell.length)
+    for (const x of fell)
+      tr.events.push({ t: Math.round(T.get(x) * 0.5), txt: `💥 ${riderName(x.r)} chute dans la descente !` });
+  if (tr) tr.events.sort((a, b) => a.t - b.t);
   // l'éclatement : un nouveau groupe dès que l'écart dépasse 4 s
   const sorted = xs.slice().sort((a, b) => T.get(a) - T.get(b));
   const t0 = T.get(sorted[0]);
@@ -20196,6 +20256,8 @@ function momentRun(sim, G, L, grad, surf, kind, name, km, key) {
     const NG = newGroupFrom(sim, cl, Math.max(0, G.pos - (G.speed * gap) / 3600));
     NG.noMerge = 2;
   }
+  for (const x of fell) if (!x.dnf && !x.fin) incident(sim, x, 'chute');
+
   // récit : qui bascule en tête, avec quelle avance, combien de groupes
   const lead = sorted[0];
   const g2 = clusters.length > 1 ? T.get(clusters[1][0]) - t0 : 0;
@@ -20348,77 +20410,111 @@ function echelonAsk(sim) {
   if (ok) sim.echAsks = (sim.echAsks || 0) + 1;
 }
 
-/* Bordure au détail. L'équipe T met le peloton en éventail : la largeur de la route ne laisse de l'abri qu'à 16 à
-   32 coureurs (selon le vent). Le classement à la cassure vient du placement (position, frotteurs, équipiers de T,
-   mes coureurs remontés devant) ; puis la lutte à la cassure : les coureurs juste derrière tentent de sauter dans la
-   bordure (rouleurs puissants, encore frais) au prix d'un gros effort ; les équipes dont le leader est piégé le
-   ramènent (équipiers qui attendent) ; par grand vent, le groupe piégé se casse lui-même en deuxième bordure.
-   Rejeu reconstruit de la cassure (90 s), carte dans le bilan d'étape. */
+/* Bordure au détail, simulée seconde par seconde pendant 90 s. L'équipe T accélère, vent de côté : la largeur de la
+   route n'offre l'abri de l'éventail qu'aux K premiers (16 à 32 coureurs selon le vent). L'ordre de départ vient du
+   placement (position, frotteurs, équipiers de T, mes coureurs remontés devant). Chaque seconde, un coureur hors de
+   l'éventail prend le vent de côté : s'il en a la force (puissance du jour au plat, énergie), il remonte et peut sauter
+   dans la bordure ; sinon il recule. Ceux de l'éventail tiennent la roue (les rouleurs de T paient l'effort). Au bout
+   de 90 s, la course se casse là où l'écart dépasse 4 m : deux ou trois groupes (deuxième bordure par grand vent).
+   Les équipes dont le leader est piégé le ramènent (équipiers qui attendent). Rejeu de la vraie simulation. */
 function echelonSplit(sim, G, T) {
-  const sc = G.riders.map(x => [
-    x,
-    x.pos +
-      (x.r.s.plc || 65) * 0.35 +
-      (x.team === T ? 40 : 0) +
-      (x.r.s.pla - 70) * 0.4 +
-      (x.echFront > sim.t ? 30 : 0) +
-      gauss() * 14,
-  ]);
+  const sc = G.riders
+    .filter(x => !x.fin && !x.dnf)
+    .map(x => [
+      x,
+      x.pos +
+        (x.r.s.plc || 65) * 0.35 +
+        (x.team === T ? 40 : 0) +
+        (x.r.s.pla - 70) * 0.4 +
+        (x.echFront > sim.t ? 30 : 0) +
+        gauss() * 14,
+    ]);
   sc.sort((a, b) => b[1] - a[1]);
   const W = sim.P.wind || 2;
   const K = rint(16, 32) - (W >= 3 ? 3 : 0);
-  let front = sc.slice(0, K).map(a => a[0]);
-  let back = sc.slice(K).map(a => a[0]);
-  if (back.length < 5) return;
-  // la lutte à la cassure : les 10 premiers piégés tentent le saut
-  const jumped = [],
-    failed = [];
-  for (const x of back.slice(0, 10)) {
-    const pw = ((x.r.s.pla || 70) + (x.r.s.plc || 65)) / 2 + (x.energy - 60) * 0.3 + gauss() * 6;
-    if (x.energy > 40 && pw > 74) {
-      x.energy = Math.max(0, x.energy - 4);
-      jumped.push(x);
-    } else if (pw > 66) failed.push(x);
-  }
-  front = front.concat(jumped);
-  back = back.filter(x => !jumped.includes(x));
-  // deuxième bordure : le groupe piégé, long et exposé, se casse à son tour
-  let third = [];
-  if (W >= 3 && back.length >= 30 && rnd() < 0.5) {
-    const K2 = rint(16, 26);
-    third = back.slice(K2);
-    back = back.slice(0, K2);
-    if (third.length < 5) {
-      back = back.concat(third);
-      third = [];
+  if (sc.length < K + 5) return;
+  const v = Math.max(10, G.speed / 3.6);
+  // force du jour au plat (relative à la médiane de l'éventail), avec l'énergie qui reste
+  const pw = x => cap(x, 0, 0) * (0.85 + 0.15 * Math.min(1, x.energy / 60));
+  const ref =
+    sc
+      .slice(0, K)
+      .map(a => pw(a[0]))
+      .sort((a, b) => a - b)[Math.floor(K / 2)] || 1;
+  const R_ = sc.map(([x], i) => ({ x, d: i * 1.6, k0: i, rel: pw(x) / ref }));
+  const hist = [],
+    ev = [];
+  const jumped = new Set();
+  for (let t = 0; t <= 90; t++) {
+    R_.sort((a, b) => a.d - b.d);
+    // la cassure apparaît dès que deux coureurs se suivent à plus de 4 m : l'éventail de derrière se reforme
+    let lead = 0;
+    R_.forEach((a, k) => {
+      if (k && a.d - R_[k - 1].d > 4) lead = k;
+      a.k = k - lead; // rang dans son propre éventail
+      a.cut = lead;
+    });
+    for (const a of R_) {
+      const x = a.x;
+      const exposed = a.k >= K;
+      if (!exposed) {
+        // dans l'éventail : on tient la roue ; les rouleurs de T paient l'effort de tête
+        if (x.team === T && a.k < 8) x.energy = Math.max(0, x.energy - 0.02);
+        if (a.cut > 0 && t > 10) a.d += clamp((1.02 - a.rel) * 6, 0, 0.5); // l'éventail de derrière roule moins vite
+        continue;
+      }
+      // hors de l'éventail, dans le vent de côté
+      const need = 1 + 0.022 * W;
+      if (a.rel > need && x.energy > 40 && t < 45) {
+        a.d -= Math.min(1.2, (a.rel - need) * 25);
+        x.energy = Math.max(0, x.energy - 0.06);
+      } else a.d += clamp((need - a.rel) * 10 + (t > 8 ? 0.5 : 0), 0.1, 1.6);
     }
+    hist.push(new Map(R_.map(a => [a, a.d])));
   }
-  if (back.length < 5) return;
-  const BG = newGroupFrom(sim, back, G.pos - 0.03);
+  R_.sort((a, b) => a.d - b.d);
+  const groups = [[R_[0]]];
+  for (let k = 1; k < R_.length; k++) {
+    if (R_[k].d - R_[k - 1].d > 4 && groups.length < 3) groups.push([]);
+    groups[groups.length - 1].push(R_[k]);
+  }
+  // un groupe de moins de 5 coureurs rejoint celui de devant (personne ne roule seul dans le vent de côté)
+  for (let g = groups.length - 1; g > 0; g--)
+    if (groups[g].length < 5) {
+      groups[g - 1].push(...groups[g]);
+      groups.splice(g, 1);
+    }
+  if (groups.length < 2) return;
+  for (const a of groups[0]) if (a.k0 >= K) jumped.add(a.x);
+  const front = groups[0].map(a => a.x);
+  const back = groups[1].map(a => a.x);
+  const third = groups[2] ? groups[2].map(a => a.x) : [];
+  const dAt = a => a.d - groups[0][0].d;
+  const BG = newGroupFrom(sim, back, G.pos - Math.max(0.02, dAt(groups[1][0]) / 1000));
   BG.noMerge = 6;
   if (third.length) {
-    const TG = newGroupFrom(sim, third, G.pos - 0.07);
+    const TG = newGroupFrom(sim, third, G.pos - Math.max(0.05, dAt(groups[2][0]) / 1000));
     TG.noMerge = 6;
   }
   sim.echelon = { T, until: sim.t + 20 };
   sim.echelonT = sim.t;
   // les équipes dont le leader (ou le sprinteur) est piégé : ses équipiers piégés avec lui roulent pour le ramener
+  const trapped = back.concat(third);
   const rescue = [];
-  for (const U of new Set(back.concat(third).map(x => x.team))) {
+  for (const U of new Set(trapped.map(x => x.team))) {
     const ld = sim.teamLeader[U.id] || sim.teamSprinter[U.id];
     if (!ld || front.includes(ld) || ld.fin) continue;
-    const mates = back.concat(third).filter(y => y.team === U && y !== ld && y.energy > 35);
+    const mates = trapped.filter(y => y.team === U && y !== ld && y.energy > 35);
     if (mates.length >= 2) rescue.push([U, ld, mates.length]);
   }
-  const trapped = back.concat(third);
   const mineB = trapped.filter(x => x.player),
     mineF = front.filter(x => x.player);
   log(
     sim,
-    `🌬️ BORDURE ! ${T.name} met le peloton en éventail : ${front.length} devant, ${trapped.length} piégés derrière${third.length >= 5 ? ' (deuxième bordure : trois groupes)' : ''}.${mineB.length ? ' Piégés : ' + mineB.map(x => riderName(x.r)).join(', ') + '.' : ''}${mineF.length ? ' Devant : ' + mineF.map(x => riderName(x.r)).join(', ') + '.' : ''}`,
+    `🌬️ BORDURE ! ${T.name} met le peloton en éventail : ${front.length} devant, ${trapped.length} piégés derrière${third.length ? ' (deuxième bordure : trois groupes)' : ''}.${mineB.length ? ' Piégés : ' + mineB.map(x => riderName(x.r)).join(', ') + '.' : ''}${mineF.length ? ' Devant : ' + mineF.map(x => riderName(x.r)).join(', ') + '.' : ''}`,
     mineB.length ? 'bad' : 'att'
   );
-  for (const x of jumped.filter(x => x.player || sim.favs.has(x.id)))
+  for (const x of [...jumped].filter(x => x.player || sim.favs.has(x.id)))
     log(sim, `🌬️ ${riderName(x.r)} saute dans la bordure à la force des jambes !`, x.player ? 'me' : 'info');
   for (const [U, ld, n] of rescue.slice(0, 2))
     log(sim, `🌬️ ${U.name} : ${n} équipiers roulent pour ramener ${riderName(ld.r)}.`, ld.player ? 'me' : 'info');
@@ -20428,74 +20524,40 @@ function echelonSplit(sim, G, T) {
     `🌬️ BORDURE ! ${T.name} coupe le peloton : ${trapped.length} coureurs piégés.`,
     mineB.length || mineF.length
   );
-  // rejeu reconstruit : la cassure s'ouvre sur 90 s (1 m/s de moins pour les piégés, 1,6 m/s pour la 2e bordure)
-  const v = Math.max(10, G.speed / 3.6);
-  const pickF = front
-    .slice(0, 6)
-    .concat(front.filter(x => x.player && front.indexOf(x) >= 6))
-    .slice(0, 8);
-  const pickB = back
-    .slice(0, 4)
-    .concat(back.filter(x => x.player && back.indexOf(x) >= 4))
-    .slice(0, 6);
-  const pickT = third
-    .slice(0, 2)
-    .concat(third.filter(x => x.player && third.indexOf(x) >= 2))
-    .slice(0, 3);
-  const ridersR = [...pickF, ...pickB, ...pickT];
-  if (ridersR.length < 4) return;
+  // rejeu : la vraie simulation, pour les premiers de chaque groupe et mes coureurs
+  const pick = []
+    .concat(groups[0].slice(0, 6), groups[0].filter(a => a.x.player).slice(0, 2))
+    .concat(groups[1].slice(0, 4), groups[1].filter(a => a.x.player).slice(0, 2))
+    .concat(groups[2] ? groups[2].slice(0, 2) : []);
+  const ridersR = [...new Set(pick)];
   const L0 = 1350;
-  const start = new Map(),
-    slow = new Map();
-  ridersR.forEach((x, i) => {
-    const k = pickF.includes(x) ? i : pickB.includes(x) ? K + (i - pickF.length) : K + 20 + i;
-    start.set(x, L0 + k * 1.6);
-    slow.set(x, pickF.includes(x) ? 0 : pickB.includes(x) ? 1 : 1.6);
-  });
-  const frames = [];
-  const ev = [];
-  for (let t = 0; t <= 90; t++) {
-    frames.push(
-      ridersR.map(x => {
-        // les sauteurs : partis derrière, ils comblent l'écart dans les 25 premières secondes
-        const jump = jumped.includes(x) && pickF.includes(x);
-        const lag = jump ? Math.max(0, 1 - t / 25) * 1.2 : 0;
-        const ramp = Math.min(1, t / 15);
-        const d = start.get(x) - v * t + slow.get(x) * ramp * Math.max(0, t - 7.5) + lag * t * 0.4;
-        return Math.max(0, +d.toFixed(1));
-      })
-    );
-  }
   ev.push({ t: 2, txt: `🌬️ ${T.name} accélère, vent de côté : l'éventail se forme.` });
-  if (jumped.length)
-    ev.push({
-      t: 12,
-      txt: `💪 ${jumped.length} coureur${jumped.length > 1 ? 's sautent' : ' saute'} dans la bordure.`,
-    });
-  ev.push({ t: 30, txt: `✂️ La cassure : ${trapped.length} coureurs piégés.` });
-  if (third.length >= 5) ev.push({ t: 50, txt: `✂️ Deuxième bordure : le groupe piégé se casse à son tour.` });
+  if (jumped.size)
+    ev.push({ t: 15, txt: `💪 ${jumped.size} coureur${jumped.size > 1 ? 's sautent' : ' saute'} dans la bordure.` });
+  ev.push({ t: 35, txt: `✂️ La cassure : ${trapped.length} coureurs piégés.` });
+  if (third.length) ev.push({ t: 55, txt: `✂️ Deuxième bordure : le groupe piégé se casse à son tour.` });
   if (rescue.length)
-    ev.push({ t: 70, txt: `🚴 ${rescue[0][0].name} organise la chasse pour ${riderName(rescue[0][1].r)}.` });
-  const last = frames[frames.length - 1];
+    ev.push({ t: 75, txt: `🚴 ${rescue[0][0].name} organise la chasse pour ${riderName(rescue[0][1].r)}.` });
+  const last = ridersR.map(a => L0 - v * 90 + a.d);
   const t0 = Math.min(...last);
   const tr = {
     dt: 1,
     from: L0,
     speed: 9,
-    riders: ridersR.map((x, j) => ({
-      id: x.id,
-      n: riderName(x.r),
-      t: x.team.short,
-      c: x.team.color,
-      me: !!x.player,
+    riders: ridersR.map((a, j) => ({
+      id: a.x.id,
+      n: riderName(a.x.r),
+      t: a.x.team.short,
+      c: a.x.team.color,
+      me: !!a.x.player,
       gap: +(last[j] - t0).toFixed(1),
     })),
-    frames,
+    frames: hist.map((m, t) => ridersR.map(a => Math.max(0, +(L0 - v * t + m.get(a)).toFixed(1)))),
     events: ev,
     win: `🌬️ ${front.length} coureurs dans la bonne bordure, ${trapped.length} piégés.`,
     endLbl: 'La cassure est faite !',
   };
-  if ((sim.momentTraces || []).length < 6) {
+  if (tr.frames.length > 10 && (sim.momentTraces || []).length < 8) {
     (sim.momentTraces = sim.momentTraces || []).push({
       name: `bordure de ${T.name}`,
       kind: 'bord',
@@ -20505,7 +20567,6 @@ function echelonSplit(sim, G, T) {
     if (mineB.length || mineF.length) sim.liveMoment = { i: sim.momentTraces.length - 1, until: sim.t + 4 };
   }
 }
-
 /* Peloton nerveux : dans les 12 à 3 derniers km d'une arrivée pour sprinteurs, tout le monde veut être devant ; une
    touche de roues au milieu du peloton fait tomber plusieurs coureurs voisins (ceux qui étaient mal placés). Une
    chute collective au plus par étape, environ une étape plate sur six (plus sous la pluie ou par vent). */
@@ -20550,7 +20611,13 @@ function ispOrder(sim, G) {
   });
   if (cont.length < 2) return ord;
   const sc = new Map(
-    cont.map(x => [x, sprintPeak(x.r.s.spr) * (0.75 + 0.25 * Math.min(1, x.energy / 50)) + gauss() * 2.5])
+    cont.map(x => [
+      x,
+      sprintPeak(x.r.s.spr) * (0.75 + 0.25 * Math.min(1, x.energy / 50)) +
+        gauss() * 2.5 +
+        // un poisson-pilote de l'équipe dans le groupe lance le sprint
+        (G.riders.some(y => y.team === x.team && y !== x && effOrder(y) === 'leadout' && y.energy > 30) ? 1.5 : 0),
+    ])
   );
   cont.sort((a, b) => sc.get(b) - sc.get(a));
   for (const x of cont) {
@@ -20568,6 +20635,59 @@ function ispOrder(sim, G) {
       cont.some(x => x.player) ? 'me' : 'info'
     );
   return cont.concat(ord.filter(x => !cont.includes(x)));
+}
+
+// Consigne d'un directeur adverse pour son favori au moment décisif : selon sa force du jour dans le groupe, sa
+// place au général et le caractère du directeur. null : à l'instinct.
+function aiMomentPlan(sim, x, xs, kind, fg, surf) {
+  let b = 0;
+  for (const y of xs) if (y !== x) b = Math.max(b, cap(y, fg, surf));
+  const rl = cap(x, fg, surf) / (b || 1);
+  const d = dsOf(x.team);
+  if (kind === 'desc') return (x.r.s.des || 68) >= 74 && rl > 0.97 ? 'plonge' : null;
+  if (kind === 'pave') return rl > 1.02 ? 'att' : 'devant';
+  const gr = sim.stageRace && sim.rc.si > 0 ? leaderGcRank(sim.rc, x.id) : 0;
+  if (gr === 1) return rl > 1.03 ? 'att' : 'roue'; // le maillot défend : il marque le plus dangereux
+  if (rl > 1.01 && ((d && d.temper === 'rancunier') || x.team.style === 'agressif' || rl > 1.03)) return 'att';
+  if (rl < 0.96) return 'desc';
+  return null;
+}
+
+/* Zones dangereuses du final (arrivées pour sprinteurs) : deux ou trois ronds-points, rétrécissements ou îlots entre
+   20 et 4 km de l'arrivée. Au passage du peloton (50 coureurs et plus), les chutes sont deux fois plus probables
+   pour les mal placés, et la queue du peloton peut se faire couper (accordéon) : quelques secondes perdues. */
+const DANGER_K = ['rond-point', 'rétrécissement', 'îlot directionnel'];
+function dangerTick(sim) {
+  const G = sim.pel;
+  if (!G || sim.P.finishGrad >= 3 || sim.dist < 60) return;
+  if (!sim.dangers) {
+    // emplacements tirés d'une empreinte de l'étape : le hasard de la course n'est pas consommé
+    const h = dsHash(sim.rc.key + '/' + sim.rc.si + '/' + S.season);
+    const n = 2 + (h % 2);
+    sim.dangers = Array.from({ length: n }, (_, i) => {
+      const u = ((h >>> (4 + i * 7)) % 1000) / 1000;
+      return { km: +(sim.dist - 4 - u * 16).toFixed(2), k: DANGER_K[(h >>> (i * 3)) % DANGER_K.length] };
+    }).sort((a, b) => a.km - b.km);
+  }
+  for (const z of sim.dangers) {
+    if (z.done || !(G.prev < z.km && G.pos >= z.km)) continue;
+    z.done = true;
+    if (G.riders.length < 50) continue;
+    sim.dangerT = sim.t;
+    if (rnd() >= 0.45) continue;
+    const live = G.riders.filter(x => !x.fin && !x.dnf).sort((a, b) => a.pos - b.pos);
+    const tail = live.slice(0, Math.max(4, Math.round(live.length * rf(0.06, 0.14))));
+    const gap = rf(2, 6);
+    const NG = newGroupFrom(sim, tail, Math.max(0, G.pos - (G.speed * gap) / 3600));
+    NG.noMerge = 1;
+    const mine = tail.filter(x => x.player);
+    if (mine.length || tail.some(x => sim.favs.has(x.id)))
+      log(
+        sim,
+        `⚠️ ${z.k[0].toUpperCase() + z.k.slice(1)} à ${Math.round(sim.dist - z.km)} km : l'accordéon coupe la queue du peloton (${tail.length} coureurs, ${Math.round(gap)} s)${mine.length ? ', dont ' + mine.map(x => riderName(x.r)).join(', ') : ''}.`,
+        mine.length ? 'bad' : 'info'
+      );
+  }
 }
 
 // ---- src/engine/55-directors.js ----
@@ -20884,7 +21004,7 @@ function dsGoalWon(rc, winnerTeamId) {
 /* Coalition contre un leader dominant : sur une étape de montagne d'une course par étapes (à partir de la troisième),
    si le premier du général a plus de 90 s d'avance, les équipes de l'ordinateur dont le leader est dans les dix
    premiers (à moins de 6 min) s'entendent pour le faire craquer : leurs coureurs attaquent plus volontiers
-   (styleMul 'att' ×1,35). Valable pour l'étape en cours seulement. */
+   (styleMul 'att' ×1,15). Valable pour l'étape en cours seulement. */
 let COAL = null;
 function coalitionStart(sim) {
   COAL = null;

@@ -1015,7 +1015,10 @@ check(
   check(!!bt && bt.tr.frames.length === 91 && bt.tr.riders.length >= 4, 'bordure : rejeu de la cassure');
   // sprint intermédiaire disputé : les prétendants passent devant
   const G = sim.groups.slice().sort((a, b) => b.riders.length - a.riders.length)[0];
-  G.riders.slice(0, 2).forEach(x => (x.aim = 'pts'));
+  G.riders
+    .filter(x => !['protect', 'control', 'leadout'].includes(effOrder(x)))
+    .slice(0, 2)
+    .forEach(x => (x.aim = 'pts'));
   const o = ispOrder(sim, G);
   check(
     o.length === G.riders.length && o.slice(0, 2).every(x => x.aim === 'pts'),

@@ -311,7 +311,7 @@ function dsGoalWon(rc, winnerTeamId) {
 /* Coalition contre un leader dominant : sur une étape de montagne d'une course par étapes (à partir de la troisième),
    si le premier du général a plus de 90 s d'avance, les équipes de l'ordinateur dont le leader est dans les dix
    premiers (à moins de 6 min) s'entendent pour le faire craquer : leurs coureurs attaquent plus volontiers
-   (styleMul 'att' ×1,35). Valable pour l'étape en cours seulement. */
+   (styleMul 'att' ×1,15). Valable pour l'étape en cours seulement. */
 let COAL = null;
 function coalitionStart(sim) {
   COAL = null;

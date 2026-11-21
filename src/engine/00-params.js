@@ -81,7 +81,7 @@ const R = {
   hunterTry: 0.6, // idem pour le chasseur du maillot de la montagne (× max(baroud, montagne) / 72)
   hunterBridge: 180, // le chasseur part en contre tant que l'échappée a moins de 180 s
   hunterShare: 85, // % des équipes sans ambition au général qui désignent un chasseur de maillot
-  hunterMon: 73, // note de montagne minimale du chasseur
+  hunterMon: 71, // note de montagne minimale du chasseur
   sitUpPace: 0.74, // allure d'un chasseur relevé (part de la capacité médiane du groupe)
   // classiques d'un jour : les équipes des favoris contrôlent l'échappée (écart toléré = (km restants − catchKm) × gapKm s)
   classicCatchKm: 50, // classique : l'échappée matinale doit être reprise vers 50 km de l'arrivée…

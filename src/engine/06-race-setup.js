@@ -234,6 +234,19 @@ function autoOrders(teamId, spec, rc) {
   if (T_ && T_.style === 'defensif' && nBreak > 0 && rnd() < 0.5) nBreak--;
   if (sprinter && t === 'plat') nBreak = 0;
   if (leader && rc.si > 0 && leaderGcRank(rc, leader.id) <= 3) nBreak = Math.min(nBreak, 1);
+  // le prétendant au maillot vert (trois premiers du classement par points, rapide) part chercher les points du
+  // sprint intermédiaire dans l'échappée sur une étape accidentée, où il ne disputera pas l'arrivée
+  if (stageRace && rc.si > 0 && (t === 'vallonne' || t === 'punch')) {
+    const pr = rest.find(r => {
+      const k = jerseyRank(rc, rc.pts || {}, r.id);
+      return k && k <= 3 && r.s.spr >= 70 && (!leader || r.id !== leader.id);
+    });
+    if (pr && rest.indexOf(pr) >= nBreak && fixedRnd(pr.id + rc.si * 31) < 0.5) {
+      rest.splice(rest.indexOf(pr), 1);
+      rest.unshift(pr);
+      nBreak = Math.max(nBreak, 1);
+    }
+  }
   // le chasseur de maillot de la montagne de l'équipe prend l'échappée dès qu'il y a des cols à grimper
   if (stageRace && (t === 'montagne' || t === 'sommet' || (t === 'vallonne' && rc.specs.length > 15))) {
     const hid = komHunter(rc, teamId, rest, leader);
@@ -416,7 +429,7 @@ function styleMul(T, k) {
   if (k === 'att')
     return (
       (s === 'agressif' ? 1.5 : s === 'defensif' ? 0.6 : s === 'opportuniste' ? 1.2 : 1) *
-      (COAL && COAL.has(T.id) ? 1.35 : 1)
+      (COAL && COAL.has(T.id) ? 1.15 : 1)
     );
   if (k === 'chase') return s === 'defensif' ? 1.15 : s === 'sprint' ? 1.1 : s === 'agressif' ? 0.9 : 1;
   if (k === 'break')

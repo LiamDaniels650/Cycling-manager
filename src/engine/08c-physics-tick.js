@@ -339,6 +339,7 @@ function tickIncidents(sim, live) {
           (wet ? 0.7 + 0.6 * descentTech(sim, G.pos) : 1)
         : 1) *
       (kmLeft < 5 && G.riders.length > 20 ? 3 : 1) *
+      (sim.dangerT === sim.t && G === sim.pel && x.pos < 40 ? 2 : 1) * // rond-point, rétrécissement
       (G.riders.length >= 20 ? clamp(1.6 - x.pos / 100, 0.6, 1.6) : 1) *
       (wet && x.eqf.tyres === 'larges' ? 0.8 : 1) * // pneus larges sous la pluie
       (sim.P.wind >= 2 && x.eqf.wheels === 'hautes' ? 1.25 : 1) * // roues hautes par grand vent
