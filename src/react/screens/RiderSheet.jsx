@@ -335,6 +335,15 @@ function Fiche({ r }) {
               </span>
             </div>
           ) : null}
+          {mine && r.fs && r.fs.s === S.season && r.fs.v.length > 4 ? (
+            <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
+              <Spark pts={r.fs.v.map(v => [v, v])} w={140} h={30} label={`Forme sur la saison ${S.season}`} />
+              <span>
+                saison {S.season} : moyenne <b className="text-slate-200">{formSeason(r).fm}</b>, pic{' '}
+                <b className="text-emerald-300">{formSeason(r).fp}</b> (semaine {formSeason(r).fw})
+              </span>
+            </div>
+          ) : null}
           <p className="mt-2 text-sm">
             <b>Caractère :</b> {r.trait === 'aucun' ? '' : TRAITS[r.trait].lbl + ' — '}
             <span className="text-slate-400">{TRAITS[r.trait].d}</span>
@@ -419,11 +428,13 @@ function Career({ r }) {
         <table className="w-full text-sm">
           <thead className="text-xs text-slate-400">
             <tr>
-              {['Saison', 'Équipe', 'Gl.', 'Jours', 'V.', 'Pod.', 'UCI', 'km avant'].map(h => (
-                <th key={h} className="px-1 text-left">
-                  {h}
-                </th>
-              ))}
+              {['Saison', 'Équipe', 'Gl.', 'Jours', 'V.', 'Pod.', 'UCI', 'km avant', ...(mine ? ['Forme'] : [])].map(
+                h => (
+                  <th key={h} className="px-1 text-left">
+                    {h}
+                  </th>
+                )
+              )}
             </tr>
           </thead>
           <tbody>
@@ -436,6 +447,11 @@ function Career({ r }) {
               <td className="px-1">{r.stats.podiums}</td>
               <td className="px-1">{r.stats.pts}</td>
               <td className="px-1">{Math.round(r.stats.kf || 0)}</td>
+              {mine ? (
+                <td className="px-1 whitespace-nowrap">
+                  {formSeason(r).fm != null ? `${formSeason(r).fm} · pic ${formSeason(r).fp}` : '—'}
+                </td>
+              ) : null}
             </tr>
             {rows.map((c, i) => (
               <tr key={i} className="border-t border-slate-800">
@@ -447,6 +463,9 @@ function Career({ r }) {
                 <td className="px-1">{c.p}</td>
                 <td className="px-1">{c.u}</td>
                 <td className="px-1">{c.kf || 0}</td>
+                {mine ? (
+                  <td className="px-1 whitespace-nowrap">{c.fm != null ? `${c.fm} · pic ${c.fp}` : '—'}</td>
+                ) : null}
               </tr>
             ))}
           </tbody>
@@ -508,15 +527,22 @@ export function RiderSheet({ r }) {
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         <CompareBtn r={r} />
-        {r.team === 0 && (S.know[r.id] || 0) < 100 ? (
+        {(S.know[r.id] || 0) < 100 && (r.team === 0 || r.youth || r.age <= 23) && !r.retired ? (
           <button
             type="button"
-            className="min-h-9 rounded-lg bg-slate-800 px-2.5 text-xs font-semibold text-slate-200 ring-1 ring-slate-700"
-            title="Révèle son vrai potentiel et son profil de puissance"
+            disabled={r.team !== 0 && effortLeft() <= 0}
+            className="min-h-9 rounded-lg bg-slate-800 px-2.5 text-xs font-semibold text-slate-200 ring-1 ring-slate-700 disabled:opacity-50"
+            title={
+              r.team === 0
+                ? 'Révèle son vrai potentiel et son profil de puissance'
+                : `Révèle ses vraies caractéristiques et son potentiel (${effortLeft()} test(s) de recrutement restant(s) cette saison)`
+            }
             onClick={() => ((UI.flash = effortTest(r.id)), save(), renderModal(), render())}
           >
-            🧪 Test d'effort (8 k€)
+            🧪 Test d'effort ({effortCost(r)} k€{r.team !== 0 ? ` · ${effortLeft()}/${EFFORT_MAX}` : ''})
           </button>
+        ) : (S.know[r.id] || 0) >= 100 && r.team !== 0 ? (
+          <span className="min-h-9 rounded-lg px-2.5 py-2 text-xs text-emerald-300">🧪 Testé : valeurs exactes</span>
         ) : null}
       </div>
       <Tabs />

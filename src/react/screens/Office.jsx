@@ -1,6 +1,6 @@
 // Gestion (portage fidèle de viewMgmt, assistantCard, equipCard, careerCard et imageCard) : sponsor et objectifs,
 // finances et projection, staff, historique, adjoint, équipementiers, carrière, image de l'équipe.
-import { Card, Btn, Bar, Badge, Select, H2 } from '../ui.jsx';
+import { Card, Btn, Bar, Badge, Select, H2, Spark } from '../ui.jsx';
 
 function Sponsor() {
   return (
@@ -396,6 +396,49 @@ function Image() {
   );
 }
 // Préparation : stages d'équipe (un à la fois) et entraîneur en chef spécialisé.
+// Forme de l'effectif sur la saison et bilan des stages passés (formWeekly, 56-prep.js).
+function FormLog() {
+  const tf = S.tf && S.tf.s === S.season ? S.tf.v : [];
+  const L = S.campLog || [];
+  if (tf.length < 3 && !L.length) return null;
+  const sg = v => (v > 0 ? '+' : '') + v;
+  return (
+    <div className="mt-3">
+      <h3 className="text-sm font-semibold text-slate-100">📈 Forme de l'effectif</h3>
+      {tf.length >= 3 ? (
+        <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
+          <Spark pts={tf} w={180} h={36} label={`Forme et fraîcheur moyennes de l'effectif, saison ${S.season}`} />
+          <span>
+            <span className="text-emerald-300">forme</span> et <span className="text-sky-300">fraîcheur</span> moyennes,
+            saison {S.season} ({tf.length} semaines) · aujourd'hui {tf[tf.length - 1][0]}
+          </span>
+        </div>
+      ) : null}
+      {L.length ? (
+        <div className="mt-2 space-y-1">
+          {L.slice(0, 6).map((c, i) => (
+            <div
+              key={i}
+              className="flex flex-wrap items-baseline justify-between gap-x-2 rounded-lg bg-slate-800/50 px-2.5 py-1.5 text-xs"
+            >
+              <span className="text-slate-200">
+                {CAMPS[c.k] ? CAMPS[c.k].lbl : c.k}{' '}
+                <span className="text-slate-400">
+                  · {c.s}, sem. {c.w0}–{c.w1}
+                </span>
+              </span>
+              <span className="tabular-nums text-slate-300">
+                forme <b className={c.df >= 0 ? 'text-emerald-300' : 'text-rose-300'}>{sg(c.df)}</b> · fraîcheur{' '}
+                <b className={c.dfr >= 0 ? 'text-emerald-300' : 'text-rose-300'}>{sg(c.dfr)}</b> · {c.v} victoire
+                {c.v > 1 ? 's' : ''}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 function Prep() {
   const cur = S.camp && S.week <= S.camp.until ? S.camp : null;
   const say = t => ((UI.flash = t), save(), render());
@@ -420,6 +463,7 @@ function Prep() {
           </div>
         ))}
       </div>
+      <FormLog />
       <h3 className="mt-3 text-sm font-semibold text-slate-100">🧑‍🏫 Entraîneur en chef</h3>
       {S.coach ? (
         <p className="mt-1 text-sm text-slate-200">

@@ -86,6 +86,7 @@ function answerPress(k) {
     }
   if (E.pop) for (const [id, v] of E.pop) addPop(id, v);
   if (E.rel) addRel(E.rel[0], E.rel[1], E.rel[2]);
+  if (E.trel) addTeamRel(E.trel[0], E.trel[1], E.trel[2]);
   if (E.wantsOut) {
     const r = S.riders[E.wantsOut];
     if (r && r.amb > 60 && rnd() < 0.5) r.wantsOut = true;

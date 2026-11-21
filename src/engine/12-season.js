@@ -156,17 +156,17 @@ function weeklyUpdate() {
   }
   // jeunes : connaissance progressive
   for (const id of S.youth) {
-    S.know[id] = Math.min(60 + S.staff.scout * 7, (S.know[id] || 0) + 1.5 * S.staff.scout);
+    S.know[id] = Math.max(S.know[id] || 0, Math.min(60 + S.staff.scout * 7, (S.know[id] || 0) + 1.5 * S.staff.scout));
   }
   for (const id of S.watch) {
     const r = S.riders[id];
     if (!r) {
       continue;
     }
-    S.know[id] = Math.min(70 + S.staff.scout * 5.5, (S.know[id] || 20) + 5 * S.staff.scout);
+    S.know[id] = Math.max(S.know[id] || 0, Math.min(70 + S.staff.scout * 5.5, (S.know[id] || 20) + 5 * S.staff.scout));
   }
   for (const id of S.academy) {
-    S.know[id] = Math.min(95, (S.know[id] || 35) + 0.8 + 0.3 * S.staff.coach);
+    S.know[id] = Math.max(S.know[id] || 0, Math.min(95, (S.know[id] || 35) + 0.8 + 0.3 * S.staff.coach));
   }
   // pré-contrats des équipes IA sur vos coureurs en fin de contrat
   if (S.week >= 18) {
@@ -196,7 +196,11 @@ function weeklyUpdate() {
     if (!r) continue;
     (r.fh = r.fh || []).push([Math.round(r.forme), Math.round(100 - r.fatigue)]);
     if (r.fh.length > 16) r.fh.shift();
+    // forme de toute la saison (pour le bilan de saison du coureur : moyenne, pic)
+    if (!r.fs || r.fs.s !== S.season) r.fs = { s: S.season, v: [] };
+    r.fs.v.push(Math.round(r.forme));
   }
+  formWeekly();
   // marché IA : les équipes complètent leur effectif
   for (const T of S.teams) {
     if (T.player || T.riders.length >= aiTarget(T) - 2) continue;
@@ -230,6 +234,8 @@ function weeklyUpdate() {
   finAdd('staff', -stf);
   pressWeekly();
   mercWeekly();
+  dsBidWeekly();
+  dsPressWeekly();
   uciTrack();
   eqWeekly();
   careerWeekly();
@@ -304,6 +310,7 @@ function endSeason() {
   goalsEndSeason();
   imageEndSeason();
   pressEndSeason(myRank);
+  dsCarousel(rankArr);
   careerEndSeason(myRank);
   S.teamHist.push({
     s: S.season,
@@ -347,6 +354,7 @@ function endSeason() {
         u: r.stats.pts,
         ov: overall(r.s),
         kf: Math.round(r.stats.kf || 0),
+        ...formSeason(r),
       });
     }
   }

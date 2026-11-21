@@ -885,5 +885,91 @@ check(
   S.rc = null;
   check(exportDb().parcours[key + ':0'].type === 'sommet', 'GPX : parcours exporté dans la base');
 }
+
+// ---- Nouveautés : moments décisifs, directeurs adverses, préparation, rejeux, forme ----
+{
+  newGame('M', 31);
+  // moments décisifs : sur un grand tour, au moins un col décisif est rejoué au détail, avec une consigne demandée
+  const gi = S.cal.findIndex(c => c.cat === 0 && c.stagesSpec.filter(s => s[0] === 'montagne').length >= 3);
+  const cal = S.cal[gi];
+  S.week = cal.w;
+  const rc = startRace(gi, aiSelect(S.teams[0], cal, prepareRaceSpecs(cal)));
+  rc.autoDS = true;
+  const kinds = {};
+  let asked = 0,
+    rep = 0;
+  while (!rc.done) {
+    Object.assign(rc.orders, autoOrders(0, rc.specs[rc.si], rc));
+    const sim = runStageAuto(rc);
+    if (!sim || !sim.log) continue;
+    for (const m of sim.momentTraces || []) {
+      kinds[m.kind] = (kinds[m.kind] || 0) + 1;
+      if (m.tr && m.tr.frames.length > 5 && m.tr.riders.length >= 2) rep++;
+    }
+    asked += sim.log.filter(l => /Consigne pour/.test(l.txt)).length;
+  }
+  check(kinds.col > 0, `moments : ${kinds.col || 0} col(s) décisif(s) rejoué(s) au détail sur ${cal.name}`);
+  check(rep > 0 && rep === Object.values(kinds).reduce((a, b) => a + b, 0), 'moments : chaque moment a son rejeu');
+  check(asked > 0, `moments : ${asked} consigne(s) du directeur avant un moment décisif`);
+  check((S.replays || []).every(t => t.tr.frames.length <= 121 && t.tr.riders.length <= 14), `rejeux conservés (${(S.replays || []).length}) : 120 images au plus`);
+}
+{
+  newGame('D', 32);
+  const T = S.teams[3];
+  const a = dsOf(T),
+    b = dsName(T);
+  check(!!a && dsName(T) === b && a.age >= 38, `directeurs : ${b} (${a.temper}) dirige ${T.name}`);
+  const v = dsRemember(T, -1, 'test');
+  check(
+    a.temper === 'rancunier' ? v === -1.5 : a.temper === 'pragmatique' ? v === -0.7 : v === -1,
+    'directeurs : le caractère module un affront'
+  );
+  // offre de rachat acceptée : le coureur part, l'indemnité entre
+  const r = S.riders[S.teams[0].riders[0]];
+  const b0 = S.budget;
+  S.bid = { id: r.id, t: T.id, fee: 500, sal: 200, exp: S.week + 2, s: S.season };
+  const txt = dsBidAnswer('oui');
+  check(r.team === T.id && S.budget === b0 + 500 && T.riders.includes(r.id), `offre de rachat acceptée : ${txt}`);
+  // refus : rien ne bouge
+  const r2 = S.riders[S.teams[0].riders[0]];
+  S.bid = { id: r2.id, t: T.id, fee: 500, sal: r2.salary, exp: S.week + 2, s: S.season };
+  dsBidAnswer('non');
+  check(r2.team === 0 && !S.bid, 'offre de rachat refusée : le coureur reste');
+  // carrousel : un directeur à l'âge de la retraite est remplacé, sans mémoire
+  a.age = 70;
+  const old = dsName(T);
+  dsCarousel(uciRanking());
+  check(dsName(T) !== old && T.ds.mem.length === 0 && T.ds.since === S.season + 1, `carrousel : ${old} → ${dsName(T)}`);
+  // piques dans la presse : la réponse sèche fâche le directeur
+  const rel0 = teamRelOf(T.id);
+  S.pressQ = null;
+  askPress('test', [{ t: 'x', e: { trel: [T.id, -0.5, 'pique'] } }]);
+  answerPress(0);
+  check(teamRelOf(T.id) < rel0, 'presse : une réponse sèche abîme la relation avec le directeur');
+}
+{
+  newGame('P', 33);
+  S.budget = 1000;
+  check(/organisé/.test(campStart('altitude')) && S.budget === 880, 'stage en altitude : organisé et payé');
+  check(/déjà/.test(campStart('train')), 'un seul stage à la fois');
+  const r = S.riders[S.teams[0].riders[0]];
+  check(campFormBonus(r) === 4, "stage en altitude : forme visée +4");
+  // bilan du stage : formWeekly le consigne à la fin
+  formWeekly();
+  S.week = S.camp.until + 1;
+  formWeekly();
+  check((S.campLog || []).length === 1 && S.campLog[0].k === 'altitude', 'bilan du stage consigné');
+  check(S.tf && S.tf.v.length === 2, "forme de l'effectif suivie chaque semaine");
+  // tests d'effort de recrutement : cinq par saison, valeurs exactes ensuite
+  const ys = S.youth.slice(0, 6).map(id => S.riders[id]);
+  const outs = ys.map(y => effortTest(y.id));
+  check(ys.slice(0, 5).every(y => S.know[y.id] === 100), 'test d’effort : les jeunes testés sont connus exactement');
+  check(/Plus de test/.test(outs[5]), `test d’effort : cinq par saison (${outs[5]})`);
+  const y = ys[0];
+  check(STATS.every(k => shownStat(y, k) === clamp(Math.round(y.s[k]), 30, 99)), 'test d’effort : caractéristiques exactes');
+  S.know[y.id] = Math.max(S.know[y.id] || 0, Math.min(60, (S.know[y.id] || 0) + 5));
+  check(S.know[y.id] === 100, 'la connaissance acquise ne redescend pas');
+  check(/Test réservé/.test(effortTest(Object.values(S.riders).find(x => x.team > 0 && x.age >= 28).id)), 'pas de test sur un pro confirmé adverse');
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

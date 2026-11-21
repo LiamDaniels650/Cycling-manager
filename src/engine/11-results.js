@@ -254,7 +254,7 @@ function finishRace(rc) {
   });
   // connaissance des adversaires
   const capK = 70 + S.staff.scout * 5;
-  for (const T of S.teams) for (const id of rc.sel[T.id]) S.know[id] = Math.min(capK, (S.know[id] || 20) + 5);
+  for (const T of S.teams) for (const id of rc.sel[T.id]) S.know[id] = Math.max(S.know[id] || 0, Math.min(capK, (S.know[id] || 20) + 5));
   // moral & bilan
   const myIds = rc.sel[0] || [];
   let lines = [];
@@ -354,6 +354,10 @@ function finishRace(rc) {
   raceRelations(rc);
   storiesAfterRace(rc);
   pressAfterRace(rc);
+  {
+    const w = S.riders[gcList(rc)[0]];
+    if (w && w.team != null) dsGoalWon(rc, w.team);
+  }
   goalsAfterRace(rc);
   imageAfterRace(rc);
   // pic de forme atteint : retour à l'entretien

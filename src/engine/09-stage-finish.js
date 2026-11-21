@@ -913,7 +913,7 @@ function recordPower(e, c, sim) {
     r.pb[b[0]] = { wkg: rec.wkg, w: rec.w, dur: rec.dur, climb: rec.climb, race: rec.race, season: rec.season };
   // les données de puissance trahissent le vrai niveau d'un coureur : la cellule de performance l'observe
   if (r.team !== 0 && sim.runners.some(x => x.player) && e.dur >= 900)
-    S.know[r.id] = Math.min(90, (S.know[r.id] || 20) + 1.5);
+    S.know[r.id] = Math.max(S.know[r.id] || 0, Math.min(90, (S.know[r.id] || 20) + 1.5));
   if (r.team === 0 && e.dur >= 1200 && e.wkg >= 6.6 && r.pwPress !== S.season && (!S._pwFlag || e.wkg > S._pwFlag.wkg))
     S._pwFlag = { id: e.id, wkg: e.wkg, dur: e.dur, climb: c.name };
   if (e.dur >= 1200) {

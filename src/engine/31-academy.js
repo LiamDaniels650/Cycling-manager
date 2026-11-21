@@ -200,7 +200,7 @@ function physTest(id) {
   if (S.budget < TEST_COST + 5) return 'Budget insuffisant.';
   S.budget -= TEST_COST;
   finAdd('aca', -TEST_COST);
-  S.know[id] = Math.min(95, (S.know[id] || 35) + 20 + 3 * S.staff.coach);
+  S.know[id] = Math.max(S.know[id] || 0, Math.min(95, (S.know[id] || 35) + 20 + 3 * S.staff.coach));
   r.ptest = { s: S.season, ...physProfile(r), dev: r.dev || 'normal' };
   return null;
 }

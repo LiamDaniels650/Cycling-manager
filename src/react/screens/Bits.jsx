@@ -201,7 +201,9 @@ function DirectorBox({ T }) {
         <b className="text-slate-100">
           🧑‍💼 {d.fn} {d.ln}
         </b>
-        <span className="text-xs text-slate-400">{d.age} ans</span>
+        <span className="text-xs text-slate-400">
+          {d.age} ans{d.since ? ` · en poste depuis ${d.since}` : ''}
+        </span>
       </div>
       <div className="mt-0.5 text-slate-300">
         {DS_TEMPER[d.temper].lbl}, {DS_STYLE_LBL[T.style] || 'pragmatique'}.{' '}

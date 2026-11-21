@@ -1,5 +1,5 @@
 /* Préparation : stages d'équipe (un à la fois, payants, effets sur plusieurs semaines), test d'effort (révèle le vrai
-   potentiel d'un de mes coureurs) et entraîneur en chef spécialisé (progression renforcée dans son domaine).
+   potentiel d'un de mes coureurs ou d'un jeune à recruter) et entraîneur en chef spécialisé (progression renforcée dans son domaine).
    Ne concerne que mon équipe : la simulation des autres équipes n'en dépend pas. */
 
 const CAMPS = {
@@ -57,16 +57,38 @@ function prepGain(r, g0) {
     if (r.age <= 23) trainGain(r, r.training || 'normal', g0 * 0.25);
   } else trainGain(r, c.k, g0 * 0.25);
 }
-// Test d'effort : la vraie valeur de son potentiel est connue (8 k€).
+// Test d'effort : la vraie valeur de son potentiel est connue. Mes coureurs (académie comprise) : 8 k€. Recrutement
+// (jeunes du vivier, coureurs de 23 ans et moins d'autres équipes ou libres) : 12 k€, cinq tests par saison — ses
+// caractéristiques et son potentiel deviennent exacts.
+const EFFORT_MAX = 5;
+function effortCost(r) {
+  return r.team === 0 ? 8 : 12;
+}
+// Peut-on tester ce coureur ? (null si oui, sinon la raison)
+function effortBlock(r) {
+  if (!r || r.retired) return 'Coureur inconnu.';
+  if ((S.know[r.id] || 0) >= 100) return 'Déjà testé : son potentiel est connu.';
+  if (r.team !== 0) {
+    if (!(r.youth || r.age <= 23)) return 'Test réservé à vos coureurs et aux jeunes à recruter (23 ans et moins).';
+    if (effortLeft() <= 0) return `Plus de test de recrutement cette saison (${EFFORT_MAX} au maximum).`;
+  }
+  return null;
+}
+function effortLeft() {
+  const n = S.etN && S.etN.s === S.season ? S.etN.n : 0;
+  return EFFORT_MAX - n;
+}
 function effortTest(id) {
   const r = S.riders[id];
-  if (!r || r.team !== 0) return 'Seulement pour vos coureurs.';
-  if ((S.know[id] || 0) >= 100) return 'Déjà testé : son potentiel est connu.';
-  if (S.budget < 8) return 'Budget insuffisant (8 k€).';
-  S.budget -= 8;
-  finAdd('other', -8);
+  const why = effortBlock(r);
+  if (why) return why;
+  const cost = effortCost(r);
+  if (S.budget < cost) return `Budget insuffisant (${cost} k€).`;
+  S.budget -= cost;
+  finAdd('other', -cost);
   S.know[id] = 100;
-  return `🧪 Test d'effort de ${riderName(r)} : potentiel ${stars(potEst(r))}, seuil ≈ ${Math.round(riderCP(r))} W, réserve ≈ ${fmtDec(wPrime(r), 1)} kJ.`;
+  if (r.team !== 0) S.etN = { s: S.season, n: EFFORT_MAX - effortLeft() + 1 };
+  return `🧪 Test d'effort de ${riderName(r)} : potentiel ${stars(potEst(r))}, seuil ≈ ${Math.round(riderCP(r))} W, réserve ≈ ${fmtDec(wPrime(r), 1)} kJ${r.team !== 0 ? ` (encore ${effortLeft()} test${effortLeft() > 1 ? 's' : ''} de recrutement cette saison)` : ''}.`;
 }
 // Entraîneurs en chef candidats de la saison (trois profils, fixes pour la saison).
 const COACH_SPEC = {
@@ -99,4 +121,47 @@ function hireCoach(i) {
   finAdd('other', -c.fee);
   S.coach = { k: c.k, n: `${c.fn} ${c.ln}`, s: S.season };
   return `${c.fn} ${c.ln} devient votre entraîneur en chef, spécialiste ${COACH_SPEC[c.k]}.`;
+}
+
+/* ---- Statistiques de forme ----
+   Forme moyenne de l'effectif chaque semaine (S.tf, saison en cours), bilan de chaque stage (forme et fraîcheur de
+   l'effectif avant et à la fin, victoires pendant le stage : S.campLog) et, pour chaque coureur, forme moyenne et pic
+   de la saison gardés dans sa carrière. */
+function teamFormNow() {
+  const rs = S.teams[0].riders.map(id => S.riders[id]).filter(r => r && r.injury <= 0);
+  if (!rs.length) return [0, 0];
+  return [Math.round(sum(rs.map(r => r.forme)) / rs.length), Math.round(sum(rs.map(r => 100 - r.fatigue)) / rs.length)];
+}
+function formWeekly() {
+  if (!S.tf || S.tf.s !== S.season) S.tf = { s: S.season, v: [] };
+  const [f, fr] = teamFormNow();
+  S.tf.v.push([f, fr, campOn(S.camp && S.camp.k) ? 1 : 0]);
+  // un stage commence : point de départ ; un stage se termine : bilan
+  const c = S.camp;
+  if (c && c.s === S.season && c.f0 == null) {
+    c.f0 = f;
+    c.fr0 = fr;
+    c.w0 = S.week;
+    c.v0 = seasonWins(0);
+  }
+  if (c && c.f0 != null && !c.logged && (S.week > c.until || c.s !== S.season)) {
+    c.logged = true;
+    (S.campLog = S.campLog || []).unshift({
+      k: c.k,
+      s: c.s,
+      w0: c.w0,
+      w1: c.until,
+      df: f - c.f0,
+      dfr: fr - c.fr0,
+      v: c.s === S.season ? seasonWins(0) - c.v0 : 0,
+    });
+    if (S.campLog.length > 12) S.campLog.length = 12;
+  }
+}
+// Résumé de la saison d'un coureur (forme moyenne et pic, semaine du pic) pour sa carrière.
+function formSeason(r) {
+  if (!r.fs || r.fs.s !== S.season || !r.fs.v.length) return {};
+  const v = r.fs.v;
+  const pk = Math.max(...v);
+  return { fm: Math.round(sum(v) / v.length), fp: pk, fw: v.indexOf(pk) + 1 };
 }

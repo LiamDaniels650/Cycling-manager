@@ -22,6 +22,8 @@ function todoList() {
   if (S.jobOffers && S.jobOffers.length)
     L.push(['💼', `${S.jobOffers.length} offre(s) d'emploi d'autres équipes`, 'mgmt']);
   if (S.pressQ && S.pressQ.exp > S.week) L.push(['🎙️', 'Une interview attend votre réponse', 'press']);
+  if (S.bid && S.riders[S.bid.id] && teamById(S.bid.t))
+    L.push(['💰', `${teamById(S.bid.t).name} veut ${riderName(S.riders[S.bid.id])}`, 'team']);
   if (S.raiseReq) {
     const r = S.riders[S.raiseReq.id];
     if (r) L.push(['💶', `${riderName(r)} demande une augmentation`, 'team']);

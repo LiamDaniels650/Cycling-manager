@@ -23,6 +23,31 @@ function RaiseBanner() {
     </div>
   );
 }
+// Offre de rachat d'un directeur adverse pour l'un de mes coureurs (dsBidWeekly).
+function BidBanner() {
+  const B = S.bid;
+  const r = B && S.riders[B.id],
+    T = B && teamById(B.t);
+  if (!r || !T) return null;
+  const go = k => ((UI.flash = dsBidAnswer(k)), save(), render());
+  const d = dsOf(T);
+  return (
+    <div className="mb-3 rounded-xl bg-emerald-400/10 p-2.5 text-sm text-slate-100 ring-1 ring-emerald-300/40">
+      💰 <b>{dsName(T)}</b> ({T.name}, {DS_TEMPER[d.temper].lbl.toLowerCase()}) propose <b>{fmtMoney(B.fee)}</b> pour{' '}
+      <RiderLink r={r} />. Il lui offrirait {fmtMoney(B.sal)}/an (contre {fmtMoney(r.salary)} chez vous).
+      <div className="mt-1 text-xs text-slate-400">
+        Réponse avant la semaine {B.exp + 1}. Une contre-offre (+30 %) peut le faire renoncer.
+      </div>
+      <div className="mt-2 grid grid-cols-3 gap-2">
+        <Btn primary onClick={() => go('oui')}>
+          Vendre
+        </Btn>
+        <Btn onClick={() => go('contre')}>Contre-offre</Btn>
+        <Btn onClick={() => go('non')}>Refuser</Btn>
+      </div>
+    </div>
+  );
+}
 export function TrainSelect({ r }) {
   return (
     <span className="flex w-full min-w-0 flex-col gap-1 sm:w-auto">
@@ -58,6 +83,7 @@ export function Team() {
           Effectif pro ({rs.length}/{ROSTER.max})
         </H2>
         <RaiseBanner />
+        <BidBanner />
         <div className="mb-2 grid grid-cols-2 gap-2">
           <AutoBtn k="train" lbl="Entraînement auto" />
           <AutoBtn k="contracts" lbl="Prolongations auto" />
