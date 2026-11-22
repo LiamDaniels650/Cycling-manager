@@ -56,6 +56,7 @@ src/
     54-moments.js         moments décisifs au détail (sommets, descentes, pavés), consignes, bordures
     55-directors.js       directeurs adverses : caractère, mémoire, objectifs, offres, presse, carrousel
     56-prep.js            préparation : stages, tests d'effort, entraîneur en chef, statistiques de forme
+    57-academy-plus.js    académie : centre de formation, prospection ciblée, journée de détection, anciens
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -340,6 +341,17 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     équipes du peloton (elle est remplacée par une équipe de réserve). Pour chacune, niveau prévisionnel (rang
     attendu d'après les 8 meilleurs coureurs : Favori, Ambitieux, Milieu de tableau, Outsider), leaders par terrain,
     effectif et masse salariale ; budget et objectifs du sponsor s'y adaptent.
+  - Deuxième division : classement ProSeries de la saison entre ProTeams (titre, primes de 250/120/60 k€, +5 de
+    confiance pour le champion, palmarès), courses de catégorie 2 comme terrain des ProTeams (92 % de présence, les
+    équipes WorldTour une fois sur deux) ; carte « Division 2 » dans les statistiques avec la ligne de licence.
+  - Académie : centre de formation (4 niveaux : 8 à 14 places, progression des espoirs jusqu'à +30 %, académie plus
+    attirante, entretien), prospection ciblée par région (Flandres, Andes, Alpes, écoles de sprint, chrono du Nord :
+    12 jeunes au profil et à la nationalité de la région, un peu plus doués), journée de détection (les six plus
+    gros potentiels mieux connus), anciens de l'académie 10 % moins chers à (re)signer (fichier 57-academy-plus.js).
+  - Défauts du moteur corrigés : une chute ne piège plus que les coureurs juste derrière (25 au plus, quelques
+    secondes) au lieu de la moitié du peloton ; classiques pavées d'un jour jouées sur leurs trois derniers secteurs
+    difficiles (moins de sprints groupés) ; placement plus décisif au départ du sprint. Essai écarté : un baroud plus
+    marqué effaçait l'effet des équipiers protecteurs en montagne (banc tests/impact.js).
   - Marge du sprint : le meilleur sprinteur gagne 36 à 37 % des sprints massifs (contre 31 %).
   - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
     carrousel, presse, stages, tests d'effort, forme).
