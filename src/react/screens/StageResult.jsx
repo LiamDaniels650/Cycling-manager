@@ -555,7 +555,25 @@ export function StageResult() {
   return (
     <div className="space-y-3">
       <RaceSteps step="bilan" />
-      <div className="sticky top-[3.75rem] z-10 -mx-1 bg-slate-950/95 px-1 py-1 backdrop-blur">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="font-display text-2xl font-bold leading-tight text-slate-50 md:text-3xl">{rc.name}</h2>
+          <div className="text-sm text-slate-400">
+            {st.name}
+            {res[0] && S.riders[res[0].id] ? (
+              <>
+                {' '}
+                · victoire de <b className="text-slate-100">{riderName(S.riders[res[0].id])}</b>
+                {teamOf(S.riders[res[0].id]) ? ` (${teamOf(S.riders[res[0].id]).short})` : ''}
+              </>
+            ) : null}
+          </div>
+        </div>
+        <div className="w-full sm:w-72">
+          <NextBtn rc={rc} />
+        </div>
+      </div>
+      <div className="sticky top-[3.6rem] z-10 -mx-1 bg-slate-950/95 px-1 py-1 backdrop-blur md:top-0">
         <Tabs items={tabs} value={tab} onChange={k => ((UI.resTab = k), render(), window.scrollTo(0, 0))} />
       </div>
       {tab === 'arrivee' && L.ttt && rc.tttLog ? (

@@ -157,11 +157,7 @@ function Main() {
   const ments = mentorCands();
   const tested = acaRiders().filter(r => r.ptest);
   return (
-    <Card>
-      <H2>Académie</H2>
-      <Btn className="mb-2 w-full" onClick={() => doAsst('academy')}>
-        🧑‍💼 Académie auto
-      </Btn>
+    <Card title="Académie" right={<Btn onClick={() => doAsst('academy')}>🧑‍💼 Académie auto</Btn>}>
       <div className="flex flex-wrap justify-between gap-2 text-sm text-slate-300">
         <span>
           Réputation : <b className="text-slate-100">{acaRepLabel(rep)}</b> <Bar v={rep} />

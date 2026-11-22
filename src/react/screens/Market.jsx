@@ -103,21 +103,22 @@ export function Market() {
     <div className="space-y-3">
       {head}
       <Card>
-        <Btn className="w-full" onClick={() => doAsst('recruit')}>
-          🧑‍💼 Compléter l'effectif
-        </Btn>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <label className="flex items-center gap-2 text-sm text-slate-300">
+            Profil recherché{' '}
+            <Select
+              value={UI.mktFilter || ''}
+              onChange={v => ((UI.mktFilter = v), render())}
+              options={[['', 'Tous'], ...Object.entries(ARCH).map(([k, a]) => [k, a.lbl])]}
+            />
+          </label>
+          <Btn onClick={() => doAsst('recruit')}>🧑‍💼 Compléter l'effectif</Btn>
+        </div>
         <p className="mt-2 text-xs text-slate-400">
           {help} Budget : <b className="text-slate-100">{fmtMoney(S.budget)}</b> · effectif {P().riders.length}/
           {ROSTER.max} (au moins {ROSTER.minPlayer}). Les valeurs « ~ » sont des estimations.
+          {mercOpen() ? '' : ` Pré-contrats pour la saison prochaine à partir de la semaine ${MERC_OPEN}.`}
         </p>
-        <label className="mt-2 flex items-center gap-2 text-sm text-slate-300">
-          Profil{' '}
-          <Select
-            value={UI.mktFilter || ''}
-            onChange={v => ((UI.mktFilter = v), render())}
-            options={[['', 'Tous'], ...Object.entries(ARCH).map(([k, a]) => [k, a.lbl])]}
-          />
-        </label>
         <details className="mt-2">
           <summary className="cursor-pointer py-1 text-sm text-slate-300">Profils de votre effectif</summary>
           <Profiles />
