@@ -62,6 +62,7 @@ function loop() {
   UI.acc = (UI.acc || 0) + ((SPEEDS[UI.speed] || 0) * LOOP_MS) / 1000;
   const n = Math.floor(UI.acc);
   UI.acc -= n;
+  UI.loopT = performance.now(); // (la retransmission vue du ciel interpole entre deux passages de la boucle)
   for (let i = 0; i < n && !sim.done; i++) {
     simTick(sim);
     // les derniers kilomètres au ralenti, pour les vivre (une fois par seuil : le joueur peut réaccélérer)

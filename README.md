@@ -359,6 +359,16 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     (pavés 40 %). Placement : un frotteur gagne des mètres au départ du sprint hors du plafond de position (il ne
     comptait plus chez les sprinteurs déjà bien placés). Baroud : tentatives d'échappée nettement plus marquées hors
     montagne (exposant 3), proportionnelles en montagne.
+  - Retransmission vue du ciel (src/react/race/Sky.jsx), en haut de l'écran de course et dans le final : la route
+    de l'étape en 2D (tracé tiré de l'empreinte de l'étape, lacets en montée, bas-côtés couleur de la pente, pavés,
+    portions exposées au vent, routes étroites, arbres, maisons, spectateurs dans les cols et le final), repères
+    (kilomètres, flamme rouge, arrivée, sommets, sprint), coureurs placés dans leur groupe (peloton plus long que
+    large qui s'étire à vive allure, échappée en file, éventail en diagonale dans une bordure, maillot de leader
+    cerclé de jaune, mes coureurs de rose), étiquettes des groupes avec leur écart ; caméras « Réalisateur »
+    (alterne tête et peloton, suit l'action), « Tête de course », « Peloton », « Mes coureurs », cadrage adapté à
+    la taille du groupe ; sons désactivables (cloche du dernier kilomètre et de l'arrivée, foule dans les cols et le
+    final, bip de la radio). Animation interpolée entre deux pas de la simulation : ≈ 43 images/s sur un téléphone
+    moyen simulé (processeur bridé 4 fois), une étape entière calculée en moins d'une seconde.
   - Moteur, nouvelles mesures réelles dans la calibration (44 au lieu de 40) : porteurs du maillot de leader d'un
     grand tour (≈ 5), équipes qui gagnent une étape (≈ 8 sur 18), écart maximal de l'échappée sur le plat (≈ 4 min),
     distance de reprise (≈ 17 km). Corrections : une échappée reprise très tôt laisse place à une nouvelle bagarre ;

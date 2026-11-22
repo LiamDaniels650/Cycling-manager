@@ -10,6 +10,7 @@ import { Peloton } from './Peloton.jsx';
 import { MyTeam, Nego } from './Team.jsx';
 import { RadioFeed, Dock } from './Controls.jsx';
 import { Situation, MomentPanel } from './Situation.jsx';
+import { Sky } from './Sky.jsx';
 
 function Fold({ title, children }) {
   return (
@@ -44,6 +45,7 @@ export function LiveRace() {
         <div className="space-y-3 xl:grid xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:items-start xl:gap-3 xl:space-y-0">
           <div className="space-y-3">
             <MomentPanel sim={sim} />
+            {sim.photo ? null : <Sky sim={sim} compact />}
             <Finale sim={sim}>{sim.photo ? null : <FinalActions sim={sim} />}</Finale>
             {sim.photo ? null : (
               <div className="space-y-2 empty:hidden">
@@ -80,6 +82,7 @@ export function LiveRace() {
       {/* sur grand écran : la retransmission et les groupes à gauche, mes coureurs et la radio à droite */}
       <div className="space-y-3">
         <MomentPanel sim={sim} />
+        <Sky sim={sim} />
         <Situation sim={sim} />
         <Card className="border-sky-500/30">
           <RaceHeader sim={sim} rc={rc} />
