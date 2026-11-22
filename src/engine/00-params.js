@@ -65,6 +65,7 @@ const R = {
   // --- Course ---
   sprintNoise: 3.6, // aléa du sprint (placement, timing, jambes du jour)
   sprintVk: 0.1, // sprint simulé : vitesse de pointe (m/s) gagnée par point de qualité de sprint (16,6 m/s à 75)
+  sprintPlc: 0.8, // … mètres d'avance au départ du sprint par point de placement au-dessus de 65
   sprintSpread: 0.8, // … mètres de retard sur la tête au dernier km par point de placement manquant (0-100)
   sprintDraft: 0.45, // … gain de vitesse (m/s) dans la roue d'un coureur à moins de 6 m (×1,6 vent de face)
   sprintFade: 0.7, // … perte de vitesse (m/s par s) une fois la pointe tenue (≈ 10 s)
@@ -95,6 +96,7 @@ const R = {
   classicCoLeaders: 2, // classique : équipiers au plus gardés en « carte libre » s'ils valent presque le leader…
   classicCoGap: 2.5, // … à moins de 2,5 points d'aptitude au final du parcours
   cobbleBlowN: 12, // final d'une classique pavée : seul un groupe d'au moins 12 coureurs est dynamité par le plus fort
+  cobbleSmall: 0.97, // final d'une classique pavée : un petit groupe de tête roule à l'allure du plus fort sur les pavés
   murPace: 1.1, // mur pavé dans le final d'une classique : allure du plus fort du groupe (part de sa capacité)
   lastClimbPace: 1.07, // dernière côte d'une classique accidentée : allure du plus fort du groupe des favoris
   murFollow: 0.99, // pour suivre une attaque sur un mur pavé, il faut 99 % de la capacité de l'attaquant (95 % ailleurs)
@@ -107,5 +109,6 @@ const R = {
   sprintCatchKm: 8, // poursuite des équipes de sprinteurs : reprendre l'échappée vers 8 km de l'arrivée…
   chaseAhead: 2, // … une équipe en avance sur cet objectif (vitesse de reprise > 1,4 × nécessaire) lève le pied
   chaseBehind: 0.7, // … en retard (< 0,7 × nécessaire), elle accélère et engage un rouleur de plus
+  pavFinalPace: 0.9, // 30 derniers km d'une classique pavée : allure d'un groupe de tête où personne ne relaie
   noWorkAhead: 0.7, // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
 };

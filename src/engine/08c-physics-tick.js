@@ -34,9 +34,18 @@ function tickPhysics(sim) {
       const caps = [...capM.values()].sort((a, b) => a - b);
       // personne ne roule : le peloton (un vrai, 20 coureurs ou plus) temporise ; dans une classique, un groupe de tête où personne ne relaie se
       // relève (ses coureurs attendent leur leader ou refusent de tirer) ; un groupe de lâchés monte à son rythme
+      // (dans les 30 derniers km d'une classique pavée, les favoris de tête ne se relèvent pas : ils s'attaquent sans
+      // cesse et l'allure reste celle d'une course, sinon les poursuivants revenaient tous sur le bitume)
+      const pavFinal = sim.spec.type === 'paves' && !sim.stageRace && sim.dist - G.pos < 30;
       L =
         caps[Math.floor(caps.length * 0.5)] *
-        (G === sim.pel && n >= 20 ? 0.64 : G.ahead && n >= 2 && !sim.stageRace ? R.noWorkAhead : 0.8);
+        (G === sim.pel && n >= 20
+          ? 0.64
+          : G.ahead && n >= 2 && !sim.stageRace
+            ? pavFinal
+              ? R.pavFinalPace
+              : R.noWorkAhead
+            : 0.8);
     }
     // sur les pavés, les spécialistes en tête imposent un rythme qui fait le tri
     if (surf && n >= 6 && G.burst <= 0 && sim.dist - G.pos < sim.dist * 0.55) {
@@ -47,6 +56,13 @@ function tickPhysics(sim) {
       // final d'une classique pavée (derniers 35 %) : les meilleurs spécialistes font exploser la course
       if (!sim.stageRace && n >= R.cobbleBlowN && sim.dist - G.pos < sim.dist * 0.35)
         L = Math.max(L, caps[Math.floor(n * 0.03)] * 1.0);
+      if (L > L0) paceSrc = 'pav';
+    }
+    // final d'une classique pavée, petit groupe (2 à 11 coureurs) : il n'est pas épargné, le plus fort sur les pavés
+    // impose son allure et ceux qui sont moins à l'aise (les sprinteurs le plus souvent) perdent le contact
+    if (surf && n >= 2 && n < R.cobbleBlowN && G.burst <= 0 && !sim.stageRace && sim.dist - G.pos < sim.dist * 0.35) {
+      L0 = L;
+      L = Math.max(L, capsDesc()[0] * R.cobbleSmall);
       if (L > L0) paceSrc = 'pav';
     }
     // mur pavé dans le final d'une classique : le plus fort du groupe de tête monte à bloc et fait la différence
@@ -233,7 +249,8 @@ function tickPhysics(sim) {
         dr *=
           (1.45 - x.r.s.end / 120) *
           // pavés : vibrations, relances, maniement du vélo usent bien plus ceux qui ne savent pas y rouler
-          (surf ? clamp(1.5 - (x.r.s.pav || 60) / 100, 0.6, 1.2) : 1) *
+          // (72 de pavés : usure normale ; 86 : -35 % ; 60 : +30 %)
+          (surf ? clamp(1 + (72 - (x.r.s.pav || 60)) / 40, 0.55, 1.5) : 1) *
           // chaleur : les gabarits lourds évacuent mal la chaleur (≈ +1 % d'usure par kilo au-dessus de 66 kg)
           (sim.wx === 'chaleur' ? 1.15 * clamp(1 + ((x.r.kg || 68) - 66) * 0.01, 0.95, 1.15) : 1) *
           (x.food < 25 ? 1.35 : 1) *

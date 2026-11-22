@@ -3133,6 +3133,7 @@ const R = {
   // --- Course ---
   sprintNoise: 3.6, // aléa du sprint (placement, timing, jambes du jour)
   sprintVk: 0.1, // sprint simulé : vitesse de pointe (m/s) gagnée par point de qualité de sprint (16,6 m/s à 75)
+  sprintPlc: 0.8, // … mètres d'avance au départ du sprint par point de placement au-dessus de 65
   sprintSpread: 0.8, // … mètres de retard sur la tête au dernier km par point de placement manquant (0-100)
   sprintDraft: 0.45, // … gain de vitesse (m/s) dans la roue d'un coureur à moins de 6 m (×1,6 vent de face)
   sprintFade: 0.7, // … perte de vitesse (m/s par s) une fois la pointe tenue (≈ 10 s)
@@ -3163,6 +3164,7 @@ const R = {
   classicCoLeaders: 2, // classique : équipiers au plus gardés en « carte libre » s'ils valent presque le leader…
   classicCoGap: 2.5, // … à moins de 2,5 points d'aptitude au final du parcours
   cobbleBlowN: 12, // final d'une classique pavée : seul un groupe d'au moins 12 coureurs est dynamité par le plus fort
+  cobbleSmall: 0.97, // final d'une classique pavée : un petit groupe de tête roule à l'allure du plus fort sur les pavés
   murPace: 1.1, // mur pavé dans le final d'une classique : allure du plus fort du groupe (part de sa capacité)
   lastClimbPace: 1.07, // dernière côte d'une classique accidentée : allure du plus fort du groupe des favoris
   murFollow: 0.99, // pour suivre une attaque sur un mur pavé, il faut 99 % de la capacité de l'attaquant (95 % ailleurs)
@@ -3175,6 +3177,7 @@ const R = {
   sprintCatchKm: 8, // poursuite des équipes de sprinteurs : reprendre l'échappée vers 8 km de l'arrivée…
   chaseAhead: 2, // … une équipe en avance sur cet objectif (vitesse de reprise > 1,4 × nécessaire) lève le pied
   chaseBehind: 0.7, // … en retard (< 0,7 × nécessaire), elle accélère et engage un rouleur de plus
+  pavFinalPace: 0.9, // 30 derniers km d'une classique pavée : allure d'un groupe de tête où personne ne relaie
   noWorkAhead: 0.7, // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
 };
 
@@ -7417,7 +7420,7 @@ function decideRider(sim, x, ctx) {
     const estab =
       front !== pel && front.riders.length >= (sim.spec.type === 'plat' ? 5 : 9) && phaseOf(sim, G) !== 'final';
     const ldrHere = ldr && ldr.g === G && kmLeft < 30;
-    if (!estab && !ldrHere && rnd() < 0.012 * dtMin * barK(x, 72)) {
+    if (!estab && !ldrHere && rnd() < 0.012 * dtMin * barK(sim, x, 72)) {
       doAttack(sim, x);
       return;
     }
@@ -7435,7 +7438,7 @@ function decideRider(sim, x, ctx) {
     const far =
       front !== pel && gapSec(front, pel) > (front.riders.length >= 5 ? 150 : sim.spec.type === 'plat' ? 200 : 360);
     if (!est && !far) {
-      if (rnd() < (hunt ? R.hunterTry * (Math.max(x.r.s.bar, x.r.s.mon) / 72) : R.breakTry * barK(x, 72))) {
+      if (rnd() < (hunt ? R.hunterTry * (Math.max(x.r.s.bar, x.r.s.mon) / 72) : R.breakTry * barK(sim, x, 72))) {
         // tant que la bagarre dure, les candidats insistent (surtout en montagne, où l'échappée est convoitée)
         const mt = sim.spec.type === 'montagne' || sim.spec.type === 'sommet';
         x.breakTried = rnd() < (sim.spec.type === 'plat' ? 0.35 : mt ? 0.1 : 0.22);
@@ -7539,7 +7542,7 @@ function decideRider(sim, x, ctx) {
       const sprintFin = sim.P.finishGrad < 3;
       const bestSpr = Math.max(...G.riders.filter(y => y !== x).map(y => y.r.s.spr));
       let p = 0;
-      if (sprintFin && x.r.s.spr < bestSpr - 3) p = 0.035 * barK(x, 70);
+      if (sprintFin && x.r.s.spr < bestSpr - 3) p = 0.035 * barK(sim, x, 70);
       if (g >= 3.5) p = Math.max(p, 0.05 * (x.r.s.mon / 72));
       if (eo === 'leader') p *= x.att === 'defensif' ? 0.4 : 1.3;
       if (x.r.trait === 'tete') p *= 1.6;
@@ -7655,7 +7658,7 @@ function decideRider(sim, x, ctx) {
     sim.t - x.lastAtt > 5 &&
     !(x.hc && x.order !== 'free' && !x.rebel)
   ) {
-    if (rnd() < 0.12 * barK(x, 75) * styleMul(x.team, 'att') * dtMin) {
+    if (rnd() < 0.12 * barK(sim, x, 75) * styleMul(x.team, 'att') * dtMin) {
       if (doAttack(sim, x)) {
         if (x.player || sim.favs.has(x.id) || rnd() < 0.5)
           log(
@@ -7774,10 +7777,13 @@ function finalClimbStart(sim) {
   return fc && sim.P.finishGrad >= 3 && fc.end > sim.dist - 0.6 ? fc.start : null;
 }
 
-// Poids du baroud dans les tentatives d'échappée (proportionnel ; un exposant plus marqué a été essayé : il
-// effaçait l'effet des équipiers protecteurs en montagne, voir tests/impact.js).
-function barK(x, ref) {
-  return x.r.s.bar / ref;
+// Poids du baroud dans les tentatives d'échappée : marqué (un vrai baroudeur tente et passe bien plus souvent) sur
+// les étapes de plaine, vallonnées et de bosses ; proportionnel en montagne, où le grimpeur fait l'échappée (un
+// exposant y effaçait l'effet des équipiers protecteurs, voir tests/impact.js).
+function barK(sim, x, ref) {
+  const t = sim.spec.type;
+  const k = x.r.s.bar / ref;
+  return t === 'montagne' || t === 'sommet' ? k : Math.pow(k, 3);
 }
 
 // ---- src/engine/08c-physics-tick.js ----
@@ -7817,9 +7823,18 @@ function tickPhysics(sim) {
       const caps = [...capM.values()].sort((a, b) => a - b);
       // personne ne roule : le peloton (un vrai, 20 coureurs ou plus) temporise ; dans une classique, un groupe de tête où personne ne relaie se
       // relève (ses coureurs attendent leur leader ou refusent de tirer) ; un groupe de lâchés monte à son rythme
+      // (dans les 30 derniers km d'une classique pavée, les favoris de tête ne se relèvent pas : ils s'attaquent sans
+      // cesse et l'allure reste celle d'une course, sinon les poursuivants revenaient tous sur le bitume)
+      const pavFinal = sim.spec.type === 'paves' && !sim.stageRace && sim.dist - G.pos < 30;
       L =
         caps[Math.floor(caps.length * 0.5)] *
-        (G === sim.pel && n >= 20 ? 0.64 : G.ahead && n >= 2 && !sim.stageRace ? R.noWorkAhead : 0.8);
+        (G === sim.pel && n >= 20
+          ? 0.64
+          : G.ahead && n >= 2 && !sim.stageRace
+            ? pavFinal
+              ? R.pavFinalPace
+              : R.noWorkAhead
+            : 0.8);
     }
     // sur les pavés, les spécialistes en tête imposent un rythme qui fait le tri
     if (surf && n >= 6 && G.burst <= 0 && sim.dist - G.pos < sim.dist * 0.55) {
@@ -7830,6 +7845,13 @@ function tickPhysics(sim) {
       // final d'une classique pavée (derniers 35 %) : les meilleurs spécialistes font exploser la course
       if (!sim.stageRace && n >= R.cobbleBlowN && sim.dist - G.pos < sim.dist * 0.35)
         L = Math.max(L, caps[Math.floor(n * 0.03)] * 1.0);
+      if (L > L0) paceSrc = 'pav';
+    }
+    // final d'une classique pavée, petit groupe (2 à 11 coureurs) : il n'est pas épargné, le plus fort sur les pavés
+    // impose son allure et ceux qui sont moins à l'aise (les sprinteurs le plus souvent) perdent le contact
+    if (surf && n >= 2 && n < R.cobbleBlowN && G.burst <= 0 && !sim.stageRace && sim.dist - G.pos < sim.dist * 0.35) {
+      L0 = L;
+      L = Math.max(L, capsDesc()[0] * R.cobbleSmall);
       if (L > L0) paceSrc = 'pav';
     }
     // mur pavé dans le final d'une classique : le plus fort du groupe de tête monte à bloc et fait la différence
@@ -8016,7 +8038,8 @@ function tickPhysics(sim) {
         dr *=
           (1.45 - x.r.s.end / 120) *
           // pavés : vibrations, relances, maniement du vélo usent bien plus ceux qui ne savent pas y rouler
-          (surf ? clamp(1.5 - (x.r.s.pav || 60) / 100, 0.6, 1.2) : 1) *
+          // (72 de pavés : usure normale ; 86 : -35 % ; 60 : +30 %)
+          (surf ? clamp(1 + (72 - (x.r.s.pav || 60)) / 40, 0.55, 1.5) : 1) *
           // chaleur : les gabarits lourds évacuent mal la chaleur (≈ +1 % d'usure par kilo au-dessus de 66 kg)
           (sim.wx === 'chaleur' ? 1.15 * clamp(1 + ((x.r.kg || 68) - 66) * 0.01, 0.95, 1.15) : 1) *
           (x.food < 25 ? 1.35 : 1) *
@@ -8382,7 +8405,13 @@ function sprintRun(sim, ents, fw, big) {
     return {
       e,
       x,
-      d: 1000 + (100 - clamp(e.posS, 0, 100)) * R.sprintSpread + rf(0, 2),
+      // position dans le peloton (plafonnée : devant, c'est devant) puis le frotteur, qui trouve en plus sa place dans
+      // le final : quelques mètres de mieux par point de placement (hors du plafond, sinon il ne comptait plus)
+      d:
+        1000 +
+        (100 - clamp(e.posS, 0, 100)) * R.sprintSpread -
+        (e.role ? 0 : ((s.plc || 65) - 65) * R.sprintPlc) +
+        rf(0, 2),
       v: v0,
       // la pointe au-dessus du rythme du groupe : rognée par vent de face (la traînée croît vite), accrue par vent de dos
       vmax: e.role
@@ -8658,8 +8687,11 @@ function finishGroup(sim, G, tcross, Lfine) {
     // préparation : placement à l'approche (trains, surf, train perdu), qualités de sprint du jour
     const ents = xs.map(x => {
       x._surf = x._boxed = x._early = false;
+      // sprint qui conclut une classique pavée : après 250 km de pavés, la force qui reste compte autant que la pointe
+      const pavSprint = !sim.stageRace && sim.spec.type === 'paves';
       let q =
-        sprintPeak(x.r.s.spr) * (0.72 + 0.28 * Math.min(1, x.energy / 45)) +
+        (pavSprint ? sprintPeak(x.r.s.spr) * 0.6 + (x.r.s.pav || 60) * 0.4 : sprintPeak(x.r.s.spr)) *
+          (0.72 + 0.28 * Math.min(1, x.energy / 45)) +
         gauss() * SPRINT_NOISE +
         (x.dayForm - 70) * 0.08 +
         (x.punch - 50) * 0.025;
@@ -8674,7 +8706,6 @@ function finishGroup(sim, G, tcross, Lfine) {
           posS = Math.max(posS, 74);
           x._surf = true;
         }
-        posS += ((x.r.s.plc || 65) - 65) * 1.4; // frotteur : il trouve sa place dans le final
       }
       if (x.r.trait === 'gagneur') q += 1.5;
       // les équipiers (protéger, contrôler, poisson-pilote) ne disputent pas le sprint

@@ -112,7 +112,13 @@ function sprintRun(sim, ents, fw, big) {
     return {
       e,
       x,
-      d: 1000 + (100 - clamp(e.posS, 0, 100)) * R.sprintSpread + rf(0, 2),
+      // position dans le peloton (plafonnée : devant, c'est devant) puis le frotteur, qui trouve en plus sa place dans
+      // le final : quelques mètres de mieux par point de placement (hors du plafond, sinon il ne comptait plus)
+      d:
+        1000 +
+        (100 - clamp(e.posS, 0, 100)) * R.sprintSpread -
+        (e.role ? 0 : ((s.plc || 65) - 65) * R.sprintPlc) +
+        rf(0, 2),
       v: v0,
       // la pointe au-dessus du rythme du groupe : rognée par vent de face (la traînée croît vite), accrue par vent de dos
       vmax: e.role
@@ -388,8 +394,11 @@ function finishGroup(sim, G, tcross, Lfine) {
     // préparation : placement à l'approche (trains, surf, train perdu), qualités de sprint du jour
     const ents = xs.map(x => {
       x._surf = x._boxed = x._early = false;
+      // sprint qui conclut une classique pavée : après 250 km de pavés, la force qui reste compte autant que la pointe
+      const pavSprint = !sim.stageRace && sim.spec.type === 'paves';
       let q =
-        sprintPeak(x.r.s.spr) * (0.72 + 0.28 * Math.min(1, x.energy / 45)) +
+        (pavSprint ? sprintPeak(x.r.s.spr) * 0.6 + (x.r.s.pav || 60) * 0.4 : sprintPeak(x.r.s.spr)) *
+          (0.72 + 0.28 * Math.min(1, x.energy / 45)) +
         gauss() * SPRINT_NOISE +
         (x.dayForm - 70) * 0.08 +
         (x.punch - 50) * 0.025;
@@ -404,7 +413,6 @@ function finishGroup(sim, G, tcross, Lfine) {
           posS = Math.max(posS, 74);
           x._surf = true;
         }
-        posS += ((x.r.s.plc || 65) - 65) * 1.4; // frotteur : il trouve sa place dans le final
       }
       if (x.r.trait === 'gagneur') q += 1.5;
       // les équipiers (protéger, contrôler, poisson-pilote) ne disputent pas le sprint

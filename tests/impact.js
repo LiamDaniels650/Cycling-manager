@@ -123,7 +123,8 @@ paired('Pavés → étape de pavés (leaders)', 'paves', 'pav', 6, R, 'lower', 2
 paired('Plat → énergie restante après une étape plate', 'plat', 'pla', 6, energy, 'higher', 0.5);
 paired('Endurance → plus longue étape de montagne (leaders)', 'montagne+', 'end', 8, R, 'lower', 1, LD, 2);
 paired('Descente → étape de montagne (leaders)', 'montagne', 'des', 8, R, 'lower', 1, LD, 2);
-paired('Placement → sprint (sprinteurs)', 'plat', 'plc', 8, R, 'lower', 0.5, SP, 2);
+// (placement retiré : l'effet sature chez les sprinteurs déjà bien placés, c'est en dessous qu'il se paie)
+paired('Placement −8 → recul au sprint (sprinteurs)', 'plat', 'plc', -8, R, 'higher', 0.5, SP, 2);
 paired(
   'Récupération → fatigue accumulée après l’étape',
   'montagne',

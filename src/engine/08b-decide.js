@@ -90,7 +90,7 @@ function decideRider(sim, x, ctx) {
     const estab =
       front !== pel && front.riders.length >= (sim.spec.type === 'plat' ? 5 : 9) && phaseOf(sim, G) !== 'final';
     const ldrHere = ldr && ldr.g === G && kmLeft < 30;
-    if (!estab && !ldrHere && rnd() < 0.012 * dtMin * barK(x, 72)) {
+    if (!estab && !ldrHere && rnd() < 0.012 * dtMin * barK(sim, x, 72)) {
       doAttack(sim, x);
       return;
     }
@@ -108,7 +108,7 @@ function decideRider(sim, x, ctx) {
     const far =
       front !== pel && gapSec(front, pel) > (front.riders.length >= 5 ? 150 : sim.spec.type === 'plat' ? 200 : 360);
     if (!est && !far) {
-      if (rnd() < (hunt ? R.hunterTry * (Math.max(x.r.s.bar, x.r.s.mon) / 72) : R.breakTry * barK(x, 72))) {
+      if (rnd() < (hunt ? R.hunterTry * (Math.max(x.r.s.bar, x.r.s.mon) / 72) : R.breakTry * barK(sim, x, 72))) {
         // tant que la bagarre dure, les candidats insistent (surtout en montagne, où l'échappée est convoitée)
         const mt = sim.spec.type === 'montagne' || sim.spec.type === 'sommet';
         x.breakTried = rnd() < (sim.spec.type === 'plat' ? 0.35 : mt ? 0.1 : 0.22);
@@ -212,7 +212,7 @@ function decideRider(sim, x, ctx) {
       const sprintFin = sim.P.finishGrad < 3;
       const bestSpr = Math.max(...G.riders.filter(y => y !== x).map(y => y.r.s.spr));
       let p = 0;
-      if (sprintFin && x.r.s.spr < bestSpr - 3) p = 0.035 * barK(x, 70);
+      if (sprintFin && x.r.s.spr < bestSpr - 3) p = 0.035 * barK(sim, x, 70);
       if (g >= 3.5) p = Math.max(p, 0.05 * (x.r.s.mon / 72));
       if (eo === 'leader') p *= x.att === 'defensif' ? 0.4 : 1.3;
       if (x.r.trait === 'tete') p *= 1.6;
@@ -328,7 +328,7 @@ function decideRider(sim, x, ctx) {
     sim.t - x.lastAtt > 5 &&
     !(x.hc && x.order !== 'free' && !x.rebel)
   ) {
-    if (rnd() < 0.12 * barK(x, 75) * styleMul(x.team, 'att') * dtMin) {
+    if (rnd() < 0.12 * barK(sim, x, 75) * styleMul(x.team, 'att') * dtMin) {
       if (doAttack(sim, x)) {
         if (x.player || sim.favs.has(x.id) || rnd() < 0.5)
           log(
@@ -447,8 +447,11 @@ function finalClimbStart(sim) {
   return fc && sim.P.finishGrad >= 3 && fc.end > sim.dist - 0.6 ? fc.start : null;
 }
 
-// Poids du baroud dans les tentatives d'échappée (proportionnel ; un exposant plus marqué a été essayé : il
-// effaçait l'effet des équipiers protecteurs en montagne, voir tests/impact.js).
-function barK(x, ref) {
-  return x.r.s.bar / ref;
+// Poids du baroud dans les tentatives d'échappée : marqué (un vrai baroudeur tente et passe bien plus souvent) sur
+// les étapes de plaine, vallonnées et de bosses ; proportionnel en montagne, où le grimpeur fait l'échappée (un
+// exposant y effaçait l'effet des équipiers protecteurs, voir tests/impact.js).
+function barK(sim, x, ref) {
+  const t = sim.spec.type;
+  const k = x.r.s.bar / ref;
+  return t === 'montagne' || t === 'sommet' ? k : Math.pow(k, 3);
 }
