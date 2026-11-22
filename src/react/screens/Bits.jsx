@@ -58,7 +58,7 @@ export function Climbs({ Pf }) {
     );
   if (Pf.wind && Pf.expoKm > 3)
     parts.push(
-      <span key="w" className="rounded-lg bg-sky-500/15 px-2 py-1 text-xs text-sky-100 ring-1 ring-sky-400/40">
+      <span key="w" className="rounded-lg bg-slate-800/70 px-2 py-1 text-xs text-slate-100 ring-1 ring-slate-700">
         🌬️ vent {['', 'modéré', 'fort', 'violent'][Pf.wind]} · {Pf.expoKm.toFixed(0)} km exposés (bordures possibles)
       </span>
     );

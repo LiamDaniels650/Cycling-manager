@@ -438,7 +438,7 @@ export function App() {
           <main id="main" className={'mx-auto max-w-3xl px-3 pt-3 ' + (live ? 'xl:max-w-6xl' : 'pb-24')}>
             {flash ? (
               <div
-                className="mb-3 rounded-xl bg-sky-500/15 px-3 py-2 text-sm text-sky-100 ring-1 ring-sky-400/40"
+                className="mb-3 rounded-xl bg-slate-800/70 px-3 py-2 text-sm text-slate-100 ring-1 ring-slate-700"
                 dangerouslySetInnerHTML={{ __html: flash }}
               />
             ) : null}

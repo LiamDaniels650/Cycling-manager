@@ -32,10 +32,10 @@ export function Inbox() {
                   {m.season !== S.season ? ' · ' + m.season : ''}
                 </div>
               ) : null}
-              <div className={'flex gap-3 rounded-xl px-2 py-2 ' + (m.read ? '' : 'bg-sky-500/10')}>
+              <div className={'flex gap-3 rounded-xl px-2 py-2 ' + (m.read ? '' : 'bg-slate-800/70')}>
                 <span className="text-lg">{msgIcon(m.title)}</span>
                 <div className="min-w-0 flex-1">
-                  <div className={'text-sm font-semibold ' + (m.read ? 'text-slate-200' : 'text-sky-200')}>
+                  <div className={'text-sm font-semibold ' + (m.read ? 'text-slate-200' : 'text-slate-100')}>
                     {m.title.replace(/^\p{Extended_Pictographic}️?\s*/u, '')}
                     {m.n > 1 ? <span className="ml-1 rounded bg-slate-700 px-1.5 text-xs">{m.n}</span> : null}
                   </div>

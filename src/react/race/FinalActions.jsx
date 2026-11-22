@@ -178,7 +178,7 @@ export function FinalActions({ sim }) {
                 </div>
                 <div className="mt-1.5 grid grid-cols-2 gap-x-3">
                   <Gauge label="Fond" v={x.energy} color="bg-emerald-400" />
-                  <Gauge label="Jus" v={x.punch} color="bg-sky-400" />
+                  <Gauge label="Jus" v={x.punch} color="bg-cyan-400" />
                 </div>
                 {/* toujours quatre cases (2 × 2) : les boutons ne bougent pas quand la situation change */}
                 <div className="mt-2 grid grid-cols-2 gap-1.5">

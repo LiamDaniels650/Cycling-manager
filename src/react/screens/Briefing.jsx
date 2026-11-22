@@ -1,6 +1,7 @@
 // Briefing d'avant-étape (portage fidèle de viewBriefing et gearCard) : profil et difficultés, ce qui va décider
 // l'étape, météo, matériel et ravitaillement, consignes et plans d'attaque, chrono par équipes, plan de course,
 // ordres conditionnels, options du direct, départ, classement général.
+import { RaceSteps } from '../race/RaceBar.jsx';
 import { Card, Btn, Html, Bar, RiderLink, Select } from '../ui.jsx';
 import { StageProfile } from '../race/Broadcast.jsx';
 import { Standings } from './StageResult.jsx';
@@ -409,7 +410,7 @@ function PlanSummary({ rc, ids }) {
   for (const [k, v] of Object.entries(by))
     if (!['leader', 'sprint', 'free'].includes(k))
       parts.push(`${v.length} ${ORDERS[k] ? ORDERS[k].lbl.toLowerCase() : k}`);
-  return <div className="mb-2 rounded-lg bg-sky-500/10 px-2.5 py-2 text-sm text-sky-100">{parts.join(' · ')}</div>;
+  return <div className="mb-2 rounded-lg bg-slate-800/70 px-2.5 py-2 text-sm text-slate-100">{parts.join(' · ')}</div>;
 }
 export function Briefing() {
   const rc = S.rc;
@@ -420,6 +421,7 @@ export function Briefing() {
   const itt = isITT(spec) || isTTT(spec);
   return (
     <div className="space-y-3">
+      <RaceSteps step="brief" />
       <Card>
         <h2 className="text-lg font-bold text-slate-50">{rc.name}</h2>
         <div className="text-sm text-slate-400">{spec.name}</div>

@@ -13,11 +13,11 @@ const TABS = [
   ['uci', 'UCI coureurs'],
   ['watts', 'Watts'],
   ['palm', 'Mon palmarès'],
-  ['rivals', '🆚 Rivaux'],
-  ['legends', '🏛️ Légendes'],
-  ['legacy', '👔 Héritage'],
-  ['review', '📋 Bilan'],
-  ['film', '🎬 Film'],
+  ['rivals', 'Rivaux'],
+  ['legends', 'Légendes'],
+  ['legacy', 'Héritage'],
+  ['review', 'Bilan'],
+  ['film', 'Film'],
   ['teams', 'Équipes'],
 ];
 const Empty = ({ t = '—' }) => (
@@ -850,15 +850,15 @@ export function Stats() {
   const V = VIEWS[tab] || TeamsTab;
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-800 p-1 sm:grid-cols-5">
+      <div className="flex flex-wrap gap-x-5 border-b border-slate-800">
         {TABS.map(([k, l]) => (
           <button
             key={k}
             type="button"
             onClick={() => ((UI.stats = k), render())}
             className={
-              'min-h-10 rounded-lg px-2 text-sm font-medium ' +
-              (tab === k ? 'bg-sky-500 text-slate-950' : 'text-slate-200')
+              'min-h-10 text-sm font-medium ' +
+              (tab === k ? 'text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]' : 'text-slate-400 hover:text-slate-100')
             }
           >
             {l}

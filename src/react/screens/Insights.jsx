@@ -2,7 +2,7 @@
 // licence WorldTour, objectif UCI du sponsor, « pourquoi » des saisons passées, courbe des points des rivaux.
 import { Card, Html, Info, Table, Tr, TeamDot } from '../ui.jsx';
 
-const BRIEF = 'mt-2 rounded-xl bg-sky-500/10 px-3 py-2 text-sm text-slate-100 ring-1 ring-sky-400/30';
+const BRIEF = 'mt-2 rounded-xl bg-slate-800/70 px-3 py-2 text-sm text-slate-100 ring-1 ring-slate-700';
 
 export function WtBrief() {
   if (!S.wt) return null;

@@ -52,7 +52,7 @@ export function AskPanel({ sim }) {
     </div>
   );
 }
-const CLS = { me: 'text-pink-200', bad: 'text-rose-300', att: 'text-amber-200', info: 'text-sky-200' };
+const CLS = { me: 'text-pink-200', bad: 'text-rose-300', att: 'text-amber-200', info: 'text-slate-100' };
 function FeedRow({ l }) {
   return (
     <div className="flex gap-2 border-b border-slate-800 py-1.5 text-[13px] last:border-0">
@@ -232,7 +232,7 @@ export function Dock({ sim }) {
             <button
               type="button"
               onClick={() => ((UI.flashRace = null), renderLive())}
-              className="line-clamp-2 w-full rounded-xl bg-slate-900 px-3 py-1.5 text-left text-sm text-sky-100 shadow-2xl ring-1 ring-sky-400/50"
+              className="line-clamp-2 w-full rounded-xl bg-slate-900 px-3 py-1.5 text-left text-sm text-slate-100 shadow-2xl ring-1 ring-slate-700"
               dangerouslySetInnerHTML={{ __html: UI.flashRace }}
             />
           </div>
@@ -407,7 +407,7 @@ export function RadioPanel({ id }) {
         {x.radio && RADIO_HELP[x.radio] ? (
           <div className="mt-1 text-slate-300">
             Ordre radio en cours :{' '}
-            <b className="text-sky-200">
+            <b className="text-slate-100">
               {RADIO_HELP[x.radio].ic} {RADIO_HELP[x.radio].short}
             </b>
           </div>
@@ -433,7 +433,7 @@ export function RadioPanel({ id }) {
                     onClick={() => sendRadio(id, k)}
                     className={
                       'flex min-h-12 items-start gap-2.5 rounded-xl px-3 py-2 text-left active:scale-[.98] ' +
-                      (on ? 'bg-sky-500/20 ring-1 ring-sky-400' : 'bg-slate-800 ring-1 ring-slate-700')
+                      (on ? 'bg-slate-800/70 ring-1 ring-sky-400' : 'bg-slate-800 ring-1 ring-slate-700')
                     }
                   >
                     <span className="text-lg leading-6">{H.ic}</span>

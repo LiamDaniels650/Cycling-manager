@@ -1,6 +1,7 @@
 // Après l'étape (portage fidèle de viewStageResult, stageDebriefHTML, standingsCard, summaryCard, energyChart,
 // stagePowerCard et climbWattsCard) : bilan, arrivée, analyse de mes coureurs, désobéissances, classements,
 // résumé à copier, puissances.
+import { RaceSteps } from '../race/RaceBar.jsx';
 import { useState } from 'react';
 import { Card, Btn, RiderLink, Tabs } from '../ui.jsx';
 import { GapChart } from '../race/Broadcast.jsx';
@@ -553,6 +554,7 @@ export function StageResult() {
   const tab = tabs.some(t => t[0] === UI.resTab) ? UI.resTab : 'resume';
   return (
     <div className="space-y-3">
+      <RaceSteps step="bilan" />
       <div className="sticky top-[3.75rem] z-10 -mx-1 bg-slate-950/95 px-1 py-1 backdrop-blur">
         <Tabs items={tabs} value={tab} onChange={k => ((UI.resTab = k), render(), window.scrollTo(0, 0))} />
       </div>

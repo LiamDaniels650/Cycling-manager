@@ -7,15 +7,15 @@ import { StageIcons } from './Bits.jsx';
 
 function Tabs() {
   return (
-    <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-800 p-1">
+    <div className="flex flex-wrap gap-x-5 border-b border-slate-800">
       {[['cal', 'Calendrier'], ...(discoOpen('plan') ? [['plan', '📅 Planification']] : [])].map(([k, l]) => (
         <button
           key={k}
           type="button"
           onClick={() => ((UI.calTab = k), render())}
           className={
-            'min-h-10 rounded-lg text-sm font-medium ' +
-            ((UI.calTab || 'cal') === k ? 'bg-sky-500 text-slate-950' : 'text-slate-200')
+            'min-h-10 text-sm font-medium ' +
+            ((UI.calTab || 'cal') === k ? 'text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]' : 'text-slate-400 hover:text-slate-100')
           }
         >
           {l}
@@ -32,7 +32,7 @@ function RaceRow({ c, k, next }) {
     <div
       className={
         'flex gap-3 border-t border-slate-800 py-2.5 ' +
-        (k === next ? 'rounded-xl bg-sky-500/10 px-2 ring-1 ring-sky-400/40' : '') +
+        (k === next ? 'rounded-xl bg-slate-800/70 px-2 ring-1 ring-slate-700' : '') +
         (c.done ? ' opacity-60' : '')
       }
     >
@@ -256,7 +256,7 @@ function SeasonStrip() {
     <>
       <div className="sticky left-0 z-10 bg-slate-900 pr-2 text-[11px] leading-5 text-slate-400">{lbl}</div>
       {W.map(w => (
-        <div key={w} className={cell + (w === S.week ? ' bg-sky-500/15' : '')}>
+        <div key={w} className={cell + (w === S.week ? ' bg-slate-800/70' : '')}>
           {f(w)}
         </div>
       ))}

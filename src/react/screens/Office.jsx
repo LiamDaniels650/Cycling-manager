@@ -95,7 +95,7 @@ export function Finances() {
         <span className={tot < 0 ? 'text-rose-300' : 'text-emerald-300'}>{fmtMoney(tot)}</span>
       </div>
       {pj.wk ? (
-        <div className="mt-2 rounded-xl bg-sky-500/10 px-2.5 py-2 text-sm text-sky-100 ring-1 ring-sky-400/30">
+        <div className="mt-2 rounded-xl bg-slate-800/70 px-2.5 py-2 text-sm text-slate-100 ring-1 ring-slate-700">
           📈 Flux réguliers (sponsor, équipementiers, salaires, staff) :{' '}
           <b>
             {pj.weekly >= 0 ? '+' : ''}
@@ -262,7 +262,7 @@ function EarlyOffer() {
     <div className="mt-2 rounded-xl bg-emerald-400/10 p-2.5 text-sm ring-1 ring-emerald-300/40">
       📨 <b>{b.name}</b> ({EQ_CATS[o.cat].lbl.toLowerCase()}) propose de vous équiper dès la saison prochaine :{' '}
       {fmtMoney(o.pay)}/saison pendant {o.years} ans. Réponse avant la semaine {o.exp}.
-      <div className="text-xs text-sky-200">
+      <div className="text-xs text-slate-100">
         par rapport à votre matériel : {eqSecondsText(o.cat, b, eqUsed(P(), o.cat)) || 'équivalent'}
       </div>
       <div className="mt-2 grid grid-cols-2 gap-2">
@@ -330,7 +330,7 @@ export function Equipment() {
                   <div
                     key={k}
                     className={
-                      'mt-1 rounded-xl p-2.5 text-sm ' + (on ? 'bg-sky-500/15 ring-1 ring-sky-400' : 'bg-slate-800/60')
+                      'mt-1 rounded-xl p-2.5 text-sm ' + (on ? 'bg-slate-800/70 ring-1 ring-sky-400' : 'bg-slate-800/60')
                     }
                   >
                     <div className="flex flex-wrap justify-between gap-2">
@@ -344,7 +344,7 @@ export function Equipment() {
                     </div>
                     <div className="text-xs text-slate-400">{eqTraits(cat, o.proto ? protoBrand(cat, b) : b)}</div>
                     {o.id !== T.eq[cat] || o.proto ? (
-                      <div className="text-xs text-sky-200">
+                      <div className="text-xs text-slate-100">
                         par rapport à votre matériel :{' '}
                         {eqSecondsText(cat, o.proto ? protoBrand(cat, b) : b, eqUsed(T, cat)) || 'équivalent'}
                       </div>

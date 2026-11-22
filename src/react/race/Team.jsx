@@ -36,7 +36,7 @@ function RiderLive({ sim, x, front }) {
           </div>
           <div className="min-h-5 text-xs">
             {R && !out ? (
-              <span className="inline-flex items-center gap-1 rounded-md bg-sky-500/15 px-1.5 text-sky-200">
+              <span className="inline-flex items-center gap-1 rounded-md bg-slate-800/70 px-1.5 text-slate-100">
                 📻 {R.ic} {R.short}
                 <button
                   type="button"
@@ -55,7 +55,7 @@ function RiderLive({ sim, x, front }) {
             type="button"
             title="Radio"
             onClick={() => openRadio(x.id)}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-500/15 text-sky-200 ring-1 ring-sky-400/40 active:scale-95"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-800/70 text-slate-100 ring-1 ring-slate-700 active:scale-95"
           >
             <Icon name="radio" size={20} />
           </button>
@@ -74,7 +74,7 @@ function RiderLive({ sim, x, front }) {
         <>
           <div className="mt-2 space-y-1">
             <Meter icon="battery" label="Fond" v={x.energy} color="bg-emerald-400" />
-            <Meter icon="zap" label="Jus" v={x.punch} color="bg-sky-400" />
+            <Meter icon="zap" label="Jus" v={x.punch} color="bg-cyan-400" />
             <Meter icon="food" label="Alim." v={x.food} color="bg-amber-400" />
           </div>
           <div className="mt-1 text-xs text-slate-400">

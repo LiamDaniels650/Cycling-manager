@@ -9,7 +9,7 @@ import { PeriStrip } from './Team.jsx';
 
 function Tabs() {
   return (
-    <div className="my-2 grid grid-cols-3 gap-1 rounded-xl bg-slate-800 p-1">
+    <div className="my-2 flex flex-wrap gap-x-5 border-b border-slate-800">
       {[
         ['fiche', 'Fiche'],
         ['car', 'Carrière'],
@@ -20,8 +20,8 @@ function Tabs() {
           type="button"
           onClick={() => ((UI.riderTab = k), renderModal())}
           className={
-            'min-h-10 rounded-lg text-sm font-medium ' +
-            (UI.riderTab === k ? 'bg-sky-500 text-slate-950' : 'text-slate-200')
+            'min-h-10 text-sm font-medium ' +
+            (UI.riderTab === k ? 'text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]' : 'text-slate-400 hover:text-slate-100')
           }
         >
           {l}
@@ -600,7 +600,7 @@ function Fiche({ r }) {
           Caractère et état de forme inconnus tant qu'il n'est pas dans votre équipe.
         </p>
       )}
-      <div className="mt-2 rounded-xl bg-sky-500/10 px-2.5 py-2 text-sm text-sky-100 ring-1 ring-sky-400/30">
+      <div className="mt-2 rounded-xl bg-slate-800/70 px-2.5 py-2 text-sm text-slate-100 ring-1 ring-slate-700">
         🧭 <b>Terrains de prédilection :</b> {riderTerrains(r).join(', ')}
       </div>
       <div className="mt-3">

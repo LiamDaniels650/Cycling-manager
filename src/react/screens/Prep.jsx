@@ -1,5 +1,6 @@
 // Sélection des coureurs pour une course (portage fidèle de viewPrep) : effectif disponible, caractéristiques
 // utiles pour le parcours, état du jour, reconnaissance du parcours.
+import { RaceSteps } from '../race/RaceBar.jsx';
 import { Card, Btn, Html, Bar, Badge, RiderLink, statColor } from '../ui.jsx';
 import { StageIcons } from './Bits.jsx';
 
@@ -31,6 +32,7 @@ export function Prep() {
   const done = reconUseful(c) && S.recon && S.recon[c.key] === S.season;
   return (
     <div className="space-y-3 pb-24">
+      <RaceSteps step="sel" />
       <Card>
         <h2 className="text-lg font-bold text-slate-50">{c.name}</h2>
         <div className="text-sm">
@@ -59,7 +61,7 @@ export function Prep() {
                 key={r.id}
                 className={
                   'block rounded-xl p-2.5 ring-1 ' +
-                  (on ? 'bg-sky-500/15 ring-sky-400' : 'bg-slate-900 ring-slate-700') +
+                  (on ? 'bg-slate-900 ring-sky-500/70 shadow-[inset_3px_0_0_#f2c94c]' : 'bg-slate-900 ring-slate-800') +
                   (dis ? ' opacity-50' : '')
                 }
               >

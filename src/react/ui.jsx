@@ -163,7 +163,7 @@ export function Badge({ children, tone = 'slate' }) {
   const t = {
     slate: 'bg-slate-800 text-slate-200 ring-slate-700',
     red: 'bg-rose-500/15 text-rose-200 ring-rose-500/40',
-    sky: 'bg-sky-500/15 text-sky-200 ring-sky-500/40',
+    sky: 'bg-slate-800/70 text-slate-100 ring-sky-500/40',
   }[tone];
   return <span className={'ml-1 inline-block rounded-md px-1.5 py-0.5 text-xs ring-1 ' + t}>{children}</span>;
 }
@@ -290,15 +290,15 @@ export function KV({ rows }) {
 // Onglets tactiles (passent à la ligne sur un écran étroit, jamais de défilement horizontal).
 export function Tabs({ items, value, onChange }) {
   return (
-    <div className="flex flex-wrap gap-1 rounded-xl bg-slate-800 p-1">
+    <div className="flex flex-wrap gap-x-5 border-b border-slate-800">
       {items.map(([k, l]) => (
         <button
           key={k}
           type="button"
           onClick={() => onChange(k)}
           className={
-            'min-h-10 flex-1 rounded-lg px-2 text-sm font-medium ' +
-            (value === k ? 'bg-sky-500 text-slate-950' : 'text-slate-200')
+            'min-h-10 text-sm font-medium ' +
+            (value === k ? 'text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]' : 'text-slate-400 hover:text-slate-100')
           }
         >
           {l}
@@ -310,7 +310,7 @@ export function Tabs({ items, value, onChange }) {
 // Pastilles d'aide à la décision (marché, vivier) : besoin, bonne affaire, risque, information.
 export function Pills({ items }) {
   const T = {
-    need: 'bg-sky-500/15 text-sky-200 ring-sky-400/40',
+    need: 'bg-slate-800/70 text-slate-100 ring-slate-700',
     good: 'bg-emerald-500/15 text-emerald-200 ring-emerald-400/40',
     warn: 'bg-amber-400/15 text-amber-100 ring-amber-300/40',
     bad: 'bg-rose-500/15 text-rose-200 ring-rose-400/40',

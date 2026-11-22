@@ -30,7 +30,7 @@ export function CompareBtn({ r }) {
     <button
       type="button"
       className={
-        cls + (a ? 'bg-sky-500/15 text-sky-200 ring-sky-400/50' : 'bg-slate-800 text-slate-200 ring-slate-700')
+        cls + (a ? 'bg-slate-800/70 text-slate-100 ring-slate-700' : 'bg-slate-800 text-slate-200 ring-slate-700')
       }
       onClick={() => ((UI.cmpId = a ? null : r.id), renderModal())}
       title="Ouvrez ensuite la fiche d'un autre coureur pour les comparer"
