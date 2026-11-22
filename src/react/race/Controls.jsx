@@ -165,7 +165,7 @@ function toastOn() {
       }
       LAST_OTHER = Date.now();
     }
-    B.until = Math.min(B.until, Date.now() + (B.mine ? 4000 : 3000));
+    B.until = Math.min(B.until, Date.now() + (B.mine ? 7000 : 4000));
     if (B.mine && navigator.vibrate)
       try {
         navigator.vibrate(60);
@@ -322,6 +322,15 @@ export function Dock({ sim }) {
                   onChange={e => ((UI.pauseHl = e.target.checked), renderLive())}
                 />{' '}
                 pause moments forts
+              </label>
+              <label className="flex min-h-8 items-center gap-1.5">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-sky-500"
+                  checked={UI.pauseMoments !== false}
+                  onChange={e => ((UI.pauseMoments = e.target.checked), renderLive())}
+                />{' '}
+                pause aux moments décisifs
               </label>
               {S.car ? null : (
                 <button

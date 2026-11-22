@@ -15,7 +15,6 @@ function Tag({ x, star }) {
 export function Peloton({ sim }) {
   sim.groups = sim.groups.filter(G => G.riders.length);
   const front = sim.groups[0];
-  const brief = sim.groups.length && !sim.finish.length ? finaleSituation(sim) : '';
   const pelG = sim.groups.includes(sim.pel) ? sim.pel : null;
   const shown = pelG
     ? [
@@ -33,12 +32,6 @@ export function Peloton({ sim }) {
     <Card title="Course">
       {/* hauteur fixe, défilement interne : l'écran ne bouge pas quand des groupes se forment ou se rejoignent */}
       <div className="h-[22rem] overflow-y-auto overscroll-contain pr-1">
-        {brief ? (
-          <div className="mb-2 flex gap-2 rounded-xl bg-sky-500/10 px-2.5 py-2 text-sm text-sky-100 ring-1 ring-sky-400/30">
-            <Icon name="radio" size={16} className="mt-0.5 text-sky-300" />
-            <span>{brief}</span>
-          </div>
-        ) : null}
         <div className="space-y-2">
           {shown.map(G => {
             const i = sim.groups.indexOf(G);

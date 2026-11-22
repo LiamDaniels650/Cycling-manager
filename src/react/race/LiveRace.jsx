@@ -4,11 +4,12 @@
 import { useEffect } from 'react';
 import { Card } from '../ui.jsx';
 import { RaceHeader, Clock, StageProfile, RoadStrip, GapChart, VirtualLeader } from './Broadcast.jsx';
-import { Finale, inFinale, SprintReplay } from './Finale.jsx';
+import { Finale, inFinale } from './Finale.jsx';
 import { FinalActions } from './FinalActions.jsx';
 import { Peloton } from './Peloton.jsx';
 import { MyTeam, Nego } from './Team.jsx';
 import { RadioFeed, Dock } from './Controls.jsx';
+import { Situation, MomentPanel } from './Situation.jsx';
 
 function Fold({ title, children }) {
   return (
@@ -18,30 +19,6 @@ function Fold({ title, children }) {
       </summary>
       <div className="space-y-3 p-2 pt-0">{children}</div>
     </details>
-  );
-}
-// Moment décisif en direct (sommet d'un grand col, secteur pavé) : son rejeu en haut de l'écran pendant quelques
-// minutes de course, refermable.
-function MomentLive({ sim }) {
-  const m = sim.liveMoment;
-  if (!m || sim.t > m.until || !sim.momentTraces || !sim.momentTraces[m.i]) return null;
-  const e = sim.momentTraces[m.i];
-  return (
-    <Card
-      tone="action"
-      title={`⚡ Moment décisif — ${e.name} (km ${e.km})`}
-      right={
-        <button
-          type="button"
-          className="min-h-9 px-2 text-xs text-slate-300 underline"
-          onClick={() => ((sim.liveMoment = null), renderLive())}
-        >
-          Fermer
-        </button>
-      }
-    >
-      <SprintReplay key={m.i} tr={e.tr} />
-    </Card>
   );
 }
 export function LiveRace() {
@@ -66,6 +43,7 @@ export function LiveRace() {
         {/* sur grand écran : le final à gauche, le détail à droite */}
         <div className="space-y-3 xl:grid xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:items-start xl:gap-3 xl:space-y-0">
           <div className="space-y-3">
+            <MomentPanel sim={sim} />
             <Finale sim={sim}>{sim.photo ? null : <FinalActions sim={sim} />}</Finale>
             {sim.photo ? null : (
               <div className="space-y-2 empty:hidden">
@@ -101,7 +79,8 @@ export function LiveRace() {
     <div className="space-y-3 pb-36 xl:grid xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:items-start xl:gap-3 xl:space-y-0">
       {/* sur grand écran : la retransmission et les groupes à gauche, mes coureurs et la radio à droite */}
       <div className="space-y-3">
-        <MomentLive sim={sim} />
+        <MomentPanel sim={sim} />
+        <Situation sim={sim} />
         <Card className="border-sky-500/30">
           <RaceHeader sim={sim} rc={rc} />
           <Clock sim={sim} frac={frac} />

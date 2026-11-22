@@ -331,6 +331,11 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   - Sauvegarde : au-delà de 2,5 Mo (≈ 20 saisons), la copie locale de secours est compressée (gzip, ≈ 6 fois plus
     petite) au lieu d'être abandonnée ; IndexedDB reste la copie principale. Croissance mesurée : ≈ 85 Ko brut et
     13 Ko compressés par saison (2,5 Mo brut et 416 Ko compressés après 21 saisons, écriture en 25 ms).
+  - Écran de course plus compréhensible : panneau « 🧭 La course en clair » (ce qui se passe devant et qui roule,
+    où sont mes coureurs, prochaine difficulté, conseil d'action avec le nom du bouton à utiliser) ; à chaque moment
+    décisif la course se met en pause et le rejeu reste affiché avec son explication et le sort de mes coureurs,
+    jusqu'à « Reprendre la course » (réglable : « pause aux moments décisifs ») ; boutons « Revoir » pour chaque
+    moment de l'étape ; bandeaux de moments forts affichés plus longtemps (7 s pour mon équipe).
   - Marge du sprint : le meilleur sprinteur gagne 36 à 37 % des sprints massifs (contre 31 %).
   - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
     carrousel, presse, stages, tests d'effort, forme).

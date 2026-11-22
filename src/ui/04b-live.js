@@ -107,12 +107,28 @@ function loop() {
       UI.paceState = 'live';
       i = n;
     }
+    // moment décisif rejoué au détail : la course s'arrête et son rejeu s'ouvre, jusqu'à ce que le joueur reprenne
+    // (les bordures qui ne concernent pas mes coureurs s'ouvrent sans arrêter la course)
+    const mts = sim.momentTraces || [];
+    if (mts.length > (UI.momSeen || 0)) {
+      UI.momSeen = mts.length;
+      const m = mts[mts.length - 1];
+      const mine = m.tr && m.tr.riders.some(r => r.me);
+      if (UI.pauseMoments !== false && (m.kind !== 'bord' || mine)) {
+        UI.momOpen = mts.length - 1;
+        UI.momPaused = UI.speed || UI.baseSpeed || 2;
+        UI.speed = 0;
+        UI.keyMode = false;
+        UI.acc = 0;
+        break;
+      } else if (UI.momOpen == null) UI.momOpen = mts.length - 1;
+    }
     // moments forts : bandeau, et pause si demandée
     const hls = sim.hls || [];
     if (hls.length > (UI.hlSeen || 0)) {
       const hl = hls[hls.length - 1];
       UI.hlSeen = hls.length;
-      UI.banner = { txt: hl.txt, mine: hl.mine, until: Date.now() + 4500 };
+      UI.banner = { txt: hl.txt, mine: hl.mine, until: Date.now() + 7500 };
       if (UI.pauseHl && UI.speed) sim.pauseReq = sim.pauseReq || hl.txt;
     }
     if (sim.pauseReq) {

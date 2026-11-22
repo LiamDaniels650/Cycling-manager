@@ -154,6 +154,8 @@ function startStage() {
   }
   UI.sim = newStageSim(rc);
   UI.hlSeen = 0;
+  UI.momSeen = 0;
+  UI.momOpen = null;
   UI.banner = null;
   UI.acc = 0;
   UI.sim.autoPause = UI.autoPause;
