@@ -108,7 +108,8 @@ function runRoadStage(rc, spec, cal) {
   let half = null,
     brk = 0,
     caughtKm = null,
-    brkSeen = false;
+    brkSeen = false,
+    lastIds = null;
   while (!sim.done) {
     simTick(sim);
     if (!half && sim.groups.length && sim.groups[0].pos >= spec.dist * 0.5) half = idsAhead(sim, favGroup(sim));
@@ -121,6 +122,10 @@ function runRoadStage(rc, spec, cal) {
       brk = Math.max(brk, n);
     }
     // reprise de l'échappée du jour : plus aucun groupe d'échappés devant le peloton (à plus de 10 s)
+    if (sim.brkIds !== lastIds) {
+      lastIds = sim.brkIds; // nouvelle échappée (après une reprise très tôt) : on la suit depuis son départ
+      brkSeen = false;
+    }
     if (sim.brkIds && P && caughtKm == null) {
       const ahead = sim.groups.some(
         H => H !== P && H.pos > P.pos && gapSec(H, P) > 10 && H.riders.some(x => sim.brkIds.has(x.id) && !x.fin)

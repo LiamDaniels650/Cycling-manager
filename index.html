@@ -3173,6 +3173,7 @@ const R = {
   mtnChaseK: 0.65, // montagne : marge laissée à l'échappée (écarts mesurés en temps de passage, plus justes en montée)
   summitChaseK: 0.5, // … et pour une arrivée au sommet, marge laissée par les favoris qui visent l'étape
   mtnLeaderGap: 180, // dernière montée d'une étape : les favoris roulent eux-mêmes derrière une échappée à moins de 180 s
+  breakEco: 0.97, // échappée sur le plat à plus de 30 km de l'arrivée : allure tenue (part de l'allure de relais)
   flatChaseK: 0.85, // équipes de sprinteurs : marge laissée à l'échappée (part de l'écart toléré d'origine)
   sprintCatchKm: 8, // poursuite des équipes de sprinteurs : reprendre l'échappée vers 8 km de l'arrivée…
   chaseAhead: 2, // … une équipe en avance sur cet objectif (vitesse de reprise > 1,4 × nécessaire) lève le pied
@@ -5613,7 +5614,7 @@ function autoOrders(teamId, spec, rc) {
   if (leader && rc.si > 0 && leaderGcRank(rc, leader.id) <= 3) nBreak = Math.min(nBreak, 1);
   // équipe qui a renoncé au général (grand tour, leader trop loin) : elle place des hommes dans les échappées
   if (rc.stageHunt && rc.stageHunt[teamId] && t !== 'plat' && t !== 'clm' && t !== 'clmeq')
-    nBreak = Math.max(nBreak, 2);
+    nBreak = Math.max(nBreak, 1);
   // le prétendant au maillot vert (trois premiers du classement par points, rapide) part chercher les points du
   // sprint intermédiaire dans l'échappée sur une étape accidentée, où il ne disputera pas l'arrivée
   if (stageRace && rc.si > 0 && (t === 'vallonne' || t === 'punch')) {
@@ -6998,8 +6999,10 @@ function breakUpdate(sim, pel) {
   const F = sim.groups[0];
   // durée de la bagarre : longue en montagne (tout le monde veut y être), courte ailleurs
   const t = sim.spec.type;
-  if (pel.pos > sim.dist * (t === 'montagne' ? 0.35 : t === 'sommet' ? 0.16 : 0.15)) sim.brkState = 'gone';
-  else if (F !== pel && F.riders.length >= sim.brkTarget && gapSec(F, pel) >= 25) {
+  if (pel.pos > (sim.fightFrom || 0) + sim.dist * (t === 'montagne' ? 0.35 : t === 'sommet' ? 0.16 : 0.15))
+    sim.brkState = 'gone';
+  // l'échappée du jour n'est « partie » qu'avec une vraie avance (une minute) : avant, c'est encore la bagarre
+  else if (F !== pel && F.riders.length >= sim.brkTarget && gapSec(F, pel) >= 60) {
     sim.brkState = 'gone';
     sim.brkIds = new Set(F.riders.map(x => x.id));
     if (F.riders.length >= 3)
@@ -7857,6 +7860,8 @@ function tickPhysics(sim) {
         mean = sum(c) / c.length;
       const cw = clamp((g - 2) / 3, 0, 1);
       L = mean * (1 - cw) + mx * cw + (1 - cw) * (n >= 15 ? 2.4 : 1.4) * Math.sqrt(Math.min(8, ws.length - 1));
+      // échappée sur le plat, loin de l'arrivée : les échappés roulent un peu en dedans pour durer jusqu'au final
+      if (G.ahead && n <= 10 && g < 2 && sim.dist - G.pos > 30) L *= R.breakEco;
     } else {
       const caps = [...capM.values()].sort((a, b) => a - b);
       // personne ne roule : le peloton (un vrai, 20 coureurs ou plus) temporise ; dans une classique, un groupe de tête où personne ne relaie se
@@ -8269,7 +8274,7 @@ function incident(sim, x, type) {
           );
       }
     }
-    if (rnd() < 0.1 * (x.player && S.staff ? 1.2 - 0.1 * S.staff.doctor : 1)) {
+    if (rnd() < 0.08 * (x.player && S.staff ? 1.2 - 0.1 * S.staff.doctor : 1)) {
       x.dnf = true;
       x.r.injury = Math.max(1, Math.round(rint(1, 5) * (x.player && S.staff ? 1.25 - 0.1 * S.staff.doctor : 1)));
       txt += ' — abandon, blessé';
@@ -8315,8 +8320,18 @@ function tickMerges(sim) {
         !sim.brkCaught &&
         sim.brkIds &&
         A.riders.filter(y => sim.brkIds.has(y.id)).length > A.riders.length / 2
-      )
-        sim.brkCaught = catchRecord(sim, A, B);
+      ) {
+        // reprise très tôt (plus de la moitié de l'étape à courir) : une nouvelle bagarre s'ouvre, une autre
+        // échappée part, comme en vrai (sinon le peloton restait groupé jusqu'au final)
+        if (sim.dist - B.pos > sim.dist * 0.5 && !sim.refight && sim.spec.type !== 'clm') {
+          sim.refight = true;
+          sim.brkState = 'fight';
+          sim.brkIds = null;
+          sim.fightFrom = B.pos;
+          sim.brkTarget = breakTarget(sim.spec.type, sim.stageRace && sim.rc.cat === 0);
+          log(sim, '🔁 Échappée reprise tôt : la bagarre reprend pour une nouvelle échappée.', 'info');
+        } else sim.brkCaught = catchRecord(sim, A, B);
+      }
       if (wasBreak && A.riders.length && sim.dist - B.pos < 25)
         highlight(
           sim,
@@ -20597,7 +20612,7 @@ function momentRun(sim, G, L, grad, surf, kind, name, km, key) {
     const wet = sim.wx === 'pluie';
     for (const x of xs) {
       const risk =
-        0.008 *
+        0.005 *
         clamp(1 + (70 - (x.r.s.des || 68)) / 25, 0.6, 2.2) *
         (wet ? 2 : 1) *
         (0.6 + 0.8 * descentTech(sim, km - L / 2000)) *

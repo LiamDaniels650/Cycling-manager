@@ -388,8 +388,10 @@ function breakUpdate(sim, pel) {
   const F = sim.groups[0];
   // durée de la bagarre : longue en montagne (tout le monde veut y être), courte ailleurs
   const t = sim.spec.type;
-  if (pel.pos > sim.dist * (t === 'montagne' ? 0.35 : t === 'sommet' ? 0.16 : 0.15)) sim.brkState = 'gone';
-  else if (F !== pel && F.riders.length >= sim.brkTarget && gapSec(F, pel) >= 25) {
+  if (pel.pos > (sim.fightFrom || 0) + sim.dist * (t === 'montagne' ? 0.35 : t === 'sommet' ? 0.16 : 0.15))
+    sim.brkState = 'gone';
+  // l'échappée du jour n'est « partie » qu'avec une vraie avance (une minute) : avant, c'est encore la bagarre
+  else if (F !== pel && F.riders.length >= sim.brkTarget && gapSec(F, pel) >= 60) {
     sim.brkState = 'gone';
     sim.brkIds = new Set(F.riders.map(x => x.id));
     if (F.riders.length >= 3)

@@ -177,7 +177,7 @@ function momentRun(sim, G, L, grad, surf, kind, name, km, key) {
     const wet = sim.wx === 'pluie';
     for (const x of xs) {
       const risk =
-        0.008 *
+        0.005 *
         clamp(1 + (70 - (x.r.s.des || 68)) / 25, 0.6, 2.2) *
         (wet ? 2 : 1) *
         (0.6 + 0.8 * descentTech(sim, km - L / 2000)) *

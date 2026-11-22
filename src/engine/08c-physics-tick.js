@@ -30,6 +30,8 @@ function tickPhysics(sim) {
         mean = sum(c) / c.length;
       const cw = clamp((g - 2) / 3, 0, 1);
       L = mean * (1 - cw) + mx * cw + (1 - cw) * (n >= 15 ? 2.4 : 1.4) * Math.sqrt(Math.min(8, ws.length - 1));
+      // échappée sur le plat, loin de l'arrivée : les échappés roulent un peu en dedans pour durer jusqu'au final
+      if (G.ahead && n <= 10 && g < 2 && sim.dist - G.pos > 30) L *= R.breakEco;
     } else {
       const caps = [...capM.values()].sort((a, b) => a - b);
       // personne ne roule : le peloton (un vrai, 20 coureurs ou plus) temporise ; dans une classique, un groupe de tête où personne ne relaie se
@@ -442,7 +444,7 @@ function incident(sim, x, type) {
           );
       }
     }
-    if (rnd() < 0.1 * (x.player && S.staff ? 1.2 - 0.1 * S.staff.doctor : 1)) {
+    if (rnd() < 0.08 * (x.player && S.staff ? 1.2 - 0.1 * S.staff.doctor : 1)) {
       x.dnf = true;
       x.r.injury = Math.max(1, Math.round(rint(1, 5) * (x.player && S.staff ? 1.25 - 0.1 * S.staff.doctor : 1)));
       txt += ' — abandon, blessé';
@@ -488,8 +490,18 @@ function tickMerges(sim) {
         !sim.brkCaught &&
         sim.brkIds &&
         A.riders.filter(y => sim.brkIds.has(y.id)).length > A.riders.length / 2
-      )
-        sim.brkCaught = catchRecord(sim, A, B);
+      ) {
+        // reprise très tôt (plus de la moitié de l'étape à courir) : une nouvelle bagarre s'ouvre, une autre
+        // échappée part, comme en vrai (sinon le peloton restait groupé jusqu'au final)
+        if (sim.dist - B.pos > sim.dist * 0.5 && !sim.refight && sim.spec.type !== 'clm') {
+          sim.refight = true;
+          sim.brkState = 'fight';
+          sim.brkIds = null;
+          sim.fightFrom = B.pos;
+          sim.brkTarget = breakTarget(sim.spec.type, sim.stageRace && sim.rc.cat === 0);
+          log(sim, '🔁 Échappée reprise tôt : la bagarre reprend pour une nouvelle échappée.', 'info');
+        } else sim.brkCaught = catchRecord(sim, A, B);
+      }
       if (wasBreak && A.riders.length && sim.dist - B.pos < 25)
         highlight(
           sim,

@@ -236,7 +236,7 @@ function autoOrders(teamId, spec, rc) {
   if (leader && rc.si > 0 && leaderGcRank(rc, leader.id) <= 3) nBreak = Math.min(nBreak, 1);
   // équipe qui a renoncé au général (grand tour, leader trop loin) : elle place des hommes dans les échappées
   if (rc.stageHunt && rc.stageHunt[teamId] && t !== 'plat' && t !== 'clm' && t !== 'clmeq')
-    nBreak = Math.max(nBreak, 2);
+    nBreak = Math.max(nBreak, 1);
   // le prétendant au maillot vert (trois premiers du classement par points, rapide) part chercher les points du
   // sprint intermédiaire dans l'échappée sur une étape accidentée, où il ne disputera pas l'arrivée
   if (stageRace && rc.si > 0 && (t === 'vallonne' || t === 'punch')) {
