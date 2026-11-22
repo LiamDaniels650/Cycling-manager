@@ -400,7 +400,7 @@ Plat — 198 km | t= 4h13'33" avg 46.9 km/h | ticks 527 | last +9'51" | DNF 0
    V. Marchand[spri]m.t., N. Renaud[spri]m.t., L. Lombardi[spri]m.t., M. Picard[spri]m.t., I. Buitrago[spri]m.t.
  GC: V. Marchand[spri] m.t., N. Renaud[spri] +4", L. Lombardi[spri] +6", M. Picard[spri] +10", I. Buitrago[spri] +10"
 
-season ok, budget 1073 riders 605 json 792769
+season ok, budget 1073 riders 605 json 799557
 
 === Grand Prix d'Ouverture ===
 Plat — 176 km | t= 4h04'01" avg 43.3 km/h | ticks 504 | last +7'31" | DNF 0
@@ -13481,8 +13481,8 @@ Plat — 198 km | t= 3h50'05" avg 51.6 km/h | ticks 484 | last +11'43" | DNF 0
      [198] 🏁 Sprint : le train BRL emmène A. Rousseau ; P. De Boer s'impose (vent de dos) ; L. Brown lancé trop tôt.
  GC: P. De Boer[spri] m.t., B. Guyot[spri] +4", L. Brown[spri] +6", M. Nielsen[spri] +10", A. Rousseau[spri] +10"
 
-S2027 rank 14 uci 1605 wins 3 budget 1207 conf 34 obj 1000 | roster 21 aca 2 youth 63 free 65 | avgAge 26.0 teamOv 75,80,78,78,78,76,77,76,75,75,75,73,73,73,73,71,72,71 | json 793KB
-S2028 rank 10 uci 3140 wins 4 budget 1032 conf 1 obj 1100 | roster 19 aca 1 youth 70 free 65 | avgAge 26.0 teamOv 76,79,79,77,77,76,76,76,75,74,75,73,73,72,72,71,71,71 | json 958KB
+S2027 rank 14 uci 1605 wins 3 budget 1207 conf 34 obj 1000 | roster 21 aca 2 youth 63 free 65 | avgAge 26.0 teamOv 75,80,78,78,78,76,77,76,75,75,75,73,73,73,73,71,72,71 | json 800KB
+S2028 rank 10 uci 3140 wins 4 budget 1032 conf 1 obj 1100 | roster 19 aca 1 youth 70 free 65 | avgAge 26.0 teamOv 76,79,79,77,77,76,76,76,75,74,75,73,73,72,72,71,71,71 | json 964KB
 {"2027":{"sal":-3695.3571428571413,"staff":-555.4761904761903,"spons":3234.252690003791,"prize":153,"transf":0,"aca":-43.428571428571416,"other":-977.5,"equip":226.47619047619034},"2028":{"sal":-4275.714285714284,"staff":-492.97619047619025,"spons":3554.814288910613,"prize":314,"transf":1604,"aca":-23.42857142857144,"other":-1060.6924282480331,"equip":205}}
 top ov 87,86,86,86,85,85,84,84,84,84 p50 75
 top20 ages 31,23,28,25,32,23,26,24,25,25,28,25,25,30,33,30,25,26,34,27 neo in top20 0
