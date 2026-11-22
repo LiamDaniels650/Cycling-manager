@@ -18,6 +18,8 @@ function obeyCheck(x, ord, sim) {
     if (r.trait === 'leaderne' && selfChance) p -= 0.2;
     if (r.trait === 'opportuniste' && selfChance) p -= 0.15;
     if (r.trait === 'tete' && (ord === 'stop' || ord === 'wait' || ord === 'nopull' || ord === 'save')) p -= 0.25;
+    // attendre son leader lâché : la consigne la plus évidente d'un équipier, rarement refusée
+    if (ord === 'wait') p += 0.2;
   } else {
     p += r.amb / 400;
   }
@@ -30,6 +32,7 @@ function applyRadio(sim, x, k, src) {
   // remplacent tant que le joueur ne l'a pas levé (« retour à la consigne »)
   const human = src !== 'auto';
   if (!human && x.manual) return false;
+  if (human && k === 'wait') x.waitFor = null; // (votre ordre « attends le leader » vise le leader)
   // mode carrière : on garde la trace des ordres que le joueur se donne (le directeur sportif jugera)
   if (sim.carId === x.id && src !== 'auto' && src !== 'cond')
     (sim.rc.carRadio = sim.rc.carRadio || []).push([k, x.order]);
@@ -62,7 +65,7 @@ function applyRadio(sim, x, k, src) {
     log(sim, `${pre}${nm} : ${RADIO[k].lbl} — « ${radioReply(x, 'legs')} »`, 'bad');
     return false;
   }
-  if (k === 'wait' && !sim.teamLeader[x.team.id]) {
+  if (k === 'wait' && !sim.teamLeader[x.team.id] && x.waitFor == null) {
     log(sim, `${pre}${nm} : « Attendre qui ? On n'a pas de leader désigné ! »`, 'bad');
     return false;
   }
@@ -226,6 +229,33 @@ function dsBrain(sim, T) {
       }
     }
   }
+  // 2 bis. leader distancé derrière des équipiers : l'adjoint fait se relever un ou deux équipiers pour l'attendre
+  // et le ramener (d'abord ceux qui protègent le leader, puis ceux qui contrôlent, les plus frais) ; jamais un
+  // échappé qui joue la victoire, ni le sprinteur sur une étape plate. Il insiste toutes les quatre minutes.
+  if (ldr && !ldr.fin && !ldr.dnf && PL && sim.dist - ldr.g.pos > 5) {
+    const withL = ldr.g.riders.filter(y => y.team === T && y !== ldr && !y.fin && !y.dnf).length;
+    const need = Math.max(0, 2 - withL);
+    if (need) {
+      const cands = mine.filter(x => {
+        if (x === ldr || x.g === ldr.g || x.g.pos <= ldr.g.pos || x.manual || x.radio === 'wait' || x.energy < 20)
+          return false;
+        if (x.waitRef != null && sim.t - x.waitRef < 5) return false; // il vient de refuser : on en demande un autre
+        if (x === spr && sim.spec.type === 'plat') return false;
+        if (x.g.ahead && x.g.riders.length <= 12 && sim.dist - x.g.pos < 40 && x.order === 'break') return false;
+        const gp = gapSec(x.g, ldr.g);
+        return gp > 10 && gp < 240;
+      });
+      if (cands.length && once('waitldr', 1)) {
+        const pri = o => ({ protect: 0, control: 1, free: 2, leadout: 3, save: 4, break: 5 })[o] ?? 6;
+        const pick = cands.sort((a, b) => pri(a.order) - pri(b.order) || b.energy - a.energy).slice(0, need);
+        log(sim, `🤖 DS : ${pick.map(x => riderName(x.r)).join(' et ')}, relevez-vous et attendez ${riderName(ldr.r)} !`, 'me');
+        for (const x of pick) {
+          x.waitFor = null; // (le leader)
+          if (!applyRadio(sim, x, 'wait', 'auto')) x.waitRef = sim.t;
+        }
+      }
+    }
+  }
   // 2. leader distancé : faire chasser / attendre (l'IA le fait déjà dans ses consignes de poursuite)
   if (ldr && !ldr.fin && !ldr.dnf && PL) {
     const G = ldr.g;
@@ -327,6 +357,53 @@ function dsBrain(sim, T) {
       x.radio = 'wait';
       x.order = 'protect';
       log(sim, `🤖 DS : ${riderName(x.r)}, relève-toi, ${riderName(ldr.r)} arrive : tu roules pour lui !`, 'me');
+    }
+  }
+  // 2 ter. sprinteur lâché sur une étape plate (bosse, crevaison), loin de l'arrivée : un équipier l'attend pour le
+  // ramener (le poisson-pilote ou un équipier de contrôle)
+  if (PL && spr && !spr.fin && !spr.dnf && spr !== ldr && sim.spec.type === 'plat' && sim.dist - spr.g.pos > 15) {
+    const withS = spr.g.riders.filter(y => y.team === T && y !== spr && !y.fin && !y.dnf).length;
+    if (!withS) {
+      const cands = mine.filter(x => {
+        if (x === spr || x === ldr || x.g === spr.g || x.g.pos <= spr.g.pos || x.manual || x.radio === 'wait' || x.energy < 30)
+          return false;
+        if (x.waitRef != null && sim.t - x.waitRef < 5) return false;
+        const gp = gapSec(x.g, spr.g);
+        return gp > 10 && gp < 180 && ['leadout', 'control', 'protect', 'free'].includes(x.order);
+      });
+      if (cands.length && once('waitspr', 1)) {
+        const pri = o => ({ leadout: 0, control: 1, protect: 2, free: 3 })[o];
+        const x = cands.sort((a, b) => pri(a.order) - pri(b.order) || b.energy - a.energy)[0];
+        log(sim, `🤖 DS : ${riderName(x.r)}, relève-toi et ramène ${riderName(spr.r)} !`, 'me');
+        x.waitFor = spr.id;
+        if (!applyRadio(sim, x, 'wait', 'auto')) {
+          x.waitFor = null;
+          x.waitRef = sim.t;
+        }
+      }
+    }
+  }
+  // 4 bis. étape pour sprinteurs : l'échappée a trop d'avance pour le kilométrage restant, personne de l'équipe devant
+  // → deux équipiers roulent ; ils se relèvent quand l'écart est sous contrôle
+  if (PL && spr && !spr.fin && !spr.dnf && ['plat', 'vallonne'].includes(sim.spec.type) && sim.pel && spr.g === sim.pel) {
+    const H = sim.groups.find(G => G.ahead && G.pos > sim.pel.pos && G.riders.some(x => !x.fin));
+    const kmL = sim.dist - sim.pel.pos;
+    const ours = H && H.riders.some(x => x.team === T);
+    if (H && !ours && kmL < 120 && kmL > 3) {
+      const gap = boardGap(sim, H, sim.pel).v;
+      const rolling = mine.filter(x => x.g === sim.pel && (x.radio === 'chase' || x.work >= 0.8)).length;
+      if (gap > kmL * 4.5 && rolling < 2 && once('chasebrk', 6)) {
+        const pri = o => ({ control: 0, protect: 1, free: 2, leadout: 3 })[o] ?? 9;
+        const pick = mine
+          .filter(x => x.g === sim.pel && x !== spr && x !== ldr && !x.manual && x.energy > 35 && x.radio !== 'chase' && pri(x.order) < 9)
+          .sort((a, b) => pri(a.order) - pri(b.order) || b.energy - a.energy)
+          .slice(0, 2 - rolling);
+        if (pick.length) {
+          log(sim, `🤖 DS : l'échappée a ${fmtGap(gap)} à ${Math.round(kmL)} km, trop pour ${riderName(spr.r)} : ${pick.map(x => riderName(x.r)).join(' et ')}, on roule !`, 'me');
+          for (const x of pick) applyRadio(sim, x, 'chase', 'auto');
+        }
+      } else if (gap < kmL * 2)
+        for (const x of mine) if (x.radio === 'chase' && x.g === sim.pel && !x.manual && once('stopbrk' + x.id, 6)) x.radio = null;
     }
   }
   // 5. équipiers dans le rouge en montée : à leur rythme

@@ -1391,5 +1391,20 @@ check(
   const y = { aca: true, age: 20 };
   check(devEligible(y, cat2) && !devEligible(y, S.cal.find(x => x.cat === 0)), 'réserve : courses de deuxième catégorie seulement');
 }
+{
+  // directeur adjoint en course : il fait attendre le leader lâché et ramener le sprinteur isolé
+  newGame('Adj', 3);
+  const gi = S.cal.findIndex(c => c.key === 'gb');
+  const rc = startRace(gi, aiSelect(S.teams[0], S.cal[gi], prepareRaceSpecs(S.cal[gi])));
+  rc.autoDS = true;
+  rc.delegated = true;
+  let waits = 0;
+  for (let si = 0; si < 10 && !rc.done; si++) {
+    Object.assign(rc.orders, autoOrders(0, rc.specs[rc.si], rc));
+    const sim = runStageAuto(rc);
+    if (sim && sim.log) waits += sim.log.filter(l => /attendez|ramène/.test(l.txt)).length;
+  }
+  check(waits > 0, `adjoint : ordres d'attendre le leader ou de ramener le sprinteur (${waits})`);
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

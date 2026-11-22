@@ -24,7 +24,9 @@ function decideRider(sim, x, ctx) {
     return;
   }
   const eo = effOrder(x);
-  const ldr = sim.teamLeader[x.team.id];
+  // (attendre : le leader, ou le coureur désigné par le directeur sportif, le sprinteur par exemple)
+  const wt = eo === 'wait' && x.waitFor != null ? sim.runners.find(y => y.id === x.waitFor && !y.fin && !y.dnf) : null;
+  const ldr = wt || sim.teamLeader[x.team.id];
   // --- attendre le leader ---
   if (
     (eo === 'wait' || (eo === 'protect' && x.waitCD <= 0)) &&
@@ -50,7 +52,10 @@ function decideRider(sim, x, ctx) {
       x.waitCD = 30;
       if (x.player && sim.t - (x.waitLog || -99) > 20 && (x.waitLog = sim.t))
         log(sim, `📻 ${riderName(x.r)} se relève et attend ${riderName(ldr.r)}.`, 'me');
-      if (eo === 'wait') x.radio = null;
+      if (eo === 'wait') {
+        x.radio = null;
+        x.waitFor = null;
+      }
       return;
     }
   }
