@@ -396,9 +396,13 @@ function incident(sim, x, type) {
     x.energy = Math.max(0, x.energy - rf(6, 25));
     x.punch = Math.max(0, x.punch - 30);
     if (G.riders.length >= 25 && rnd() < 0.35) {
-      const behind = G.riders.filter(y => y !== x && y.pos < x.pos - 5 && rnd() < 0.6);
+      // seuls les coureurs juste derrière la chute sont piégés (au plus 25), pour quelques secondes
+      const behind = G.riders
+        .filter(y => y !== x && y.pos < x.pos - 3 && y.pos > x.pos - 30 && rnd() < 0.6)
+        .sort((a, b) => b.pos - a.pos)
+        .slice(0, 25);
       if (behind.length >= 3) {
-        const BG = newGroupFrom(sim, behind, Math.max(0, G.pos - (G.speed * rf(8, 30)) / 3600));
+        const BG = newGroupFrom(sim, behind, Math.max(0, G.pos - (G.speed * rf(5, 20)) / 3600));
         BG.noMerge = 2;
         if (behind.some(y => y.player || sim.favs.has(y.id)))
           log(

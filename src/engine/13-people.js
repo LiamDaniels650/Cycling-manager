@@ -52,7 +52,8 @@ function contractDemand(r) {
         (1 + (r.amb - 50) / 250) *
         (1 + ((r.pop == null ? 30 : r.pop) - 35) / 500) *
         (r.loyal && r.loyal >= S.season ? 0.93 : 1) *
-        (r.team !== 0 ? 1 - 0.06 * imageAffinity(r) : 1)) /
+        (r.team !== 0 ? 1 - 0.06 * imageAffinity(r) : 1) *
+        (isAlumnus(r) ? 0.9 : 1)) / // formé chez vous : il fait un effort pour son club formateur
         5
     ) * 5
   );

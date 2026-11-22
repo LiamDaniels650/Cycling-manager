@@ -227,7 +227,7 @@ function setStag(id, on) {
 // --- Réputation et recrutement ---
 // Un jeune très prometteur peut préférer une académie plus réputée (décision figée pour la semaine).
 function acaRefuses(r) {
-  const p = clamp((r.ceil - 76) * 0.07 - (acaRep() - 25) / 90, 0, 0.75);
+  const p = clamp((r.ceil - 76) * 0.07 - (acaRep() - 25) / 90 - (acaLvl() - 1) * 0.05, 0, 0.75);
   return fixedRnd(r.id) < p;
 }
 
@@ -555,6 +555,7 @@ function espWeekly() {
 }
 // Fin de saison de l'académie : stagiaires, approches, réputation, remise à zéro des compteurs.
 function academyEndSeason() {
+  acaFacEndSeason();
   for (const id of S.academy.slice()) {
     const r = S.riders[id];
     if (!r) continue;
@@ -643,7 +644,7 @@ function genYouth(n) {
 // Recrute un jeune du vivier dans l'académie.
 function joinAcademy(id) {
   const r = S.riders[id];
-  if (S.academy.length >= ACA_MAX) return `Académie complète (${ACA_MAX} places).`;
+  if (S.academy.length >= acaMax()) return `Académie complète (${acaMax()} places).`;
   if (S.budget < 15) return 'Budget insuffisant.';
   if (r.preAI != null) return `${riderName(r)} a déjà signé un pré-contrat avec ${teamShort(r.preAI)}.`;
   if (acaRefuses(r))

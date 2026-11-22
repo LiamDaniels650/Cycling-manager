@@ -404,7 +404,7 @@ function finishGroup(sim, G, tcross, Lfine) {
           posS = Math.max(posS, 74);
           x._surf = true;
         }
-        posS += ((x.r.s.plc || 65) - 65) * 0.9;
+        posS += ((x.r.s.plc || 65) - 65) * 1.4; // frotteur : il trouve sa place dans le final
       }
       if (x.r.trait === 'gagneur') q += 1.5;
       // les équipiers (protéger, contrôler, poisson-pilote) ne disputent pas le sprint

@@ -31,10 +31,19 @@ function decisiveSplit(sim) {
       .sort((a, b) => b.end - a.end)
       .slice(0, 1)
       .forEach(c => (c.fineOk = true));
+    // classique pavée d'un jour : les trois derniers secteurs de 3 étoiles et plus des 70 derniers km (la course s'y
+    // joue secteur après secteur) ; ailleurs, les deux derniers secteurs difficiles (4 étoiles et plus)
+    const oneDayPav = sim.rc.specs.length === 1 && sim.spec.type === 'paves';
     (sim.P.sectors || [])
-      .filter(sc => sc.end < sim.dist - 3 && sc.end - sc.start >= 1.5 && (sc.stars || 3) >= 4)
+      .filter(
+        sc =>
+          sc.end < sim.dist - 3 &&
+          sc.end - sc.start >= 1.5 &&
+          (sc.stars || 3) >= (oneDayPav ? 3 : 4) &&
+          (!oneDayPav || sc.end >= sim.dist - 70)
+      )
       .sort((a, b) => b.end - a.end)
-      .slice(0, 2)
+      .slice(0, oneDayPav ? 3 : 2)
       .forEach(sc => (sc.fineOk = true));
   }
   momentAsk(sim);

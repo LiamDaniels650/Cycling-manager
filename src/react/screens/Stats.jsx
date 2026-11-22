@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, Btn, Info, RiderLink, Table, Tr, TeamDot } from '../ui.jsx';
 import { SprintReplay } from '../race/Finale.jsx';
 import { RivalsTable } from './Home.jsx';
-import { SeasonWhy, UciObjective, WtTable, RivalsChart } from './Insights.jsx';
+import { SeasonWhy, UciObjective, WtTable, RivalsChart, ProSeries } from './Insights.jsx';
 
 const TABS = [
   ['season', 'Saison'],
@@ -146,6 +146,7 @@ function SeasonTab() {
         </Table>
       </Card>
       <WtTable />
+      <ProSeries />
       {lst('Points UCI', r => r.stats.pts)}
       {lst('Victoires', r => r.stats.wins)}
       {lst('Podiums', r => r.stats.podiums)}

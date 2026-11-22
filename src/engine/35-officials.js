@@ -51,9 +51,48 @@ function wtTopPro() {
     .slice(0, 2)
     .map(T => T.id);
 }
+// --- Deuxième division : classement ProSeries de la saison (ProTeams, points UCI de la saison) ---
+const PRO_PRIZE = [250, 120, 60];
+function proSeriesRanking() {
+  return S.teams
+    .filter(T => !isWT(T.id))
+    .sort((a, b) => (b.uci || 0) - (a.uci || 0))
+    .map(T => ({ T, pts: T.uci || 0 }));
+}
+// Fin de saison : titre ProSeries et primes (les trois premières ProTeams), palmarès de la division.
+function proSeriesEnd() {
+  const rk = proSeriesRanking();
+  if (!rk.length || !(rk[0].pts > 0)) return;
+  (S.proHist = S.proHist || []).push({
+    s: S.season,
+    ids: rk.slice(0, 3).map(e => e.T.id),
+    names: rk.slice(0, 3).map(e => e.T.name),
+  });
+  if (S.proHist.length > 30) S.proHist.shift();
+  const k = rk.findIndex(e => e.T.player);
+  if (k >= 0 && k < PRO_PRIZE.length) {
+    S.budget += PRO_PRIZE[k];
+    finAdd('prize', PRO_PRIZE[k]);
+    if (k === 0) S.conf = clamp(S.conf + 5, 0, 100);
+    msg(
+      k === 0 ? '🏆 Champion de la ProSeries !' : `🥈 ${k + 1}e de la ProSeries`,
+      `Votre équipe termine ${k === 0 ? 'première' : k + 1 + 'e'} de la deuxième division (${rk[k].pts} pts) : prime de ${fmtMoney(PRO_PRIZE[k])}${k === 0 ? ', confiance du sponsor +5' : ''}.`
+    );
+  }
+  press(
+    `${rk[0].T.name} remporte la ProSeries ${S.season}`,
+    `Meilleure équipe de deuxième division avec ${rk[0].pts} points, devant ${rk
+      .slice(1, 3)
+      .map(e => e.T.name)
+      .join(' et ')}.`,
+    0,
+    []
+  );
+}
 // Fin de saison : points du cycle ; au bout de trois saisons, nouvelles licences.
 function wtEndSeason() {
   wtInit();
+  proSeriesEnd();
   for (const T of S.teams) S.wt.pts[T.id] = (S.wt.pts[T.id] || 0) + (T.uci || 0);
   if (wtYear() < WT_CYCLE) return;
   const rk = S.teams.slice().sort((a, b) => (S.wt.pts[b.id] || 0) - (S.wt.pts[a.id] || 0));
@@ -173,8 +212,9 @@ function wtInvites(c) {
     }
     return inv;
   }
-  // courses de catégorie 2 : chaque équipe choisit son programme (le joueur y est toujours invité)
-  return S.teams.filter(T => T.player || rnd() < 0.66).map(T => T.id);
+  // courses de catégorie 2 (le circuit de la deuxième division) : les ProTeams y courent presque toujours, les
+  // équipes WorldTour y envoient une équipe une fois sur deux (le joueur y est toujours invité)
+  return S.teams.filter(T => T.player || rnd() < (isWT(T.id) ? 0.55 : 0.92)).map(T => T.id);
 }
 
 // --- File des voitures ---

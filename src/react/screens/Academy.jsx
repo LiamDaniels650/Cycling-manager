@@ -97,6 +97,58 @@ function Espoir({ r, ments, stagOpen }) {
     </div>
   );
 }
+// Centre de formation, prospection ciblée et journée de détection (57-academy-plus.js).
+function Facility() {
+  const l = acaLvl();
+  const F = ACA_FAC[l],
+    N = ACA_FAC[l + 1];
+  const say = t => ((UI.flash = t), save(), render());
+  const f = S.scoutFocus && S.scoutFocus.s === S.season ? S.scoutFocus.k : '';
+  return (
+    <Card title="🏗️ Centre de formation et recrutement">
+      <div className="text-sm text-slate-200">
+        <b>{F.lbl}</b> (niveau {l}/4) : {F.places} places
+        {F.gain ? `, progression des espoirs +${Math.round(F.gain * 100)} %` : ''}
+        {F.upk ? `, entretien ${fmtMoney(F.upk)}/saison` : ''}.
+      </div>
+      {N ? (
+        <Btn className="mt-2 w-full" disabled={S.budget < N.cost} onClick={() => say(acaUpgrade())}>
+          Passer au {N.lbl.toLowerCase()} ({fmtMoney(N.cost)}) : {N.places} places, +{Math.round(N.gain * 100)} % de
+          progression
+        </Btn>
+      ) : null}
+      <h3 className="mt-3 text-sm font-semibold text-slate-100">
+        🔭 Prospection de la saison ({fmtMoney(SCOUT_COST)})
+      </h3>
+      <p className="text-xs text-slate-400">
+        12 des jeunes qui arriveront au vivier en fin de saison viendront de la région choisie, avec leur profil et un
+        peu plus de potentiel.
+      </p>
+      <div className="mt-1 flex flex-wrap gap-1.5">
+        {Object.entries(SCOUT_REG).map(([k, R0]) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => say(setScoutFocus(k))}
+            className={
+              'min-h-9 rounded-full px-2.5 text-xs font-semibold ring-1 ' +
+              (f === k ? 'bg-sky-500 text-slate-950 ring-sky-400' : 'bg-slate-800 text-slate-200 ring-slate-700')
+            }
+          >
+            {R0.lbl}
+          </button>
+        ))}
+      </div>
+      <Btn className="mt-3 w-full" disabled={S.detectS === S.season} onClick={() => say(detectionDay())}>
+        🎯 Journée de détection ({fmtMoney(DETECT_COST)}){S.detectS === S.season ? ' — faite cette saison' : ''}
+      </Btn>
+      <p className="mt-1 text-xs text-slate-400">
+        Les six plus gros potentiels du vivier sont mieux connus et ajoutés à vos jeunes suivis. Les anciens de votre
+        académie demandent 10 % de moins pour signer ou prolonger chez vous.
+      </p>
+    </Card>
+  );
+}
 function Main() {
   const rep = acaRep();
   const next = ESP_CAL.find(e => e.w >= S.week);
@@ -323,7 +375,7 @@ export function Academy() {
     <div className="space-y-3">
       <Tabs
         items={[
-          ['aca', `Mon académie (${S.academy.length}/${ACA_MAX})`],
+          ['aca', `Mon académie (${S.academy.length}/${acaMax()})`],
           ['esp', 'Courses espoirs'],
           ['youth', `Vivier (${S.youth.length})`],
           ['alum', 'Anciens'],
@@ -331,7 +383,18 @@ export function Academy() {
         value={tab}
         onChange={k => ((UI.acaTab = k), render())}
       />
-      {tab === 'aca' ? <Main /> : tab === 'esp' ? <Esp /> : tab === 'alum' ? <Alumni /> : <Youth />}
+      {tab === 'aca' ? (
+        <>
+          <Main />
+          <Facility />
+        </>
+      ) : tab === 'esp' ? (
+        <Esp />
+      ) : tab === 'alum' ? (
+        <Alumni />
+      ) : (
+        <Youth />
+      )}
     </div>
   );
 }

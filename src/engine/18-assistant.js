@@ -158,7 +158,7 @@ function asstAcademy() {
       if (!promoteRider(r.id)) out.push(`${riderName(r)} passe pro`);
     }
   }
-  while (S.academy.length < ACA_MAX - 1 && S.budget > 400) {
+  while (S.academy.length < acaMax() - 1 && S.budget > 400) {
     const y = S.youth
       .map(id => S.riders[id])
       .filter(r => r && r.age <= 19 && r.preAI == null && !acaRefuses(r))

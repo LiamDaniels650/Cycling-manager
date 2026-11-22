@@ -48,6 +48,45 @@ export function WtBrief() {
     </div>
   );
 }
+// Deuxième division : classement ProSeries de la saison (ProTeams), primes, ligne de licence du cycle, palmarès.
+export function ProSeries() {
+  if (!S.wt) return null;
+  const rk = proSeriesRanking();
+  const cyc = wtRanking();
+  const line = cyc[WT_N - 1];
+  const H = (S.proHist || []).slice(-5).reverse();
+  return (
+    <Card title={`🥈 Division 2 — ProSeries ${S.season}`}>
+      <p className="mb-2 text-xs text-slate-400">
+        Les équipes sans licence WorldTour courent la ProSeries : les courses de catégorie 2 sont leur terrain (les
+        équipes WorldTour n'y viennent qu'une fois sur deux). Classement sur les points UCI de la saison ; primes de{' '}
+        {PRO_PRIZE.map(v => fmtMoney(v)).join(', ')} aux trois premières (et +5 de confiance du sponsor pour le
+        champion). Monter en WorldTour se joue sur trois saisons : il faut finir au-dessus de la ligne de licence.
+      </p>
+      <Table>
+        {rk.map((e, i) => {
+          const c = cyc.findIndex(x => x.T === e.T) + 1;
+          return (
+            <Tr key={e.T.id} mine={e.T.player}>
+              <td>{i + 1}</td>
+              <td>
+                <TeamDot T={e.T} />
+                {e.T.name}
+              </td>
+              <td className="whitespace-nowrap text-right tabular-nums">{e.pts} pts</td>
+              <td className="whitespace-nowrap text-right text-xs text-slate-400">
+                cycle : {c}e{line && c > WT_N ? ` (−${line.pts - cyc[c - 1].pts} pts)` : ' ✔'}
+              </td>
+            </Tr>
+          );
+        })}
+      </Table>
+      {H.length ? (
+        <div className="mt-2 text-xs text-slate-400">Palmarès : {H.map(h => `${h.s} ${h.names[0]}`).join(' · ')}</div>
+      ) : null}
+    </Card>
+  );
+}
 export function WtTable() {
   const rk = wtRanking();
   return (

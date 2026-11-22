@@ -614,6 +614,7 @@ function endSeason() {
   assignGoals();
   genFreeAgents(20);
   genYouth(40);
+  scoutYouth(); // jeunes de la région prospectée
   S.watch = S.watch.filter(id => S.riders[id] && !S.riders[id].retired);
   buildCalendar();
   genObjectives();

@@ -85,6 +85,7 @@ function aiCampPress() {
 // Progression supplémentaire de la semaine (stage de montagne, entraîneur en chef spécialisé).
 function prepGain(r, g0) {
   if (r.team !== 0) return;
+  acaFacGain(r, g0); // centre de formation
   if (campOn('montagne') && (r.arch === 'grimpeur' || r.arch === 'complet')) trainGain(r, 'montagne', g0 * 0.6);
   const c = S.coach;
   if (!c) return;

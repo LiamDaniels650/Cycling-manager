@@ -1082,5 +1082,37 @@ check(
   newGame('Moi', 90, 'normal', { level: 'petit' });
   check(teamForecast(S.teams[0]).rank >= 12, `petit budget : rang prévu ${teamForecast(S.teams[0]).rank}`);
 }
+
+// ---- Deuxième division (ProSeries) et académie (centre, prospection, détection, anciens) ----
+{
+  newGame('Div', 37);
+  wtInit();
+  const pro = S.teams.filter(T => !isWT(T.id));
+  pro.forEach((T, i) => (T.uci = 100 * (i + 1)));
+  const b0 = S.budget;
+  const rk = proSeriesRanking();
+  check(rk.length === S.teams.length - WT_N && rk[0].pts >= rk[1].pts, `ProSeries : ${rk.length} équipes classées`);
+  proSeriesEnd();
+  check((S.proHist || []).length === 1 && S.proHist[0].ids[0] === rk[0].T.id, `ProSeries : ${rk[0].T.name} championne`);
+  if (rk.some(e => e.T.player)) check(S.budget > b0, 'ProSeries : prime versée au joueur');
+  // académie
+  S.budget = 2000;
+  check(
+    acaMax() === 8 && /places/.test(acaUpgrade()) && acaMax() === 10,
+    'centre de formation : 10 places au niveau 2'
+  );
+  check(/prospectent/.test(setScoutFocus('andes')), 'prospection ciblée');
+  const n0 = S.youth.length;
+  S.season++;
+  scoutYouth();
+  S.season--;
+  const sc = S.youth.slice(n0).map(id => S.riders[id]);
+  check(sc.length === 12 && sc.every(r => r.nat === 'COL'), 'prospection : 12 jeunes colombiens au vivier');
+  check(/détection/.test(detectionDay()) && /déjà/.test(detectionDay()), 'journée de détection : une par saison');
+  const r = S.riders[S.teams[0].riders[0]];
+  const d0 = contractDemand(r);
+  (S.acaAlumni = S.acaAlumni || []).push({ id: r.id, s: S.season, age: r.age });
+  check(contractDemand(r) < d0, 'un ancien de l’académie demande moins');
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);
