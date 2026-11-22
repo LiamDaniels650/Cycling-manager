@@ -162,9 +162,12 @@ function homeNats(key) {
 function isHome(rc, r) {
   return !!r && !rc.worlds && rc.key !== 'natio' && homeNats(rc.key).includes(r.nat);
 }
-// Motivation du jour (forme du jour) : +2.
+// Motivation du jour (forme du jour).
 function homeBoost(rc, r) {
-  return isHome(rc, r) ? R.homeForm : 0;
+  // course d'un jour : +2 ; course par étapes d'une semaine : +1 ; grand tour : rien (la motivation ne tient pas
+  // trois semaines au même niveau, seule la popularité devant le public compte)
+  if (!isHome(rc, r) || rc.cat === 0) return 0;
+  return rc.specs.length > 1 ? R.homeForm / 2 : R.homeForm;
 }
 // Fin de course : un coureur qui brille à domicile gagne plus en popularité.
 function homeAfterRace(rc) {

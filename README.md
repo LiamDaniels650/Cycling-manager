@@ -432,7 +432,8 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     payé par le sponsor après chaque course et pris en compte pour sa confiance en fin de saison (Bureau →
     Sponsor). Jeux olympiques les années bissextiles : contre-la-montre (deux coureurs par pays) puis course en
     ligne (quatre), médailles, primes, palmarès et héritage. À domicile : un coureur qui court dans son pays est un
-    peu plus motivé (forme du jour +2) et gagne plus de popularité s'il brille ; signalé au briefing.
+    peu plus motivé (forme du jour +2 sur une course d'un jour, +1 sur une course d'une semaine, rien sur trois
+    semaines de grand tour) et gagne plus de popularité s'il brille ; signalé au briefing.
   - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
     carrousel, presse, stages, tests d'effort, forme).
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :
