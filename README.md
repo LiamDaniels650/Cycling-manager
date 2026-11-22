@@ -57,6 +57,7 @@ src/
     55-directors.js       directeurs adverses : caractère, mémoire, objectifs, offres, presse, carrousel
     56-prep.js            préparation : stages, tests d'effort, entraîneur en chef, statistiques de forme
     57-academy-plus.js    académie : centre de formation, prospection ciblée, journée de détection, anciens
+    58-equipment-plus.js  équipement : roues, pneus, nutrition, secondes, mécaniciens, soufflerie, adaptation
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -352,6 +353,19 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     secondes) au lieu de la moitié du peloton ; classiques pavées d'un jour jouées sur leurs trois derniers secteurs
     difficiles (moins de sprints groupés) ; placement plus décisif au départ du sprint. Essai écarté : un baroud plus
     marqué effaçait l'effet des équipiers protecteurs en montagne (banc tests/impact.js).
+  - Classiques pavées : un petit groupe de tête est lui aussi mis sous pression par le plus fort sur les pavés ;
+    allure de course (et non de promenade) dans les 30 derniers km ; usure sur les pavés selon l'aisance (72 :
+    normale, 86 : −35 %, 60 : +30 %) ; le sprint qui conclut une classique pavée tient compte de la force qui reste
+    (pavés 40 %). Placement : un frotteur gagne des mètres au départ du sprint hors du plafond de position (il ne
+    comptait plus chez les sprinteurs déjà bien placés). Baroud : tentatives d'échappée nettement plus marquées hors
+    montagne (exposant 3), proportionnelles en montagne.
+  - Équipement (fichier 58-equipment-plus.js) : trois nouveaux partenaires (roues : aéro, légèreté, rigidité au
+    sprint ; pneus : rendement, robustesse, adhérence sous la pluie ; nutrition : assimilation, récupération entre
+    étapes) ; effets affichés en secondes sur des parcours de référence (offres, matériel actuel) et estimation du
+    matériel du jour sur l'étape ; pression des pneus, petit braquet pour les murs, vélo de rechange en haut des
+    cols (2 k€) ; mécaniciens (staff) et ennuis mécaniques en course ; soufflerie et étude posturale par coureur
+    (25 k€, chrono plus rapide deux saisons) ; marque préférée des vedettes et quatre courses d'adaptation à un
+    nouveau vélo ; offre anticipée d'une meilleure marque après une grande victoire.
   - Marge du sprint : le meilleur sprinteur gagne 36 à 37 % des sprints massifs (contre 31 %).
   - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
     carrousel, presse, stages, tests d'effort, forme).

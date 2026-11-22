@@ -65,8 +65,10 @@ function eqEnsure() {
 
 // --- Effets lisibles : en secondes, sur des parcours de référence ---
 // Différence de temps (s) entre deux marques d'une catégorie, sur les terrains où elle compte.
+/** @returns {[string, number][]} */
 function eqSeconds(cat, b, ref) {
   // temps gagné (s) = durée × fraction de vitesse gagnée
+  /** @type {[string, number][]} */
   const L = [];
   const d = (k, w) => (b[k] - ref[k]) * w;
   const pct = v => v;
@@ -79,7 +81,10 @@ function eqSeconds(cat, b, ref) {
     L.push(['40 km de chrono (48 min)', 2880 * pct(d('aero', 0.006))]);
     L.push(['un col de 10 km (30 min)', 1800 * pct(d('leger', 0.006))]);
   } else if (cat === 'pneus') L.push(['40 km de chrono (48 min)', 2880 * pct(d('rend', 0.004))]);
-  return L.map(([where, s]) => [where, Math.round(s)]).filter(([, s]) => Math.abs(s) >= 1);
+  /** @type {[string, number][]} */
+  const out = [];
+  for (const [where, sec] of L) if (Math.abs(Math.round(sec)) >= 1) out.push([where, Math.round(sec)]);
+  return out;
 }
 // Texte court : « −9 s sur 40 km de chrono · +4 s dans un col de 10 km » (négatif = plus rapide).
 function eqSecondsText(cat, b, ref) {
