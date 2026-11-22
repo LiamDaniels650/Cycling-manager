@@ -359,6 +359,16 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     (pavés 40 %). Placement : un frotteur gagne des mètres au départ du sprint hors du plafond de position (il ne
     comptait plus chez les sprinteurs déjà bien placés). Baroud : tentatives d'échappée nettement plus marquées hors
     montagne (exposant 3), proportionnelles en montagne.
+  - Moteur, nouvelles mesures réelles dans la calibration (44 au lieu de 40) : porteurs du maillot de leader d'un
+    grand tour (≈ 5), équipes qui gagnent une étape (≈ 8 sur 18), écart maximal de l'échappée sur le plat (≈ 4 min),
+    distance de reprise (≈ 17 km). Corrections : une échappée reprise très tôt laisse place à une nouvelle bagarre ;
+    l'échappée n'est « partie » qu'avec une minute d'avance ; les échappés roulent un peu en dedans loin de l'arrivée ;
+    le peloton se relève quand il reprendrait une petite échappée beaucoup trop tôt. Contre-la-montre par équipes :
+    les coureurs à la peine sautent leurs relais. Grands tours : phases (on économise la première semaine, on attaque
+    la troisième et sur la dernière étape de montagne), équipes qui renoncent au général pour viser les étapes.
+    Vent qui tourne en cours d'étape (nouvelles portions exposées, vent de face devenu de dos). Chutes plus probables
+    pour les mal placés sur les routes étroites. Dernière côte des étapes vallonnées des courses par étapes rejouée
+    au détail. Maillot à pois : chasseurs plus nombreux, cols de passage mieux payés en grand tour (réglage de jeu).
   - Équipement (fichier 58-equipment-plus.js) : trois nouveaux partenaires (roues : aéro, légèreté, rigidité au
     sprint ; pneus : rendement, robustesse, adhérence sous la pluie ; nutrition : assimilation, récupération entre
     étapes) ; effets affichés en secondes sur des parcours de référence (offres, matériel actuel) et estimation du
