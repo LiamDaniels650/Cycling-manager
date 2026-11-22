@@ -46,7 +46,7 @@ function runITT(rc) {
           (0.86 + (0.14 * x.dayForm) / 100) *
           (0.7 + 0.3 * Math.min(1, x.energy / 55)) *
           (1 - r.fatigue / 650);
-        const v = physSpeed(speedOf(c * tgt * 1.03, g, surf, true, true) * eqTT, g, CO[i], 0.22);
+        const v = physSpeed(speedOf(c * tgt * 1.03, g, surf, true, true) * eqTT * (1 + fitK(r)), g, CO[i], 0.22);
         const dt = STEP / v;
         t += dt * 3600;
         acc.add(riderWatts(r.kg || 68, v, g, 1, 0.2, CO[i]), dt * 3600);

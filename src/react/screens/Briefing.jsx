@@ -6,6 +6,18 @@ import { StageProfile } from '../race/Broadcast.jsx';
 import { Standings } from './StageResult.jsx';
 import { Climbs, StageKeys } from './Bits.jsx';
 
+// Ce que le matériel du jour change, en secondes, par rapport au conseil du staff (estimation sur le profil).
+function GearSeconds({ spec, cur }) {
+  const s = gearStageSeconds(spec, cur);
+  return (
+    <div className={'mt-1 text-sm ' + (s < -1 ? 'text-emerald-300' : s > 1 ? 'text-rose-300' : 'text-slate-300')}>
+      ⏱️{' '}
+      {Math.abs(s) <= 1
+        ? 'Matériel conforme au conseil du staff.'
+        : `Par rapport au conseil du staff : environ ${Math.abs(s)} s ${s < 0 ? 'gagnées' : 'perdues'} sur l'étape.`}
+    </div>
+  );
+}
 function Gear({ rc, spec }) {
   const cur = gearFor({ player: true }, rc, spec);
   const rec = autoGear(spec);
@@ -27,7 +39,25 @@ function Gear({ rc, spec }) {
           options={opts(GEAR.wheels, 'wheels')}
         />
         <Select value={cur.tyres} onChange={v => (setGear('tyres', v), render())} options={opts(GEAR.tyres, 'tyres')} />
+        <Select
+          value={cur.press || 'normale'}
+          onChange={v => (setGear('press', v), render())}
+          options={opts(GEAR.press, 'press')}
+        />
+        <Select
+          value={cur.dev || 'standard'}
+          onChange={v => (setGear('dev', v), render())}
+          options={opts(GEAR.dev, 'dev')}
+        />
+        {itt ? null : (
+          <Select
+            value={cur.spare || 'non'}
+            onChange={v => (setGear('spare', v), render())}
+            options={opts(GEAR.spare, 'spare')}
+          />
+        )}
       </div>
+      <GearSeconds spec={spec} cur={cur} />
       <div className="mt-1 text-xs text-slate-400">
         {GEAR.wheels[cur.wheels].d} · {GEAR.tyres[cur.tyres].d}
       </div>

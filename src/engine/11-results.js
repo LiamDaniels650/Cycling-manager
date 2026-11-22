@@ -119,6 +119,7 @@ function applyStageResult(rc, spec, res, dnfIds) {
         r.s.rec * 0.45 -
         r.fatigue * 0.25 +
         (r.team === 0 ? (S.staff.doctor - 1) * 1.5 : 2) +
+        (r.team != null ? nutriRecup(r.team) : 0) + // nutrition (récupération)
         (spec.rest ? 15 : 0),
       30,
       100
@@ -358,6 +359,8 @@ function finishRace(rc) {
   {
     const w = S.riders[gcList(rc)[0]];
     if (w && w.team != null) dsGoalWon(rc, w.team);
+    eqAdaptAfterRace(rc);
+    eqEarlyAfterWin(rc, w);
   }
   goalsAfterRace(rc);
   imageAfterRace(rc);

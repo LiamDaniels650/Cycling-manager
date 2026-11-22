@@ -70,9 +70,10 @@ function doAnswer(k) {
 // Équipementiers : matériel actuel, effets, offres pour la saison prochaine.
 function eqTraits(cat, b) {
   const pct = v => Math.round(v * 100);
-  return cat === 'bike'
-    ? `aéro ${pct(b.aero)} · légèreté ${pct(b.leger)} · confort ${pct(b.confort)} · robustesse ${pct(b.robuste)}`
-    : `aérodynamisme ${pct(b.aero)}`;
+  if (cat === 'bike')
+    return `aéro ${pct(b.aero)} · légèreté ${pct(b.leger)} · confort ${pct(b.confort)} · robustesse ${pct(b.robuste)}`;
+  if (cat === 'tt') return `aérodynamisme ${pct(b.aero)}`;
+  return EQ_CATS[cat].keys.map(k => `${EQ_TRAIT_LBL[k]} ${pct(b[k])}`).join(' · ');
 }
 function doEqNego(cat, k, mode) {
   if (!mode) return;

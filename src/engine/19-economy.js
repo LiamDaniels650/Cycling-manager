@@ -121,7 +121,7 @@ const STAFF_DESC = {
 };
 // Coût hebdomadaire du staff.
 function staffWeekly() {
-  return sum(Object.values(S.staff).map(l => STAFF_COST[l])) / LAST_WEEK;
+  return (sum(Object.values(S.staff).map(l => STAFF_COST[l])) + MECA_COST[S.meca || 1]) / LAST_WEEK;
 }
 // Change le niveau d'un membre du staff (prime d'embauche à la hausse).
 function setStaff(k, l) {

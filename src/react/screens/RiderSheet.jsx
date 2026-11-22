@@ -541,7 +541,19 @@ export function RiderSheet({ r }) {
           >
             🧪 Test d'effort ({effortCost(r)} k€{r.team !== 0 ? ` · ${effortLeft()}/${EFFORT_MAX}` : ''})
           </button>
-        ) : (S.know[r.id] || 0) >= 100 && r.team !== 0 ? (
+        ) : null}
+        {r.team === 0 && !r.aca ? (
+          <button
+            type="button"
+            disabled={!!(r.fit && r.fit.s === S.season)}
+            className="min-h-9 rounded-lg bg-slate-800 px-2.5 text-xs font-semibold text-slate-200 ring-1 ring-slate-700 disabled:opacity-50"
+            title="Position affinée en soufflerie : chrono plus rapide cette saison et la suivante"
+            onClick={() => ((UI.flash = windTunnel(r.id)), save(), renderModal(), render())}
+          >
+            🌬️ Soufflerie ({FIT_COST} k€){fitK(r) ? ` · −${Math.round(fitK(r) * 2880)} s / 40 km` : ''}
+          </button>
+        ) : null}
+        {(S.know[r.id] || 0) >= 100 && r.team !== 0 ? (
           <span className="min-h-9 rounded-lg px-2.5 py-2 text-xs text-emerald-300">🧪 Testé : valeurs exactes</span>
         ) : null}
       </div>

@@ -90,7 +90,7 @@ function buildStageSim(rc) {
         wet: spec.wx === 'pluie',
         markId: null,
         st: { kf: 0, kw: 0, att: 0, Is: 0, n: 0, cv: [], mx: 0, risk: 0, drop: null, disobWhy: null },
-        eqf: applyGear(eqFactors(T), gearFor(T, rc, spec)),
+        eqf: riderEqf(T, r, rc, spec),
         recon: !!T.player && reconDone(rc),
         wp: wPrime(r),
         wbal: wPrime(r),
@@ -175,6 +175,11 @@ function buildStageSim(rc) {
       .map(x => x.id)
   );
   jerseyAims(sim);
+  // vélo de rechange en haut des cols : 2 k€ l'étape pour le joueur
+  if (rc.sel[0] && rc.sel[0].length && gearFor(S.teams[0], rc, spec).spare === 'oui') {
+    S.budget -= 2;
+    finAdd('other', -2);
+  }
   coalitionStart(sim);
   if (!rc.si) dsAnnounce(sim); // les directeurs qui ont fait de cette course leur objectif l'annoncent
   if (rc.autoDS) sim.autoDS = true; // course confiée à l'adjoint

@@ -160,4 +160,6 @@ function migrate() {
     S.seed0 = S.seed0 || (_sd ^ 0x5bd1e995) | 0;
     S.v = 12;
   }
+  // (sans changement de version) nouvelles catégories d'équipement : roues, pneus, nutrition ; mécaniciens
+  if (!S.car) eqEnsure();
 }

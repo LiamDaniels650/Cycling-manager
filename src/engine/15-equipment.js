@@ -27,7 +27,10 @@ function eqBrand(cat, id) {
 }
 // Note de qualité d'une marque (0-1), utilisée pour l'attribution du matériel aux équipes IA.
 function eqQuality(cat, b) {
-  return cat === 'bike' ? (b.aero + b.leger + b.confort + b.robuste) / 4 : b.aero;
+  if (cat === 'bike') return (b.aero + b.leger + b.confort + b.robuste) / 4;
+  if (cat === 'tt') return b.aero;
+  const ks = EQ_CATS[cat].keys;
+  return sum(ks.map(k => b[k])) / ks.length;
 }
 // Matériel d'une équipe IA selon son niveau : les meilleures équipes ont le meilleur matériel.
 function aiEquip(T) {
@@ -36,7 +39,8 @@ function aiEquip(T) {
     const k = clamp(Math.round(((4.5 - T.tier) / 9) * (list.length - 1) + gauss() * 1.2), 0, list.length - 1);
     return list[k].id;
   };
-  T.eq = { bike: pickFor('bike'), tt: pickFor('tt') };
+  T.eq = {};
+  for (const cat of Object.keys(EQ_CATS)) T.eq[cat] = pickFor(cat);
 }
 // Matériel initial des équipes et contrats du joueur.
 function initEquipment() {
@@ -47,9 +51,11 @@ function initEquipment() {
   S.eqDeal = S.eqDeal || { bike: { pay: 90, years: 1 }, tt: { pay: 48, years: 1 } };
   S.eqOffers = S.eqOffers || null;
   S.eqChoice = S.eqChoice || {};
+  eqEnsure(); // roues, pneus, nutrition (58-equipment-plus.js)
 }
 // Prototypes : matériel de développement fourni au joueur (plus aéro et plus léger, un peu plus fragile).
 function protoBrand(cat, b) {
+  if (cat !== 'bike' && cat !== 'tt') return b;
   if (cat === 'tt') return { ...b, aero: Math.min(1, b.aero + 0.08) };
   return {
     ...b,
@@ -67,13 +73,22 @@ function eqUsed(T, cat) {
 function eqFactors(T) {
   const b = eqUsed(T, 'bike');
   const t = eqUsed(T, 'tt');
+  // roues, pneus, nutrition (58-equipment-plus.js) ; adaptation à un nouveau vélo (joueur)
+  const w = eqUsed(T, 'roues'),
+    p = eqUsed(T, 'pneus'),
+    n = eqUsed(T, 'nutri');
+  const ad = T.player ? eqAdaptMul() : 1;
   return {
-    flat: 1 + 0.012 * (b.aero - 0.5),
-    climb: 1 + 0.012 * (b.leger - 0.5),
+    flat: (1 + 0.012 * (b.aero - 0.5) + 0.006 * (w.aero - 0.5) + 0.004 * (p.rend - 0.5)) * ad,
+    climb: (1 + 0.012 * (b.leger - 0.5) + 0.006 * (w.leger - 0.5)) * ad,
     pav: 1 + 0.02 * (b.confort - 0.5),
-    punct: 1.5 - b.robuste,
-    pavPunct: 1.4 - 0.8 * b.confort,
-    tt: 1 + 0.025 * (t.aero - 0.5),
+    punct: (1.5 - b.robuste) * (1.3 - 0.6 * p.robuste),
+    pavPunct: (1.4 - 0.8 * b.confort) * (1.3 - 0.6 * p.robuste),
+    tt: (1 + 0.025 * (t.aero - 0.5) + 0.006 * (w.aero - 0.5) + 0.004 * (p.rend - 0.5)) * ad,
+    sprint: (w.rigide - 0.5) * 1.2,
+    wetK: 1.3 - 0.6 * p.grip,
+    food: 1.12 - 0.24 * n.assim,
+    steep: 1,
   };
 }
 // Multiplicateur de vitesse d'un groupe : moyenne du matériel de ses coureurs sur ce terrain.
@@ -81,7 +96,7 @@ function eqGroupMul(G, g, surf) {
   let s = 0;
   for (const x of G.riders) {
     const e = x.eqf;
-    s += !e ? 1 : surf ? e.pav : g >= 3 ? e.climb : g > -2 ? e.flat : 1;
+    s += !e ? 1 : surf ? e.pav : g >= 7 ? e.climb * (e.steep || 1) : g >= 3 ? e.climb : g > -2 ? e.flat : 1;
   }
   return G.riders.length ? s / G.riders.length : 1;
 }
@@ -175,9 +190,12 @@ function eqEndSeason() {
     const offs = ((S.eqOffers && S.eqOffers[cat]) || []).filter(o => !o.gone);
     let o = S.eqOffers && S.eqOffers[cat] && S.eqOffers[cat][S.eqChoice[cat]];
     if (o && o.gone) o = null;
+    // contrat anticipé accepté en cours de saison (après une grande victoire)
+    if (S.eqEarly && S.eqEarly.taken && S.eqEarly.cat === cat && S.eqEarly.s === S.season) o = S.eqEarly;
     if (!o && offs.length) o = offs.slice().sort((a, b) => b.pay - a.pay)[0];
     if (!o) o = { id: S.teams[0].eq[cat], pay: Math.round(d.pay * 0.8), years: 1 };
     const changed = o.id !== S.teams[0].eq[cat];
+    eqChanged(cat, S.teams[0].eq[cat], o.id);
     S.teams[0].eq[cat] = o.id;
     S.eqDeal[cat] = { pay: o.pay, years: o.years, proto: !!o.proto, perf: o.perf || 0 };
     msg(

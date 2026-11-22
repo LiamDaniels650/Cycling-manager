@@ -79,7 +79,7 @@ function Finances() {
       <p className="mt-2 text-xs text-slate-300">
         Masse salariale annuelle : pros {fmtMoney(sum(myRiders().map(r => r.salary)))}, académie{' '}
         {fmtMoney(sum(acaRiders().map(r => r.salary)))}, staff{' '}
-        {fmtMoney(sum(Object.values(S.staff).map(l => STAFF_COST[l])))}.
+        {fmtMoney(sum(Object.values(S.staff).map(l => STAFF_COST[l])) + MECA_COST[S.meca || 1])}.
       </p>
     </Card>
   );
@@ -106,6 +106,31 @@ function Staff() {
           </Btn>
         </div>
       ))}
+      <div className="flex items-center gap-2 border-t border-slate-800 py-2">
+        <div className="min-w-0 flex-1">
+          <b className="text-sm text-slate-100">Mécaniciens</b>
+          <div className="text-xs text-slate-400">{MECA_DESC}</div>
+          <div className="mt-0.5 text-sm text-amber-300">
+            {'●'.repeat(S.meca || 1)}
+            <span className="text-slate-600">{'○'.repeat(5 - (S.meca || 1))}</span>{' '}
+            <span className="text-xs text-slate-400">{fmtMoney(MECA_COST[S.meca || 1])}/an</span>
+          </div>
+        </div>
+        <Btn
+          disabled={(S.meca || 1) >= 5}
+          className="w-11 px-0"
+          onClick={() => ((UI.flash = setMeca((S.meca || 1) + 1)), save(), render())}
+        >
+          +
+        </Btn>
+        <Btn
+          disabled={(S.meca || 1) <= 1}
+          className="w-11 px-0"
+          onClick={() => ((UI.flash = setMeca((S.meca || 1) - 1)), save(), render())}
+        >
+          −
+        </Btn>
+      </div>
       <p className="mt-1 text-xs text-slate-400">
         Monter d'un niveau coûte une prime d'embauche (50 % de la différence de salaire annuel).
       </p>
@@ -196,6 +221,28 @@ function Assistant() {
     </Card>
   );
 }
+// Offre anticipée d'un équipementier, après une grande victoire (58-equipment-plus.js).
+function EarlyOffer() {
+  const o = S.eqEarly;
+  if (!o || o.done || o.s !== S.season) return null;
+  const b = eqBrand(o.cat, o.id);
+  const go = ok => ((UI.flash = eqEarlyAnswer(ok)), save(), render());
+  return (
+    <div className="mt-2 rounded-xl bg-emerald-400/10 p-2.5 text-sm ring-1 ring-emerald-300/40">
+      📨 <b>{b.name}</b> ({EQ_CATS[o.cat].lbl.toLowerCase()}) propose de vous équiper dès la saison prochaine :{' '}
+      {fmtMoney(o.pay)}/saison pendant {o.years} ans. Réponse avant la semaine {o.exp}.
+      <div className="text-xs text-sky-200">
+        par rapport à votre matériel : {eqSecondsText(o.cat, b, eqUsed(P(), o.cat)) || 'équivalent'}
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <Btn primary onClick={() => go(true)}>
+          Accepter
+        </Btn>
+        <Btn onClick={() => go(false)}>Décliner</Btn>
+      </div>
+    </div>
+  );
+}
 function Equipment() {
   const T = P();
   return (
@@ -222,11 +269,16 @@ function Equipment() {
           </div>
         );
       })}
+      <EarlyOffer />
       <details className="mt-1 text-xs text-slate-400">
         <summary className="cursor-pointer py-1">Explications</summary>
-        Aéro : vitesse sur le plat et en vallonné · légèreté : montées · confort : pavés (vitesse et crevaisons) ·
-        robustesse : crevaisons · chrono : contre-la-montre. Écart entre le meilleur et le moins bon matériel : environ
-        1 % de vitesse, 2 % en chrono. Les meilleures marques paient moins mais exigent de la notoriété.
+        Roues : aéro (plat, chrono), légèreté (montées), rigidité (pointe de vitesse au sprint) · pneus : rendement,
+        robustesse (crevaisons), adhérence (chutes sous la pluie) · nutrition : assimilation (réserves, fringales),
+        récupération entre les étapes. Un changement de vélo ou de roues demande quatre courses d'adaptation ; les
+        vedettes ont leur marque préférée. Aéro : vitesse sur le plat et en vallonné · légèreté : montées · confort :
+        pavés (vitesse et crevaisons) · robustesse : crevaisons · chrono : contre-la-montre. Écart entre le meilleur et
+        le moins bon matériel : environ 1 % de vitesse, 2 % en chrono. Les meilleures marques paient moins mais exigent
+        de la notoriété.
       </details>
       {S.eqOffers && Object.keys(S.eqOffers).length ? (
         <>
@@ -260,6 +312,12 @@ function Equipment() {
                       </span>
                     </div>
                     <div className="text-xs text-slate-400">{eqTraits(cat, o.proto ? protoBrand(cat, b) : b)}</div>
+                    {o.id !== T.eq[cat] || o.proto ? (
+                      <div className="text-xs text-sky-200">
+                        par rapport à votre matériel :{' '}
+                        {eqSecondsText(cat, o.proto ? protoBrand(cat, b) : b, eqUsed(T, cat)) || 'équivalent'}
+                      </div>
+                    ) : null}
                     <div className="mt-2 grid grid-cols-2 gap-2">
                       {on ? (
                         <span className="flex items-center text-sm text-emerald-300">✅ choisi</span>

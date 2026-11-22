@@ -257,7 +257,8 @@ function tickPhysics(sim) {
           (coldHigh ? 1.12 : 1);
       x.food = Math.max(
         0,
-        x.food - (5 + 9 * Math.min(1.2, I)) * dtH * (sim.wx === 'chaleur' ? 1.4 : coldHigh ? 1.3 : 1)
+        x.food -
+          (5 + 9 * Math.min(1.2, I)) * dtH * (sim.wx === 'chaleur' ? 1.4 : coldHigh ? 1.3 : 1) * (x.eqf.food || 1)
       );
       if (x.food < 6 && !x.bonk) {
         x.bonk = true;
@@ -359,11 +360,14 @@ function tickIncidents(sim, live) {
       (sim.dangerT === sim.t && G === sim.pel && x.pos < 40 ? 2 : 1) * // rond-point, rétrécissement
       (G.riders.length >= 20 ? clamp(1.6 - x.pos / 100, 0.6, 1.6) : 1) *
       (wet && x.eqf.tyres === 'larges' ? 0.8 : 1) * // pneus larges sous la pluie
+      (wet ? x.eqf.wetK || 1 : 1) * // adhérence des pneus, pression
       (sim.P.wind >= 2 && x.eqf.wheels === 'hautes' ? 1.25 : 1) * // roues hautes par grand vent
       (x.recon && (G.g < -3 || G.surf) ? 0.75 : 1); // descente ou secteurs pavés reconnus : on sait où frotter
     x.st.risk += pC; // exposition aux chutes (mesure du risque pris)
     if (rnd() < pP) {
       incident(sim, x, 'crevaison');
+    } else if (rnd() < mecaRisk(sim, x, km)) {
+      incident(sim, x, 'meca');
     } else if (rnd() < pC) {
       incident(sim, x, 'chute');
     }
@@ -374,7 +378,7 @@ function tickIncidents(sim, live) {
 function incident(sim, x, type) {
   const G = x.g;
   const why = type === 'chute' ? '' : punctureWhy(sim, x, G);
-  let lossS = type === 'chute' ? rf(25, 80) : punctureLoss(sim, x, G);
+  let lossS = type === 'chute' ? rf(25, 80) : type === 'meca' ? mecaLoss(sim, x, G) : punctureLoss(sim, x, G);
   let sheltered = false;
   let giver = null;
   if (type === 'crevaison' && x === sim.teamLeader[x.team.id] && G.riders.length > 3) {
@@ -393,7 +397,7 @@ function incident(sim, x, type) {
   }
   const NG = newGroupFrom(sim, [x], Math.max(0, G.pos - (G.speed * lossS) / 3600));
   NG.noMerge = 0;
-  let txt = `${type === 'chute' ? '💥 Chute' : '🔧 Crevaison'} pour ${riderName(x.r)} (${x.team.short})`;
+  let txt = `${type === 'chute' ? '💥 Chute' : type === 'meca' ? '⚙️ Ennui mécanique' : '🔧 Crevaison'} pour ${riderName(x.r)} (${x.team.short})`;
   if (type === 'chute' && (x.player || sim.favs.has(x.id)))
     highlight(sim, `💥 Chute de ${riderName(x.r)} (${x.team.short}) !`, x.player);
   if (type === 'chute') {

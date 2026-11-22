@@ -401,6 +401,7 @@ function finishGroup(sim, G, tcross, Lfine) {
           (0.72 + 0.28 * Math.min(1, x.energy / 45)) +
         gauss() * SPRINT_NOISE +
         (x.dayForm - 70) * 0.08 +
+        (x.eqf && x.eqf.sprint ? x.eqf.sprint : 0) + // rigidité des roues
         (x.punch - 50) * 0.025;
       let posS = x.pos;
       const tr = trains[x.team.id];

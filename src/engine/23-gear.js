@@ -11,6 +11,25 @@ const GEAR = {
     mixtes: { lbl: 'Roues mixtes', flat: 0, climb: 0, tt: 0, d: 'polyvalentes' },
     basses: { lbl: 'Roues basses (légères)', flat: -0.003, climb: 0.004, tt: -0.004, d: '+ en montée, − sur le plat' },
   },
+  // pression des pneus : basse pour les pavés et la pluie, haute sur route sèche et lisse
+  press: {
+    normale: { lbl: 'Pression normale', d: 'compromis' },
+    basse: { lbl: 'Pression basse', d: '+ pavés et pluie, moins de crevaisons, − rendement sur le plat' },
+    haute: { lbl: 'Pression haute', d: '+ rendement sur route sèche, − pavés, glissant sous la pluie' },
+  },
+  // développement : petit braquet pour les murs (pentes à 7 % et plus)
+  dev: {
+    standard: { lbl: 'Développement standard', d: 'polyvalent' },
+    compact: { lbl: 'Petit braquet (murs)', d: '+ dans les pentes raides, un peu − sur le plat' },
+  },
+  // vélo de rechange en haut des cols (une place dans la voiture, 2 k€) : dépannage deux fois plus court en montée
+  spare: {
+    non: { lbl: 'Pas de vélo de rechange en haut des cols', d: '' },
+    oui: {
+      lbl: 'Vélo de rechange en haut des cols (2 k€)',
+      d: 'ennui mécanique en montée : moitié moins de temps perdu',
+    },
+  },
   tyres: {
     standard: { lbl: 'Pneus standards', flat: 0, pav: 0, punct: 1, d: 'rendement maximal sur route sèche' },
     larges: {
@@ -34,7 +53,10 @@ function autoGear(spec) {
           : 'hautes'
         : 'mixtes';
   const tyres = t === 'paves' || spec.wx === 'pluie' ? 'larges' : 'standard';
-  return { wheels, tyres };
+  const press = t === 'paves' || spec.wx === 'pluie' ? 'basse' : t === 'clm' || t === 'clmeq' ? 'haute' : 'normale';
+  const dev = t === 'montagne' || t === 'sommet' ? 'compact' : 'standard';
+  const spare = t === 'montagne' || t === 'sommet' ? 'oui' : 'non';
+  return { wheels, tyres, press, dev, spare };
 }
 function gearFor(T, rc, spec) {
   if (T.player && rc.gear && rc.gearStage === rc.si) return rc.gear;
@@ -44,14 +66,23 @@ function gearFor(T, rc, spec) {
 function applyGear(f, gear) {
   const w = GEAR.wheels[gear.wheels] || GEAR.wheels.mixtes,
     t = GEAR.tyres[gear.tyres] || GEAR.tyres.standard;
+  const pr = gear.press || 'normale',
+    dv = gear.dev || 'standard';
+  const pFlat = pr === 'basse' ? -0.002 : pr === 'haute' ? 0.002 : 0,
+    pPav = pr === 'basse' ? 0.006 : pr === 'haute' ? -0.006 : 0,
+    pPunct = pr === 'basse' ? 0.85 : pr === 'haute' ? 1.1 : 1,
+    pWet = pr === 'basse' ? 0.85 : pr === 'haute' ? 1.2 : 1;
   return {
     ...f,
-    flat: f.flat * (1 + w.flat + t.flat),
+    flat: f.flat * (1 + w.flat + t.flat + pFlat + (dv === 'compact' ? -0.001 : 0)),
     climb: f.climb * (1 + w.climb),
-    pav: f.pav * (1 + t.pav),
-    punct: f.punct * t.punct,
-    pavPunct: f.pavPunct * t.punct,
-    tt: f.tt * (1 + w.tt),
+    pav: f.pav * (1 + t.pav + pPav),
+    punct: f.punct * t.punct * pPunct,
+    pavPunct: f.pavPunct * t.punct * pPunct,
+    tt: f.tt * (1 + w.tt + (pr === 'haute' ? 0.001 : 0)),
+    wetK: (f.wetK || 1) * pWet,
+    steep: (f.steep || 1) * (dv === 'compact' ? 1.004 : 1),
+    spare: gear.spare === 'oui',
     wheels: gear.wheels,
     tyres: gear.tyres,
   };

@@ -1114,5 +1114,47 @@ check(
   (S.acaAlumni = S.acaAlumni || []).push({ id: r.id, s: S.season, age: r.age });
   check(contractDemand(r) < d0, 'un ancien de l’académie demande moins');
 }
+
+// ---- Équipement : nouvelles catégories, secondes, mécaniciens, soufflerie, adaptation, offre anticipée ----
+{
+  newGame('Eq', 38);
+  check(
+    ['roues', 'pneus', 'nutri'].every(c => S.teams.every(T => T.eq[c]) && S.eqDeal[c]),
+    'roues, pneus, nutrition : chaque équipe équipée, contrats du joueur'
+  );
+  const best = eqBrand('roues', 'zephyr'),
+    basic = eqBrand('roues', 'roue-basic');
+  const txt = eqSecondsText('roues', best, basic);
+  check(/−\d+ s sur 40 km de chrono/.test(txt), `secondes lisibles : ${txt}`);
+  const fBest = eqFactors({ eq: { bike: 'aerion', tt: 'chronos', roues: 'zephyr', pneus: 'velox', nutri: 'endura' } }),
+    fBasic = eqFactors({
+      eq: { bike: 'aerion', tt: 'chronos', roues: 'roue-basic', pneus: 'pneu-basic', nutri: 'nutri-basic' },
+    });
+  check(
+    fBest.flat > fBasic.flat && fBest.sprint > fBasic.sprint && fBest.food < fBasic.food,
+    'meilleures roues, pneus et nutrition : plus vite, meilleure pointe, moins de fringales'
+  );
+  // matériel du jour : pression basse et petit braquet sur une étape de montagne
+  const ci = S.cal.findIndex(c => c.stagesSpec.some(s => s[0] === 'montagne'));
+  const spec = prepareRaceSpecs(S.cal[ci]).find(s => s.type === 'montagne');
+  const rec = autoGear(spec);
+  check(rec.dev === 'compact' && rec.spare === 'oui', 'conseil du staff en montagne : petit braquet, vélo de rechange');
+  check(gearStageSeconds(spec, { ...rec, dev: 'standard' }) > 0, 'sans petit braquet en montagne : du temps perdu');
+  // mécaniciens
+  S.budget = 1000;
+  check(setMeca(3) === null && S.meca === 3, 'mécaniciens niveau 3');
+  // soufflerie
+  const r = S.riders[S.teams[0].riders[0]];
+  check(
+    /Soufflerie/.test(windTunnel(r.id)) && fitK(r) > 0 && /Déjà/.test(windTunnel(r.id)),
+    'soufflerie : une fois par saison, gain au chrono'
+  );
+  // adaptation à un nouveau vélo
+  eqChanged('bike', 'nordik', 'aerion');
+  check(S.eqAdapt.left === 4 && eqAdaptMul() < 1, 'nouveau vélo : quatre courses d’adaptation');
+  // offre anticipée
+  S.eqEarly = { s: S.season, cat: 'roues', id: 'zephyr', pay: 20, years: 2, exp: S.week + 4 };
+  check(/Accord/.test(eqEarlyAnswer(true)) && S.eqEarly.taken, 'offre anticipée acceptée');
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

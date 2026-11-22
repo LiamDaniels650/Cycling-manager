@@ -237,6 +237,7 @@ function weeklyUpdate() {
   mercWeekly();
   dsBidWeekly();
   aiCampPress();
+  if (S.eqEarly && !S.eqEarly.done && S.week > S.eqEarly.exp) S.eqEarly.done = true; // offre anticipée expirée
   // mercato d'été entre équipes de l'ordinateur (semaine 26) : deux transferts au plus
   if (S.week === 26) aiTransfers(2, 0.25);
   dsPressWeekly();
