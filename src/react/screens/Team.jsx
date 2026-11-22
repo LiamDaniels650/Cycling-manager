@@ -71,7 +71,7 @@ function RivalsAsk() {
   );
 }
 // Le vestiaire : ambiance, confiance, capitaine, réunions, promesses, tensions, parrainages.
-function Locker() {
+export function Locker() {
   const L = lockerState();
   const ready = meetReady();
   const tone = v => (v >= 65 ? 'text-emerald-300' : v >= 45 ? 'text-slate-100' : 'text-rose-300');
@@ -187,7 +187,7 @@ function Locker() {
   );
 }
 // Périodisation de l'effectif et infirmerie.
-function PrepCard() {
+export function PrepCard() {
   const rs = myRiders().filter(r => !r.aca);
   const hurt = rs.filter(r => r.injury > 0);
   return (
@@ -372,8 +372,6 @@ export function Team() {
           ]}
         />
       </Card>
-      <PrepCard />
-      <Locker />
       <Info label="Comment marche l'entraînement ?">
         <p className="text-xs text-slate-300">
           <b className="text-slate-200">Entraînement</b> : « Repos » fait baisser la fatigue mais aussi la forme ; «

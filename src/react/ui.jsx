@@ -1,14 +1,26 @@
 // Briques d'interface partagées : cartes, boutons tactiles, jauges, pastilles d'équipe, liens vers les fiches.
 import { Icon } from './icons.jsx';
 
-// tone « action » : une décision vous attend (bordure ambrée) ; sinon une carte d'information neutre.
+// Émoji de tête d'un titre ou d'un bouton : retiré (la navigation et les titres n'ont plus d'émojis ; ils restent
+// dans les textes de la radio et des commentaires, où ils racontent quelque chose).
+const LEAD_EMOJI = /^(?:[\u{1F1E6}-\u{1F1FF}]{2}|\p{Extended_Pictographic}[\u{FE0F}\u{200D}\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}]*)\s+/u;
+export function noLead(c) {
+  if (typeof c === 'string') return c.replace(LEAD_EMOJI, '');
+  if (Array.isArray(c) && c.length > 1 && typeof c[0] === 'string') {
+    const f = c[0].replace(LEAD_EMOJI, '');
+    if (f !== c[0]) return f.trim() === '' ? c.slice(1) : [f, ...c.slice(1)];
+  }
+  return c;
+}
+// Panneau : fond légèrement relevé, coins peu arrondis, sans bordure. tone « action » : une décision vous attend
+// (liseré jaune à gauche).
 export function Card({ title, right, children, className = '', tone }) {
-  const t = tone === 'action' ? 'border-amber-400/60 bg-amber-400/[0.06]' : 'border-slate-700/70 bg-slate-900';
+  const t = tone === 'action' ? 'bg-slate-900 shadow-[inset_3px_0_0_#f2c94c]' : 'bg-slate-900';
   return (
-    <section className={'rounded-2xl border p-3.5 shadow-sm ' + t + ' ' + className}>
+    <section className={'rounded-lg p-4 ' + t + ' ' + className}>
       {(title || right) && (
-        <div className="mb-2 flex items-center justify-between gap-2">
-          {title && <h3 className="text-[15px] font-semibold text-slate-50">{title}</h3>}
+        <div className="mb-3 flex items-center justify-between gap-2">
+          {title && <h3 className="font-display text-lg font-semibold leading-tight text-slate-50">{noLead(title)}</h3>}
           {right}
         </div>
       )}
@@ -19,17 +31,17 @@ export function Card({ title, right, children, className = '', tone }) {
 // Bouton tactile (44 px de haut au minimum, comme le recommandent les guides mobiles).
 export function Btn({ children, onClick, primary, active, danger, disabled, title, className = '' }) {
   const base =
-    'inline-flex min-h-11 flex-wrap items-center justify-center gap-x-1.5 rounded-xl px-3 py-2 text-center text-sm font-medium leading-snug transition active:scale-[.97] disabled:opacity-40 ';
+    'inline-flex min-h-11 flex-wrap items-center justify-center gap-x-1.5 rounded-md px-3.5 py-2 text-center text-sm font-semibold leading-snug transition active:scale-[.98] disabled:opacity-40 ';
   const tone = danger
-    ? 'bg-rose-600 text-white ring-1 ring-rose-500 hover:bg-rose-500'
+    ? 'bg-rose-600 text-white hover:bg-rose-500'
     : primary
       ? 'bg-sky-500 text-slate-950 hover:bg-sky-400'
       : active
-        ? 'bg-sky-500/20 text-sky-200 ring-1 ring-sky-400'
+        ? 'bg-slate-800 text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]'
         : 'bg-slate-800 text-slate-100 ring-1 ring-slate-700 hover:bg-slate-700';
   return (
     <button type="button" title={title} disabled={disabled} onClick={onClick} className={base + tone + ' ' + className}>
-      {children}
+      {noLead(children)}
     </button>
   );
 }
@@ -94,7 +106,7 @@ export function RiderLink({ r, className = '', dot = true }) {
 export function Info({ children, label = 'Explications' }) {
   return (
     <details className="mt-1 text-xs text-slate-400">
-      <summary className="cursor-pointer py-1">ℹ️ {label}</summary>
+      <summary className="cursor-pointer py-1 underline decoration-dotted underline-offset-2">{label}</summary>
       <div className="pb-1">{children}</div>
     </details>
   );
@@ -238,7 +250,7 @@ export function statColor(v) {
 export function H2({ children, right }) {
   return (
     <div className="mb-2 flex items-center justify-between gap-2">
-      <h2 className="text-lg font-bold text-slate-50">{children}</h2>
+      <h2 className="font-display text-xl font-semibold leading-tight text-slate-50">{noLead(children)}</h2>
       {right}
     </div>
   );

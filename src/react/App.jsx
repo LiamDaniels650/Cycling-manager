@@ -8,7 +8,7 @@ import { Icon } from './icons.jsx';
 import { LiveRace } from './race/LiveRace.jsx';
 import { RadioPanel } from './race/Controls.jsx';
 import { Home } from './screens/Home.jsx';
-import { Team } from './screens/Team.jsx';
+import { Team, PrepCard, Locker } from './screens/Team.jsx';
 import { RiderSheet } from './screens/RiderSheet.jsx';
 import { Calendar } from './screens/Calendar.jsx';
 import { Prep } from './screens/Prep.jsx';
@@ -16,7 +16,7 @@ import { Briefing } from './screens/Briefing.jsx';
 import { StageResult } from './screens/StageResult.jsx';
 import { Market } from './screens/Market.jsx';
 import { Academy } from './screens/Academy.jsx';
-import { Office } from './screens/Office.jsx';
+import { Office, ClubFinances, ClubStaff, ClubEquip, ClubCareer, Prep as CampsCoach } from './screens/Office.jsx';
 import { Inbox } from './screens/Inbox.jsx';
 import { Stats } from './screens/Stats.jsx';
 import { Press } from './screens/Press.jsx';
@@ -47,7 +47,89 @@ const NATIVE = {
   opt: Options,
   names: Names,
   stories: Stories,
+  prepa: () => (
+    <div className="space-y-3">
+      <PrepCard />
+      <CampsCoach />
+    </div>
+  ),
+  locker: Locker,
+  fin: ClubFinances,
+  staff: ClubStaff,
+  equip: ClubEquip,
+  career: ClubCareer,
 };
+// Les cinq espaces du jeu (et le menu secondaire) : chacun regroupe des écrans, présentés en sous-onglets.
+const SPACES = [
+  {
+    k: 'today',
+    lbl: 'Aujourd’hui',
+    icon: 'home',
+    tabs: () => [
+      ['home', 'À faire'],
+      ['inbox', 'Messages'],
+      discoOpen('press') && ['press', 'Presse'],
+      discoOpen('stories') && ['stories', 'Histoires'],
+    ],
+  },
+  {
+    k: 'races',
+    lbl: 'Courses',
+    icon: 'route',
+    tabs: () => [['cal', 'Calendrier'], S.rc && !S.rc.done && ['race', 'Course en cours']],
+  },
+  {
+    k: 'squad',
+    lbl: 'Effectif',
+    icon: 'users',
+    tabs: () => [
+      ['team', 'Coureurs'],
+      ['prepa', 'Préparation'],
+      ['locker', 'Vestiaire'],
+      discoOpen('aca') && ['aca', 'Académie'],
+    ],
+  },
+  { k: 'market', lbl: 'Marché', icon: 'cart', tabs: () => [['market', 'Marché']] },
+  {
+    k: 'club',
+    lbl: 'Club',
+    icon: 'briefcase',
+    tabs: () => [
+      ['mgmt', 'Sponsor'],
+      ['fin', 'Finances'],
+      ['staff', 'Staff'],
+      discoOpen('equip') && ['equip', 'Matériel'],
+      ['career', 'Carrière'],
+    ],
+  },
+];
+const EXTRA = [
+  { k: 'archives', lbl: 'Archives', icon: 'book', tabs: () => [['stats', 'Archives']] },
+  {
+    k: 'options',
+    lbl: 'Options',
+    icon: 'sliders',
+    tabs: () => [
+      ['opt', 'Options'],
+      ['names', 'Noms'],
+    ],
+  },
+];
+const tabsOf = sp => sp.tabs().filter(Boolean);
+function spaceOf(view) {
+  if (view === 'prep') return SPACES[1];
+  return [...SPACES, ...EXTRA].find(sp => tabsOf(sp).some(t => t[0] === view)) || SPACES[0];
+}
+// Décisions et nouvelles en attente par écran (compteurs de l'ancienne navigation), cumulées par espace.
+function counts() {
+  const m = {};
+  for (const [k, , , n] of navItems()) m[k] = n;
+  m.home = 0;
+  return m;
+}
+function spaceCount(sp, m) {
+  return tabsOf(sp).reduce((a, [k]) => a + (m[k] || 0), 0);
+}
 // Voile de progression pendant une simulation (portage de renderBusy).
 function Busy() {
   const B = UI.busy;
@@ -78,173 +160,188 @@ function Busy() {
   );
 }
 
-const NAV_ICON = { home: 'home', team: 'users', cal: 'calendar', race: 'flag', market: 'cart' };
 function Count({ n }) {
   if (!n) return null;
   return (
-    <i className="absolute -right-2 -top-1.5 rounded-full bg-rose-500 px-1.5 text-xs font-bold not-italic leading-4 text-white">
+    <i className="ml-auto rounded-full bg-rose-500 px-1.5 font-display text-xs font-semibold not-italic leading-[18px] text-white">
       {n > 9 ? '9+' : n}
     </i>
   );
 }
+// Rail de navigation (grand écran) : l'équipe, les cinq espaces, le menu secondaire, la saison et le budget.
+function Rail() {
+  const T = P();
+  const m = counts();
+  const cur = spaceOf(UI.view);
+  const item = sp => {
+    const on = cur === sp;
+    return (
+      <button
+        key={sp.k}
+        type="button"
+        onClick={() => go(tabsOf(sp)[0][0])}
+        className={
+          'flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-[15px] font-medium ' +
+          (on ? 'bg-slate-800 text-slate-50 shadow-[inset_3px_0_0_#f2c94c]' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100')
+        }
+      >
+        <Icon name={sp.icon} size={19} />
+        {sp.lbl}
+        <Count n={spaceCount(sp, m)} />
+      </button>
+    );
+  };
+  return (
+    <aside className="fixed inset-y-0 left-0 z-20 hidden w-56 flex-col gap-1 border-r border-slate-800 bg-slate-950 px-2.5 py-4 md:flex">
+      <div className="mb-3 flex items-center gap-2 px-3">
+        <i className="h-3 w-3 shrink-0" style={{ background: T.color }} />
+        <b className="truncate font-display text-lg leading-tight text-slate-50">{T.name}</b>
+      </div>
+      {SPACES.map(item)}
+      <div className="mx-3 my-2 h-px bg-slate-800" />
+      {EXTRA.map(item)}
+      <div className="mt-auto px-3 text-xs text-slate-400">
+        Saison {S.season}
+        <b className="block font-display text-lg text-slate-50">Semaine {S.week}</b>
+        <span className={'font-display text-base ' + (S.budget < 0 ? 'text-rose-400' : 'text-slate-200')}>
+          {fmtMoney(S.budget)}
+        </span>
+      </div>
+    </aside>
+  );
+}
+// Bandeau de contexte (téléphone) : équipe, saison, budget, menu secondaire.
 function Header() {
   const T = P();
-  // pendant une course en direct, l'en-tête suit la largeur de la page (deux colonnes sur grand écran)
-  const wide = UI.view === 'race' && UI.sim ? ' xl:max-w-6xl' : '';
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
-      <div className={'mx-auto flex max-w-3xl items-center justify-between gap-2 px-3 py-2' + wide}>
+    <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur md:hidden">
+      <div className="flex items-center justify-between gap-2 px-3 py-2">
         <div className="flex min-w-0 items-center gap-2">
+          <i className="h-3 w-3 shrink-0" style={{ background: T.color }} />
+          <b className="truncate font-display text-base text-slate-50">{T.name}</b>
+        </div>
+        <div className="flex shrink-0 items-center gap-2 font-display text-sm text-slate-300">
+          <span>
+            {S.season} · s{S.week}
+          </span>
+          <b className={S.budget < 0 ? 'text-rose-400' : 'text-slate-50'}>{fmtMoney(S.budget)}</b>
           <button
             type="button"
             onClick={() => openNav()}
-            className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-800 text-slate-100 md:hidden"
+            className="ml-1 flex h-10 w-10 items-center justify-center rounded-md bg-slate-800 text-slate-100"
             title="Menu"
           >
             <Icon name="menu" />
           </button>
-          <i className="h-3 w-3 shrink-0 rounded-sm" style={{ background: T.color }} />
-          <b className="truncate text-slate-50">{T.name}</b>
-        </div>
-        <div className="shrink-0 text-xs text-slate-300">
-          {S.season} · sem. {S.week} ·{' '}
-          <b className={S.budget < 0 ? 'text-rose-400' : 'text-slate-50'}>{fmtMoney(S.budget)}</b>
         </div>
       </div>
-      <nav className={'mx-auto hidden max-w-3xl flex-wrap gap-1.5 px-3 pb-2 md:flex' + wide}>
-        {navItems().map(([k, ic, l, n]) => (
-          <button
-            key={k}
-            type="button"
-            onClick={() => go(k)}
-            className={
-              'relative min-h-10 rounded-xl px-3 text-sm ' +
-              (UI.view === k ? 'bg-sky-500 text-slate-950' : 'bg-slate-800 text-slate-100')
-            }
-          >
-            {ic} {l}
-            <Count n={k === 'home' ? 0 : n} />
-          </button>
-        ))}
-      </nav>
     </header>
   );
 }
+// Barre du bas (téléphone) : les cinq espaces.
 function BottomNav() {
-  const it = navItems();
-  const inRace = it.some(x => x[0] === 'race');
-  const main = ['home', 'team', 'cal', inRace ? 'race' : 'market'];
-  const more = it.filter(x => !main.includes(x[0]));
-  const moreN = more.reduce((a, x) => a + (x[0] === 'home' ? 0 : x[3]), 0);
-  const btn = (k, icon, label, n, on, onClick) => (
-    <button
-      key={k}
-      type="button"
-      onClick={onClick}
-      className={
-        'flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-xs ' +
-        (on ? 'text-sky-300' : 'text-slate-400')
-      }
-    >
-      <span className="relative">
-        <Icon name={icon} size={22} />
-        <Count n={n} />
-      </span>
-      {label}
-    </button>
-  );
+  const m = counts();
+  const cur = spaceOf(UI.view);
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-800 bg-slate-950/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-      <div className="mx-auto flex max-w-3xl">
-        {main.map(k => {
-          const x = it.find(y => y[0] === k);
-          return btn(k, NAV_ICON[k], x[2], k === 'home' ? 0 : x[3], UI.view === k, () => go(k));
+      <div className="mx-auto grid max-w-3xl grid-cols-5">
+        {SPACES.map(sp => {
+          const n = spaceCount(sp, m);
+          return (
+            <button
+              key={sp.k}
+              type="button"
+              onClick={() => go(tabsOf(sp)[0][0])}
+              className={
+                'flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium ' +
+                (cur === sp ? 'text-sky-400' : 'text-slate-400')
+              }
+            >
+              <span className="relative">
+                <Icon name={sp.icon} size={22} />
+                {n ? (
+                  <i className="absolute -right-2.5 -top-1.5 rounded-full bg-rose-500 px-1.5 text-[10px] font-bold not-italic leading-4 text-white">
+                    {n > 9 ? '9+' : n}
+                  </i>
+                ) : null}
+              </span>
+              {sp.lbl}
+            </button>
+          );
         })}
-        {btn(
-          'more',
-          'menu',
-          'Plus',
-          moreN,
-          more.some(x => x[0] === UI.view),
-          () => openNav()
-        )}
       </div>
     </nav>
   );
 }
-// Menu « Plus » : les écrans par famille, chacun avec une ligne d'explication ; ceux qui attendent une action
-// (compteur) ressortent.
-const NAV_GROUPS = [
-  ['Gérer l’équipe', ['team', 'market', 'aca', 'mgmt']],
-  ['Suivre la saison', ['home', 'cal', 'race', 'stories', 'press', 'inbox', 'stats']],
-  ['Réglages', ['opt']],
-];
-const NAV_DESC = {
-  home: 'Prochaine échéance, à traiter',
-  team: 'Effectif, entraînement, contrats',
-  cal: 'Courses, programme de la saison',
-  race: 'La course en cours',
-  market: 'Transferts et coureurs libres',
-  aca: 'Jeunes, détection',
-  mgmt: 'Budget, staff, sponsors',
-  stories: 'Décisions de vestiaire',
-  press: 'Conférences, réputation',
-  inbox: 'Messages et nouvelles',
-  stats: 'Palmarès, saison, film',
-  opt: 'Sauvegardes, aide, noms',
-};
-function NavSheet() {
-  const items = navItems();
+// En-tête d'espace : son nom et ses sous-onglets.
+function SpaceHead() {
+  const sp = spaceOf(UI.view);
+  const tabs = tabsOf(sp);
+  const m = counts();
   return (
-    <div className="space-y-3">
-      {NAV_GROUPS.map(([g, keys]) => {
-        const list = keys.map(k => items.find(x => x[0] === k)).filter(Boolean);
-        if (!list.length) return null;
-        return (
-          <div key={g}>
-            <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">{g}</div>
-            <div className="grid grid-cols-2 gap-2">
-              {list.map(([k, ic, l, n]) => {
-                const cnt = k === 'home' ? 0 : n;
-                return (
-                  <button
-                    key={k}
-                    type="button"
-                    onClick={() => {
-                      closeModal();
-                      go(k);
-                    }}
-                    className={
-                      'relative flex min-h-16 items-center gap-2.5 rounded-xl px-3 py-2 text-left ' +
-                      (UI.view === k
-                        ? 'bg-sky-500 text-slate-950'
-                        : cnt
-                          ? 'bg-amber-400/10 text-slate-100 ring-1 ring-amber-300/50'
-                          : 'bg-slate-800 text-slate-100')
-                    }
-                  >
-                    <span className="relative text-xl">
-                      {ic}
-                      <Count n={cnt} />
-                    </span>
-                    <span className="min-w-0">
-                      <b className="block text-sm">{l}</b>
-                      <span
-                        className={
-                          'line-clamp-2 block text-xs leading-tight ' +
-                          (UI.view === k ? 'text-slate-900' : 'text-slate-400')
-                        }
-                      >
-                        {NAV_DESC[k] || ''}
-                      </span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+    <div className="mb-4">
+      <h1 className="font-display text-3xl font-bold leading-none text-slate-50">{sp.lbl}</h1>
+      {tabs.length > 1 ? (
+        <div className="mt-3 flex gap-5 overflow-x-auto border-b border-slate-800">
+          {tabs.map(([k, l]) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => go(k)}
+              className={
+                'relative flex min-h-10 shrink-0 items-center gap-1.5 text-sm font-medium ' +
+                (UI.view === k ? 'text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]' : 'text-slate-400 hover:text-slate-100')
+              }
+            >
+              {l}
+              {m[k] ? (
+                <i className="rounded-full bg-rose-500 px-1.5 text-[10px] font-bold not-italic leading-4 text-white">
+                  {m[k]}
+                </i>
+              ) : null}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+// Menu (téléphone) : tous les espaces et leurs écrans, puis les archives et les options.
+function NavSheet() {
+  const m = counts();
+  return (
+    <div className="space-y-4">
+      {[...SPACES, ...EXTRA].map(sp => (
+        <div key={sp.k}>
+          <div className="mb-1 flex items-center gap-2 font-display text-base font-semibold text-slate-100">
+            <Icon name={sp.icon} size={18} className="text-slate-400" />
+            {sp.lbl}
           </div>
-        );
-      })}
+          <div className="flex flex-wrap gap-2">
+            {tabsOf(sp).map(([k, l]) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => {
+                  closeModal();
+                  go(k);
+                }}
+                className={
+                  'flex min-h-10 items-center gap-1.5 rounded-md px-3 text-sm ' +
+                  (UI.view === k ? 'bg-sky-500 font-semibold text-slate-950' : 'bg-slate-800 text-slate-100')
+                }
+              >
+                {l}
+                {m[k] ? (
+                  <i className="rounded-full bg-rose-500 px-1.5 text-[10px] font-bold not-italic leading-4 text-white">
+                    {m[k]}
+                  </i>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -367,13 +464,21 @@ export function App() {
         </>
       );
     }
+    const bare = live || UI.view === 'prep';
     return (
       <>
+        <Rail />
         <Header />
-        <main id="main" className={'mx-auto max-w-3xl px-3 pt-3 ' + (live ? 'xl:max-w-6xl' : 'pb-24 md:pb-6')}>
+        <main
+          id="main"
+          className={
+            'px-3 pt-4 md:ml-56 md:px-6 md:pt-6 ' + (live ? 'mx-auto xl:max-w-[1500px]' : 'pb-24 md:pb-8 lg:max-w-[1180px]')
+          }
+        >
+          {bare ? null : <SpaceHead />}
           {flash ? (
             <div
-              className="mb-3 rounded-xl bg-sky-500/15 px-3 py-2 text-sm text-sky-100 ring-1 ring-sky-400/40"
+              className="mb-3 rounded-md bg-slate-900 px-3 py-2.5 text-sm text-slate-100 shadow-[inset_3px_0_0_#f2c94c]"
               dangerouslySetInnerHTML={{ __html: flash }}
             />
           ) : null}

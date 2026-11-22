@@ -2,7 +2,7 @@
 // finances et projection, staff, historique, adjoint, équipementiers, carrière, image de l'équipe.
 import { Card, Btn, Bar, Badge, Select, H2, Spark } from '../ui.jsx';
 
-function Sponsor() {
+export function Sponsor() {
   return (
     <Card>
       <H2>Sponsor{S.spons ? ' : ' + S.spons.name : ''}</H2>
@@ -66,7 +66,7 @@ function TvBox() {
     </div>
   );
 }
-function Finances() {
+export function Finances() {
   const f = (S.fin || {})[S.season] || {};
   const L = {
     spons: 'Sponsor',
@@ -115,7 +115,7 @@ function Finances() {
     </Card>
   );
 }
-function Staff() {
+export function Staff() {
   return (
     <Card title="Staff" right={<Btn onClick={() => doAsst('staff')}>🧑‍💼 Auto</Btn>}>
       {Object.keys(STAFF_LBL).map(k => (
@@ -168,7 +168,7 @@ function Staff() {
     </Card>
   );
 }
-function History() {
+export function History() {
   if (!S.teamHist.length) return null;
   return (
     <Card title="Historique">
@@ -205,7 +205,7 @@ function History() {
     </Card>
   );
 }
-function Assistant() {
+export function Assistant() {
   const A = S.auto || {};
   const on = Object.keys(AUTO_LBL).filter(k => A[k]).length;
   return (
@@ -274,7 +274,7 @@ function EarlyOffer() {
     </div>
   );
 }
-function Equipment() {
+export function Equipment() {
   const T = P();
   return (
     <Card
@@ -486,7 +486,7 @@ function Image() {
 }
 // Préparation : stages d'équipe (un à la fois) et entraîneur en chef spécialisé.
 // Forme de l'effectif sur la saison et bilan des stages passés (formWeekly, 56-prep.js).
-function FormLog() {
+export function FormLog() {
   const tf = S.tf && S.tf.s === S.season ? S.tf.v : [];
   const L = S.campLog || [];
   if (tf.length < 3 && !L.length) return null;
@@ -528,11 +528,11 @@ function FormLog() {
     </div>
   );
 }
-function Prep() {
+export function Prep() {
   const cur = S.camp && S.week <= S.camp.until ? S.camp : null;
   const say = t => ((UI.flash = t), save(), render());
   return (
-    <Card title="🏕️ Préparation">
+    <Card title="Stages, entraîneur et médecin">
       {cur ? (
         <div className="mb-2 rounded-lg bg-emerald-500/10 px-2.5 py-2 text-sm text-emerald-100 ring-1 ring-emerald-400/40">
           En cours : {CAMPS[cur.k].lbl}, jusqu'à la semaine {cur.until}.
@@ -617,18 +617,38 @@ function Prep() {
     </Card>
   );
 }
+// Club : un onglet par sujet (sponsor et image, finances et historique, staff et adjoint, matériel, carrière).
 export function Office() {
   return (
     <div className="space-y-3">
       <Sponsor />
-      <Prep />
-      <Finances />
-      {discoOpen('staff') ? <Staff /> : null}
-      <History />
-      <Assistant />
-      {discoOpen('equip') ? <Equipment /> : null}
-      <Career />
       <Image />
+    </div>
+  );
+}
+export function ClubFinances() {
+  return (
+    <div className="space-y-3">
+      <Finances />
+      <History />
+    </div>
+  );
+}
+export function ClubStaff() {
+  return (
+    <div className="space-y-3">
+      {discoOpen('staff') ? <Staff /> : null}
+      <Assistant />
+    </div>
+  );
+}
+export function ClubEquip() {
+  return <div className="space-y-3">{discoOpen('equip') ? <Equipment /> : <p className="text-sm text-slate-400">Les équipementiers se débloquent au fil de la première saison.</p>}</div>;
+}
+export function ClubCareer() {
+  return (
+    <div className="space-y-3">
+      <Career />
     </div>
   );
 }

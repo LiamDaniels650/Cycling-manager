@@ -15,6 +15,22 @@ const require = createRequire(NM + '/');
 const esbuild = require('esbuild');
 const { compile } = await import(NM + '/tailwindcss/dist/lib.mjs');
 
+// Langage visuel du jeu : asphalte (les gris), couleurs des maillots (jaune : action et sélection ; vert : bon état ;
+// rouge à pois : alerte ; votre couleur : rose), typographie de signalisation routière (Barlow, étroite pour les titres
+// et les chiffres). Les classes existantes (slate, sky, amber…) prennent ces valeurs : tout l'écran suit.
+const THEME = `@theme {
+  --font-sans: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --color-slate-50: #f5f7fa; --color-slate-100: #e8ecf1; --color-slate-200: #d4dae2; --color-slate-300: #b9c2cf;
+  --color-slate-400: #95a1b3; --color-slate-500: #6b7686; --color-slate-600: #4a5463; --color-slate-700: #2f3847;
+  --color-slate-800: #262d3a; --color-slate-900: #1f2530; --color-slate-950: #171b22;
+  --color-sky-100: #fdf3d3; --color-sky-200: #fbe7a8; --color-sky-300: #f7d877; --color-sky-400: #f5cf5f;
+  --color-sky-500: #f2c94c; --color-sky-600: #d9ad2c; --color-sky-700: #a8841e; --color-sky-900: #4a3b10;
+  --color-amber-100: #ffe8d4; --color-amber-200: #ffd0a8; --color-amber-300: #ffb57a; --color-amber-400: #ff9d52;
+  --color-amber-500: #f5842f; --color-amber-600: #d96a17;
+  --color-emerald-200: #b8ecd0; --color-emerald-300: #7fd9a8; --color-emerald-400: #3dbe7a; --color-emerald-500: #2ea866;
+  --color-rose-200: #ffc9cb; --color-rose-300: #ff9a9d; --color-rose-400: #f26b6f; --color-rose-500: #e5484d; --color-rose-600: #c93338;
+}`;
 const cat = (dir, skip = []) =>
   fs
     .readdirSync(path.join(ROOT, dir))
@@ -53,7 +69,7 @@ const cands = new Set();
 for (const s of srcs) for (const m of s.matchAll(/[A-Za-z0-9_\-:\/\[\]\.%()#,>=!&*+]+/g)) cands.add(m[0]);
 const base = NM + '/tailwindcss/';
 const tw = await compile(
-  '@import "tailwindcss";\n@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1}}',
+  '@import "tailwindcss";\n@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1}}\n' + THEME,
   {
     base,
     loadStylesheet: async (id, b) => {
@@ -118,12 +134,16 @@ const html = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#020617">
+<meta name="theme-color" content="#171b22">
 <title>Directeur Sportif</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap">
 <style>@layer theme, base, legacy, components, utilities;
 @layer legacy {${legacyCss}}
 ${twCss}
-body{background:#020617;color:#e2e8f0;-webkit-tap-highlight-color:transparent}
+body{background:#171b22;color:#e8ecf1;font-family:var(--font-sans);-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums}
+h1,h2,h3,h4{font-family:var(--font-display)}
+:focus-visible{outline:2px solid #f2c94c;outline-offset:2px}
 #root{min-height:100vh;overflow-x:hidden}
 </style>
 </head>
