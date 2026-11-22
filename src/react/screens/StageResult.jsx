@@ -544,6 +544,7 @@ export function StageResult() {
                     <td className="tabular-nums">{i ? fmtGap(e.time - rc.tttLog[0].time) : fmtTime(e.time)}</td>
                     <td className="text-xs text-slate-400">
                       {e.lost ? e.lost + ' lâché(s)' : ''}
+                      {e.sat ? `${e.lost ? ' · ' : ''}${e.sat} sans relayer` : ''}
                       {e.ldrLost ? ' · leader lâché !' : ''}
                     </td>
                   </Row>

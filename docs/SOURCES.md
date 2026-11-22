@@ -31,6 +31,10 @@ grandeur connu du milieu, sans chiffre publié retrouvé).
 | favori_flandres_1j, favori_paves_1j, favori_ardennes_1j | 60–95 %, 60–95 %, 50–90 % | sourcée (palmarès) | 2016-2025 : Tour des Flandres gagné par un favori 9 fois sur 10 (seul Bettiol 2019 en outsider), Paris-Roubaix 8 fois sur 9 (Hayman 2016, échappée matinale), Liège 8 fois sur 10 (Poels, Jungels en outsiders), Amstel ≈ 6/9. Le jeu désigne les 10 favoris d'après l'aptitude au final du parcours et la forme du jour |
 | sprint_meilleur | 30–60 % | estimée | sprints massifs des Grands Tours 2023-2025 : le sprinteur dominant gagne 3 à 4 sprints sur 7 à 9 (Philipsen 2023, Girmay/Philipsen 2024, Milan/Merlier Giro 2024) |
 | GT_abandons / arrivées | | | voir plus haut |
+| GT_porteurs_maillot | 2–8 | sourcée (palmarès) | Tour 2019-2024 : 5 (2019), 5 (2020), 3 (2021), 4 (2022), 3 à 4 (2023-2024) porteurs du maillot jaune ; Giro et Vuelta en comptent souvent davantage (jusqu'à 6-7) |
+| GT_equipes_etapes | 7–15 | sourcée (palmarès), à l'échelle du jeu | Tour 2019-2024 : 10 à 14 équipes différentes gagnent au moins une étape (sur 22 équipes ; le jeu en aligne 18) |
+| ecart_max_echap_plat_min | 1,5–7 min | estimée | étapes de plaine des Grands Tours : l'échappée matinale plafonne le plus souvent entre 3 et 5 min, le peloton la tenant « en laisse » |
+| reprise_echap_plat_km | 2–20 km | estimée | reprise de l'échappée sur les étapes de sprint : le plus souvent entre 5 et 15 km de l'arrivée |
 
 Sources principales : Frontier Economics, *The Tour de France: breaking down the breakaway* ; BikeRadar et
 Domestique (vitesses moyennes du Tour) ; Velo, Rouleur, FasCat (estimations de puissance) ; ProCyclingStats

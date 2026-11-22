@@ -79,15 +79,16 @@ function eqFactors(T) {
     n = eqUsed(T, 'nutri');
   const ad = T.player ? eqAdaptMul() : 1;
   return {
-    flat: (1 + 0.012 * (b.aero - 0.5) + 0.006 * (w.aero - 0.5) + 0.004 * (p.rend - 0.5)) * ad,
-    climb: (1 + 0.012 * (b.leger - 0.5) + 0.006 * (w.leger - 0.5)) * ad,
+    // (roues et pneus centrés sur une marque moyenne : ils départagent les équipes sans accélérer tout le peloton)
+    flat: (1 + 0.012 * (b.aero - 0.5) + 0.006 * (w.aero - 0.65) + 0.004 * (p.rend - 0.68)) * ad,
+    climb: (1 + 0.012 * (b.leger - 0.5) + 0.006 * (w.leger - 0.65)) * ad,
     pav: 1 + 0.02 * (b.confort - 0.5),
     punct: (1.5 - b.robuste) * (1.3 - 0.6 * p.robuste),
     pavPunct: (1.4 - 0.8 * b.confort) * (1.3 - 0.6 * p.robuste),
-    tt: (1 + 0.025 * (t.aero - 0.5) + 0.006 * (w.aero - 0.5) + 0.004 * (p.rend - 0.5)) * ad,
-    sprint: (w.rigide - 0.5) * 1.2,
+    tt: (1 + 0.025 * (t.aero - 0.5) + 0.006 * (w.aero - 0.65) + 0.004 * (p.rend - 0.68)) * ad,
+    sprint: (w.rigide - 0.65) * 1.2,
     wetK: 1.3 - 0.6 * p.grip,
-    food: 1.12 - 0.24 * n.assim,
+    food: 1.17 - 0.24 * n.assim, // (assimilation 0,7 : consommation normale)
     steep: 1,
   };
 }

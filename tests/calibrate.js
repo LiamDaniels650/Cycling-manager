@@ -56,6 +56,11 @@ const REAL = {
   favori_paves_1j: [0.6, 0.95], // Roubaix 8/9
   favori_ardennes_1j: [0.5, 0.9], // Liège 8/10, Amstel ≈ 6/9
   sprint_meilleur: [0.3, 0.6], // sprints massifs gagnés par le meilleur sprinteur présent (estimée)
+  // vie d'un grand tour et des échappées (docs/SOURCES.md)
+  GT_porteurs_maillot: [2, 8], // Tour 2019-2024 : 3 à 5 porteurs du maillot jaune ; Giro et Vuelta jusqu'à 7
+  GT_equipes_etapes: [7, 15], // Tour 2019-2024 : 10 à 14 équipes gagnent une étape (22 équipes ; ici 18)
+  ecart_max_echap_plat_min: [1.5, 7], // étapes de plaine : l'échappée plafonne le plus souvent à 3-5 min
+  reprise_echap_plat_km: [2, 20], // reprise de l'échappée sur le plat : le plus souvent entre 5 et 15 km
 };
 
 const M = {},
@@ -101,7 +106,9 @@ function debugFinish(sim, spec, res, brk) {
 function runRoadStage(rc, spec, cal) {
   const sim = newStageSim(rc);
   let half = null,
-    brk = 0;
+    brk = 0,
+    caughtKm = null,
+    brkSeen = false;
   while (!sim.done) {
     simTick(sim);
     if (!half && sim.groups.length && sim.groups[0].pos >= spec.dist * 0.5) half = idsAhead(sim, favGroup(sim));
@@ -113,8 +120,16 @@ function runRoadStage(rc, spec, cal) {
       for (const H of sim.groups) if (H !== P && H.pos > P.pos && gapSec(H, P) > 60) n += H.riders.length;
       brk = Math.max(brk, n);
     }
+    // reprise de l'échappée du jour : plus aucun groupe d'échappés devant le peloton (à plus de 10 s)
+    if (sim.brkIds && P && caughtKm == null) {
+      const ahead = sim.groups.some(
+        H => H !== P && H.pos > P.pos && gapSec(H, P) > 10 && H.riders.some(x => sim.brkIds.has(x.id) && !x.fin)
+      );
+      if (ahead) brkSeen = true;
+      else if (brkSeen && !sim.finish.length) caughtKm = Math.round(spec.dist - P.pos);
+    }
   }
-  return { sim, half, brk };
+  return { sim, half, brk, caughtKm };
 }
 
 function measureStage(rc, spec, cal, out) {
@@ -142,6 +157,13 @@ function measureStage(rc, spec, cal, out) {
     add('dernier_' + ty + '_min', res[res.length - 1].gap / 60);
     add('abandons_etape', out.sim.runners.filter(x => x.dnf).length);
     if (ty === 'plat') add('groupe_sprint', res.filter(e => e.gap < 1).length);
+    if (ty === 'plat' && out.sim) {
+      const b = breakRecord(out.sim);
+      if (b && b.n <= 10 && b.max >= 30) {
+        add('ecart_max_echap_plat_min', b.max / 60);
+        if (out.caughtKm != null) add('reprise_echap_plat_km', out.caughtKm);
+      }
+    }
     if (one === '1j' && (ty === 'flandres' || ty === 'ardennes' || ty === 'paves')) {
       add('solo_' + ty + '_1j', res[1].gap >= 5 ? 1 : 0);
       // vainqueur parmi les 10 favoris d'avant-course (meilleurs sur le terrain du jour, forme comprise)
@@ -191,16 +213,26 @@ function runSeed(seed) {
     const startN = Object.keys(rc.gc).length;
     let totT = 0,
       totD = 0;
+    const leaders = new Set(),
+      winTeams = new Set();
     while (!rc.done) {
       const spec = rc.specs[rc.si];
       Object.assign(rc.orders, autoOrders(0, spec, rc));
       const out = isITT(spec) || isTTT(spec) ? (runStageAuto(rc), {}) : runRoadStage(rc, spec, cal);
       measureStage(rc, spec, cal, out);
       const st = rc.stageRes[rc.stageRes.length - 1];
+      if (rc.specs.length > 1) {
+        leaders.add(gcList(rc)[0]);
+        winTeams.add(S.riders[st.res[0].id].team);
+      }
       totT += st.res[0].time;
       totD += spec.dist;
     }
     if (rc.specs.length > 1) measureStageRace(rc, cal, startN, totD, totT);
+    if (cal.cat === 0) {
+      add('GT_porteurs_maillot', leaders.size);
+      add('GT_equipes_etapes', winTeams.size);
+    }
   }
   const wins = Object.values(S.riders)
     .filter(r => r.team !== null)

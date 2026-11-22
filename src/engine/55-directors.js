@@ -342,3 +342,52 @@ function coalitionStart(sim) {
     lead.team === 0 ? 'bad' : 'info'
   );
 }
+
+/* Stratégie sur trois semaines (grands tours) : phase de la course pour les prétendants au général de
+   l'ordinateur. Première semaine : on économise (attaques moins rentables) ; troisième semaine : on attaque
+   davantage ; dernière grande étape de montagne : va-tout. Les équipes dont le leader est trop loin au général
+   (plus de 8 min après la première semaine) se tournent vers les victoires d'étape. */
+function gtPhase(sim) {
+  const rc = sim.rc;
+  if (!sim.stageRace || rc.specs.length < 15) return null;
+  const f = rc.si / (rc.specs.length - 1);
+  const lastMtn = rc.specs
+    .map((s, i) => [s.type, i])
+    .filter(([t]) => t === 'montagne' || t === 'sommet')
+    .pop();
+  if (lastMtn && lastMtn[1] === rc.si) return 'last';
+  return f < 0.34 ? 'early' : f > 0.66 ? 'late' : 'mid';
+}
+function gtPhaseMul(sim) {
+  const p = gtPhase(sim);
+  return p === 'early' ? 0.8 : p === 'late' ? 1.2 : p === 'last' ? 1.45 : 1;
+}
+// Au départ d'une étape de grand tour : le commentaire de la phase, et les équipes qui changent d'objectif.
+function gtStrategyStart(sim) {
+  const p = gtPhase(sim);
+  if (!p) return;
+  const rc = sim.rc;
+  if (p === 'last')
+    log(sim, '🎙️ Dernière grande étape de montagne : les prétendants au général n’ont plus rien à garder.', 'info');
+  else if (p === 'late' && !rc.lateSaid) {
+    rc.lateSaid = true;
+    log(sim, '🎙️ Troisième semaine : les jambes pèsent, et ceux qui ont du retard vont devoir attaquer.', 'info');
+  }
+  // leaders de l'ordinateur relégués au général après la première semaine : on vise les étapes
+  if (rc.si < 7) return;
+  const g = gcList(rc);
+  const t0 = rc.gc[g[0]];
+  rc.stageHunt = rc.stageHunt || {};
+  for (const T of S.teams) {
+    if (T.player || rc.stageHunt[T.id]) continue;
+    const ld = sim.teamLeader[T.id];
+    if (ld && rc.gc[ld.id] - t0 > 480) {
+      rc.stageHunt[T.id] = true;
+      log(
+        sim,
+        `🎯 ${T.name} renonce au général (${riderName(ld.r)} à ${fmtGap(rc.gc[ld.id] - t0).replace(/^\+/, '')}) : place aux victoires d'étape.`,
+        'info'
+      );
+    }
+  }
+}

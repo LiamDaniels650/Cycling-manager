@@ -25,6 +25,14 @@ function decisiveSplit(sim) {
         c.fineOk = true;
         sim.descMoment = descentAfter(sim, c);
       });
+    // étape vallonnée ou de bosses d'une course par étapes : la dernière côte sérieuse (1 km et plus à 5 % et plus)
+    // des 30 derniers km, hors arrivée, est rejouée elle aussi (c'est là que les puncheurs font la différence)
+    if (sim.stageRace && (sim.spec.type === 'vallonne' || sim.spec.type === 'punch'))
+      sim.klimbs
+        .filter(c => !c.fineOk && c.len >= 1 && c.avg >= 5 && c.end < sim.dist - 3 && c.end >= sim.dist - 30)
+        .sort((a, b) => b.end - a.end)
+        .slice(0, 1)
+        .forEach(c => (c.fineOk = true));
     // l'avant-dernier très grand col (hors catégorie, dans les 80 derniers km) : une attaque lointaine s'y joue aussi
     sim.klimbs
       .filter(c => !c.fineOk && c.cat === 'HC' && c.end < sim.dist - 10 && c.end >= sim.dist - 80)

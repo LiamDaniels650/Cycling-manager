@@ -128,19 +128,25 @@ function runTTT(rc) {
       const caps = grp.map(x => capOf(x, i));
       const sorted = caps.slice().sort((a, b) => b - a);
       const d = draftF(P.g[i], P.surf[i], n);
-      const share = d + (1 - d) / n;
-      // le rythme est celui que les coureurs du cœur de l'équipe (3e à 6e) peuvent tenir en relayant
+      // les relais : un coureur à la peine (bien en dessous du cœur de l'équipe, ou entamé) saute ses relais et
+      // s'abrite en queue pour tenir ; les autres relaient plus souvent (moins de rouleurs pour mener)
       const core = sorted.slice(Math.min(2, n - 1), Math.min(6, n));
+      const coreMin = core[core.length - 1];
+      const skip = grp.map((x, j) => n > 3 && (caps[j] < coreMin * 0.985 || x.energy < 40));
+      const nPull = Math.max(1, skip.filter(k => !k).length);
+      const share = d + (1 - d) / nPull;
+      // le rythme est celui que les coureurs du cœur de l'équipe (3e à 6e) peuvent tenir en relayant
       let L = (((sum(core) / core.length) * 0.97) / share) * coh;
       if (mode === 'leader' && ldr.with) {
         L = Math.min(L, (capOf(ldr, i) * 0.99) / share);
       }
+      for (let j = 0; j < n; j++) if (skip[j]) grp[j].skips = (grp[j].skips || 0) + 1;
       const v = physSpeed(speedOf(L, P.g[i], P.surf[i], true, true) * eqTT, P.g[i], CO[i], 0.22);
       const dt = STEP / v;
       t += dt * 3600;
       grp.forEach((x, j) => {
         x.acc.add(riderWatts(x.r.kg || 68, v, P.g[i], 1 - 0.45 * (1 - 1 / n), 0.22, CO[i]), dt * 3600);
-        const I = (L * share) / caps[j];
+        const I = (L * (skip[j] ? d : share)) / caps[j];
         let dr = I < 0.75 ? 6 : I < 0.9 ? 6 + (I - 0.75) * 120 : 24 + (I - 0.9) * 300;
         dr *= 1.38 - x.r.s.end / 140;
         x.energy = Math.max(0, x.energy - dr * dt);
@@ -171,7 +177,9 @@ function runTTT(rc) {
     for (const x of xs) {
       out.push({ id: x.id, time: Math.max(tt, x.with ? tt : x.t), energy: x.energy });
     }
-    rc.tttLog.push({ team: T.id, time: tt, lost, mode, ldr: ldr.id, ldrLost: !ldr.with });
+    // coureurs qui ont sauté des relais une bonne partie du parcours (plus d'un tiers)
+    const sat = xs.filter(x => (x.skips || 0) > (P.n - 1) / 3).length;
+    rc.tttLog.push({ team: T.id, time: tt, lost, mode, ldr: ldr.id, ldrLost: !ldr.with, sat });
   }
   out.sort((a, b) => a.time - b.time);
   rc.tttLog.sort((a, b) => a.time - b.time);

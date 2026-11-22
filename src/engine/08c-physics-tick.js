@@ -358,6 +358,7 @@ function tickIncidents(sim, live) {
         : 1) *
       (kmLeft < 5 && G.riders.length > 20 ? 3 : 1) *
       (sim.dangerT === sim.t && G === sim.pel && x.pos < 40 ? 2 : 1) * // rond-point, rétrécissement
+      (G.narrow && G.riders.length >= 30 && x.pos < 35 ? 1.5 : 1) * // route étroite : on frotte en queue de peloton
       (G.riders.length >= 20 ? clamp(1.6 - x.pos / 100, 0.6, 1.6) : 1) *
       (wet && x.eqf.tyres === 'larges' ? 0.8 : 1) * // pneus larges sous la pluie
       (wet ? x.eqf.wetK || 1 : 1) * // adhérence des pneus, pression

@@ -181,6 +181,7 @@ function buildStageSim(rc) {
     finAdd('other', -2);
   }
   coalitionStart(sim);
+  gtStrategyStart(sim);
   if (!rc.si) dsAnnounce(sim); // les directeurs qui ont fait de cette course leur objectif l'annoncent
   if (rc.autoDS) sim.autoDS = true; // course confiée à l'adjoint
   sim.feedAt = spec.dist > 110 ? Math.round(spec.dist * 0.52) : 0;
@@ -202,7 +203,9 @@ function buildStageSim(rc) {
   sim.brkState = 'fight';
   sim.finWind = P.wind >= 2 ? pick(['face', 'dos', 'travers']) : 'neutre';
   genWindAxis(sim, spec.dist, P.wind, sim.finWind);
-  sim.windShift = P.wind ? { km: spec.dist * rf(0.35, 0.75), to: clamp(P.wind + pick([-1, 1]), 0, 3) } : null;
+  sim.windShift = P.wind
+    ? { km: spec.dist * rf(0.35, 0.75), to: clamp(P.wind + pick([-1, 1]), 0, 3), turn: rnd() < 0.5 }
+    : null;
   // la météo change en route : une averse qui arrive (1 étape sèche sur 10), ou la pluie qui cesse (1 sur 4)
   sim.wxShift =
     sim.wx === 'sec' && rnd() < 0.1
@@ -529,6 +532,24 @@ function tickRoadEvents(sim) {
     ws.done = true;
     const from = sim.P.wind;
     sim.P.wind = ws.to;
+    // le vent tourne aussi : les portions exposées de la suite du parcours changent (une route abritée devient
+    // exposée, et inversement), le vent de face devient de dos
+    if (ws.turn && ws.to >= 1) {
+      const P2 = { ...sim.P, expo: new Uint8Array(sim.P.expo) };
+      const i0 = Math.floor(ws.km / STEP);
+      let on = false;
+      for (let i = i0; i < P2.n; i++) {
+        if (i % 8 === 0) on = dsHash(sim.rc.key + '/' + sim.rc.si + '/' + i) % 100 < 30; // tronçons de 2 km
+        P2.expo[i] = on && P2.g[i] < 3 ? 1 : 0;
+      }
+      sim.P = P2;
+      if (sim.windAx) {
+        const k0 = Math.floor(ws.km / 10);
+        sim.windAx = sim.windAx.map((v, k) => (k > k0 ? -v : v));
+      }
+      commentLog(sim, 'Le vent tourne : les routes exposées ne sont plus les mêmes, le vent de face devient de dos.');
+      if (ws.to >= 2) highlight(sim, '🌬️ Le vent tourne : nouvelles routes exposées, gare aux bordures !');
+    }
     if (ws.to !== from) {
       const t =
         ws.to > from

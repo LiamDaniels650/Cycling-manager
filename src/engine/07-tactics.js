@@ -540,6 +540,12 @@ function chaseProject(sim, G, gap, kmLeft, targetKm, level, nw) {
   if (!a.gap || !b.gap) return [level, nw];
   const rate = (a.gap - b.gap) / Math.max(1, b.km - a.km); // s repris par km
   const need = gap / Math.max(1, kmLeft - targetKm);
+  // au rythme actuel, l'échappée serait reprise bien trop tôt (petite échappée qui faiblit) : le peloton se relève
+  // et la laisse respirer (sous 2 min) ou roule au simple tempo, pour la reprendre dans le final
+  if (level > 0 && rate > 0.5) {
+    const catchAt = kmLeft - gap / rate;
+    if (catchAt > targetKm + 25) return gap < 120 ? [0, 0] : [Math.min(level, 0.75), 1];
+  }
   if (level > 0 && rate > need * R.chaseAhead && nw > 1 && kmLeft > targetKm + 20)
     return [Math.max(0.8, level - 0.04), nw - 1];
   if (level > 0 && rate < need * R.chaseBehind) return [Math.min(0.97, level + 0.04), Math.min(5, nw + 1)];
@@ -755,6 +761,9 @@ function attackUtility(sim, x, rel, kmLeft, g) {
     if (rk === 1)
       value = 0.7; // le maillot n'a pas à prendre de risque
     else if (rk > 1 && rk <= 10) value = 1.4; // du temps à reprendre
+    // stratégie sur trois semaines (grands tours de l'ordinateur) : on garde des forces la première semaine,
+    // on joue son va-tout la troisième et sur la dernière grande étape de montagne
+    if (!x.player && rk > 1 && rk <= 10) value *= gtPhaseMul(sim);
   }
   const u = hold * value * (0.4 + 0.6 * fresh) - (1 - hold) * 0.25;
   return clamp(0.65 + 1.2 * u, 0.35, 1.7);
