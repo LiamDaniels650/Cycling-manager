@@ -527,6 +527,61 @@ function TacticalBox({ rc }) {
     </details>
   );
 }
+// Notes de mes coureurs : place obtenue contre place attendue (ou travail fourni pour un équipier), verdict.
+function noteTone(n) {
+  return n == null ? 'text-slate-400' : n >= 7.5 ? 'text-emerald-300' : n <= 4.5 ? 'text-rose-300' : 'text-slate-100';
+}
+function RiderNotes({ st, rc }) {
+  const rev = st.rev || {};
+  const ids = Object.keys(rev)
+    .map(Number)
+    .sort((a, b) => (rev[b].n == null ? -1 : rev[b].n) - (rev[a].n == null ? -1 : rev[a].n));
+  if (!ids.length) return null;
+  const R = rc.done && rc.specs.length > 1 ? raceReview(rc) : null;
+  return (
+    <Card title="Mes coureurs : qui a performé ?">
+      <div>
+        {ids.map(id => {
+          const v = rev[id];
+          return (
+            <div key={id} className="flex items-baseline gap-3 border-b border-slate-800 py-2 text-sm">
+              <b className={'w-10 shrink-0 text-right font-display text-xl ' + noteTone(v.n)}>
+                {v.n == null ? '—' : String(v.n).replace('.', ',')}
+              </b>
+              <span className="min-w-0 flex-1">
+                <RiderLink r={S.riders[id]} /> <span className="text-xs text-slate-400">{NOTE_ROLE[v.role] || v.role}</span>
+                <span className="block text-xs text-slate-300">
+                  <span className={noteTone(v.n)}>{noteVerdict(v.n)}</span> · {v.why}
+                </span>
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-xs text-slate-400">
+        Note sur 10 (6 : conforme). Pour un coureur qui joue sa carte : sa place comparée à celle qu'on pouvait attendre
+        selon le terrain, sa forme et sa fatigue. Pour un équipier : le travail fourni et le résultat de son leader ou de
+        son sprinteur.
+      </p>
+      {R && R.length ? (
+        <div className="mt-3">
+          <h4 className="font-display text-base font-semibold text-slate-200">Sur toute la course</h4>
+          {R.map(x => (
+            <div key={x.id} className="flex items-baseline gap-3 border-b border-slate-800 py-1.5 text-sm">
+              <b className={'w-10 shrink-0 text-right font-display text-lg ' + noteTone(x.avg)}>{String(x.avg).replace('.', ',')}</b>
+              <span className="min-w-0 flex-1">
+                <RiderLink r={S.riders[x.id]} />{' '}
+                <span className="text-xs text-slate-400">
+                  {x.k} étape{x.k > 1 ? 's' : ''} · meilleure : {x.best.st.split(' — ')[0]} ({String(x.best.n).replace('.', ',')})
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </Card>
+  );
+}
 export function StageResult() {
   const rc = S.rc;
   const L = UI.lastStage;
@@ -606,6 +661,7 @@ export function StageResult() {
       {tab === 'resume' ? (
         <>
           <Commentary rc={rc} idx={L.idx} />
+          <RiderNotes st={st} rc={rc} />
           <ReplayCard sim={L.sim} />
           <MomentsCard sim={L.sim} />
           <Debrief rc={rc} L={L} st={st} mine={mine} />

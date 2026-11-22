@@ -68,6 +68,7 @@ src/
     66-monde.js           monde qui évolue : courses, sponsors, faillites, réformes de l'UCI
     67-staff.js           staff en personnages : postes, compétences, caractères, débauchage, adjoint
     68-reserve.js         équipe de développement (réserve) : places, âge limite, espoirs avec les pros
+    69-notes.js           notes des coureurs après chaque étape et sur la course (attendu contre obtenu)
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -228,7 +229,7 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   faire faillite (une nouvelle structure reprend sa place) ; l'UCI annonce ses réformes un an à l'avance (taille des
   effectifs, licences WorldTour, salaire minimum). Grands tours, monuments, championnats et Jeux ne changent jamais.
   Archives › Le monde.
-- Staff en personnages (Club › Staff, fichier 67-staff.js) : chaque poste (entraîneurs, médecins et kinés,
+- Staff en personnages (Gestion › Staff, fichier 67-staff.js) : chaque poste (entraîneurs, médecins et kinés,
   recruteurs, chef mécanicien, directeur adjoint) est tenu par une personne dont la compétence fixe le niveau ;
   caractère (pédagogue, ambitieux, fidèle, rigoureux, passionné), âge, progression, retraite ; débauchage des
   meilleurs par les autres équipes (les retenir avec une prime ou recruter) ; candidats renouvelés toutes les quatre
@@ -240,6 +241,15 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   avancer, en course Espace pour la pause, 1 à 5 pour la vitesse, F pour la fin, Échap pour fermer), taille du texte et
   contraste renforcé (Options › Affichage), libellés pour lecteur d'écran, animations coupées si le système le
   demande ; polices intégrées (assets/fonts, licence SIL OFL) : la typographie tient hors connexion.
+- L'espace Club reprend le nom « Gestion », avec un onglet Adjoint (tout déléguer, domaine par domaine) ; raccourci
+  « Tout déléguer » sur Aujourd'hui.
+- Notes des coureurs (fichier 69-notes.js) : après chaque étape, une note sur 10 par coureur (6 : conforme) avec une
+  phrase. Pour qui joue sa carte, place obtenue contre place attendue (terrain, forme, fatigue) ; pour un équipier,
+  travail fourni et résultat de son leader ou de son sprinteur. Moyenne sur toute la course dans le bilan final et
+  dans le rapport des courses confiées à l'adjoint.
+- Vue du ciel : bandeau qui dit ce qu'on regarde (groupe, écart, qui roule, vos coureurs, favoris, terrain, dernier
+  incident), mini-carte de l'étape avec tous les groupes (un clic y envoie la caméra), coureurs qui roulent cerclés
+  de blanc, légende, image plus grande sur grand écran.
 - v5.1 — final immersif et économie de départ :
   - Sprint rejoué : les 450 derniers mètres animés coureur par coureur (lancements, enfermements, prises de tête),
     commentés en direct, puis photo-finish avec les écarts en boyaux et longueurs. « Revoir » et « Passer ».

@@ -87,6 +87,7 @@ function applyStageResult(rc, spec, res, dnfIds) {
     climbs: rc._climbs || null,
     power: rc._power || null,
   });
+  rc.stageRes[rc.stageRes.length - 1].rev = stageReview(rc, spec, res, dnfIds); // notes de mes coureurs (69-notes.js)
   rc._climbs = null;
   rc._wxs = null;
   rc._power = null;
@@ -284,6 +285,15 @@ function finishRace(rc) {
       lines.push(
         '<br><b>🎙️ Le résumé du commentateur</b> :<br>' +
           tv.map(t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;')).join('<br>')
+      );
+  }
+  // notes de mes coureurs (69-notes.js) : moyenne sur la course, du meilleur au moins bon
+  {
+    const R = raceReview(rc);
+    if (R.length)
+      lines.push(
+        '<br><b>Notes de vos coureurs</b> (6 : conforme aux attentes) :<br>' +
+          R.map(x => `${riderName(S.riders[x.id])} ${String(x.avg).replace('.', ',')}`).join(' · ')
       );
   }
   msg(`Bilan : ${rc.name}`, lines.join('<br>'));

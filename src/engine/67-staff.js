@@ -154,7 +154,7 @@ function crewEndSeason() {
         const ai = S.teams.filter(T => !T.player);
         const T = ai[dsHash('poachT' + p.id + S.season) % ai.length];
         S.crewAsk = { role, t: T.id, s: S.season + 1, exp: 4, prime: Math.round((crewCost(role, crewLvl(p)) * 0.25) / 5) * 5 };
-        out.push(`${T.name} veut débaucher ${crewName(p)}, votre ${CREW_ROLES[role].lbl.toLowerCase()} : décision à prendre (Club › Staff).`);
+        out.push(`${T.name} veut débaucher ${crewName(p)}, votre ${CREW_ROLES[role].lbl.toLowerCase()} : décision à prendre (Gestion › Staff).`);
         break;
       }
     }

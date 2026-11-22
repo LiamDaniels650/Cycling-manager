@@ -322,6 +322,24 @@ export function Home() {
           </div>
           <RivalsTable rows={rivalsWindow(1)} />
         </section>
+        <section>
+          <div className="mb-1 flex items-baseline justify-between">
+            <h3 className="font-display text-lg font-semibold text-slate-300">Votre adjoint</h3>
+            <button type="button" className="text-sm text-slate-400 underline" onClick={() => go('adjoint')}>
+              Régler
+            </button>
+          </div>
+          <p className="text-sm text-slate-300">
+            {Object.keys(AUTO_LBL).filter(k => (S.auto || {})[k]).length} domaines sur {Object.keys(AUTO_LBL).length} délégués
+            (entraînement, contrats, recrutement, académie…).
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Btn onClick={() => (Object.keys(AUTO_LBL).forEach(k => setAuto(k, true)), save(), (UI.flash = "L'adjoint gère désormais tous les domaines. Vous gardez les courses en main."), render())}>
+              Tout déléguer
+            </Btn>
+            <Btn onClick={() => (Object.keys(AUTO_LBL).forEach(k => setAuto(k, false)), save(), render())}>Tout reprendre</Btn>
+          </div>
+        </section>
         {news.length ? (
           <section>
             <div className="mb-1 flex items-baseline justify-between">

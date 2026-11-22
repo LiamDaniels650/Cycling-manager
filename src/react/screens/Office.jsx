@@ -248,7 +248,7 @@ export function Assistant() {
   const on = Object.keys(AUTO_LBL).filter(k => A[k]).length;
   return (
     <Card
-      title="🧑‍💼 Adjoint"
+      title="Votre adjoint"
       right={
         <span className="text-xs text-slate-400">
           {on}/{Object.keys(AUTO_LBL).length} domaines délégués
@@ -676,7 +676,6 @@ export function ClubStaff() {
   return (
     <div className="space-y-3">
       {discoOpen('staff') ? <Staff /> : null}
-      <Assistant />
     </div>
   );
 }

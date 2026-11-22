@@ -83,6 +83,8 @@ function focusGroup(sim, cam, st) {
   if (cam === 'tete') return head;
   if (cam === 'pel') return pel;
   if (cam === 'moi') return mine();
+  // groupe choisi sur la mini-carte
+  if (cam === 'grp') return L.find(G => grpKey(G) === st.pick) || head;
   // réalisateur : le final sur la tête ; sinon la tête et le peloton en alternance (toutes les 12 s), et l'action
   // (dernier moment fort) pendant quelques secondes
   const now = performance.now();
@@ -187,6 +189,7 @@ function draw(cv, sim, cam, st) {
   const frac = fracNow();
   const G0 = focusGroup(sim, cam, st);
   if (!G0) return;
+  st.G0 = G0;
   const fKm = Math.min(sim.dist, ipos(G0, frac));
   // zoom : la caméra cadre le groupe suivi (sa longueur réelle, quelques rangs de coureurs) avec de la marge
   const nG = G0.riders.filter(x => !x.fin && !x.dnf).length;
@@ -370,6 +373,11 @@ function draw(cv, sim, cam, st) {
         c.lineWidth = Math.max(0.25, 1.4 / sc);
         c.strokeStyle = x.id === leaderId ? '#facc15' : '#f472b6';
         c.stroke();
+      } else if (x.work > 0) {
+        // coureur qui roule (relais, tempo) : cerclé de blanc
+        c.lineWidth = Math.max(0.2, 1 / sc);
+        c.strokeStyle = 'rgba(248,250,252,0.85)';
+        c.stroke();
       }
       if (G.attacker === x && G.burst > 0) labels.push([px, py, '⚡', '#fde047', true]);
       else if (evOf.has(x.id) && evOf.get(x.id).kind !== 'reprise')
@@ -473,6 +481,134 @@ function draw(cv, sim, cam, st) {
   } else if (AUD.gain) AUD.gain.gain.value = 0;
 }
 
+// Ce que montre la caméra, en clair : le groupe, son écart, qui roule, vos coureurs, les favoris, le terrain, le dernier
+// incident.
+function SkyCaption({ sim, G }) {
+  const L = live(sim).sort((a, b) => b.pos - a.pos);
+  if (!G || !L.includes(G)) return null;
+  const H = L[0];
+  const pel = sim.pel && L.includes(sim.pel) ? sim.pel : H;
+  const xs = G.riders.filter(x => !x.fin && !x.dnf);
+  const n = xs.length;
+  const name =
+    G === H && G !== pel
+      ? n === 1
+        ? `${riderName(xs[0].r)} seul en tête`
+        : `Échappée de ${n}`
+      : G === pel
+        ? `Peloton (${n})`
+        : n === 1
+          ? riderName(xs[0].r)
+          : `Groupe de ${n}`;
+  const gap = G === H ? (pel !== H ? ` · ${boardGapTxt(sim, H, pel)} d'avance sur le peloton` : '') : ` · à ${boardGapTxt(sim, H, G)}`;
+  const work = [...new Set(xs.filter(x => x.work > 0).map(x => (x.team.player ? 'votre équipe' : x.team.short)))];
+  const mine = xs.filter(x => x.player);
+  const favs = xs.filter(x => !x.player && sim.favs.has(x.id)).slice(0, 3);
+  const km = Math.max(0, sim.dist - G.pos);
+  const g = G.g || 0;
+  const cl = (sim.klimbs || []).find(c => c.end > G.pos && c.start <= G.pos + 0.05);
+  const terrain = cl
+    ? `${cl.name} : ${g.toFixed(1).replace('.', ',')} %, sommet dans ${fmtDec(cl.end - G.pos, 1)} km`
+    : G.surf
+      ? 'secteur pavé'
+      : G.expo && (sim.P.wind || 0) >= 2
+        ? 'vent de côté : une bordure peut se former'
+        : g <= -3
+          ? `descente (${g.toFixed(1).replace('.', ',')} %)`
+          : '';
+  const ev = (sim.skyEv || []).filter(e => sim.t - e.t < 3).slice(-1)[0];
+  const evR = ev && ev.id != null ? sim.runners.find(z => z.id === ev.id) : null;
+  return (
+    <div className="border-t border-slate-800 px-3 py-2 text-sm" aria-live="polite">
+      <div className="font-display text-base font-semibold text-slate-50">
+        {name}
+        <span className="font-normal text-slate-300">{gap}</span>
+        <span className="float-right font-normal text-slate-400">{km < 10 ? fmtDec(km, 1) : Math.round(km)} km</span>
+      </div>
+      <div className="text-xs text-slate-300">
+        {work.length ? `Roulent : ${work.join(', ')}` : 'Personne ne roule'}
+        {terrain ? ` · ${terrain}` : ''}
+      </div>
+      {mine.length || favs.length ? (
+        <div className="text-xs">
+          {mine.length ? <span className="text-pink-300">Vos coureurs : {mine.map(x => riderName(x.r)).join(', ')}</span> : null}
+          {mine.length && favs.length ? <span className="text-slate-500"> · </span> : null}
+          {favs.length ? <span className="text-slate-300">Favoris : {favs.map(x => riderName(x.r)).join(', ')}</span> : null}
+        </div>
+      ) : null}
+      {ev ? (
+        <div className="text-xs text-amber-300">
+          {(SKY_EV[ev.kind] || SKY_EV.moment)[0]} {evR ? riderName(evR.r) + ' : ' : ''}
+          {(SKY_EV[ev.kind] || SKY_EV.moment)[2]}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+// Mini-carte de l'étape : les montées, le sprint, l'arrivée, et tous les groupes (taille selon le nombre de coureurs ;
+// rose : vos coureurs ; anneau jaune : le groupe filmé). Un clic sur un groupe y envoie la caméra.
+function MiniMap({ sim, G0, onPick }) {
+  const L = live(sim);
+  const D = sim.dist || 1;
+  const X = km => (Math.max(0, Math.min(D, km)) / D) * 100;
+  return (
+    <div className="border-t border-slate-800 px-3 pb-2 pt-1.5">
+      <svg viewBox="0 0 100 14" preserveAspectRatio="none" className="block h-8 w-full overflow-visible" aria-label="Carte de l'étape">
+        <line x1="0" x2="100" y1="9" y2="9" stroke="#46505f" strokeWidth="0.6" vectorEffect="non-scaling-stroke" />
+        {(sim.klimbs || []).map((c, i) => (
+          <line key={i} x1={X(c.start)} x2={X(c.end)} y1="9" y2="9" stroke="#e5484d" strokeWidth="3" vectorEffect="non-scaling-stroke">
+            <title>{c.name}</title>
+          </line>
+        ))}
+        {sim.isp ? <line x1={X(sim.isp.at)} x2={X(sim.isp.at)} y1="6" y2="12" stroke="#3dbe7a" strokeWidth="1.5" vectorEffect="non-scaling-stroke" /> : null}
+        <line x1="100" x2="100" y1="4" y2="13" stroke="#f8fafc" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+      </svg>
+      <div className="relative -mt-8 h-8">
+        {L.map(G => {
+          const n = G.riders.filter(x => !x.fin && !x.dnf).length;
+          const me = G.riders.some(x => x.player && !x.fin && !x.dnf);
+          const sz = n >= 40 ? 14 : n >= 10 ? 11 : 8;
+          return (
+            <button
+              key={grpKey(G)}
+              type="button"
+              title={`${G === sim.pel ? 'Peloton' : 'Groupe'} de ${n} · km ${Math.round(G.pos)}${me ? ' · vos coureurs' : ''}`}
+              aria-label={`Filmer le groupe de ${n} coureurs, kilomètre ${Math.round(G.pos)}`}
+              onClick={() => onPick(G)}
+              className={'absolute -translate-x-1/2 -translate-y-1/2 rounded-full ' + (G === G0 ? 'ring-2 ring-sky-400' : '')}
+              style={{
+                left: X(G.pos) + '%',
+                top: '64%',
+                width: sz,
+                height: sz,
+                background: me ? '#e0457b' : G === sim.pel ? '#e8ecf1' : '#95a1b3',
+              }}
+            />
+          );
+        })}
+      </div>
+      <div className="flex flex-wrap gap-x-3 text-[11px] text-slate-400">
+        <span>
+          <i className="mr-1 inline-block h-2 w-2 rounded-full bg-[#e0457b] align-middle" />
+          vos coureurs
+        </span>
+        <span>
+          <i className="mr-1 inline-block h-2 w-2 rounded-full ring-1 ring-[#facc15] align-middle" />
+          leader du général
+        </span>
+        <span>
+          <i className="mr-1 inline-block h-2 w-2 rounded-full ring-1 ring-white align-middle" />
+          coureur qui roule
+        </span>
+        <span>
+          <i className="mr-1 inline-block h-1 w-3 bg-[#e5484d] align-middle" />
+          montée
+        </span>
+        <span>touchez un groupe pour le filmer</span>
+      </div>
+    </div>
+  );
+}
 export function Sky({ sim, compact }) {
   const ref = useRef(null);
   const [cam, setCam] = useState(UI.skyCam || 'auto');
@@ -498,16 +634,19 @@ export function Sky({ sim, compact }) {
     []
   );
   if (!sim) return null;
+  const pick = G => ((st.current.pick = grpKey(G)), (UI.skyCam = 'grp'), setCam('grp'));
   return (
-    <Card className="overflow-hidden border-sky-500/30 p-0">
+    <Card className="overflow-hidden p-0">
       <canvas
         ref={ref}
-        className={'block w-full ' + (compact ? 'h-48' : 'h-60 sm:h-72')}
+        className={'block w-full ' + (compact ? 'h-48' : 'h-60 sm:h-72 xl:h-96')}
         role="img"
         aria-label="Retransmission vue du ciel"
       />
+      <SkyCaption sim={sim} G={st.current.G0} />
+      <MiniMap sim={sim} G0={st.current.G0} onPick={pick} />
       <div className="flex flex-wrap items-center gap-1.5 px-2 py-1.5">
-        {CAMS.map(([k, l]) => (
+        {CAMS.concat(cam === 'grp' ? [['grp', 'Groupe choisi']] : []).map(([k, l]) => (
           <button
             key={k}
             type="button"

@@ -16,7 +16,7 @@ import { Briefing } from './screens/Briefing.jsx';
 import { StageResult } from './screens/StageResult.jsx';
 import { Market } from './screens/Market.jsx';
 import { Academy } from './screens/Academy.jsx';
-import { Office, ClubFinances, ClubStaff, ClubEquip, ClubCareer, Prep as CampsCoach } from './screens/Office.jsx';
+import { Office, ClubFinances, ClubStaff, ClubEquip, ClubCareer, Prep as CampsCoach, Assistant } from './screens/Office.jsx';
 import { Inbox } from './screens/Inbox.jsx';
 import { Stats } from './screens/Stats.jsx';
 import { Press } from './screens/Press.jsx';
@@ -56,6 +56,7 @@ const NATIVE = {
   ),
   locker: Locker,
   fin: ClubFinances,
+  adjoint: Assistant,
   staff: ClubStaff,
   equip: ClubEquip,
   career: ClubCareer,
@@ -93,10 +94,11 @@ const SPACES = [
   { k: 'market', lbl: 'Marché', icon: 'cart', tabs: () => [['market', 'Marché']] },
   {
     k: 'club',
-    lbl: 'Club',
+    lbl: 'Gestion',
     icon: 'briefcase',
     tabs: () => [
       ['mgmt', 'Sponsor'],
+      ['adjoint', 'Adjoint'],
       ['fin', 'Finances'],
       ['staff', 'Staff'],
       discoOpen('equip') && ['equip', 'Matériel'],
