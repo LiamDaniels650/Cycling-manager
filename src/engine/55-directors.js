@@ -124,7 +124,7 @@ function dsAnnounce(sim) {
 /* ---- Offres de rachat : un directeur adverse veut l'un de mes coureurs ----
    Semaines 8 à 38, trois au plus par saison, tirage sur une empreinte (le hasard de la partie n'est pas consommé).
    Accepter : le coureur part, l'indemnité entre dans le budget, le directeur s'en souvient. Refuser : un coureur
-   ambitieux à qui l'on offrait bien plus le prend mal. Contre-offre (+30 %) : selon le caractère du directeur. */
+   ambitieux à qui l'on offrait bien plus le prend mal. Contre-offre (+15 %) : selon le caractère du directeur. */
 function dsBidWeekly() {
   if (S.bid && S.week > S.bid.exp) {
     const r = S.riders[S.bid.id],
@@ -154,7 +154,8 @@ function dsBidWeekly() {
   });
   if (!buyers.length) return;
   const T = buyers[(h >>> 16) % buyers.length];
-  const fee = Math.round((transferFee(r) * (1 + ((h >>> 4) % 30) / 100)) / 5) * 5;
+  // entre 75 et 100 % de la valeur du coureur (indemnité de transfert) : on ne s'enrichit pas en revendant
+  const fee = Math.round((transferFee(r) * (0.75 + ((h >>> 4) % 26) / 100)) / 5) * 5;
   S.bid = { id: r.id, t: T.id, fee, sal, exp: S.week + 2, s: S.season };
   S.bidN.n++;
   msg(
@@ -195,9 +196,9 @@ function dsBidAnswer(k) {
   if (k === 'oui') return sell(B.fee);
   if (k === 'contre') {
     const d = dsOf(T);
-    const p = d.temper === 'pragmatique' ? 0.6 : d.temper === 'loyal' ? 0.45 : 0.3;
+    const p = d.temper === 'pragmatique' ? 0.45 : d.temper === 'loyal' ? 0.3 : 0.2;
     const ok = (dsHash(T.name + r.id + S.season + 'c') % 100) / 100 < p + (teamRelOf(T.id) >= 1 ? 0.15 : 0);
-    const fee2 = Math.round((B.fee * 1.3) / 5) * 5;
+    const fee2 = Math.round((B.fee * 1.15) / 5) * 5;
     if (ok && aiCanAfford(T, B.sal)) return '🤝 Contre-offre acceptée. ' + sell(fee2);
     if (d.temper === 'rancunier') addTeamRel(T.id, -0.5, `Votre contre-offre pour ${riderName(r)} l'a vexé`);
     return `${dsName(T)} refuse de monter à ${fmtMoney(fee2)} et retire son offre.`;

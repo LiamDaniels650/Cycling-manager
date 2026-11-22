@@ -36,7 +36,7 @@ function BidBanner() {
       💰 <b>{dsName(T)}</b> ({T.name}, {DS_TEMPER[d.temper].lbl.toLowerCase()}) propose <b>{fmtMoney(B.fee)}</b> pour{' '}
       <RiderLink r={r} />. Il lui offrirait {fmtMoney(B.sal)}/an (contre {fmtMoney(r.salary)} chez vous).
       <div className="mt-1 text-xs text-slate-400">
-        Réponse avant la semaine {B.exp + 1}. Une contre-offre (+30 %) peut le faire renoncer.
+        Réponse avant la semaine {B.exp + 1}. Une contre-offre (+15 %) peut le faire renoncer.
       </div>
       <div className="mt-2 grid grid-cols-3 gap-2">
         <Btn primary onClick={() => go('oui')}>

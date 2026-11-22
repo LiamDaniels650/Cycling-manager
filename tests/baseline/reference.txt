@@ -400,7 +400,7 @@ Plat — 198 km | t= 4h31'58" avg 43.7 km/h | ticks 570 | last +12'58" | DNF 1
    I. Hernández[spri]m.t., P. Gil[spri]m.t., T. Olsen[spri]m.t., M. Torres[flah]m.t., A. Bernard[flah]m.t.
  GC: I. Hernández[spri] m.t., P. Gil[spri] +4", T. Olsen[spri] +6", M. Torres[flah] +10", A. Bernard[flah] +10"
 
-season ok, budget 1910 riders 608 json 753355
+season ok, budget 1910 riders 608 json 753364
 
 === Grand Prix d'Ouverture ===
 Plat — 176 km | t= 3h53'28" avg 45.2 km/h | ticks 472 | last +2'16" | DNF 1

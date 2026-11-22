@@ -1032,5 +1032,34 @@ check(
   aiTransfers(2, 1);
   check((S.merc || []).filter(m => m.k === 'transfert').length - n0 <= 2, 'mercato d’été : deux transferts au plus');
 }
+
+// ---- Dette : intérêts, confiance du sponsor, vente forcée ----
+{
+  newGame('Dette', 36);
+  S.budget = -600;
+  const c0 = S.conf;
+  debtWeekly();
+  debtWeekly();
+  check(
+    S.budget < -600 && S.conf === c0 - 1,
+    `dette : intérêts (${Math.round(S.budget)} k€) et confiance qui s'effrite`
+  );
+  const n0 = S.teams[0].riders.length;
+  const d = debtEndSeason();
+  check(
+    d && d.dConf < 0 && S.teams[0].riders.length === n0 - 1 && /vend/.test(d.line),
+    `dette en fin de saison : ${d && d.line}`
+  );
+  // offre de rachat : jamais au-dessus de la valeur du coureur
+  S.budget = 500;
+  let ok = true;
+  for (let w = 8; w <= 38; w++) {
+    S.week = w;
+    S.bid = null;
+    dsBidWeekly();
+    if (S.bid && S.bid.fee > transferFee(S.riders[S.bid.id]) + 5) ok = false;
+  }
+  check(ok, 'offres de rachat : au plus la valeur du coureur');
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

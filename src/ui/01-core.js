@@ -72,9 +72,16 @@ function save() {
   idbSave(txt);
   // 2) copie directe dans le stockage local tant qu'elle tient (repli si IndexedDB est indisponible)
   try {
-    if (txt.length < 2500000) localStorage.setItem(SAVE_KEY, txt);
-    else localStorage.removeItem(SAVE_KEY);
+    if (txt.length < 2500000) {
+      localStorage.setItem(SAVE_KEY, txt);
+      localStorage.removeItem(SAVE_KEY + '_gz');
+    } else {
+      // longue carrière : la copie locale devient une copie compressée (≈ 6 fois plus petite)
+      localStorage.removeItem(SAVE_KEY);
+      lsGzSave(txt);
+    }
   } catch (e) {
+    lsGzSave(txt);
     try {
       localStorage.removeItem(SAVE_KEY);
     } catch (e2) {}
@@ -145,6 +152,33 @@ async function idbLoad() {
   });
   return v ? await gunzipText(v) : null;
 }
+// Copie locale compressée (gzip, en base64) pour les longues carrières, si IndexedDB venait à manquer.
+function lsGzSave(txt) {
+  if (typeof CompressionStream === 'undefined') return;
+  gzipText(txt)
+    .then(b => b.arrayBuffer())
+    .then(buf => {
+      const u = new Uint8Array(buf);
+      let bin = '';
+      for (let i = 0; i < u.length; i += 0x8000) bin += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000));
+      try {
+        localStorage.setItem(SAVE_KEY + '_gz', window.btoa(bin));
+      } catch (e) {
+        try {
+          localStorage.removeItem(SAVE_KEY + '_gz');
+        } catch (e2) {}
+      }
+    })
+    .catch(() => {});
+}
+async function lsGzLoad() {
+  const b = localStorage.getItem(SAVE_KEY + '_gz');
+  if (!b || typeof DecompressionStream === 'undefined') return null;
+  const bin = window.atob(b);
+  const u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return await gunzipText(new Blob([u]));
+}
 // Copies de sécurité de début de saison (les trois dernières), pour revenir en arrière en cas de souci.
 function idbBackup() {
   const key = (slotOf() === 'car' ? 'car-saison-' : 'saison-') + S.season;
@@ -205,17 +239,21 @@ async function loadAsync() {
     const t = localStorage.getItem(SAVE_KEY);
     if (t) best = t;
   } catch (e) {}
+  const at = s => {
+    try {
+      return JSON.parse(s).S.savedAt || 0;
+    } catch (e) {
+      return -1;
+    }
+  };
+  try {
+    const tg = await lsGzLoad();
+    if (tg && (!best || at(tg) >= at(best))) best = tg;
+  } catch (e) {}
   try {
     const t2 = await idbLoad();
     if (t2) {
       UI.idbOk = true;
-      const at = s => {
-        try {
-          return JSON.parse(s).S.savedAt || 0;
-        } catch (e) {
-          return -1;
-        }
-      };
       if (!best || at(t2) >= at(best)) best = t2;
     }
   } catch (e) {}

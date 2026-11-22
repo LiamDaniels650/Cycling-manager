@@ -232,6 +232,7 @@ function weeklyUpdate() {
   finAdd('sal', -sal);
   finAdd('aca', -aca);
   finAdd('staff', -stf);
+  debtWeekly();
   pressWeekly();
   mercWeekly();
   dsBidWeekly();
@@ -300,6 +301,11 @@ function endSeason() {
     }
   }
   dConf += Math.round((repOf() - 45) / 8); // une équipe dont on parle en bien rassure le sponsor
+  const debt = debtEndSeason(); // exercice dans le rouge : le sponsor sanctionne, la direction vend
+  if (debt) {
+    dConf += debt.dConf;
+    lines.push(debt.line);
+  }
   S.conf = clamp(S.conf + dConf, 0, 100);
   S.budget += rew;
   finAdd('spons', rew);

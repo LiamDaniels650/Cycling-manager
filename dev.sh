@@ -13,6 +13,7 @@
 #   reglages       régénère docs/REGLAGES.md (leviers de 00-params.js et constantes du moteur)
 #   adjoint [n] [g] partie entièrement déléguée à l'adjoint, comparée aux équipes IA voisines
 #   react          assemble dist/react.html (interface React + Tailwind, moteur inchangé)
+#   expert [g] [n] difficulté : joueur passif contre joueur expert automatisé (rangs par saison ; ≈ 5 min)
 #   economie       équilibre économique : 4 parties déléguées sur 3 saisons (budget, licenciement ; ≈ 5 min)
 #   carriere [n]   mode carrière : une carrière simulée de 16 ans à 16+n ans, avec vérifications (≈ 30 s par saison)
 set -e
@@ -47,6 +48,7 @@ case "$1" in
   carriere) build; node tests/career.js "${2:-8}" ;;
   economie) build; node tests/economy.js 4 3 ;;
   finals) build; node tests/finals.js ;;
+  expert) build; for m in passif expert; do node tests/expert.js $m ${2:-41} ${3:-8} | tail -1; done ;;
   calib)
     n=${2:-30}; build
     JOBS=1 node tests/calibrate.js "$n" 200 > /tmp/calib200.txt 2>&1 &

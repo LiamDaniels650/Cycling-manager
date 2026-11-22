@@ -142,3 +142,60 @@ function sponsorWeekly() {
   const base = S.spons ? S.spons.base : 52;
   return (base + S.conf * R.sponsorConf + (S.teams[0].uci || 0) * R.sponsorUci) * diffOf().spons + (S.clubBonus || 0);
 }
+
+/* Dette. Un budget dans le rouge coûte des intérêts (0,4 % de la dette par semaine) et entame la confiance du
+   sponsor (1 point toutes les deux semaines), avec un rappel de la direction toutes les quatre semaines. En fin de
+   saison dans le rouge : confiance -6 à -25 selon la dette ; au-delà de 400 k€ de dette, la direction vend le
+   coureur dont l'indemnité suffit tout juste à l'éponger (jamais le meilleur de l'équipe). */
+function debtWeekly() {
+  if (S.car) return;
+  if (S.budget >= 0) {
+    S.debtW = 0;
+    return;
+  }
+  const it = -S.budget * 0.004;
+  S.budget -= it;
+  finAdd('other', -it);
+  S.debtW = (S.debtW || 0) + 1;
+  if (S.debtW % 2 === 0) S.conf = clamp(S.conf - 1, 0, 100);
+  if (S.debtW % 4 === 1)
+    msg(
+      '⚠️ Budget dans le rouge',
+      `La trésorerie est négative (${fmtMoney(S.budget)}) : intérêts de ${fmtMoney(it)} par semaine et confiance du sponsor qui s'effrite. Réduisez la masse salariale (libérer ou vendre un coureur) ou les dépenses (stages, staff).`
+    );
+}
+function debtEndSeason() {
+  if (S.car || S.budget >= 0) return null;
+  const debt = -S.budget;
+  const dConf = -Math.min(25, 6 + Math.round(debt / 150));
+  let line = `❌ Exercice dans le rouge (${fmtMoney(S.budget)}) : confiance ${dConf}`;
+  if (debt > 400) {
+    const P = S.teams[0];
+    const best = P.riders.map(id => S.riders[id]).sort((a, b) => overall(b.s) - overall(a.s))[0];
+    // le coureur dont la vente suffit tout juste à éponger la dette (sinon celui qui vaut le plus)
+    const cands = P.riders
+      .map(id => S.riders[id])
+      .filter(r => r !== best && !r.car)
+      .sort((a, b) => transferFee(a) - transferFee(b));
+    const r = cands.find(r => transferFee(r) >= debt) || cands[cands.length - 1];
+    const T = r
+      ? S.teams
+          .filter(T => !T.player && T.riders.length < ROSTER.max && aiCanAfford(T, r.salary))
+          .sort((a, b) => (b.budget || 0) - (a.budget || 0))[0]
+      : null;
+    if (r && T && P.riders.length > ROSTER.minPlayer) {
+      const fee = transferFee(r);
+      friendLeaves(r.id);
+      P.riders.splice(P.riders.indexOf(r.id), 1);
+      T.riders.push(r.id);
+      mercLog(r, 'transfert', 0, T.id);
+      r.team = T.id;
+      r.contract = Math.max(2, r.contract);
+      S.budget += fee;
+      finAdd('transf', fee);
+      line += ` ; la direction vend ${riderName(r)} à ${T.name} (${fmtMoney(fee)}) pour éponger la dette`;
+      press(`${P.name} contraint de vendre`, `Dans le rouge, ${P.name} cède ${riderName(r)} à ${T.name}.`, -1, [r.id]);
+    }
+  }
+  return { dConf, line: line + '.' };
+}

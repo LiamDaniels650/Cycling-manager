@@ -286,7 +286,7 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     l'adresse (descente, pluie), sans puiser dans la réserve d'effort ; carte ⤵️ et rejeu.
   - Bordures : à l'entrée d'une portion exposée au vent de côté, mes coureurs demandent s'il faut remonter devant
     (−3 d'énergie, devant si l'éventail se forme dans les 25 minutes) ou rester abrités.
-  - Directeurs plus vivants : offres de rachat pour mes coureurs (vendre, contre-offre +30 % selon le caractère du
+  - Directeurs plus vivants : offres de rachat pour mes coureurs (vendre, contre-offre +15 % selon le caractère du
     directeur, refuser — un ambitieux le prend mal), piques dans la presse avant leurs courses objectifs (répondre
     du tac au tac, avec respect, ou pas du tout), carrousel des directeurs en fin de saison (retraite, limogeage
     après une saison très en dessous de son rang, sauf objectif gagné ; le successeur arrive sans mémoire).
@@ -322,6 +322,15 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     chercher les points dans l'échappée sur une étape accidentée.
   - Coalition contre un leader dominant : les équipes coalisées durcissent la course (poursuite ×1,25) plutôt que
     d'attaquer plus ; chasseurs du maillot à pois dès 71 en montagne.
+  - Dette : un budget dans le rouge coûte des intérêts (0,4 % par semaine) et la confiance du sponsor ; en fin de
+    saison, sanction de confiance et, au-delà de 400 k€, vente forcée du coureur qui suffit à éponger la dette.
+  - Offres de rachat ramenées entre 75 et 100 % de la valeur du coureur (contre-offre +15 %, plus rarement
+    acceptée) : revendre n'est plus un filon.
+  - Banc de difficulté `tests/expert.js` (`./dev.sh expert`) : joueur passif contre joueur expert automatisé. Sur
+    8 saisons, l'expert passe du 11e au 4e–10e rang (budget stable), le passif reste entre le 11e et le 17e.
+  - Sauvegarde : au-delà de 2,5 Mo (≈ 20 saisons), la copie locale de secours est compressée (gzip, ≈ 6 fois plus
+    petite) au lieu d'être abandonnée ; IndexedDB reste la copie principale. Croissance mesurée : ≈ 85 Ko brut et
+    13 Ko compressés par saison (2,5 Mo brut et 416 Ko compressés après 21 saisons, écriture en 25 ms).
   - Marge du sprint : le meilleur sprinteur gagne 36 à 37 % des sprints massifs (contre 31 %).
   - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
     carrousel, presse, stages, tests d'effort, forme).
