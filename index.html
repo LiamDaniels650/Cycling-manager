@@ -5629,7 +5629,10 @@ function autoOrders(teamId, spec, rc) {
     }
   }
   // le chasseur de maillot de la montagne de l'équipe prend l'échappée dès qu'il y a des cols à grimper
-  if (stageRace && (t === 'montagne' || t === 'sommet' || (t === 'vallonne' && rc.specs.length > 15))) {
+  if (
+    stageRace &&
+    (t === 'montagne' || t === 'sommet' || ((t === 'vallonne' || t === 'punch') && rc.specs.length > 15))
+  ) {
     const hid = komHunter(rc, teamId, rest, leader);
     const ko = rest.find(r => r.id === hid);
     if (ko && rest.indexOf(ko) >= nBreak) {
@@ -15399,7 +15402,10 @@ function jerseyOrder(G, kind, sim, c) {
 }
 // Points d'un sommet selon la course et la catégorie (arrivée au sommet doublée sur le Tour).
 function komPts(rc, c, summitFinish) {
-  const sc = (KOM_GT[rc.key] || KOM_PTS)[c.cat] || KOM_PTS[c.cat];
+  let sc = (KOM_GT[rc.key] || KOM_PTS)[c.cat] || KOM_PTS[c.cat];
+  // réglage de jeu (grands tours) : les cols de passage valent 25 % de plus, pour que les chasseurs du maillot
+  // échappés puissent rivaliser avec les favoris, qui ramassent les points des arrivées au sommet
+  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * 1.25));
   return rc.key === 'gb' && summitFinish && (c.cat === 'HC' || c.cat === 1 || c.cat === 2) ? sc.map(v => v * 2) : sc;
 }
 

@@ -251,7 +251,10 @@ function autoOrders(teamId, spec, rc) {
     }
   }
   // le chasseur de maillot de la montagne de l'équipe prend l'échappée dès qu'il y a des cols à grimper
-  if (stageRace && (t === 'montagne' || t === 'sommet' || (t === 'vallonne' && rc.specs.length > 15))) {
+  if (
+    stageRace &&
+    (t === 'montagne' || t === 'sommet' || ((t === 'vallonne' || t === 'punch') && rc.specs.length > 15))
+  ) {
     const hid = komHunter(rc, teamId, rest, leader);
     const ko = rest.find(r => r.id === hid);
     if (ko && rest.indexOf(ko) >= nBreak) {
