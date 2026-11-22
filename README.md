@@ -385,7 +385,7 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     la troisième et sur la dernière étape de montagne), équipes qui renoncent au général pour viser les étapes.
     Vent qui tourne en cours d'étape (nouvelles portions exposées, vent de face devenu de dos). Chutes plus probables
     pour les mal placés sur les routes étroites. Dernière côte des étapes vallonnées des courses par étapes rejouée
-    au détail. Maillot à pois : chasseurs plus nombreux, cols de passage mieux payés en grand tour (réglage de jeu).
+    au détail. Maillot à pois : chasseurs plus nombreux, cols de passage mieux payés en grand tour (+40 %, réglage de jeu).
   - Équipement (fichier 58-equipment-plus.js) : trois nouveaux partenaires (roues : aéro, légèreté, rigidité au
     sprint ; pneus : rendement, robustesse, adhérence sous la pluie ; nutrition : assimilation, récupération entre
     étapes) ; effets affichés en secondes sur des parcours de référence (offres, matériel actuel) et estimation du

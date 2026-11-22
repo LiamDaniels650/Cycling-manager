@@ -15518,9 +15518,9 @@ function jerseyOrder(G, kind, sim, c) {
 // Points d'un sommet selon la course et la catégorie (arrivée au sommet doublée sur le Tour).
 function komPts(rc, c, summitFinish) {
   let sc = (KOM_GT[rc.key] || KOM_PTS)[c.cat] || KOM_PTS[c.cat];
-  // réglage de jeu (grands tours) : les cols de passage valent 25 % de plus, pour que les chasseurs du maillot
+  // réglage de jeu (grands tours) : les cols de passage valent 40 % de plus, pour que les chasseurs du maillot
   // échappés puissent rivaliser avec les favoris, qui ramassent les points des arrivées au sommet
-  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * 1.25));
+  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * 1.4));
   return rc.key === 'gb' && summitFinish && (c.cat === 'HC' || c.cat === 1 || c.cat === 2) ? sc.map(v => v * 2) : sc;
 }
 
@@ -23615,9 +23615,12 @@ function homeNats(key) {
 function isHome(rc, r) {
   return !!r && !rc.worlds && rc.key !== 'natio' && homeNats(rc.key).includes(r.nat);
 }
-// Motivation du jour (forme du jour) : +2.
+// Motivation du jour (forme du jour).
 function homeBoost(rc, r) {
-  return isHome(rc, r) ? R.homeForm : 0;
+  // course d'un jour : +2 ; course par étapes d'une semaine : +1 ; grand tour : rien (la motivation ne tient pas
+  // trois semaines au même niveau, seule la popularité devant le public compte)
+  if (!isHome(rc, r) || rc.cat === 0) return 0;
+  return rc.specs.length > 1 ? R.homeForm / 2 : R.homeForm;
 }
 // Fin de course : un coureur qui brille à domicile gagne plus en popularité.
 function homeAfterRace(rc) {
