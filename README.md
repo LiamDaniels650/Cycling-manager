@@ -107,7 +107,8 @@ node tests/multi_seasons.js 11 5     # 5 saisons, graine 11
 python3 tests/ui_smoke_react.py      # test complet de l'interface
 node tests/features.js               # matériel, presse, carrière (changement d'équipe, licenciement)
 node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fourchettes réelles (✔/✖)
-./dev.sh calib 60                    # référence : deux séries de 60 saisons (graines 200 et 300)
+./dev.sh calib 60                    # référence : deux séries de 60 saisons (graines 200 et 300), tous les cœurs
+./dev.sh rapide                      # vérification rapide : deux séries de 20 saisons (≈ 5 min)
 ```
 
 ## Points clés du modèle
