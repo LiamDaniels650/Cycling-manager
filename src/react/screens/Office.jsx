@@ -59,7 +59,7 @@ function TvBox() {
         </div>
       ))}
       <p className="mt-1 text-xs text-slate-400">
-        Le sponsor paie {fmtMoney(TV_RATE)} par minute d'antenne pondérée (×3 sur un grand tour, ×1,5 en WorldTour) :
+        Le sponsor paie {Math.round(TV_RATE * 1000)} € par minute d'antenne pondérée (×3 sur un grand tour, ×1,5 en WorldTour) :
         échappées, tempo en tête du peloton, victoires et podiums. Les trois équipes les plus vues gagnent de la
         confiance en fin de saison, les quatre moins vues en perdent.
       </p>
