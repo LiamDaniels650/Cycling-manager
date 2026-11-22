@@ -16,6 +16,7 @@ const TABS = [
   ['rivals', 'Rivaux'],
   ['legends', 'Légendes'],
   ['legacy', 'Héritage'],
+  ['monde', 'Le monde'],
   ['review', 'Bilan'],
   ['film', 'Film'],
   ['teams', 'Équipes'],
@@ -826,6 +827,57 @@ function LegacyTab() {
     </>
   );
 }
+// Le monde du cyclisme : courses, équipes et règlement qui ont changé depuis le début de la partie.
+function WorldTab() {
+  const W = S.world || { hist: [] };
+  const added = (W.added || []).filter(d => S.cal.some(c => c.key === d.key));
+  return (
+    <>
+      <Card title="Le monde du cyclisme">
+        <p className="text-sm text-slate-300">
+          D'une saison à l'autre, des courses disparaissent ou naissent, montent en WorldTour ou en redescendent ; des
+          équipes changent de sponsor ou font faillite ; l'UCI annonce ses réformes un an à l'avance.
+        </p>
+        <div className="mt-3 grid gap-1 text-sm sm:grid-cols-3">
+          <span>
+            Licences WorldTour : <b>{wtN()}</b>
+          </span>
+          <span>
+            Effectif maximal : <b>{ROSTER.max}</b> coureurs
+          </span>
+          <span>
+            Salaire minimum : <b>{fmtMoney(minSalary(0))}</b>
+          </span>
+        </div>
+        {W.pending ? (
+          <p className="mt-2 text-sm text-amber-300">
+            Réforme annoncée pour la saison {W.pending.from} : {W.pending.txt}.
+          </p>
+        ) : null}
+      </Card>
+      <Card title="Ce qui a changé">
+        {(W.hist || []).length ? (
+          W.hist.map((h, i) => (
+            <p key={i} className="border-b border-slate-800 py-2 text-sm">
+              <span className="font-display font-semibold text-slate-400">{h.s}</span> {h.t}
+            </p>
+          ))
+        ) : (
+          <p className="text-sm text-slate-400">Rien n'a encore changé : le premier bilan tombe en fin de saison.</p>
+        )}
+      </Card>
+      {added.length ? (
+        <Card title="Courses nées pendant la partie">
+          {added.map(d => (
+            <p key={d.key} className="text-sm">
+              {d.name} <span className="text-slate-400">· semaine {d.w} · {REG_LBL[d.reg]} · depuis {d.born}</span>
+            </p>
+          ))}
+        </Card>
+      ) : null}
+    </>
+  );
+}
 const VIEWS = {
   season: SeasonTab,
   races: RacesTab,
@@ -840,6 +892,7 @@ const VIEWS = {
   film: FilmTab,
   legends: LegendsTab,
   legacy: LegacyTab,
+  monde: WorldTab,
   uci: UciTab,
   watts: WattsTab,
   palm: PalmTab,

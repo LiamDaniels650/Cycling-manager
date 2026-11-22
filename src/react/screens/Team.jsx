@@ -186,6 +186,44 @@ export function Locker() {
     </Card>
   );
 }
+// Antidopage : contrôles de la saison, manquements à la localisation, suspensions, cellule antidopage.
+export function DopeCard() {
+  const D = dopeState();
+  return (
+    <Card title="Antidopage">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+        <span className="text-slate-300">
+          {D.tests} contrôle{D.tests > 1 ? 's' : ''} inopiné{D.tests > 1 ? 's' : ''} cette saison, tous négatifs.
+        </span>
+        <Btn onClick={() => doLocker(setWhOfficer, !S.whOff)}>
+          {S.whOff ? 'Supprimer la cellule antidopage' : `Créer une cellule antidopage (${fmtMoney(WH_COST)} par saison)`}
+        </Btn>
+      </div>
+      <p className="mt-1 text-xs text-slate-400">
+        Chaque coureur déclare où il se trouve chaque jour. Trois contrôles manqués en douze mois valent six mois de
+        suspension. La cellule suit les déclarations au jour le jour (trois fois moins de manquements) et défend le
+        coureur en cas de contamination. Aucune triche n'est possible dans le jeu.
+      </p>
+      {D.watch.length ? (
+        <div className="mt-2">
+          {D.watch.map(({ r, n }) => (
+            <div key={r.id} className="flex justify-between border-b border-slate-800 py-1.5 text-sm">
+              <RiderLink r={r} />
+              <span className={n >= 2 ? 'text-rose-300' : 'text-slate-300'}>
+                {n} contrôle{n > 1 ? 's' : ''} manqué{n > 1 ? 's' : ''} en douze mois
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {D.susp.map(r => (
+        <div key={r.id} className="mt-1 text-sm text-rose-300">
+          <RiderLink r={r} /> suspendu encore {r.injury} semaine{r.injury > 1 ? 's' : ''} ({r.inj.why})
+        </div>
+      ))}
+    </Card>
+  );
+}
 // Périodisation de l'effectif et infirmerie.
 export function PrepCard() {
   const rs = myRiders().filter(r => !r.aca);

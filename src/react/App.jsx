@@ -8,7 +8,7 @@ import { Icon } from './icons.jsx';
 import { LiveRace } from './race/LiveRace.jsx';
 import { RadioPanel } from './race/Controls.jsx';
 import { Home } from './screens/Home.jsx';
-import { Team, PrepCard, Locker } from './screens/Team.jsx';
+import { Team, PrepCard, Locker, DopeCard } from './screens/Team.jsx';
 import { RiderSheet } from './screens/RiderSheet.jsx';
 import { Calendar } from './screens/Calendar.jsx';
 import { Prep } from './screens/Prep.jsx';
@@ -24,7 +24,7 @@ import { Options, Start, TipCard } from './screens/Options.jsx';
 import { TeamCard } from './screens/Bits.jsx';
 import { Names } from './screens/Names.jsx';
 import { Stories } from './screens/Stories.jsx';
-import { CarCreate, CarHeader, CarBottomNav, CarNav, CarRiderSheet, CareerApp } from './career/Career.jsx';
+import { CarCreate, CarHeader, CarBottomNav, CarNav, CarRiderSheet, CareerApp, CarRail, carTitle } from './career/Career.jsx';
 
 // écran de course hors direct : briefing avant l'étape ou résultats après (portage de viewRace)
 function RaceOff() {
@@ -50,6 +50,7 @@ const NATIVE = {
   prepa: () => (
     <div className="space-y-3">
       <PrepCard />
+      <DopeCard />
       <CampsCoach />
     </div>
   ),
@@ -396,15 +397,24 @@ function Modal() {
       </>
     );
   const sheet = m.type === 'radio' || m.type === 'nav';
+  // fiche d'un coureur ou d'une équipe : panneau latéral sur grand écran (la liste reste visible à gauche)
+  const side = m.type === 'rider' || m.type === 'team';
   return (
     <div
-      className={'fixed inset-0 z-40 flex bg-black/60 ' + (sheet ? 'items-end' : 'items-center justify-center p-3')}
+      className={
+        'fixed inset-0 z-40 flex bg-black/60 ' +
+        (sheet ? 'items-end' : side ? 'items-center justify-center p-3 md:items-stretch md:justify-end md:bg-black/40 md:p-0' : 'items-center justify-center p-3')
+      }
       onClick={() => closeModal()}
     >
       <div
         className={
           'max-h-[88vh] w-full overflow-y-auto border border-slate-700 bg-slate-900 p-4 text-slate-100 shadow-2xl ' +
-          (sheet ? 'rounded-t-3xl pb-[max(env(safe-area-inset-bottom),16px)]' : 'max-w-xl rounded-2xl')
+          (sheet
+            ? 'rounded-t-3xl pb-[max(env(safe-area-inset-bottom),16px)]'
+            : side
+              ? 'max-w-xl rounded-2xl md:h-full md:max-h-none md:w-[600px] md:max-w-none md:rounded-none md:border-y-0 md:border-r-0 md:p-6'
+              : 'max-w-xl rounded-lg')
         }
         onClick={e => e.stopPropagation()}
       >
@@ -437,14 +447,21 @@ export function App() {
       const flash = takeFlash();
       return (
         <>
+          {live ? null : <CarRail />}
           {live ? null : <CarHeader />}
-          <main id="main" className={'mx-auto max-w-3xl px-3 pt-3 ' + (live ? 'xl:max-w-6xl' : 'pb-24')}>
+          <main
+            id="main"
+            className={'px-3 pt-4 md:px-6 ' + (live ? 'mx-auto xl:max-w-[1500px]' : 'pb-24 md:ml-56 md:pb-8 lg:max-w-[1180px]')}
+          >
             {flash ? (
               <div
                 className="mb-3 rounded-xl bg-slate-800/70 px-3 py-2 text-sm text-slate-100 ring-1 ring-slate-700"
                 dangerouslySetInnerHTML={{ __html: flash }}
               />
             ) : null}
+            {live || !carTitle() ? null : (
+              <h1 className="mb-4 font-display text-3xl font-bold leading-none text-slate-50">{carTitle()}</h1>
+            )}
             <V />
           </main>
           {inRace ? null : <CarBottomNav />}

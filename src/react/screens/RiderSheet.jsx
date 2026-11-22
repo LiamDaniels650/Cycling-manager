@@ -85,8 +85,17 @@ function Nego({ r }) {
           ✨ Attiré par l'image de votre équipe ({imageLabel().lbl.toLowerCase()}) : il signera plus volontiers.
         </div>
       ) : null}
+      {kind === 'pre' && !mercOpen() ? (
+        <div className="mt-2 text-xs text-amber-300">
+          Règlement UCI : il ne pourra signer pour la saison prochaine qu'à partir du 1er août (semaine {MERC_OPEN}).
+        </div>
+      ) : null}
+      {neoPro(r) ? (
+        <div className="mt-1 text-xs text-slate-300">Néo-professionnel : deux ans de contrat au moins.</div>
+      ) : null}
       <label className="mt-3 block text-sm text-slate-200">
-        Salaire <b className="float-right">{fmtMoney(n.sal)}</b>
+        Salaire <span className="text-xs text-slate-400">(minimum UCI {fmtMoney(neoPro(r) ? neoMinSalary(0) : minSalary(0))})</span>
+        <b className="float-right">{fmtMoney(n.sal)}</b>
         <input
           type="range"
           className="mt-2 h-8 w-full accent-sky-500"
@@ -102,6 +111,7 @@ function Nego({ r }) {
         {[1, 2, 3].map(y => (
           <Btn
             key={y}
+            disabled={y === 1 && neoPro(r)}
             active={n.years === y}
             className="min-h-10 flex-1"
             onClick={() => ((UI.nego.years = y), renderModal())}
@@ -257,6 +267,12 @@ function PhysioRider({ r }) {
               ⏩ Reprise anticipée
             </Btn>
           ) : null}
+        </div>
+      ) : null}
+      {whMisses(r).length ? (
+        <div className={'mt-1 text-xs ' + (whMisses(r).length >= 2 ? 'text-rose-300' : 'text-slate-400')}>
+          Localisation : {whMisses(r).length} contrôle{whMisses(r).length > 1 ? 's' : ''} manqué
+          {whMisses(r).length > 1 ? 's' : ''} en douze mois (trois valent une suspension).
         </div>
       ) : null}
       {(r.injHist || []).length ? (

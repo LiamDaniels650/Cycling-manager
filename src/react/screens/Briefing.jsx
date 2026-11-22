@@ -419,66 +419,79 @@ export function Briefing() {
   Pf.spec = spec;
   const ids = rc.sel[0].filter(id => !rc.out[id]);
   const itt = isITT(spec) || isTTT(spec);
+  const go = (
+    <Btn primary className="min-h-12 w-full text-base" onClick={() => startStage()}>
+      {itt ? 'Lancer le chrono' : 'Départ'}
+    </Btn>
+  );
   return (
-    <div className="space-y-3">
+    <div>
       <RaceSteps step="brief" />
-      <Card>
-        <h2 className="text-lg font-bold text-slate-50">{rc.name}</h2>
-        <div className="text-sm text-slate-400">{spec.name}</div>
-        <StageProfile spec={spec} Pf={Pf} />
-        <Climbs Pf={Pf} />
-      </Card>
-      <StageKeys rc={rc} spec={spec} Pf={Pf} />
-      <Card>
-        <p className="text-sm text-slate-300">
-          Pressé ? L'adjoint règle tout pour cette étape : consignes, plan de course, matériel et ravitaillement.
-        </p>
-        <Btn className="mt-2 w-full" onClick={() => briefAuto()}>
-          🧑‍💼 Tout régler en auto
-        </Btn>
-      </Card>
-      {S.simple ? (
-        <details>
-          <summary className="cursor-pointer rounded-xl bg-slate-900 px-3 py-3 text-sm text-slate-300 ring-1 ring-slate-700">
-            ⚙️ Météo, matériel et ravitaillement — réglés par l'adjoint
-          </summary>
-          <div className="mt-3">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="font-display text-2xl font-bold leading-tight text-slate-50 md:text-3xl">{rc.name}</h2>
+          <div className="text-sm text-slate-400">{spec.name}</div>
+        </div>
+        <div className="flex gap-2">
+          <Btn onClick={() => briefAuto()} title="L'adjoint règle consignes, plan de course, matériel et ravitaillement">
+            🧑‍💼 Tout régler en auto
+          </Btn>
+          <Btn primary className="hidden lg:inline-flex" onClick={() => startStage()}>
+            {itt ? 'Lancer le chrono' : 'Départ'}
+          </Btn>
+        </div>
+      </div>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+        <div className="min-w-0 space-y-3">
+          <Card>
+            <StageProfile spec={spec} Pf={Pf} />
+            <Climbs Pf={Pf} />
+          </Card>
+          <StageKeys rc={rc} spec={spec} Pf={Pf} />
+          <Orders rc={rc} spec={spec} ids={ids} />
+          {!itt ? <Plan rc={rc} ids={ids} /> : null}
+        </div>
+        <aside className="min-w-0 space-y-3 lg:sticky lg:top-4">
+          {S.simple ? (
+            <details className="rounded-lg bg-slate-900">
+              <summary className="cursor-pointer px-4 py-3 text-sm text-slate-300">
+                Météo, matériel et ravitaillement : réglés par l'adjoint
+              </summary>
+              <div className="p-2 pt-0">
+                <Gear rc={rc} spec={spec} />
+              </div>
+            </details>
+          ) : (
             <Gear rc={rc} spec={spec} />
-          </div>
-        </details>
-      ) : (
-        <Gear rc={rc} spec={spec} />
-      )}
-      <Orders rc={rc} spec={spec} ids={ids} />
-      {!itt ? <Plan rc={rc} ids={ids} /> : null}
-      <Card>
-        <label className="flex min-h-10 items-center gap-2 text-sm text-slate-200">
-          <input
-            type="checkbox"
-            className="h-5 w-5 accent-sky-500"
-            checked={!!UI.autoPause}
-            onChange={e => ((UI.autoPause = e.target.checked), render())}
-          />{' '}
-          Pause auto sur les événements de mon équipe
-        </label>
-        <label className="flex min-h-10 items-center gap-2 text-sm text-slate-200">
-          <input
-            type="checkbox"
-            className="h-5 w-5 accent-sky-500"
-            checked={!!UI.autoDS}
-            onChange={e => ((UI.autoDS = e.target.checked), render())}
-          />{' '}
-          🤖 DS automatique (il répond aux appels de vos coureurs à votre place)
-        </label>
-        <p className="mt-1 text-xs text-slate-400">
-          Avec ou sans lui, vos coureurs courent d'eux-mêmes selon leur consigne. Vos ordres radio priment jusqu'à ce
-          que vous les leviez (« retour à la consigne »).
-        </p>
-        <Btn primary className="mt-2 min-h-14 w-full text-base" onClick={() => startStage()}>
-          {itt ? '⏱ Lancer le chrono' : '🏁 Départ !'}
-        </Btn>
-      </Card>
-      {rc.si > 0 ? <Standings rc={rc} brief /> : null}
+          )}
+          <Card title="Au départ">
+            <label className="flex min-h-10 items-center gap-2 text-sm text-slate-200">
+              <input
+                type="checkbox"
+                className="h-5 w-5 accent-sky-500"
+                checked={!!UI.autoPause}
+                onChange={e => ((UI.autoPause = e.target.checked), render())}
+              />{' '}
+              Pause auto sur les événements de mon équipe
+            </label>
+            <label className="flex min-h-10 items-center gap-2 text-sm text-slate-200">
+              <input
+                type="checkbox"
+                className="h-5 w-5 accent-sky-500"
+                checked={!!UI.autoDS}
+                onChange={e => ((UI.autoDS = e.target.checked), render())}
+              />{' '}
+              DS automatique (il répond aux appels de vos coureurs)
+            </label>
+            <p className="mb-3 mt-1 text-xs text-slate-400">
+              Vos coureurs courent d'eux-mêmes selon leur consigne. Vos ordres radio priment jusqu'à ce que vous les
+              leviez (« retour à la consigne »).
+            </p>
+            {go}
+          </Card>
+          {rc.si > 0 ? <Standings rc={rc} brief /> : null}
+        </aside>
+      </div>
     </div>
   );
 }

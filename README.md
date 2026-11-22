@@ -64,6 +64,8 @@ src/
     62-physio.js          préparation physique : périodisation, laboratoire, santé typée, déplacements, chaleur
     63-racereal.js        course plus vraie : délais et gruppetto, radio-course, abandons tactiques
     64-metier.js          métier : visibilité TV et sponsor, Jeux olympiques, motivation à domicile
+    65-reglement.js       règlement : calendrier des transferts, néo-pros, salaire minimum, antidopage
+    66-monde.js           monde qui évolue : courses, sponsors, faillites, réformes de l'UCI
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -212,6 +214,18 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   - Courses : le fil de chaque course (sélection, briefing, direct, bilan) ; en direct, un bandeau fixe donne les
     kilomètres restants, la situation en tête avec l'écart de la radio-course, la vitesse et la pente.
   - Tableaux des coureurs aérés ; contenu sur toute la largeur du grand écran.
+  - Briefing en deux colonnes (parcours et consignes ; matériel et départ), action « Départ » en haut ; fiche d'un
+    coureur ou d'une équipe en panneau latéral sur grand écran ; mode carrière avec le même rail de navigation.
+- Règlement (fichier 65-reglement.js) : pré-contrats pour la saison suivante à partir du 1er août (semaine 31),
+  pour vous comme pour l'ordinateur ; néo-pros deux ans minimum ; salaire minimum UCI (30 k€ WorldTour, 25 k€
+  ProTeam, 15 % de moins pour un néo-pro). Antidopage côté règlement, sans triche possible : localisation et
+  contrôles manqués (trois en douze mois : six mois de suspension), contaminations (suspension provisoire, puis
+  relaxe ou trois mois), contrôles inopinés ; cellule antidopage (30 k€ par saison) ; Effectif › Préparation.
+- Monde qui évolue (fichier 66-monde.js) : en fin de saison, une petite course peut disparaître et une nouvelle naître
+  la même semaine, une course monter en WorldTour pendant qu'une autre redescend, une équipe changer de sponsor ou
+  faire faillite (une nouvelle structure reprend sa place) ; l'UCI annonce ses réformes un an à l'avance (taille des
+  effectifs, licences WorldTour, salaire minimum). Grands tours, monuments, championnats et Jeux ne changent jamais.
+  Archives › Le monde.
 - v5.1 — final immersif et économie de départ :
   - Sprint rejoué : les 450 derniers mètres animés coureur par coureur (lancements, enfermements, prises de tête),
     commentés en direct, puis photo-finish avec les écarts en boyaux et longueurs. « Revoir » et « Passer ».

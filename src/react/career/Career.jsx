@@ -1561,11 +1561,11 @@ export function CarNav() {
           type="button"
           onClick={() => (closeModal(), go(k))}
           className={
-            'flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl text-sm ' +
-            (UI.view === k ? 'bg-sky-500 text-slate-950' : 'bg-slate-800 text-slate-100')
+            'flex min-h-14 items-center justify-center gap-2 rounded-md text-sm ' +
+            (UI.view === k ? 'bg-sky-500 font-semibold text-slate-950' : 'bg-slate-800 text-slate-100')
           }
         >
-          <span className="text-xl">{ic}</span>
+          <Icon name={CAR_MORE_ICON[k] || 'menu'} size={18} />
           {l}
         </button>
       ))}
@@ -1638,16 +1638,67 @@ export function CareerApp() {
   const me = carMe();
   return { live, inRace, V, me };
 }
+const CAR_MORE_ICON = { profile: 'trophy', image: 'gauge', life: 'home', opt: 'sliders' };
+// Rail de navigation du mode carrière (grand écran), comme celui du directeur sportif.
+// Titre de l'écran courant du mode carrière.
+export function carTitle() {
+  const all = CAR_NAV.concat(CAR_MORE);
+  const x = all.find(a => a[0] === (UI.view || 'home'));
+  return x && x[0] !== 'more' ? x[2] : '';
+}
+export function CarRail() {
+  const me = carMe();
+  const n = S.car.asks.length + (carPending() ? 1 : 0);
+  const item = (k, icon, l, cnt) => {
+    const on = UI.view === k || (!UI.view && k === 'home');
+    return (
+      <button
+        key={k}
+        type="button"
+        onClick={() => go(k)}
+        className={
+          'flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-[15px] font-medium ' +
+          (on ? 'bg-slate-800 text-slate-50 shadow-[inset_3px_0_0_#f2c94c]' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100')
+        }
+      >
+        <Icon name={icon} size={19} />
+        {l}
+        {cnt ? (
+          <i className="ml-auto rounded-full bg-rose-500 px-1.5 font-display text-xs font-semibold not-italic leading-[18px] text-white">
+            {cnt}
+          </i>
+        ) : null}
+      </button>
+    );
+  };
+  return (
+    <aside className="fixed inset-y-0 left-0 z-20 hidden w-56 flex-col gap-1 border-r border-slate-800 bg-slate-950 px-2.5 py-4 md:flex">
+      <div className="mb-3 px-3">
+        <b className="block truncate font-display text-lg leading-tight text-slate-50">
+          {me.fn} {me.ln}
+        </b>
+        <span className="text-xs text-slate-400">{me.age} ans</span>
+      </div>
+      {CAR_NAV.filter(x => x[0] !== 'more').map(([k, icon, l]) => item(k, icon, l, k === 'home' ? n : 0))}
+      <div className="mx-3 my-2 h-px bg-slate-800" />
+      {CAR_MORE.map(([k, , l]) => item(k, CAR_MORE_ICON[k] || 'menu', l, 0))}
+      <div className="mt-auto px-3 text-xs text-slate-400">
+        Saison {S.season}
+        <b className="block font-display text-lg text-slate-50">Semaine {S.week}</b>
+      </div>
+    </aside>
+  );
+}
 export function CarHeader() {
   const me = carMe();
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
-      <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-3 py-2.5">
-        <b className="truncate text-slate-50">
-          🚴 {me.fn} {me.ln}
+    <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur md:hidden">
+      <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+        <b className="truncate font-display text-base text-slate-50">
+          {me.fn} {me.ln}
         </b>
-        <span className="shrink-0 text-xs text-slate-300">
-          {S.season} · sem. {S.week} · {me.age} ans
+        <span className="shrink-0 font-display text-sm text-slate-300">
+          {S.season} · s{S.week} · {me.age} ans
         </span>
       </div>
     </header>
@@ -1655,7 +1706,7 @@ export function CarHeader() {
 }
 export function CarBottomNav() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-800 bg-slate-950/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-800 bg-slate-950/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
       <div className="mx-auto flex max-w-3xl">
         {CAR_NAV.map(([k, icon, l]) => {
           const on = k === 'more' ? CAR_MORE.some(x => x[0] === UI.view) : UI.view === k;
@@ -1667,7 +1718,7 @@ export function CarBottomNav() {
               onClick={() => (k === 'more' ? ((UI.modal = { type: 'nav' }), render()) : go(k))}
               className={
                 'flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-xs ' +
-                (on ? 'text-sky-300' : 'text-slate-400')
+                (on ? 'text-sky-400' : 'text-slate-400')
               }
             >
               <span className="relative">
