@@ -364,43 +364,43 @@ Plat — 205 km | t= 4h42'45" avg 43.5 km/h | ticks 604 | last +18'56" | DNF 0
    A. Bernard[flah]m.t., I. Ospina[roul]m.t., B. Bouvier[roul]m.t., A. Barbieri[roul]m.t., G. Vermeulen[roul]m.t.
 Étape 17 — Arrivée au sommet — 152 km | t= 4h43'50" avg 32.1 km/h | ticks 636 | last +33'55" | DNF 2
    D. De Clercq[grim]m.t., T. Christensen[grim]+15", L. Barbier[grim]+20", I. Jiménez[grim]+1'56", G. García[comp]+2'04"
-Étape 18 — Montagne — 176 km | t= 4h28'47" avg 39.3 km/h | ticks 590 | last +25'52" | DNF 1
-   D. De Clercq[grim]m.t., T. Christensen[grim]m.t., L. Barbier[grim]m.t., H. Leclerc[comp]+29", G. Romano[comp]+29"
-Étape 19 — Arrivée en côte — 170 km | t= 3h47'29" avg 44.8 km/h | ticks 485 | last +14'47" | DNF 0
-   A. Bernard[flah]m.t., B. Bouvier[roul]+4", M. Lefèvre[flah]+6", I. Ospina[roul]+8", L. Mitchell[baro]+13"
-Étape 20 — Arrivée au sommet — 165 km | t= 3h53'25" avg 42.4 km/h | ticks 502 | last +17'23" | DNF 0
-   F. Ospina[grim]m.t., T. Christensen[grim]+20", L. Barbier[grim]+21", G. García[comp]+27", D. De Clercq[grim]+45"
-Étape 21 — Plat — 101 km | t= 2h35'49" avg 38.9 km/h | ticks 336 | last +12'08" | DNF 0
-   H. Rodríguez[spri]m.t., I. Hernández[spri]m.t., S. Huber[spri]m.t., R. Meijer[spri]m.t., A. Chevalier[spri]m.t.
- GC: G. García[comp] m.t., T. Fleury[comp] +2'27", L. Barbier[grim] +8'44", B. Bouvier[roul] +13'08", T. Huet[comp] +13'20"
+Étape 18 — Montagne — 176 km | t= 4h28'17" avg 39.4 km/h | ticks 590 | last +26'21" | DNF 1
+   T. Christensen[grim]m.t., I. Jiménez[grim]+45", J. Goossens[comp]+45", H. Quintero[comp]+47", T. Renaud[punc]+48"
+Étape 19 — Arrivée en côte — 170 km | t= 3h53'45" avg 43.6 km/h | ticks 507 | last +19'23" | DNF 0
+   A. Bernard[flah]m.t., G. Fontana[punc]+8", H. Leclerc[comp]+8", I. Ospina[roul]+11", S. Richter[grim]+12"
+Étape 20 — Arrivée au sommet — 165 km | t= 3h47'03" avg 43.6 km/h | ticks 483 | last +22'44" | DNF 0
+   L. Barbier[grim]m.t., G. García[comp]+26", T. Christensen[grim]+42", G. Huber[comp]+1'45", G. Romano[comp]+1'46"
+Étape 21 — Plat — 101 km | t= 2h26'33" avg 41.4 km/h | ticks 312 | last +8'58" | DNF 0
+   T. Renaud[punc]m.t., A. Bernard[flah]m.t., I. Ospina[roul]m.t., N. Laurent[punc]m.t., T. Fabre[punc]m.t.
+ GC: T. Fleury[comp] m.t., L. Barbier[grim] +2'52", G. García[comp] +5'14", T. Huet[comp] +9'50", T. Christensen[grim] +10'25"
 
 === Grand Prix des Lacs ===
-Arrivée en côte — 201 km | t= 5h26'47" avg 36.9 km/h | ticks 753 | last +49'34" | DNF 0
-   T. Renaud[punc]m.t., J. Goossens[comp]+9", S. Mertens[comp]+10", F. Lombardi[comp]+21", A. Verstraete[grim]+24"
- GC: T. Renaud[punc] m.t., J. Goossens[comp] +13", S. Mertens[comp] +16", F. Lombardi[comp] +31", A. Verstraete[grim] +34"
+Arrivée en côte — 201 km | t= 5h18'18" avg 37.9 km/h | ticks 719 | last +40'56" | DNF 0
+   T. Fabre[punc]m.t., T. Renaud[punc]+2", T. Janssens[comp]+4", A. Marchand[comp]+6", P. Schwarz[punc]+8"
+ GC: T. Fabre[punc] m.t., T. Renaud[punc] +6", T. Janssens[comp] +10", A. Marchand[comp] +16", P. Schwarz[punc] +18"
 
-=== Championnats du monde === A. Bernard
+=== Championnats du monde === T. Janssens
 
 === Chrono des Nations ===
-Contre-la-montre — 44 km | 1. I. Ospina 46'48" | 10e +1'43"
- GC: I. Ospina[roul] m.t., L. Breton[roul] +33", R. De Vries[roul] +41", H. Leclerc[comp] +1'15", B. Bouvier[roul] +1'20"
+Contre-la-montre — 44 km | 1. I. Ospina 46'43" | 10e +1'45"
+ GC: I. Ospina[roul] m.t., L. Breton[roul] +37", R. De Vries[roul] +44", H. Leclerc[comp] +1'17", L. Gauthier[roul] +1'23"
 
 === Course des Feuilles ===
-Plat — 213 km | t= 4h37'59" avg 46.0 km/h | ticks 583 | last +13'16" | DNF 0
-   I. Hernández[spri]m.t., J. Ruiz[spri]m.t., M. Picard[spri]m.t., A. Berger[spri]m.t., M. Ferri[roul]m.t.
- GC: I. Hernández[spri] m.t., J. Ruiz[spri] +4", M. Picard[spri] +6", A. Berger[spri] +10", M. Ferri[roul] +10"
+Plat — 213 km | t= 4h43'01" avg 45.2 km/h | ticks 572 | last +2'54" | DNF 0
+   M. Picard[spri]m.t., M. Gerber[spri]m.t., I. Hernández[spri]m.t., S. Meijer[spri]m.t., S. Johansen[spri]m.t.
+ GC: M. Picard[spri] m.t., M. Gerber[spri] +4", I. Hernández[spri] +6", S. Meijer[spri] +10", S. Johansen[spri] +10"
 
 === Classique des Feuilles mortes ===
-Montagne — 243 km | t= 6h22'13" avg 38.1 km/h | ticks 925 | last +79'55" | DNF 0
-   T. Christensen[grim]m.t., C. Jones[grim]+51", J. Ramos[grim]+51", B. Breton[grim]+51", A. Moulin[grim]+51"
- GC: T. Christensen[grim] m.t., C. Jones[grim] +55", J. Ramos[grim] +57", B. Breton[grim] +1'01", A. Moulin[grim] +1'01"
+Montagne — 243 km | t= 6h28'14" avg 37.6 km/h | ticks 943 | last +82'53" | DNF 0
+   Ó. Ramos[grim]m.t., D. De Clercq[grim]+48", A. Moulin[grim]+48", Ł. Lewandowski[comp]+48", B. Breton[grim]+48"
+ GC: Ó. Ramos[grim] m.t., D. De Clercq[grim] +52", A. Moulin[grim] +54", Ł. Lewandowski[comp] +58", B. Breton[grim] +58"
 
 === Grand Prix de Clôture ===
-Plat — 198 km | t= 4h12'09" avg 47.1 km/h | ticks 545 | last +20'16" | DNF 2
-   N. Renaud[spri]m.t., T. Olsen[spri]m.t., M. Mitchell[spri]m.t., M. Marty[spri]m.t., V. Marchand[spri]m.t.
- GC: N. Renaud[spri] m.t., T. Olsen[spri] +4", M. Mitchell[spri] +6", M. Marty[spri] +10", V. Marchand[spri] +10"
+Plat — 198 km | t= 4h08'00" avg 47.9 km/h | ticks 500 | last +1'53" | DNF 1
+   A. Fontana[roul]m.t., A. Bernard[flah]m.t., K. Madsen[roul]m.t., T. Brunet[roul]m.t., T. Guyot[roul]m.t.
+ GC: A. Fontana[roul] m.t., A. Bernard[flah] +4", K. Madsen[roul] +6", T. Brunet[roul] +10", T. Guyot[roul] +10"
 
-season ok, budget 1805 riders 613 json 737038
+season ok, budget 1796 riders 611 json 731602
 
 === Grand Prix d'Ouverture ===
 Plat — 176 km | t= 4h05'33" avg 43.0 km/h | ticks 566 | last +36'59" | DNF 0
@@ -13218,8 +13218,8 @@ Plat — 198 km | t= 3h58'50" avg 49.7 km/h | ticks 511 | last +16'11" | DNF 0
  GC: P. De Boer[spri] m.t., S. Garnier[spri] +4", L. Brown[spri] +6", T. Van den Broeck[spri] +10", A. Rousseau[spri] +10"
 
 S2027 rank 10 uci 2240 wins 3 budget 1691 conf 48 obj 1100 | roster 21 aca 2 youth 61 free 65 | avgAge 25.9 teamOv 75,80,79,77,76,77,76,75,75,74,74,74,73,72,73,71,72,71 | json 746KB
-S2028 rank 9 uci 2425 wins 5 budget 1408 conf 37 obj 1110 | roster 18 aca 2 youth 72 free 65 | avgAge 25.9 teamOv 76,79,79,77,77,76,77,75,74,74,73,74,72,72,74,71,72,71 | json 908KB
-{"2027":{"sal":-3708.0952380952363,"staff":-477.38095238095184,"spons":3591.20630804437,"prize":214,"transf":0,"aca":-43.428571428571416,"other":-977,"equip":226.47619047619034},"2028":{"sal":-4328.571428571431,"staff":-414.88095238095195,"spons":3899.029294270639,"prize":239,"transf":1082,"aca":-23.42857142857144,"other":-980.2542625792529,"equip":244.0476190476192}}
-top ov 86,86,85,85,84,84,84,84,84,84 p50 76
-top20 ages 23,28,29,25,26,24,25,25,28,25,25,30,25,26,34,27,33,30,25,33 neo in top20 0
-best neos 21a ov79 ceil87 | 21a ov73 ceil78 | 21a ov68 ceil84 | 19a ov67 ceil78 | 21a ov67 ceil72
+S2028 rank 9 uci 2535 wins 6 budget 1492 conf 38 obj 1110 | roster 17 aca 2 youth 70 free 65 | avgAge 26.0 teamOv 76,79,79,78,77,77,76,76,74,75,73,73,73,72,73,71,71,71 | json 904KB
+{"2027":{"sal":-3708.0952380952363,"staff":-477.38095238095184,"spons":3591.20630804437,"prize":214,"transf":0,"aca":-43.428571428571416,"other":-977,"equip":226.47619047619034},"2028":{"sal":-4328.571428571431,"staff":-414.88095238095195,"spons":3901.5169596590263,"prize":278,"transf":1124,"aca":-23.42857142857144,"other":-979.1897793705423,"equip":244.0476190476192}}
+top ov 86,85,85,85,84,84,84,84,84,84 p50 76
+top20 ages 28,29,23,25,26,24,26,34,25,25,28,25,25,30,27,33,30,25,33,25 neo in top20 0
+best neos 21a ov79 ceil85 | 21a ov73 ceil78 | 21a ov68 ceil84 | 21a ov68 ceil79 | 19a ov67 ceil78

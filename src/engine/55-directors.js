@@ -360,7 +360,7 @@ function gtPhase(sim) {
 }
 function gtPhaseMul(sim) {
   const p = gtPhase(sim);
-  return p === 'early' ? 0.8 : p === 'late' ? 1.2 : p === 'last' ? 1.45 : 1;
+  return p === 'early' ? 0.85 : p === 'late' ? 1.12 : p === 'last' ? 1.3 : 1;
 }
 // Au départ d'une étape de grand tour : le commentaire de la phase, et les équipes qui changent d'objectif.
 function gtStrategyStart(sim) {
