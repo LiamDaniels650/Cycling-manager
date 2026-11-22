@@ -50,6 +50,7 @@ function weeklyUpdate() {
   wtWeekly();
   storiesWeekly();
   lockerWeekly();
+  dopeWeekly(); // localisation, contrôles, suspensions (65-reglement.js)
   discoWeekly();
   const coachMul = 0.8 + 0.15 * S.staff.coach;
   for (const id in S.riders) {
@@ -179,7 +180,8 @@ function weeklyUpdate() {
     S.know[id] = Math.max(S.know[id] || 0, Math.min(95, (S.know[id] || 35) + 0.8 + 0.3 * S.staff.coach));
   }
   // pré-contrats des équipes IA sur vos coureurs en fin de contrat
-  if (S.week >= 18) {
+  if (S.week >= MERC_OPEN) {
+    // (pas avant le 1er août : règlement UCI)
     for (const id of S.teams[0].riders) {
       const r = S.riders[id];
       if (
@@ -333,6 +335,7 @@ function endSeason() {
   legacyEndSeason(rankArr);
   tvEndSeason();
   lockerEndSeason();
+  worldEndSeason(rankArr); // courses, sponsors, faillites, réformes (66-monde.js)
   releaseClausesEndSeason();
   dsCarousel(rankArr);
   careerEndSeason(myRank);

@@ -244,7 +244,13 @@ const MONUMENTS = ['msr', 'flandres', 'pav', 'liege', 'auto'];
 let RACE_BY_NAME = null;
 function raceByName(n) {
   if (!RACE_BY_NAME) RACE_BY_NAME = Object.fromEntries(RACE_DEFS.map(d => [d.name, d]));
-  return RACE_BY_NAME[n] || raceDefByCustomName(n) || undefined;
+  return (
+    RACE_BY_NAME[n] ||
+    raceDefByCustomName(n) ||
+    RACE_DEFS_BASE.find(d => d.name === n) || // course disparue depuis (66-monde.js)
+    ((S && S.world && S.world.added) || []).find(d => d.name === n) ||
+    undefined
+  );
 }
 // Barème : GT 25 (podium 8), monument 15, Mondiaux 15, classique cat. 1 : 6, course par étapes cat. 1 : 8,
 // étape de GT 3, maillot distinctif 5 (GT) ou 2, autre victoire 2.

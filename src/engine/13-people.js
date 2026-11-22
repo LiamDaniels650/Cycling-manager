@@ -112,6 +112,8 @@ function negotiate(id, salary, years, promise, cl, fromCounter) {
     return { ok: false, txt: `Effectif complet (${ROSTER.max} max).` };
   if (r.nextTeam !== undefined && r.nextTeam !== null)
     return { ok: false, txt: `${riderName(r)} s'est déjà engagé ailleurs pour la saison prochaine.` };
+  const rule = contractRule(r, salary, years, kind);
+  if (rule) return { ok: false, txt: rule };
   const T = teamOf(r);
   let fee = 0;
   if (kind === 'transfer') {
@@ -208,7 +210,7 @@ function extendRider(id, years) {
   if (r.wantsOut) return `${riderName(r)} veut partir et refuse de prolonger.`;
   if (r.moral < 35 && rnd() < 0.6) return `${riderName(r)} refuse de prolonger (moral trop bas).`;
   r.contract += years;
-  r.salary = Math.max(r.salary, d);
+  r.salary = Math.max(r.salary, d, minSalary(0));
   return null;
 }
 // Discussion individuelle avec un coureur (encourager, recadrer, promettre).

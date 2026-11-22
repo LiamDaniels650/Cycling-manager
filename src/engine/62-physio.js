@@ -151,6 +151,7 @@ const INJ = {
   tendinite: { lbl: 'Tendinite', ic: '🦵', spec: 'kine', relapse: 0.3 },
   virus: { lbl: 'Virus, gastro', ic: '🤒', spec: 'generaliste', relapse: 0.15 },
   covid: { lbl: 'Covid', ic: '🦠', spec: 'generaliste', relapse: 0.1 },
+  suspension: { lbl: 'Suspendu (antidopage)', ic: '⛔', spec: 'aucune', relapse: 0 },
 };
 const DOC_SPEC = {
   traumato: 'traumatologue (fractures, chutes)',
@@ -194,7 +195,7 @@ function crashInjKind(weeks) {
 // Reprise anticipée : 40 % de temps d'arrêt en moins, mais un risque de rechute au retour.
 function earlyReturn(id) {
   const r = S.riders[id];
-  if (!r || r.team !== 0 || r.injury < 2 || !r.inj) return 'Pas de reprise anticipée possible.';
+  if (!r || r.team !== 0 || r.injury < 2 || !r.inj || r.inj.k === 'suspension') return 'Pas de reprise anticipée possible.';
   if (r.inj.early) return 'Reprise déjà avancée.';
   r.injury = Math.max(1, Math.ceil(r.injury * 0.6));
   r.inj.early = true;

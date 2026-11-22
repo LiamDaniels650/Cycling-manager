@@ -269,6 +269,7 @@ const RACE_DEFS = [
 const LAST_WEEK = 42;
 // Calendrier de la saison et invitations aux Grands Tours.
 function buildCalendar() {
+  worldApply(); // courses de la partie (créées, disparues, promues : 66-monde.js)
   genClimate();
   S.cal = RACE_DEFS.filter(d => !d.olympic || isOlympicYear(S.season)).map(d => ({
     key: d.key,

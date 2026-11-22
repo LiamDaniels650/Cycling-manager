@@ -139,7 +139,7 @@ function asstRecruit() {
       .sort((a, b) => shownOv(b) - contractDemand(b) / 60 - (shownOv(a) - contractDemand(a) / 60));
     if (!pool.length) break;
     const r = pool[0];
-    const res = negotiate(r.id, Math.round((contractDemand(r) * 1.05) / 5) * 5, r.age <= 27 ? 2 : 1, false);
+    const res = negotiate(r.id, Math.max(minSalary(0), Math.round((contractDemand(r) * 1.05) / 5) * 5), r.age <= 27 || neoPro(r) ? 2 : 1, false);
     if (res.ok)
       done.push(
         `${riderName(r)} (≈${shownOv(r)}, ${fmtMoney(r.salary)}/an : meilleur rapport niveau/salaire du marché libre)`

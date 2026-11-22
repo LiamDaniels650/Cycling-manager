@@ -164,6 +164,8 @@ function migrate() {
   if (!S.car) eqEnsure();
   // héritage du directeur (reconstruit à partir des résultats passés)
   if (!S.car) legacyInit();
+  // monde qui évolue : définitions de courses et réformes de la partie
+  worldApply();
   // vestiaire : course visée par l'objectif de saison (objectifs fixés avant cette version)
   if (!S.car && S.teams[0].riders.some(id => S.riders[id].goal && S.riders[id].goal.s === S.season && !('race' in S.riders[id].goal)))
     ambitionsAssign();

@@ -678,7 +678,7 @@ function promoteRider(id) {
   (S.acaAlumni = S.acaAlumni || []).push({ id, s: S.season, age: r.age });
   r.neo = S.season;
   r.contract = 2;
-  r.salary = Math.max(25, Math.round(salaryFor(overall(r.s), r.age) * 0.8));
+  r.salary = Math.max(neoMinSalary(0), Math.round(salaryFor(overall(r.s), r.age) * 0.8)); // (salaire minimum néo-pro)
   P.riders.push(id);
   S.objTrack = S.objTrack || {};
   S.objTrack.promo = true;

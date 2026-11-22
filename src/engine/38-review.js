@@ -98,7 +98,7 @@ function seasonWhy(myRank, why0, objLines, objMoney) {
   const w = why0.wt;
   if (w)
     L.push(
-      `🪪 ${w.member ? 'WorldTour' : 'ProTeam'} : ${w.rk}e du classement des licences (saison ${w.y}/${WT_CYCLE} du cycle)${w.y >= WT_CYCLE ? ' — licences réattribuées : voir le message dédié' : w.rk > WT_N ? ' — sous la ligne de licence' : w.rk > WT_N - 3 ? ' — juste au-dessus de la ligne' : ''}.`
+      `🪪 ${w.member ? 'WorldTour' : 'ProTeam'} : ${w.rk}e du classement des licences (saison ${w.y}/${WT_CYCLE} du cycle)${w.y >= WT_CYCLE ? ' — licences réattribuées : voir le message dédié' : w.rk > wtN() ? ' — sous la ligne de licence' : w.rk > wtN() - 3 ? ' — juste au-dessus de la ligne' : ''}.`
     );
   S.seasonWhy = S.seasonWhy || {};
   S.seasonWhy[S.season] = L;

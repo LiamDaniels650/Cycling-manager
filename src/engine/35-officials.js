@@ -12,7 +12,7 @@
    Commissaires : ravitaillement interdit dans les 20 derniers kilomètres, abri derrière les voitures en revenant
    d'un incident ; pénalités en temps et amendes. */
 
-const WT_N = R.wtN;
+// (nombre de licences WorldTour : wtN(), qui suit les réformes de l'UCI, 66-monde.js)
 const WT_CYCLE = R.wtCycle;
 
 // --- Licence WorldTour ---
@@ -25,7 +25,7 @@ function wtInit() {
         ((S.lastRanks && S.lastRanks[b.id]) || (b.tier || 0) * 100) -
         ((S.lastRanks && S.lastRanks[a.id]) || (a.tier || 0) * 100)
     );
-  S.wt = { start: S.season, members: rk.slice(0, WT_N).map(T => T.id), pts: {} };
+  S.wt = { start: S.season, members: rk.slice(0, wtN()).map(T => T.id), pts: {} };
 }
 function isWT(id) {
   return !!(S.wt && S.wt.members.includes(id));
@@ -96,7 +96,7 @@ function wtEndSeason() {
   for (const T of S.teams) S.wt.pts[T.id] = (S.wt.pts[T.id] || 0) + (T.uci || 0);
   if (wtYear() < WT_CYCLE) return;
   const rk = S.teams.slice().sort((a, b) => (S.wt.pts[b.id] || 0) - (S.wt.pts[a.id] || 0));
-  const next = rk.slice(0, WT_N).map(T => T.id);
+  const next = rk.slice(0, wtN()).map(T => T.id);
   const was = isWT(0),
     now = next.includes(0);
   const up = next.filter(id => !S.wt.members.includes(id)).map(id => teamById(id).name);
@@ -146,7 +146,7 @@ function wtEndSeason() {
   } else
     msg(
       'Licences WorldTour',
-      `${now ? `Licence WorldTour renouvelée (${myRank}e sur trois saisons).` : `Vous restez ProTeam (${myRank}e sur trois saisons ; il fallait être dans les ${WT_N} premiers).`}${up.length ? ` Promues : ${up.join(', ')}.` : ''}${down.length ? ` Reléguées : ${down.join(', ')}.` : ''}${
+      `${now ? `Licence WorldTour renouvelée (${myRank}e sur trois saisons).` : `Vous restez ProTeam (${myRank}e sur trois saisons ; il fallait être dans les ${wtN()} premiers).`}${up.length ? ` Promues : ${up.join(', ')}.` : ''}${down.length ? ` Reléguées : ${down.join(', ')}.` : ''}${
         Object.keys(exits).filter(id => +id !== 0).length
           ? ` Départs par clause de sortie : ${Object.keys(exits)
               .filter(id => +id !== 0)
@@ -168,11 +168,11 @@ function wtWeekly() {
   if (!S.wt || wtYear() < WT_CYCLE || !(S.week === 20 || S.week === 34)) return;
   const rk = wtRanking();
   const i = rk.findIndex(e => e.T.player);
-  if (i < WT_N - 3 || i > WT_N + 2) return;
-  const line = rk[WT_N - 1].pts,
-    out = rk[WT_N].pts,
+  if (i < wtN() - 3 || i > wtN() + 2) return;
+  const line = rk[wtN() - 1].pts,
+    out = rk[wtN()].pts,
     me = rk[i].pts;
-  const inside = i < WT_N;
+  const inside = i < wtN();
   const gap = inside ? me - out : line - me;
   S.conf = clamp(S.conf + (inside ? 0 : -2), 0, 100);
   msg(

@@ -715,7 +715,7 @@ check(
 {
   // licence WorldTour : 13 licences, invitations d'office, attribution au bout de trois saisons
   newGame('WT', 51);
-  check(S.wt && S.wt.members.length === WT_N, 'licence : 13 équipes WorldTour au départ');
+  check(S.wt && S.wt.members.length === wtN(), 'licence : 13 équipes WorldTour au départ');
   const gt = S.cal.find(c => c.cat === 0);
   check(
     S.wt.members.every(id => gt.inv.includes(id)),
@@ -733,7 +733,7 @@ check(
   check(wtSignFactor(star) < 0, 'licence : une ProTeam attire moins les coureurs cotés');
 
   check(
-    !isWT(0) && S.wt.members.length === WT_N && S.wt.start === S.season + 1,
+    !isWT(0) && S.wt.members.length === wtN() && S.wt.start === S.season + 1,
     'licence : une équipe sans points est reléguée en fin de cycle'
   );
   // commissaires : ravitaillement dans les 20 derniers km pénalisé
@@ -1091,7 +1091,7 @@ check(
   pro.forEach((T, i) => (T.uci = 100 * (i + 1)));
   const b0 = S.budget;
   const rk = proSeriesRanking();
-  check(rk.length === S.teams.length - WT_N && rk[0].pts >= rk[1].pts, `ProSeries : ${rk.length} équipes classées`);
+  check(rk.length === S.teams.length - wtN() && rk[0].pts >= rk[1].pts, `ProSeries : ${rk.length} équipes classées`);
   proSeriesEnd();
   check((S.proHist || []).length === 1 && S.proHist[0].ids[0] === rk[0].T.id, `ProSeries : ${rk[0].T.name} championne`);
   if (rk.some(e => e.T.player)) check(S.budget > b0, 'ProSeries : prime versée au joueur');
@@ -1329,6 +1329,43 @@ check(
   const med = Object.values(S.riders).filter(r => (r.olymp || []).some(o => o.s === 2028));
   check(med.length === 3 && Object.keys(orc.sel).every(k => orc.sel[k].length <= 2), 'JO : chrono à deux coureurs par pays, trois médaillés');
   check(worldsDone() === false, 'les JO ne comptent pas comme les Mondiaux');
+}
+{
+  // règlement : fenêtre des transferts, néo-pros, salaire minimum ; antidopage
+  newGame('Regle', 61);
+  S.budget = 5000;
+  const pre = Object.values(S.riders).find(r => r.team > 0 && r.contract <= 1 && !r.nextTeam);
+  S.week = 10;
+  check(/1er août/.test(negotiate(pre.id, 500, 2, false).txt), 'pré-contrat refusé avant le 1er août');
+  const young = S.youth.map(id => S.riders[id])[0];
+  check(neoPro(young) && /deux ans/.test(contractRule(young, 100, 1, 'free')), 'néo-pro : deux ans minimum');
+  check(/salaire minimum/.test(contractRule(Object.values(S.riders).find(r => r.team > 0), 5, 2, 'free')), 'salaire minimum UCI');
+  const r = S.riders[S.teams[0].riders[0]];
+  r.wh = [{ s: S.season, w: 2 }, { s: S.season, w: 5 }];
+  check(whMisses(r).length === 2, 'contrôles manqués comptés sur douze mois');
+  r.wh.push({ s: S.season, w: 9 });
+  r.wh = [];
+  dopeSuspend(r, 26, 'test');
+  check(r.injury === 26 && r.inj.k === 'suspension' && /Pas de reprise/.test(earlyReturn(r.id)), 'suspension : coureur indisponible, pas de reprise anticipée');
+  check(/Cellule/.test(setWhOfficer(true)) && whMul(S.riders[S.teams[0].riders[1]]) < 1, 'cellule antidopage : moins de manquements');
+  // monde qui évolue
+  newGame('Monde', 62);
+  S.world = { gone: ['gpo'], added: [], cat: { omloop: 1 }, hist: [], pending: null, lastReform: null, teamNames: [] };
+  buildCalendar();
+  check(!S.cal.some(c => c.key === 'gpo') && S.cal.find(c => c.key === 'omloop').cat === 1, 'monde : course disparue, course promue');
+  const nd = newRaceDef(9, 12345);
+  S.world.added.push(nd);
+  buildCalendar();
+  check(S.cal.some(c => c.key === nd.key) && RACE_REG[nd.key] === nd.reg, `monde : nouvelle course au calendrier (${nd.name})`);
+  const T = S.teams.find(U => !U.player && !isWT(U.id));
+  const n0 = T.riders.length;
+  const ch = bankruptcy(T, 999);
+  check(ch && T.name === ch.name && T.riders.length >= ROSTER.minAI && T.riders.length < n0 + 10, `faillite : ${ch.old} devient ${ch.name}`);
+  applyReform(S.world, { k: 'wtN', v: 14 });
+  check(wtN() === 14, 'réforme : 14 licences WorldTour');
+  S.world = null;
+  buildCalendar();
+  check(S.cal.some(c => c.key === 'gpo'), 'nouvelle partie : calendrier de base rétabli');
 }
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

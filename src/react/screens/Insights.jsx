@@ -9,8 +9,8 @@ export function WtBrief() {
   const rk = wtRanking();
   const k = rk.findIndex(e => e.T.player);
   const me = rk[k];
-  const line = rk[WT_N - 1],
-    out = rk[WT_N];
+  const line = rk[wtN() - 1],
+    out = rk[wtN()];
   const y = wtYear();
   const status = isWT(0) ? '🪪 Licence WorldTour' : '🪪 ProTeam';
   const end =
@@ -29,14 +29,14 @@ export function WtBrief() {
     <div className={BRIEF}>
       <b>{status}</b> · cycle {y}/{WT_CYCLE} ({end})
       <br />
-      {k < WT_N ? (
+      {k < wtN() ? (
         <>
-          {k + 1}e du classement sur trois saisons — {out ? `${me.pts - out.pts} pts d'avance sur le ${WT_N + 1}e` : ''}
+          {k + 1}e du classement sur trois saisons — {out ? `${me.pts - out.pts} pts d'avance sur le ${wtN() + 1}e` : ''}
           .
         </>
       ) : (
         <>
-          {k + 1}e du classement sur trois saisons — il manque <b>{line.pts - me.pts} pts</b> pour la {WT_N}e place.
+          {k + 1}e du classement sur trois saisons — il manque <b>{line.pts - me.pts} pts</b> pour la {wtN()}e place.
         </>
       )}
       {inv ? (
@@ -53,7 +53,7 @@ export function ProSeries() {
   if (!S.wt) return null;
   const rk = proSeriesRanking();
   const cyc = wtRanking();
-  const line = cyc[WT_N - 1];
+  const line = cyc[wtN() - 1];
   const H = (S.proHist || []).slice(-5).reverse();
   return (
     <Card title={`🥈 Division 2 — ProSeries ${S.season}`}>
@@ -75,7 +75,7 @@ export function ProSeries() {
               </td>
               <td className="whitespace-nowrap text-right tabular-nums">{e.pts} pts</td>
               <td className="whitespace-nowrap text-right text-xs text-slate-400">
-                cycle : {c}e{line && c > WT_N ? ` (−${line.pts - cyc[c - 1].pts} pts)` : ' ✔'}
+                cycle : {c}e{line && c > wtN() ? ` (−${line.pts - cyc[c - 1].pts} pts)` : ' ✔'}
               </td>
             </Tr>
           );
@@ -93,7 +93,7 @@ export function WtTable() {
     <Card title="Licences WorldTour">
       <WtBrief />
       <Info>
-        Les {WT_N} premières équipes au classement UCI cumulé sur trois saisons obtiennent une licence WorldTour pour le
+        Les {wtN()} premières équipes au classement UCI cumulé sur trois saisons obtiennent une licence WorldTour pour le
         cycle suivant : invitations d'office aux Grands Tours et aux grandes classiques. Les autres sont ProTeams et
         dépendent des invitations, sauf les deux meilleures de la saison passée. Une relégation coûte cher : clause du
         sponsor (−12 % d'apport, confiance −15), moral de l'effectif en baisse, leaders ambitieux qui font jouer leur
@@ -110,7 +110,7 @@ export function WtTable() {
 function FragmentRow({ i, e }) {
   return (
     <>
-      {i === WT_N ? (
+      {i === wtN() ? (
         <tr>
           <td colSpan={4} className="border-t-2 border-dashed border-sky-400 py-1 text-center text-xs text-slate-400">
             — ligne de licence —
