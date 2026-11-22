@@ -33,10 +33,18 @@ function Nego({ r }) {
   const kind = marketKind(r);
   const dem = contractDemand(r);
   if (r.nextTeam != null) return <p className="text-xs text-slate-400">S'est déjà engagé pour la saison prochaine.</p>;
-  const n = UI.nego && UI.nego.id === r.id ? UI.nego : { id: r.id, sal: dem, years: 2, promise: false };
+  const n =
+    UI.nego && UI.nego.id === r.id
+      ? UI.nego
+      : { id: r.id, sal: dem, years: 2, promise: false, cl: { bonus: 0, role: null, release: false } };
   UI.nego = n;
+  n.cl = n.cl || { bonus: 0, role: null, release: false };
   const fee = kind === 'transfer' ? transferFee(r) : 0;
-  const o = negoChance(r, n.sal, n.years, n.promise, demEst(r));
+  const o = negoChance(r, n.sal, n.years, n.promise, demEst(r), n.cl);
+  const ag = AGENTS[agentOf(r)];
+  const su = suitorsOf(r);
+  const C = S.negoC && S.negoC.id === r.id && S.negoC.s === S.season ? S.negoC : null;
+  const setCl = (k, v) => ((UI.nego.cl[k] = v), renderModal());
   const pc = v => `${v > 0 ? '+' : ''}${Math.round(v * 100)}`;
   return (
     <div className="mt-3 rounded-xl bg-slate-800/70 p-3">
@@ -51,6 +59,26 @@ function Nego({ r }) {
         Salaire demandé estimé : ~{fmtMoney(demEst(r))}/an{fee ? ` · indemnité de transfert : ${fmtMoney(fee)}` : ''} ·
         prime à la signature : 10 % du salaire
       </div>
+      <div className="mt-1 text-xs text-slate-300">
+        🧑‍💼 {ag.lbl} <span className="text-slate-400">— {ag.d}</span>
+      </div>
+      {su.length ? (
+        <div className="mt-1 text-xs text-amber-200">
+          👀 Courtisé aussi par {su.map(T => T.name).join(', ')} : il faudra le convaincre.
+        </div>
+      ) : null}
+      {C ? (
+        <div className="mt-2 rounded-lg bg-amber-400/10 p-2 text-sm ring-1 ring-amber-300/40">
+          🗣️ {counterText(r, C)}
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <Btn primary onClick={() => doCounter(true)}>
+              Accepter
+            </Btn>
+            <Btn onClick={() => doCounter(false)}>Refuser</Btn>
+          </div>
+          <div className="mt-1 text-xs text-slate-400">Ou modifiez votre offre ci-dessous et refaites-la.</div>
+        </div>
+      ) : null}
       {imageAffinity(r) >= 0.25 ? (
         <div className="mt-1 text-xs text-emerald-300">
           ✨ Attiré par l'image de votre équipe ({imageLabel().lbl.toLowerCase()}) : il signera plus volontiers.
@@ -90,6 +118,43 @@ function Nego({ r }) {
         />{' '}
         promettre un rôle de leader
       </label>
+      <div className="mt-2 rounded-lg bg-slate-900/50 p-2 text-sm text-slate-200">
+        <b>Clauses</b>
+        <div className="mt-1 flex flex-wrap items-center gap-1">
+          Prime de victoire
+          {[0, 5, 10, 20].map(v => (
+            <Btn key={v} active={n.cl.bonus === v} className="min-h-9 px-2" onClick={() => setCl('bonus', v)}>
+              {v ? fmtMoney(v) : 'aucune'}
+            </Btn>
+          ))}
+        </div>
+        {kind !== 'pre' ? (
+          <label className="mt-1 block">
+            Rôle de leader garanti à{' '}
+            <select
+              className="mt-1 min-h-9 rounded-lg bg-slate-800 px-2"
+              value={n.cl.role || ''}
+              onChange={e => setCl('role', e.target.value || null)}
+            >
+              <option value="">— aucune course —</option>
+              {promRaces().map(c => (
+                <option key={c.key} value={c.key}>
+                  {c.name} (sem. {c.w})
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        <label className="mt-1 flex min-h-9 items-center gap-2">
+          <input
+            type="checkbox"
+            className="h-5 w-5 accent-sky-500"
+            checked={!!n.cl.release}
+            onChange={e => setCl('release', e.target.checked)}
+          />
+          clause libératoire ({fmtMoney(releaseAmount(r, n.sal))} : une équipe riche pourra le racheter)
+        </label>
+      </div>
       <div className="mt-2 text-sm">
         <b className={o.p >= 0.6 ? 'text-emerald-300' : o.p >= 0.3 ? 'text-slate-100' : 'text-rose-300'}>
           Chance estimée d'accord : ≈{Math.round(o.p * 100)} %
@@ -102,6 +167,81 @@ function Nego({ r }) {
       <Btn primary className="mt-3 w-full" onClick={() => doNego(r.id)}>
         Faire l'offre
       </Btn>
+    </div>
+  );
+}
+// Grandes courses à venir où l'on peut promettre un rôle de leader.
+function promRaces() {
+  return S.cal.filter(c => !c.done && !c.worlds && c.cat <= 1 && (!c.inv || c.inv.includes(0)));
+}
+// Vestiaire : caractère, leadership, capitaine, promesse de rôle, parrainage.
+function LockerRider({ r }) {
+  const ch = CHARS[charOf(r)];
+  const isCap = S.captain === r.id;
+  const pr = (S.proms || []).filter(p => p.id === r.id && p.s === S.season);
+  const M = proMentorOf(r);
+  const mentees = Object.entries(S.proMentors || {})
+    .filter(([y, m]) => +m === r.id && S.riders[y] && S.riders[y].team === 0)
+    .map(([y]) => S.riders[y]);
+  const L = promRaces();
+  return (
+    <div className="mt-3 rounded-xl bg-slate-800/60 p-2.5 text-sm">
+      <h3 className="mb-1 font-semibold text-slate-100">Dans le vestiaire</h3>
+      <div>
+        {ch.ic} <b>{ch.lbl}</b> <span className="text-xs text-slate-400">— {ch.d}</span>
+      </div>
+      <div className="text-xs text-slate-300">
+        Leadership <b>{leadOf(r)}</b>
+        {isCap ? ' · 🧭 capitaine de route' : ''} · {AGENTS[agentOf(r)].lbl.toLowerCase()}
+        {r.cl && (r.cl.bonus || r.cl.release)
+          ? ` · contrat : ${r.cl.bonus ? `prime ${fmtMoney(r.cl.bonus)}/victoire` : ''}${r.cl.bonus && r.cl.release ? ', ' : ''}${r.cl.release ? `clause libératoire ${fmtMoney(r.cl.release)}` : ''}`
+          : ''}
+      </div>
+      {goalRaceTag(r) ? <div className="text-xs text-amber-200">🎯 Veut : {goalRaceTag(r)}</div> : null}
+      {pr.map(p => {
+        const c = S.cal.find(c => c.key === p.key);
+        return (
+          <div key={p.key} className="text-xs">
+            🤞 Promis : leader à {c ? c.name : p.key}{' '}
+            {p.done ? (p.ok ? '✅ tenue' : p.ok === false ? '💔 rompue' : '(blessé, excusé)') : '⏳'}
+          </div>
+        );
+      })}
+      {M ? <div className="text-xs">🎓 Parrain : {riderName(M)}</div> : null}
+      {mentees.length ? <div className="text-xs">🎓 Parraine : {mentees.map(y => riderName(y)).join(', ')}</div> : null}
+      <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {!isCap && r.age >= 25 ? (
+          <Btn onClick={() => doLocker(setCaptain, r.id)}>🧭 Nommer capitaine de route</Btn>
+        ) : null}
+        {L.length ? (
+          <select
+            className="min-h-11 rounded-xl bg-slate-800 px-2 text-sm"
+            value=""
+            onChange={e => e.target.value && doLocker(promiseRole, r.id, e.target.value)}
+          >
+            <option value="">🤞 Lui promettre d'être leader à…</option>
+            {L.map(c => (
+              <option key={c.key} value={c.key}>
+                {c.name} (sem. {c.w})
+              </option>
+            ))}
+          </select>
+        ) : null}
+        {r.age <= 24 ? (
+          <select
+            className="min-h-11 rounded-xl bg-slate-800 px-2 text-sm"
+            value={M ? M.id : ''}
+            onChange={e => doLocker(setProMentor, r.id, e.target.value === '' ? null : +e.target.value)}
+          >
+            <option value="">🎓 Parrain : aucun</option>
+            {proMentorCands(r).map(m => (
+              <option key={m.id} value={m.id}>
+                {riderName(m)} ({m.age} ans, leadership {leadOf(m)})
+              </option>
+            ))}
+          </select>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -374,7 +514,7 @@ function Fiche({ r }) {
           <div className="mt-3 grid grid-cols-2 gap-2">
             <Btn onClick={() => talk(r.id, 'feliciter')}>👏 Encourager</Btn>
             <Btn onClick={() => talk(r.id, 'recadrer')}>☝️ Recadrer</Btn>
-            <Btn onClick={() => talk(r.id, 'promettre')}>🤝 Promettre un rôle de leader</Btn>
+            <Btn onClick={() => talk(r.id, 'promettre')}>🤝 Promettre un rôle (sans date)</Btn>
             <Btn onClick={() => extend(r.id, 1)}>✍️ Prolonger 1 an</Btn>
             <Btn onClick={() => extend(r.id, 2)}>✍️ Prolonger 2 ans</Btn>
             <Btn danger onClick={() => release(r.id)}>
@@ -385,6 +525,7 @@ function Fiche({ r }) {
             Prolongation demandée : {fmtMoney(contractDemand(r))}/an.
             {r.promise ? ' Vous lui avez promis un rôle de leader.' : ''}
           </p>
+          <LockerRider r={r} />
           <Relations r={r} />
           <RiderStories r={r} />
         </>

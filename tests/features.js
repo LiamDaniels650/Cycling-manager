@@ -1189,5 +1189,54 @@ check(
   const L = legacyInit();
   check(Math.abs(L.score - sc) <= sc * 0.25 + 10, `héritage reconstruit pour une partie ancienne (${L.score} contre ${sc})`);
 }
+{
+  // vestiaire : capitaine, ambitions ciblées, promesses tenues ou rompues, parrainage, réunions, rivalités
+  newGame('Vestiaire', 12);
+  weeklyUpdate();
+  const P = S.teams[0];
+  check(captain() && captain().age >= 25, `capitaine de route désigné (${captain() && riderName(captain())})`);
+  const rs = P.riders.map(id => S.riders[id]);
+  check(rs.every(r => CHARS[charOf(r)] && leadOf(r) >= 5), 'caractère et leadership de chaque coureur');
+  check(rs.some(r => r.goal.race), 'ambitions ciblées : une course visée');
+  const gt = S.cal.find(c => c.cat === 0 && c.stagesSpec.length > 1);
+  const r0 = rs.sort((a, b) => overall(b.s) - overall(a.s))[0];
+  const t0 = trustOf();
+  check(/Promis/.test(promiseRole(r0.id, gt.key)), 'promesse de rôle sur une course');
+  promisesAfterRace({ key: gt.key, name: gt.name, ledBy: [] });
+  check(trustOf() < t0 && S.proms[0].ok === false, 'promesse rompue : confiance du groupe en baisse');
+  const y = S.teams[0].riders.map(id => S.riders[id]).find(r => r.age <= 24 && !r.aca);
+  if (y) {
+    const m = proMentorCands(y)[0];
+    check(m && /sous son aile/.test(setProMentor(y.id, m.id)), 'parrainage entre pros');
+  }
+  check(/Réunion/.test(teamMeeting('ecouter')) && !meetReady(), 'réunion d’équipe, puis délai');
+  // obéissance : le capitaine en course aide
+  const sim = { runners: [{ player: true, id: S.captain, dnf: false, r: captain() }] };
+  check(captainObey({ player: true, id: -1 }, sim) > 0, 'capitaine en course : consignes mieux appliquées');
+  // négociation : agent, contre-proposition, clauses
+  const fr = S.free.map(id => S.riders[id]).filter(r => r.age > 21).sort((a, b) => overall(b.s) - overall(a.s))[0];
+  S.budget = 5000;
+  let res = null;
+  for (let k = 0; k < 6 && !(res && res.counter); k++) {
+    S.negoC = null;
+    fr.negoBlock = 0;
+    res = negotiate(fr.id, Math.round(contractDemand(fr) * 0.97), 2, false, { bonus: 0, role: null, release: false });
+    if (res.ok) break;
+  }
+  check(AGENTS[agentOf(fr)] && (res.ok || res.counter), `négociation : agent (${agentOf(fr)}) et contre-proposition`);
+  if (res.counter) {
+    const a = acceptCounter();
+    check(a.ok && fr.team === 0 && fr.cl, `contre-proposition acceptée : ${a.txt}`);
+  }
+  {
+    const f2 = S.free.map(id => S.riders[id]).filter(r => r.age > 21 && r.team === null)[1];
+    S.negoC = null;
+    const C = negoCounter(f2, 50, 2, false, { bonus: 0, role: null, release: false }, 0.5);
+    const a = acceptCounter();
+    check(C && a.ok && f2.team === 0 && f2.cl, `contre-proposition acceptée : ${a.txt}`);
+  }
+  const ch = negoChance(fr, 100, 2, false, 100, { bonus: 20, role: gt.key, release: true }).parts.map(p => p[0]);
+  check(ch.includes('Prime de victoire') && ch.includes('Clause libératoire'), 'clauses prises en compte');
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

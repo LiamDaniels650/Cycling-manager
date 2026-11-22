@@ -71,7 +71,7 @@ function relationsOf(id) {
 }
 // Réunit deux coureurs en froid pour discuter.
 function mediate(a, b) {
-  const g = rnd() < 0.2 ? -rint(3, 10) : rint(8, 22);
+  const g = rnd() < (captain() ? 0.12 : 0.2) ? -rint(3, 10) : rint(8, 22); // un capitaine aide à apaiser
   addRel(a, b, g);
   S.riders[a].moral = clamp(S.riders[a].moral - 2, 0, 100);
   S.riders[b].moral = clamp(S.riders[b].moral - 2, 0, 100);

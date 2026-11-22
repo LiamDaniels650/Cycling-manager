@@ -59,6 +59,8 @@ src/
     57-academy-plus.js    académie : centre de formation, prospection ciblée, journée de détection, anciens
     58-equipment-plus.js  équipement : roues, pneus, nutrition, secondes, mécaniciens, soufflerie, adaptation
     59-legacy.js          héritage du directeur (dynastie, panthéon, distinctions) ; événements de la vue du ciel
+    60-locker.js          vestiaire : caractères, capitaine, ambitions ciblées, promesses, parrainage, réunions
+    61-negotiation.js     négociations : agents, coureurs courtisés, clauses, contre-propositions
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -395,6 +397,17 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     étapes, maillots, podium UCI, saisons en WorldTour) et sa courbe, grands succès, vos coureurs devenus
     légendes (🌱 formés à l'académie), neuf distinctions, panthéon des directeurs (vous, ceux de l'ordinateur en
     poste et ceux partis au carrousel). Reconstruit à partir des résultats pour une partie déjà commencée.
+  - Vestiaire (onglet Équipe, fichier 60-locker.js) : caractère de chaque coureur (capitaine né, fidèle, égoïste,
+    tête brûlée, timide, ambitieux, équilibré) et leadership ; capitaine de route (consignes mieux appliquées quand
+    il court, moral du groupe, médiations plus sûres) ; objectifs de saison visant une course précise (« leader à
+    … ») et ambitieux déçus s'ils n'y sont pas ; promesses de rôle sur une course, tenues ou rompues, et confiance
+    du groupe en votre parole ; parrainage d'un jeune pro par un ancien ; rivalités de leaders à trancher ;
+    frustrés qui se plaignent dans la presse ; réunions d'équipe (remobiliser, recadrer, écouter), une toutes les
+    quatre semaines.
+  - Négociations (fichier 61-negotiation.js) : agents (requin, conciliant, de carrière, ou en famille pour les
+    jeunes), coureurs cotés courtisés par d'autres équipes, clauses (prime de victoire payée à chaque succès, rôle
+    de leader garanti sur une course, clause libératoire qu'une équipe riche peut lever en fin de saison),
+    contre-propositions de l'agent en trois tours au plus. L'adjoint négocie comme avant.
   - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
     carrousel, presse, stages, tests d'effort, forme).
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

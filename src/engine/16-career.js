@@ -128,6 +128,11 @@ function acceptJob(tid) {
     r.promise = false;
   }
   for (const id of newRiders) seedRelationsFor(id);
+  // nouveau vestiaire : capitaine, promesses et parrainages repartent de zéro
+  S.captain = null;
+  S.proms = [];
+  S.proMentors = {};
+  S.lockAsk = null;
   initImage(); // nouvelle équipe, nouvelle image (construite à partir de son effectif)
   S.teamRel = {};
   for (const id of S.academy.slice()) {

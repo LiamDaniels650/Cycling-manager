@@ -49,6 +49,7 @@ function weeklyUpdate() {
   runAssistant();
   wtWeekly();
   storiesWeekly();
+  lockerWeekly();
   discoWeekly();
   const coachMul = 0.8 + 0.15 * S.staff.coach;
   for (const id in S.riders) {
@@ -110,7 +111,7 @@ function weeklyUpdate() {
       r.injury--;
       r.forme = Math.max(30, r.forme - 4);
     }
-    r.moral = clamp(r.moral + (62 - r.moral) * 0.06, 0, 100);
+    r.moral = clamp(r.moral + ((mine ? lockerMoralTarget(r) : 62) - r.moral) * 0.06, 0, 100);
     // progression
     const ov = overall(r.s);
     // la progression ralentit à l'approche de l'âge de pic du profil (les grimpeurs mûrissent plus tard que les sprinteurs) ;
@@ -128,6 +129,7 @@ function weeklyUpdate() {
     const g0 = ageF * gapF * cm * loadF;
     trainGain(r, pl, g0);
     prepGain(r, g0); // stage de montagne, entraîneur en chef spécialisé (mon équipe)
+    if (mine) proMentorGain(r, pl, g0); // parrainage d'un ancien (60-locker.js)
     // poids de forme : le poids pris à l'intersaison fond à l'entraînement et en course (pas au repos)
     if (r.kgOpt == null) r.kgOpt = r.kg;
     const burn = pl === 'repos' ? -0.1 : (KG_BURN[pl] || 0.15) + Math.min(0.2, (r.load || 0) * 0.03);
@@ -321,6 +323,8 @@ function endSeason() {
   imageEndSeason();
   pressEndSeason(myRank);
   legacyEndSeason(rankArr);
+  lockerEndSeason();
+  releaseClausesEndSeason();
   dsCarousel(rankArr);
   careerEndSeason(myRank);
   S.teamHist.push({

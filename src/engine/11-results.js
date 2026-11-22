@@ -365,6 +365,9 @@ function finishRace(rc) {
     eqEarlyAfterWin(rc, w);
   }
   goalsAfterRace(rc);
+  ambitionsAfterRace(rc);
+  promisesAfterRace(rc);
+  clausesAfterRace(rc);
   imageAfterRace(rc);
   // pic de forme atteint : retour à l'entretien
   for (const id of myIds) {

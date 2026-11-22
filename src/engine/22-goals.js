@@ -46,6 +46,7 @@ function assignGoals() {
     else g = 'days';
     r.goal = { k: g, s: S.season, base: ov, done: false };
   }
+  ambitionsAssign(); // course visée (60-locker.js)
 }
 // Suivi après chaque course du joueur.
 function goalsAfterRace(rc) {

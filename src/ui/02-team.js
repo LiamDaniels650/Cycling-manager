@@ -23,13 +23,15 @@ function doMediate(a, b) {
 }
 // Salaire demandé tel que l'estime le directeur sportif (erreur propre au coureur, la même à chaque affichage).
 function demEst(r) {
-  return Math.round((contractDemand(r) * (0.9 + (0.2 * ((r.nzc || 0) + 1.6)) / 3.2)) / 5) * 5;
+  return Math.round((contractDemand(r) * agentDemMul(r) * (0.9 + (0.2 * ((r.nzc || 0) + 1.6)) / 3.2)) / 5) * 5;
 }
 function doNego(id) {
   const n = UI.nego;
-  const res = negotiate(id, n.sal, n.years, n.promise);
+  const res = negotiate(id, n.sal, n.years, n.promise, n.cl || { bonus: 0, role: null, release: false });
   save();
-  UI.flash = (res.ok ? '✅ ' : '❌ ') + res.txt;
+  UI.flash = (res.ok ? '✅ ' : res.counter ? '🗣️ ' : '❌ ') + res.txt;
+  // contre-proposition : la fiche reste ouverte pour y répondre
+  if (res.counter) return renderModal();
   closeModal();
   render();
 }
@@ -98,4 +100,19 @@ function doRaise(ok) {
   UI.flash = answerRaise(ok);
   save();
   render();
+}
+// Réponse à la contre-proposition d'un agent.
+function doCounter(yes) {
+  const res = yes ? acceptCounter() : { ok: false, txt: declineCounter() };
+  save();
+  UI.flash = (res.ok ? '✅ ' : '❌ ') + res.txt;
+  closeModal();
+  render();
+}
+// Vestiaire : capitaine, promesse, parrainage, réunion, rivalité de leaders.
+function doLocker(fn, ...a) {
+  UI.flash = fn(...a);
+  save();
+  render();
+  if (UI.modal) renderModal();
 }

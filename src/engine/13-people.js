@@ -78,7 +78,9 @@ function marketKind(r) {
 }
 // Chance qu'un coureur accepte une offre, et ce qui la compose (sert à la négociation et à l'aide à la décision ;
 // l'interface l'appelle avec le salaire demandé ESTIMÉ, le seul que voit le directeur sportif).
-function negoChance(r, salary, years, promise, dem) {
+// cl : clauses proposées par le joueur (prime, rôle garanti, clause libératoire ; 61-negotiation.js) ; absentes pour
+// l'adjoint, qui négocie comme avant.
+function negoChance(r, salary, years, promise, dem, cl) {
   const kind = marketKind(r);
   const pf = 1.08 - teamRank() * 0.02;
   const parts = [];
@@ -88,7 +90,8 @@ function negoChance(r, salary, years, promise, dem) {
     if (v) parts.push([lbl, v]);
     p += v;
   };
-  if (promise && r.amb > 55) add('Promesse d’un rôle de leader', 0.15);
+  if (promise && r.amb > 55 && !(cl && cl.role)) add('Promesse d’un rôle de leader', 0.15);
+  if (cl) negoExtras(r, cl, add);
   add('Notoriété de l’équipe', (repOf() - 50) / 250); // la notoriété de l'équipe attire
   add('Image de l’équipe', 0.12 * imageAffinity(r)); // un coureur se reconnaît dans l'image de l'équipe
   add('Statut ProTeam', wtSignFactor(r)); // une ProTeam attire moins les coureurs cotés
@@ -98,7 +101,7 @@ function negoChance(r, salary, years, promise, dem) {
   return { p: clamp(p, 0, 0.97), parts };
 }
 // Négociation d'un contrat avec un coureur (probabilité d'accord selon l'offre).
-function negotiate(id, salary, years, promise) {
+function negotiate(id, salary, years, promise, cl, fromCounter) {
   const r = S.riders[id];
   const P = S.teams[0];
   const kind = marketKind(r);
@@ -121,10 +124,14 @@ function negotiate(id, salary, years, promise) {
   const signBonus = Math.round(salary * 0.1);
   if (S.budget < fee + signBonus)
     return { ok: false, txt: `Budget insuffisant (indemnité ${fmtMoney(fee)} + prime ${fmtMoney(signBonus)}).` };
-  const dem = contractDemand(r);
+  const dem = contractDemand(r) * (cl ? agentDemMul(r) : 1);
   const pf = 1.08 - teamRank() * 0.02;
-  const p = negoChance(r, salary, years, promise, dem).p;
-  if (rnd() >= p) {
+  const p = negoChance(r, salary, years, promise, dem, cl).p;
+  if (!fromCounter && rnd() >= p) {
+    // votre offre (pas celle de l'adjoint) : l'agent répond souvent par une contre-proposition
+    const C = cl ? negoCounter(r, salary, years, promise, cl, p) : null;
+    if (C) return { ok: false, counter: C, txt: `${riderName(r)} refuse cette offre. ${counterText(r, C)}` };
+    S.negoC = null;
     r.negoBlock = S.week + S.season * 100 + (p < 0.2 ? 6 : 3);
     const ask = Math.round((dem * (1.05 + rnd() * 0.15)) / pf / 5) * 5;
     return {
@@ -135,8 +142,9 @@ function negotiate(id, salary, years, promise) {
   S.budget -= fee + signBonus;
   finAdd('transf', -(fee + signBonus));
   mercLog(r, kind === 'pre' ? 'pre' : kind === 'transfer' ? 'transfert' : 'signe', r.team, 0);
-  if (promise) r.promise = true;
+  if (promise && !(cl && cl.role)) r.promise = true;
   if (kind === 'pre') {
+    applyClauses(r, salary, cl);
     r.nextTeam = 0;
     r.nextSal = salary;
     r.nextYears = years;
@@ -172,7 +180,8 @@ function negotiate(id, salary, years, promise) {
     'Recrutement',
     `${riderName(r)} rejoint l'équipe pour ${years} an(s), ${fmtMoney(salary)}/an${fee ? ', indemnité de transfert ' + fmtMoney(fee) : ''}.`
   );
-  return { ok: true, txt: `${riderName(r)} a signé !` };
+  const ct = applyClauses(r, salary, cl);
+  return { ok: true, txt: `${riderName(r)} a signé !${ct}` };
 }
 // Libère un coureur sous contrat (indemnité de départ).
 function releaseRider(id) {

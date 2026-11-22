@@ -2,7 +2,8 @@
 function obeyCheck(x, ord, sim) {
   if (sim && sim.carId === x.id) return true; // mode carrière : le joueur est le coureur
   const r = x.r;
-  let p = 0.42 + (r.dis / 100) * 0.52 + (r.moral - 55) / 350 + (x.player && campOn('cohesion') ? 0.05 : 0);
+  let p =
+    0.42 + (r.dis / 100) * 0.52 + (r.moral - 55) / 350 + (x.player && campOn('cohesion') ? 0.05 : 0) + captainObey(x, sim);
   if (r.trait === 'modele') p += 0.22;
   if (r.trait === 'fragile') p += (r.moral - 55) / 160;
   if (SUBORD.includes(ord)) {
@@ -127,7 +128,8 @@ function obeyCheckPre(x, sim) {
     (r.dis / 100) * 0.4 +
     (r.moral - 55) / 300 -
     (r.amb / 100) * 0.18 +
-    (x.player && campOn('cohesion') ? 0.05 : 0);
+    (x.player && campOn('cohesion') ? 0.05 : 0) +
+    captainObey(x, sim);
   const ld = sim && sim.teamLeader[x.team.id];
   if (x.player && ld && ld !== x) p += rel(x.id, ld.id) / 300;
   if (r.trait === 'modele') p += 0.3;
