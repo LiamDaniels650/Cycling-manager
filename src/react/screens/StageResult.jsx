@@ -497,6 +497,35 @@ function ClimbWatts({ climbs, mine }) {
     </div>
   );
 }
+// Abandons tactiques entre deux étapes : vos coureurs encore en course, avec les suggestions du staff.
+function TacticalBox({ rc }) {
+  const sug = tacticalSuggest(rc);
+  const mine = (rc.sel[0] || []).filter(id => !rc.out[id]).map(id => S.riders[id]);
+  const go = id => ((UI.flash = myTacticalAbandon(id)), save(), render());
+  return (
+    <details className="mt-2 rounded-lg bg-slate-800/60 p-2 text-sm" open={sug.length > 0}>
+      <summary className="cursor-pointer">
+        🏠 Abandon tactique{sug.length ? ` · le staff suggère : ${sug.map(r => riderName(r)).join(', ')}` : ''}
+      </summary>
+      <p className="mt-1 text-xs text-slate-400">
+        Un coureur qui n'a plus rien à jouer peut rentrer préparer ses objectifs : fatigue épargnée, mais
+        l'organisateur n'aime pas ça (un peu de réputation en moins sur un grand tour).
+      </p>
+      <div className="mt-1 flex flex-wrap gap-1">
+        {mine.map(r => (
+          <button
+            key={r.id}
+            type="button"
+            className={'rounded px-2 py-1 text-xs ' + (sug.includes(r) ? 'bg-amber-500/30' : 'bg-slate-700')}
+            onClick={() => go(r.id)}
+          >
+            {riderName(r)}
+          </button>
+        ))}
+      </div>
+    </details>
+  );
+}
 export function StageResult() {
   const rc = S.rc;
   const L = UI.lastStage;
@@ -610,6 +639,26 @@ export function StageResult() {
               ))}
             </p>
           ) : null}
+          {st.cutInfo ? (
+            <p className="mt-1 text-xs text-slate-400">
+              ⏱ Délai : {fmtGap(st.cutInfo.lim)} ({fmtDec(st.cutInfo.pct, 1)} % du temps du vainqueur)
+              {st.cutInfo.graced ? ` · ${st.cutInfo.n} coureurs hors délais repêchés par le jury (−20 points au classement par points)` : ''}
+            </p>
+          ) : null}
+          {(rc.tacOut || []).filter(t => t.si === L.idx).length ? (
+            <p className="mt-1 text-sm">
+              🏠 Rentrent chez eux :{' '}
+              {(rc.tacOut || [])
+                .filter(t => t.si === L.idx)
+                .map((t, k) => (
+                  <span key={t.id}>
+                    {k ? ', ' : ''}
+                    <RiderLink r={S.riders[t.id]} /> <span className="text-xs text-slate-400">({t.why})</span>
+                  </span>
+                ))}
+            </p>
+          ) : null}
+          {!rc.done && rc.specs.length > 1 && rc.si < rc.specs.length - 1 ? <TacticalBox rc={rc} /> : null}
         </Card>
       ) : null}
       {tab === 'equipe' && st.stats ? (

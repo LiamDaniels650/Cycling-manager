@@ -1273,5 +1273,39 @@ check(
   heatAccWeekly(z, 'chaleur');
   check(z.heatAcc === 3, 'chambre chaude : acclimatation');
 }
+{
+  // course plus vraie : délais selon la vitesse, repêchage, radio-course, abandons tactiques
+  check(cutPct('plat', 46) > cutPct('plat', 38) && cutPct('montagne', 34) > cutPct('plat', 38), 'délai : plus large quand le vainqueur va vite, et en montagne');
+  newGame('Vrai', 41);
+  const gi = S.cal.findIndex(c => c.key === 'gb');
+  const rc = startRace(gi, aiSelect(S.teams[0], S.cal[gi], prepareRaceSpecs(S.cal[gi])));
+  Object.assign(rc.orders, autoOrders(0, rc.specs[0], rc));
+  const sim = newStageSim(rc);
+  for (let i = 0; i < 200 && !sim.done; i++) simTick(sim);
+  check(sim.board && Object.keys(sim.board.gaps).length >= 1, 'radio-course : pointages pendant l’étape');
+  const L = sim.groups.filter(G => G.riders.some(x => !x.fin && !x.dnf)).sort((a, b) => b.pos - a.pos);
+  if (L.length >= 2) {
+    const b = boardGap(sim, L[0], L[L.length - 1]);
+    const ex = gapSec(L[0], L[L.length - 1]);
+    check(b.v >= 0 && Math.abs(b.v - ex) <= ex * 0.25 + 60, `écart annoncé ${b.v} s pour ${Math.round(ex)} s réels`);
+    S.exactGaps = true;
+    check(boardGap(sim, L[0], L[L.length - 1]).v === ex, 'option écarts exacts');
+    S.exactGaps = false;
+  }
+  // repêchage collectif : plus de 20 % hors délais
+  const ids = Object.keys(rc.gc).map(Number).slice(0, 30);
+  const res = ids.map((id, i) => ({ id, time: i < 20 ? 14400 : 14400 * 1.5 }));
+  rc.si = 3;
+  ids.forEach(id => (rc.pts[id] = 30));
+  const out = cutApply(rc, { type: 'plat', dist: 180 }, res);
+  check(out.length === 0 && rc.cutInfo.graced && rc.pts[ids[25]] === 10, 'repêchage collectif avec pénalité de points');
+  const res2 = ids.map((id, i) => ({ id, time: i < 28 ? 14400 : 14400 * 1.5 }));
+  check(cutApply(rc, { type: 'plat', dist: 180 }, res2).length === 2, 'hors délais : éliminés');
+  // abandon tactique du joueur
+  S.rc = rc;
+  rc.si = 10;
+  const my = (rc.sel[0] || []).find(id => !rc.out[id]);
+  check(/quitte/.test(myTacticalAbandon(my)) && rc.out[my], 'abandon tactique : le coureur rentre');
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

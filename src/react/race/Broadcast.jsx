@@ -211,7 +211,7 @@ export function RoadStrip({ sim, frac }) {
     }
     lastX[row] = tx;
     lastT[row] = items.length;
-    const gap = i ? fmtGap(gapSec(gs[0], G)) : 'Tête';
+    const gap = i ? boardGapTxt(sim, gs[0], G) : 'Tête';
     items.push(
       <text
         key={'t' + i}

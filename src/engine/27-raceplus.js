@@ -254,6 +254,7 @@ function dropExplain(r, d, ord) {
     pav: 'quand les spécialistes des pavés ont durci',
     montee: 'quand les grimpeurs ont imposé leur rythme',
     finale: 'quand les meilleurs se sont expliqués',
+    delais: 'quand son gruppetto a accéléré pour rentrer dans les délais',
     calme: '',
   }[d.src];
   const where = `à ${fmtDec(d.km)} km de l'arrivée${d.g >= 3 ? ` (pente ${fmtDec(d.g)} %)` : ''}`;

@@ -332,6 +332,15 @@ export function Dock({ sim }) {
                 />{' '}
                 pause aux moments décisifs
               </label>
+              <label className="flex min-h-8 items-center gap-1.5" title="Sans radio-course : écarts exacts et immédiats">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-sky-500"
+                  checked={!!S.exactGaps}
+                  onChange={e => ((S.exactGaps = e.target.checked), save(), renderLive())}
+                />{' '}
+                écarts exacts
+              </label>
               {S.car ? null : (
                 <button
                   type="button"

@@ -29,13 +29,22 @@ export function Peloton({ sim }) {
   const nRest = sum(rest.map(G => G.riders.length));
   const mineRest = rest.flatMap(G => G.riders.filter(x => x.player));
   return (
-    <Card title="Course">
+    <Card
+      title="Course"
+      right={
+        boardAge(sim) != null ? (
+          <span className="text-xs text-slate-400" title="Écarts donnés par la radio-course et l'ardoisier, avec un peu d'imprécision">
+            📻 pointage il y a {fmtDec(boardAge(sim), 1)} km
+          </span>
+        ) : null
+      }
+    >
       {/* hauteur fixe, défilement interne : l'écran ne bouge pas quand des groupes se forment ou se rejoignent */}
       <div className="h-[22rem] overflow-y-auto overscroll-contain pr-1">
         <div className="space-y-2">
           {shown.map(G => {
             const i = sim.groups.indexOf(G);
-            const gap = i ? gapSec(front, G) : 0;
+            const gap = i ? boardGapTxt(sim, front, G) : '';
             const mine = G.riders.filter(x => x.player);
             const fav = G.riders.filter(x => !x.player && (sim.favs.has(x.id) || jersey(x.id)));
             const others =
@@ -55,7 +64,8 @@ export function Peloton({ sim }) {
                     {grpLabel(sim, G, i)} · {G.riders.length}
                   </b>
                   <span className="text-sm text-slate-200">
-                    {i ? <b className="mr-1 tabular-nums">{fmtGap(gap)}</b> : null}
+                    {i ? <b className="mr-1 tabular-nums">{gap}</b> : null}
+                    {G.cutRush ? <span className="mr-1 text-xs text-amber-300">⏱️ calcule les délais</span> : null}
                     <span className="text-xs text-slate-400">
                       {G.speed.toFixed(1)} km/h
                       {wkg ? (

@@ -381,7 +381,7 @@ function draw(cv, sim, cam, st) {
     const head = live(sim)
       .slice()
       .sort((a, b) => b.pos - a.pos)[0];
-    const gap = G === head ? '' : ' · ' + fmtGap(gapSec(head, G));
+    const gap = G === head ? '' : ' · ' + boardGapTxt(sim, head, G);
     const name =
       G === sim.pel
         ? `Peloton (${n})`

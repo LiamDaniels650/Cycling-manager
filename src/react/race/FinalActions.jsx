@@ -159,7 +159,7 @@ export function FinalActions({ sim }) {
           {mine.map(x => {
             const out = x.fin || x.dnf || !x.g;
             const acts = out ? [] : actionsFor(sim, x, head);
-            const gap = out ? doingNow(sim, x) : x.g === head ? 'en tête' : fmtGap(gapSec(head, x.g));
+            const gap = out ? doingNow(sim, x) : x.g === head ? 'en tête' : boardGapTxt(sim, head, x.g);
             const R = x.radio && RADIO_HELP[x.radio];
             return (
               <div key={x.id} className={'rounded-xl bg-slate-800/70 p-2.5 ' + (out ? 'opacity-60' : '')}>

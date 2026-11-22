@@ -371,6 +371,7 @@ function simStep(sim) {
   tickCrossings(sim);
   finaleTick(sim);
   commentTick(sim);
+  boardTick(sim); // radio-course : pointages des écarts pour le directeur sportif
   sim.t += DT_MIN;
   if (sim.runners.every(x => x.fin || x.dnf)) endStageSim(sim);
 }

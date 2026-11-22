@@ -50,7 +50,7 @@ function advice(sim, head, pel, mine) {
   if (pel && pel.expo && (sim.P.wind || 0) >= 2 && kmL > 3)
     return 'Vent de côté : une bordure peut se former. « Se placer devant » (ordres à toute l’équipe) pour ne pas être piégé.';
   if (head && pel && head !== pel && spr && spr.g === pel && (t === 'plat' || t === 'vallonne')) {
-    const gap = gapSec(head, pel);
+    const gap = boardGap(sim, head, pel).v;
     if (gap > 150 && kmL < 90 && !head.riders.some(x => x.player))
       return `L'échappée a ${gapTxt(gap)} : si personne ne roule, votre sprinteur ${riderName(spr.r)} ne jouera pas la victoire. « Rouler » (ordres à toute l’équipe) pour la reprendre.`;
   }
@@ -59,6 +59,11 @@ function advice(sim, head, pel, mine) {
     return `${riderName(lowE[0].r)} est dans le dur (énergie ${Math.round(lowE[0].energy)}) : qu'il s'abrite et mange.`;
   return null;
 }
+// Écart annoncé par la radio-course (« ≈ » : pas encore de pointage officiel pour ce groupe).
+const bgTxt = (sim, A, B) => {
+  const g = boardGap(sim, A, B);
+  return (g.ok ? '' : '≈ ') + gapTxt(g.v);
+};
 export function Situation({ sim }) {
   const live = sim.groups.filter(G => G.riders.some(x => !x.fin && !x.dnf));
   if (!live.length) return null;
@@ -75,7 +80,7 @@ export function Situation({ sim }) {
     const workT = [
       ...new Set(pel.riders.filter(x => x.work > 0).map(x => (x.team.player ? 'votre équipe' : x.team.short))),
     ].slice(0, 3);
-    front = `${n === 1 ? riderName(head.riders[0].r) + ' seul' : 'Échappée de ' + n} en tête avec ${gapTxt(gapSec(head, pel))} d'avance${mh.length ? ` (dont ${mh.map(x => riderName(x.r)).join(', ')})` : ''}. ${workT.length ? 'Le peloton est mené par ' + workT.join(', ') + '.' : 'Personne ne roule vraiment dans le peloton.'}`;
+    front = `${n === 1 ? riderName(head.riders[0].r) + ' seul' : 'Échappée de ' + n} en tête avec ${bgTxt(sim, head, pel)} d'avance${mh.length ? ` (dont ${mh.map(x => riderName(x.r)).join(', ')})` : ''}. ${workT.length ? 'Le peloton est mené par ' + workT.join(', ') + '.' : 'Personne ne roule vraiment dans le peloton.'}`;
   }
   // mes coureurs
   const byG = new Map();
@@ -83,7 +88,7 @@ export function Situation({ sim }) {
   const parts = [...byG.entries()]
     .sort((a, b) => b[0].pos - a[0].pos)
     .map(([G, xs]) => {
-      const where = G === head && G !== pel ? 'devant' : G === pel ? 'dans le peloton' : `à ${gapTxt(gapSec(head, G))}`;
+      const where = G === head && G !== pel ? 'devant' : G === pel ? 'dans le peloton' : `à ${bgTxt(sim, head, G)}`;
       return `${xs.length > 2 ? xs.length + ' coureurs' : xs.map(x => riderName(x.r)).join(' et ')} ${where}`;
     });
   const nx = nextUp(sim, head.pos);

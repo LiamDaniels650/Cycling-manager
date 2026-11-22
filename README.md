@@ -62,6 +62,7 @@ src/
     60-locker.js          vestiaire : caractères, capitaine, ambitions ciblées, promesses, parrainage, réunions
     61-negotiation.js     négociations : agents, coureurs courtisés, clauses, contre-propositions
     62-physio.js          préparation physique : périodisation, laboratoire, santé typée, déplacements, chaleur
+    63-racereal.js        course plus vraie : délais et gruppetto, radio-course, abandons tactiques
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -417,6 +418,14 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     typées (fracture, plaies, tendinite, virus, covid), maladies d'hiver et tendinites de surcharge pour tous,
     médecin-chef spécialisé, reprise anticipée avec risque de rechute, infirmerie ; fatigue des déplacements entre
     régions éloignées (toutes les équipes) ; chambre chaude pour s'acclimater à la chaleur.
+  - Course plus vraie (fichier 63-racereal.js) : délais selon le type d'étape et la vitesse du vainqueur ; le
+    gruppetto calcule et accélère quand il risque l'élimination ; au-delà de 20 % de coureurs hors délais, repêchage
+    avec 20 points de pénalité au classement par points. Radio-course : les écarts affichés au directeur sportif
+    viennent de pointages (tous les 5 km, plus souvent dans le final), avec une petite erreur, « ≈ » pour un
+    groupe pas encore pointé ; option « écarts exacts ». Abandons tactiques dans les grands tours (sprinteurs après
+    la dernière étape plate, leaders distancés qui visent un autre grand tour, un jour de repos), et pour vos
+    coureurs entre deux étapes. La file des voitures (ordre, dépannage neutre, voiture derrière l'échappée) existait
+    déjà.
   - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
     carrousel, presse, stages, tests d'effort, forme).
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

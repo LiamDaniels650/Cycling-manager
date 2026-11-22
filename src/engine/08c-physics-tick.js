@@ -140,6 +140,15 @@ function tickPhysics(sim) {
       const caps = [...capM.values()].sort((a, b) => a - b);
       L = Math.min(L, caps[Math.floor(caps.length * 0.5)] * R.sitUpPace);
     }
+    // délais : un groupe d'attardés qui finirait hors délais accélère (le gruppetto calcule)
+    if (n >= 1 && G.burst <= 0 && cutRush(sim, G)) {
+      L0 = L;
+      L = Math.max(L, capsDesc()[Math.floor(n * 0.5)] * R.cutRushPace);
+      if (L > L0) {
+        paceSrc = 'delais';
+        G.cutRush = true;
+      }
+    } else G.cutRush = false;
     if (G.noMerge > 0) G.noMerge--;
     G.L = L;
     // vitesse de référence (calibrée), puis conditions du jour par la physique (air, vent, revêtement, pluie)

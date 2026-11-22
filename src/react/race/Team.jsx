@@ -14,7 +14,7 @@ function RiderLive({ sim, x, front }) {
     st = (
       <span>
         {grpLabel(sim, x.g, gi)}
-        {gi ? <b className="ml-1 tabular-nums">{fmtGap(gapSec(front, x.g))}</b> : null}
+        {gi ? <b className="ml-1 tabular-nums">{boardGapTxt(sim, front, x.g)}</b> : null}
         {x.g.riders.length >= 8 ? ` · ${posLbl(x.pos)}` : ''}
       </span>
     );

@@ -72,26 +72,13 @@ function applyStageResult(rc, spec, res, dnfIds) {
       }
     }
   }
-  const cutIds = [];
-  if (rc.specs.length > 1 && res.length > 10 && rc.si < rc.specs.length - 1) {
-    const pct =
-      { plat: 0.12, paves: 0.14, vallonne: 0.11, punch: 0.11, montagne: 0.15, sommet: 0.13, clm: 0.3 }[spec.type] ||
-      0.15;
-    const lim = res[0].time * (1 + pct);
-    const late = res.filter(e => e.time > lim);
-    if (late.length && late.length <= res.length * 0.15) {
-      for (const e of late) {
-        rc.out[e.id] = true;
-        cutIds.push(e.id);
-      }
-    }
-    rc.cutInfo = { n: late.length, lim: lim - res[0].time, graced: late.length > res.length * 0.15 };
-  } else rc.cutInfo = null;
+  const cutIds = cutApply(rc, spec, res); // délais, repêchage (63-racereal.js)
   rc.stageRes.push({
     name: spec.name,
     type: spec.type,
     res: res.map(e => ({ id: e.id, gap: e.gap, time: e.time })),
     cut: cutIds,
+    cutInfo: rc.cutInfo ? { pct: rc.cutInfo.pct, lim: Math.round(rc.cutInfo.lim), n: rc.cutInfo.n, graced: rc.cutInfo.graced } : null,
     stats: rc._stats || null,
     brk: rc._brk || null,
     moments: rc._moments || null,
@@ -140,6 +127,7 @@ function applyStageResult(rc, spec, res, dnfIds) {
   w.moral = clamp(w.moral + 12, 0, 100);
   if (rc.specs.length > 1) palmAdd(res[0].id, rc.name, 'Étape ' + (rc.si + 1) + ' (' + typeLbl(spec.type) + ')', 1);
   for (let i = 0; i < 3 && i < res.length; i++) S.riders[res[i].id].stats.podiums++;
+  aiTacticalAbandons(rc); // grands tours : qui n'a plus rien à y faire rentre chez lui
   rc.si++;
   if (rc.si >= rc.specs.length) finishRace(rc);
 }
