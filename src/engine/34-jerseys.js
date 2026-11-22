@@ -70,6 +70,6 @@ function komPts(rc, c, summitFinish) {
   let sc = (KOM_GT[rc.key] || KOM_PTS)[c.cat] || KOM_PTS[c.cat];
   // réglage de jeu (grands tours) : les cols de passage valent 25 % de plus, pour que les chasseurs du maillot
   // échappés puissent rivaliser avec les favoris, qui ramassent les points des arrivées au sommet
-  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * 1.25));
+  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * 1.4));
   return rc.key === 'gb' && summitFinish && (c.cat === 'HC' || c.cat === 1 || c.cat === 2) ? sc.map(v => v * 2) : sc;
 }
