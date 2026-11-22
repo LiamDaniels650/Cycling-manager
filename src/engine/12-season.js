@@ -320,6 +320,7 @@ function endSeason() {
   goalsEndSeason();
   imageEndSeason();
   pressEndSeason(myRank);
+  legacyEndSeason(rankArr);
   dsCarousel(rankArr);
   careerEndSeason(myRank);
   S.teamHist.push({

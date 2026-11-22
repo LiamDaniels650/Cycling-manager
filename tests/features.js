@@ -1156,5 +1156,38 @@ check(
   S.eqEarly = { s: S.season, cat: 'roues', id: 'zephyr', pay: 20, years: 2, exp: S.week + 4 };
   check(/Accord/.test(eqEarlyAnswer(true)) && S.eqEarly.taken, 'offre anticipée acceptée');
 }
+{
+  // vue du ciel : les incidents et attaques sont relevés à l'endroit où ils se produisent
+  newGame('Ciel', 41);
+  const fi = S.cal.findIndex(c => c.stagesSpec.length === 1 && !c.worlds && (!c.inv || c.inv.includes(0)));
+  const rc = startRace(fi, aiSelect(S.teams[0], S.cal[fi], prepareRaceSpecs(S.cal[fi])));
+  Object.assign(rc.orders, autoOrders(0, rc.specs[0], rc));
+  const sim = newStageSim(rc);
+  while (!sim.done) simTick(sim);
+  const ev = sim.skyEv || [];
+  check(
+    ev.length > 0 && ev.every(e => e.km >= 0 && e.km <= sim.dist && typeof e.t === 'number'),
+    `vue du ciel : ${ev.length} événement(s) placés sur la route (${[...new Set(ev.map(e => e.kind))].join(', ')})`
+  );
+  // héritage : une saison complète, score, courbe, panthéon, distinctions
+  newGame('Héritage', 23);
+  for (let i = advanceToNextRace(); i >= 0; i = advanceToNextRace()) {
+    const c = S.cal[i];
+    if (c.worlds) runWorlds(i);
+    else if (c.inv && !c.inv.includes(0)) simulateRaceAuto(i);
+    else runDelegatedRace(i);
+  }
+  endSeason();
+  const hall = legacyHall();
+  const ai = S.teams.filter(T => !T.player).reduce((a, T) => a + (dsOf(T).score || 0), 0);
+  check(S.legacy && S.legacy.hist.length === 1 && hall.some(x => x.me), 'héritage : courbe de dynastie et place au panthéon');
+  check(ai > 200, `héritage : les directeurs de l'ordinateur marquent aussi (${Math.round(ai)} pts)`);
+  check(legacyBadges().length >= 8, 'héritage : distinctions');
+  // reconstruction d'une partie ancienne : même score à partir des résultats
+  const sc = S.legacy.score;
+  delete S.legacy;
+  const L = legacyInit();
+  check(Math.abs(L.score - sc) <= sc * 0.25 + 10, `héritage reconstruit pour une partie ancienne (${L.score} contre ${sc})`);
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

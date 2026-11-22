@@ -51,6 +51,16 @@ function at(R, km) {
     t = f - i;
   return [R.xs[i] + (R.xs[i + 1] - R.xs[i]) * t, R.ys[i] + (R.ys[i + 1] - R.ys[i]) * t, R.hd[i]];
 }
+// Moments forts montrés sur la route : icône, couleur du cercle (alpha remplacé), libellé sans coureur.
+const SKY_EV = {
+  chute: ['💥', 'rgba(239,68,68,A)', 'chute'],
+  crevaison: ['🔧', 'rgba(251,191,36,A)', 'crevaison'],
+  meca: ['⚙️', 'rgba(251,191,36,A)', 'ennui mécanique'],
+  attaque: ['⚡', 'rgba(253,224,71,A)', 'attaque'],
+  bordure: ['🌬️', 'rgba(125,211,252,A)', 'bordure !'],
+  reprise: ['🔁', 'rgba(148,163,184,A)', 'échappée reprise'],
+  moment: ['🎬', 'rgba(244,114,182,A)', 'moment décisif'],
+};
 const fracNow = () =>
   clamp(
     (UI.acc || 0) +
@@ -82,6 +92,17 @@ function focusGroup(sim, cam, st) {
     st.hl = last;
     st.hlUntil = now + 6000;
     st.hlG = last.mine ? mine() : head;
+  }
+  // un incident ou une attaque qui vous concerne (ou un favori, ou dans le final) : la caméra y va
+  const ev = (sim.skyEv || []).filter(e => e.mine || e.fav || sim.dist - e.km < 40).slice(-1)[0];
+  if (ev && ev !== st.ev && sim.t - ev.t < 3) {
+    st.ev = ev;
+    const x = ev.id != null && sim.runners.find(y => y.id === ev.id);
+    const g = x && !x.fin && !x.dnf ? x.g : L.slice().sort((a, b) => Math.abs(a.pos - ev.km) - Math.abs(b.pos - ev.km))[0];
+    if (g) {
+      st.hlUntil = now + 6000;
+      st.hlG = g;
+    }
   }
   if (st.hlUntil > now && st.hlG && L.includes(st.hlG)) return st.hlG;
   if (sim.dist - head.pos < 15 || head === pel) return head;
@@ -316,6 +337,9 @@ function draw(cv, sim, cam, st) {
   if (sim.isp) across(sim.isp.at, '#16a34a', 1.2, '🟢 sprint');
   // coureurs : rangs du groupe (placement), largeur selon la taille, éventail en bordure, file dans l'échappée
   const leaderId = sim.stageRace && sim.rc.gc ? gcCached(sim.rc).arr[0] : null;
+  // (le coureur touché par un incident récent garde son icône au-dessus de lui)
+  const posOf = new Map();
+  const evOf = new Map((sim.skyEv || []).filter(e => e.id != null && sim.t - e.t <= 3).map(e => [e.id, e]));
   for (const G of live(sim)) {
     const gKm = ipos(G, frac);
     if (gKm < k0 - 0.3 || gKm > k1 + 0.3) continue;
@@ -335,6 +359,7 @@ function draw(cv, sim, cam, st) {
       const [x0, y0, h] = at(R, gKm - back / 1000);
       const px = x0 + Math.cos(h + 1.5708) * lat,
         py = y0 + Math.sin(h + 1.5708) * lat;
+      if (evOf.has(x.id)) posOf.set(x.id, [px, py]);
       const me = x.player;
       const r0 = me ? 0.6 : 0.45;
       c.beginPath();
@@ -347,6 +372,8 @@ function draw(cv, sim, cam, st) {
         c.stroke();
       }
       if (G.attacker === x && G.burst > 0) labels.push([px, py, '⚡', '#fde047', true]);
+      else if (evOf.has(x.id) && evOf.get(x.id).kind !== 'reprise')
+        labels.push([px, py, (SKY_EV[evOf.get(x.id).kind] || SKY_EV.moment)[0], '#fde68a', true]);
       if (me && st.span < 220) labels.push([px, py, riderName(x.r), '#fbcfe8', false]);
     });
     // étiquette du groupe
@@ -363,6 +390,25 @@ function draw(cv, sim, cam, st) {
           : `Groupe (${n})`;
     labels.push([lx, ly, name + gap, G.riders.some(y => y.player) ? '#f9a8d4' : '#e2e8f0', 'grp']);
   }
+  // moments forts à l'endroit où ils se produisent (chute, crevaison, ennui mécanique, attaque, bordure, reprise) :
+  // un cercle qui pulse sur la route pendant trois minutes de course, et le nom du coureur concerné
+  const pulse = (performance.now() % 1200) / 1200;
+  for (const e of sim.skyEv || []) {
+    const age = sim.t - e.t;
+    // (le cercle suit le coureur concerné s'il est à l'image ; sinon il reste à l'endroit de l'incident)
+    const onRider = e.id != null && posOf.get(e.id);
+    if (age > 3 || (!onRider && (e.km < k0 || e.km > k1))) continue;
+    const S0 = SKY_EV[e.kind] || SKY_EV.moment;
+    const [x, y] = onRider || at(R, e.km);
+    const fade = 1 - age / 3;
+    c.beginPath();
+    c.arc(x, y, (6 + pulse * 10) * Math.max(1, 3 / sc), 0, Math.PI * 2);
+    c.lineWidth = Math.max(0.4, 2 / sc);
+    c.strokeStyle = S0[1].replace('A)', (fade * (1 - pulse)).toFixed(2) + ')');
+    c.stroke();
+    const who = e.id != null && ['chute', 'crevaison', 'meca', 'attaque'].includes(e.kind) && sim.runners.find(z => z.id === e.id);
+    labels.unshift([x, y, S0[0] + (who ? ' ' + riderName(who.r) : ' ' + S0[2]), e.mine ? '#f9a8d4' : '#fde68a', 'ev']);
+  }
   // étiquettes, toujours horizontales à l'écran
   c.restore();
   const toScr = (x, y) => {
@@ -376,14 +422,14 @@ function draw(cv, sim, cam, st) {
   for (const [x, y, t, col, kind] of labels) {
     const [sx, sy] = toScr(x, y);
     if (sx < -40 || sx > W + 40) continue;
-    const yy = kind === 'grp' ? sy - 18 : kind === true ? sy - 8 : kind === 'mk' ? sy - 12 : sy + 14;
-    const wNear = kind === 'grp' ? 90 : 60;
+    const yy = kind === 'grp' ? sy - 18 : kind === true ? sy - 8 : kind === 'mk' ? sy - 12 : kind === 'ev' ? sy + 26 : sy + 14;
+    const wNear = kind === 'grp' || kind === 'ev' ? 90 : 60;
     if (used.some(u => Math.abs(u[0] - sx) < wNear && Math.abs(u[1] - yy) < 13)) continue;
     used.push([sx, yy]);
     c.font = kind === 'grp' ? 'bold 11px sans-serif' : kind === 'mk' ? 'bold 10px sans-serif' : '10px sans-serif';
     const w = c.measureText(t).width;
-    if (kind === 'grp') {
-      c.fillStyle = 'rgba(15,23,42,0.75)';
+    if (kind === 'grp' || kind === 'ev') {
+      c.fillStyle = kind === 'ev' ? 'rgba(127,29,29,0.8)' : 'rgba(15,23,42,0.75)';
       c.fillRect(sx - w / 2 - 4, yy - 11, w + 8, 15);
     }
     c.fillStyle = col;

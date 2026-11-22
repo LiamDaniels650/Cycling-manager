@@ -280,6 +280,7 @@ function dsCarousel(rankArr) {
     const why = d.age >= 63 ? 'retraite' : miss >= 5 && h % 100 < 55 && d.goalsWon !== S.season ? 'limogé' : null;
     if (!why) continue;
     const old = dsName(T);
+    legacyRetireDs(T, d);
     const N = NATS[T.natBias] || NATS.FRA;
     const tempers = Object.keys(DS_TEMPER);
     let k = 0;

@@ -162,4 +162,6 @@ function migrate() {
   }
   // (sans changement de version) nouvelles catégories d'équipement : roues, pneus, nutrition ; mécaniciens
   if (!S.car) eqEnsure();
+  // héritage du directeur (reconstruit à partir des résultats passés)
+  if (!S.car) legacyInit();
 }

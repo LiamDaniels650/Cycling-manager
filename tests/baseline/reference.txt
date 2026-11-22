@@ -400,7 +400,7 @@ Plat — 198 km | t= 4h15'20" avg 46.5 km/h | ticks 552 | last +20'35" | DNF 0
    S. Christensen[spri]m.t., M. Marty[spri]m.t., N. Renaud[spri]m.t., A. Bernard[flah]m.t., S. Pérez[flah]m.t.
  GC: S. Christensen[spri] m.t., M. Marty[spri] +4", N. Renaud[spri] +6", A. Bernard[flah] +10", S. Pérez[flah] +10"
 
-season ok, budget 1684 riders 608 json 776246
+season ok, budget 1684 riders 608 json 776828
 
 === Grand Prix d'Ouverture ===
 Plat — 176 km | t= 4h05'33" avg 43.0 km/h | ticks 566 | last +36'59" | DNF 0
@@ -13454,8 +13454,8 @@ Plat — 198 km | t= 3h54'55" avg 50.6 km/h | ticks 477 | last +3'24" | DNF 0
      [198] 🏁 Sprint : le train BRL emmène A. Rousseau ; G. Brunner s'impose (vent de dos).
  GC: G. Brunner[spri] m.t., A. Rousseau[spri] +4", A. Jiménez[spri] +6", A. Laporte[roul] +10", S. Mertens[roul] +10"
 
-S2027 rank 11 uci 2780 wins 8 budget 2162 conf 62 obj 1110 | roster 19 aca 2 youth 63 free 65 | avgAge 25.8 teamOv 75,80,78,78,76,76,77,75,75,76,74,74,72,72,72,72,71,71 | json 748KB
-S2028 rank 12 uci 1925 wins 7 budget 1276 conf 72 obj 1110 | roster 19 aca 1 youth 70 free 65 | avgAge 26.0 teamOv 76,80,78,77,76,76,77,77,75,75,74,74,73,73,73,71,70,72 | json 903KB
+S2027 rank 11 uci 2780 wins 8 budget 2162 conf 62 obj 1110 | roster 19 aca 2 youth 63 free 65 | avgAge 25.8 teamOv 75,80,78,78,76,76,77,75,75,76,74,74,72,72,72,72,71,71 | json 749KB
+S2028 rank 12 uci 1925 wins 7 budget 1276 conf 72 obj 1110 | roster 19 aca 1 youth 70 free 65 | avgAge 26.0 teamOv 76,80,78,77,76,76,77,77,75,75,74,74,73,73,73,71,70,72 | json 904KB
 {"2027":{"sal":-3691.071428571428,"staff":-477.38095238095184,"spons":3882.3258872568945,"prize":375,"transf":0,"aca":-43.428571428571416,"other":-975,"equip":226.47619047619034},"2028":{"sal":-3869.404761904762,"staff":-414.88095238095195,"spons":3866.694295427581,"prize":259,"transf":0,"aca":-23.42857142857144,"other":-987,"equip":283.095238095238}}
 top ov 86,86,85,85,85,84,84,84,84,84 p50 76
 top20 ages 23,28,32,24,25,26,26,25,28,25,25,30,30,32,26,33,30,33,25,31 neo in top20 0

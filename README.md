@@ -58,6 +58,7 @@ src/
     56-prep.js            préparation : stages, tests d'effort, entraîneur en chef, statistiques de forme
     57-academy-plus.js    académie : centre de formation, prospection ciblée, journée de détection, anciens
     58-equipment-plus.js  équipement : roues, pneus, nutrition, secondes, mécaniciens, soufflerie, adaptation
+    59-legacy.js          héritage du directeur (dynastie, panthéon, distinctions) ; événements de la vue du ciel
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -387,6 +388,13 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     (25 k€, chrono plus rapide deux saisons) ; marque préférée des vedettes et quatre courses d'adaptation à un
     nouveau vélo ; offre anticipée d'une meilleure marque après une grande victoire.
   - Marge du sprint : le meilleur sprinteur gagne 36 à 37 % des sprints massifs (contre 31 %).
+  - Vue du ciel : chutes, crevaisons, ennuis mécaniques, attaques, bordures, échappées reprises et moments décisifs
+    sont montrés sur la route (cercle qui pulse sur le coureur concerné, icône, nom) ; le réalisateur va filmer
+    ceux qui touchent vos coureurs, un favori ou le final.
+  - Héritage (Statistiques → Héritage, fichier 59-legacy.js) : score de dynastie (grands tours, classiques,
+    étapes, maillots, podium UCI, saisons en WorldTour) et sa courbe, grands succès, vos coureurs devenus
+    légendes (🌱 formés à l'académie), neuf distinctions, panthéon des directeurs (vous, ceux de l'ordinateur en
+    poste et ceux partis au carrousel). Reconstruit à partir des résultats pour une partie déjà commencée.
   - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
     carrousel, presse, stages, tests d'effort, forme).
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

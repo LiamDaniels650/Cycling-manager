@@ -381,6 +381,7 @@ function tickIncidents(sim, live) {
 function incident(sim, x, type) {
   const G = x.g;
   const why = type === 'chute' ? '' : punctureWhy(sim, x, G);
+  skyEvent(sim, type, x, G);
   let lossS = type === 'chute' ? rf(25, 80) : type === 'meca' ? mecaLoss(sim, x, G) : punctureLoss(sim, x, G);
   let sheltered = false;
   let giver = null;
@@ -483,7 +484,7 @@ function tickMerges(sim) {
         A.riders.length &&
         (A.riders.some(x => x.player || sim.favs.has(x.id)) || A.riders.length >= 3 || A.pos > sim.dist * 0.5)
       )
-        log(sim, `🔁 Le groupe de ${A.riders.length} coureur(s) est repris par le peloton.`, '');
+        log(sim, `🔁 Le groupe de ${A.riders.length} coureur(s) est repris par le peloton.`, ''), skyEvent(sim, 'reprise', A.riders[0], A);
       // reprise de l'échappée du jour (pas des attaques de la bagarre du départ) : relevée pour le bilan d'étape
       if (
         wasBreak &&

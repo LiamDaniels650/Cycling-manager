@@ -15,6 +15,7 @@ const TABS = [
   ['palm', 'Mon palmarès'],
   ['rivals', '🆚 Rivaux'],
   ['legends', '🏛️ Légendes'],
+  ['legacy', '👔 Héritage'],
   ['review', '📋 Bilan'],
   ['film', '🎬 Film'],
   ['teams', 'Équipes'],
@@ -696,6 +697,135 @@ function FilmTab() {
     </>
   );
 }
+
+// Héritage du directeur sportif : score de dynastie (et sa courbe), grands succès, coureurs devenus légendes sous
+// vos couleurs, distinctions, panthéon des directeurs (vous, ceux de l'ordinateur en poste et ceux partis).
+function DynastyCurve({ hist }) {
+  if (hist.length < 2)
+    return <p className="mt-1 text-xs text-slate-400">La courbe de votre dynastie apparaîtra après deux saisons.</p>;
+  const w = 320,
+    h = 70,
+    n = hist.length,
+    hi = Math.max(10, ...hist.map(p => p.score));
+  const X = i => 4 + (i / (n - 1)) * (w - 8),
+    Y = v => h - 4 - (v / hi) * (h - 12);
+  const d = hist.map((p, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(p.score).toFixed(1)}`).join(' ');
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="mt-2 h-20 w-full max-w-md" role="img" aria-label="Score de dynastie au fil des saisons">
+      <path d={`${d} L${X(n - 1)},${h - 4} L${X(0)},${h - 4} Z`} fill="#f59e0b" opacity="0.15" />
+      <path d={d} fill="none" stroke="#f59e0b" strokeWidth="2" />
+      {hist.map((p, i) => (
+        <circle key={p.s} cx={X(i)} cy={Y(p.score)} r="2.5" fill="#fbbf24">
+          <title>{`Saison ${p.s} : ${p.score} pts (${p.club})`}</title>
+        </circle>
+      ))}
+      <text x="4" y="10" fontSize="9" fill="#94a3b8">
+        {hist[0].s}
+      </text>
+      <text x={w - 4} y="10" fontSize="9" fill="#94a3b8" textAnchor="end">
+        {hist[n - 1].s}
+      </text>
+    </svg>
+  );
+}
+function LegacyTab() {
+  const L = legacyInit();
+  const hall = legacyHall();
+  const myRank = hall.findIndex(x => x.me) + 1;
+  const B = legacyBadges();
+  const leg = legacyLegends();
+  const [all, setAll] = useState(false);
+  const shown = all ? hall : hall.filter((x, i) => i < 10 || x.me);
+  return (
+    <>
+      <Card title="👔 Votre héritage">
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <span className="text-3xl font-bold tabular-nums text-amber-300">{Math.round(L.score)}</span>
+          <span className="text-sm text-slate-300">
+            points de dynastie · <b>{myRank}e</b> au panthéon des directeurs ({hall.length})
+          </span>
+        </div>
+        <DynastyCurve hist={L.hist} />
+        <Info>
+          Barème : grand tour 100, grande classique 40, course par étapes WorldTour 30, étape ou maillot de grand tour
+          10 à 15, autres courses 3 à 6 ; en fin de saison, podium UCI des équipes 25/15/10 et 5 par saison en
+          WorldTour. Les directeurs de l'ordinateur marquent de la même façon.
+        </Info>
+        {L.log.length ? (
+          <ul className="mt-2 space-y-0.5 text-sm">
+            {L.log.slice(0, 12).map((e, i) => (
+              <li key={i}>
+                <span className="text-slate-400">{e.s}</span> · {e.txt} <span className="text-amber-300">+{e.pts}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-2 text-sm text-slate-400">Pas encore de grand succès : il vous faut une première grande victoire.</p>
+        )}
+      </Card>
+      <Card title="🎖️ Distinctions">
+        <div className="grid gap-2 sm:grid-cols-3">
+          {B.map(b => (
+            <div
+              key={b.n}
+              className={'rounded-lg p-2 ring-1 ' + (b.ok ? 'bg-amber-500/10 ring-amber-500/40' : 'opacity-50 ring-slate-700')}
+            >
+              <div className="text-sm font-semibold">
+                {b.ic} {b.n} {b.ok ? '✓' : ''}
+              </div>
+              <div className="text-xs text-slate-400">{b.d}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+      <Card title="⭐ Vos coureurs devenus légendes">
+        {leg.length ? (
+          <Table head={['Coureur', 'Victoires', 'Grands succès', '']}>
+            {leg.map(e => {
+              const r = S.riders[e.id];
+              return (
+                <Tr key={e.id} mine={r.team === 0}>
+                  <td>
+                    <RiderLink r={r} />
+                    {isAlumnus(r) ? <span title="formé à votre académie"> 🌱</span> : null}
+                  </td>
+                  <td>{e.wins}</td>
+                  <td className="text-xs">{e.big.join(' · ') || '—'}</td>
+                  <td className="text-xs text-slate-400">{r.retired ? 'retraité' : teamOf(r) ? teamOf(r).short : 'libre'}</td>
+                </Tr>
+              );
+            })}
+          </Table>
+        ) : (
+          <p className="text-sm text-slate-400">Aucune victoire sous vos couleurs pour l'instant.</p>
+        )}
+      </Card>
+      <Card title="🏛️ Panthéon des directeurs">
+        <Table head={['#', 'Directeur', 'Équipe', 'Pts', '']}>
+          {shown.map(x => {
+            const i = hall.indexOf(x);
+            return (
+              <Tr key={x.n + x.team + i} mine={x.me}>
+                <td>{i + 1}</td>
+                <td className={x.me ? 'font-semibold' : ''}>{x.n}</td>
+                <td className="text-xs">{x.team}</td>
+                <td>
+                  <b>{x.score}</b>
+                </td>
+                <td className="text-xs text-slate-400">
+                  {x.active ? 'en poste' : `parti en ${x.to}${x.from ? ` (depuis ${x.from})` : ''}`}
+                </td>
+              </Tr>
+            );
+          })}
+        </Table>
+        {hall.length > 11 ? (
+          <Btn onClick={() => setAll(!all)}>{all ? 'Réduire' : `Tout voir (${hall.length})`}</Btn>
+        ) : null}
+      </Card>
+    </>
+  );
+}
 const VIEWS = {
   season: SeasonTab,
   races: RacesTab,
@@ -709,6 +839,7 @@ const VIEWS = {
   review: ReviewTab,
   film: FilmTab,
   legends: LegendsTab,
+  legacy: LegacyTab,
   uci: UciTab,
   watts: WattsTab,
   palm: PalmTab,

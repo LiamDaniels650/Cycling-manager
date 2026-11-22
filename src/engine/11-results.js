@@ -196,6 +196,7 @@ function ygList(rc) {
 }
 // Fin de course : primes, points UCI, palmarès, historique, moral, presse.
 function finishRace(rc) {
+  if (!S.car) legacyInit(); // (avant le palmarès de cette course : une partie ancienne reconstruit son héritage)
   rc.done = true;
   const cal = S.cal[rc.calIdx];
   cal.done = true;
@@ -253,6 +254,7 @@ function finishRace(rc) {
     yg: ygW ? nm(ygW) : null,
     stages: multi ? rc.stageRes.map(st => ({ n: nm(st.res[0].id), id: st.res[0].id, ty: st.type })) : null,
   });
+  legacyAfterRace(rc);
   // connaissance des adversaires
   const capK = 70 + S.staff.scout * 5;
   for (const T of S.teams)

@@ -448,6 +448,7 @@ function doAttack(sim, x, opts = {}) {
       `⚡ Attaque de ${nm} (${x.team.short})${opts.bridge ? ' pour faire la jonction' : ''} !${fl}`,
       x.player ? 'me' : 'att'
     );
+  if (!opts.bridge && (x.player || sim.favs.has(x.id) || sim.dist - G.pos < 40)) skyEvent(sim, 'attaque', x, x.g || G);
   if (x.player && sim.autoPause) sim.pauseReq = 'Attaque de ' + nm;
   if (!opts.bridge && (x.player || sim.favs.has(x.id)) && sim.dist - G.pos < 60)
     highlight(sim, `⚡ Attaque de ${nm} (${x.team.short}) !${fl}`, x.player);

@@ -240,6 +240,7 @@ function momentRun(sim, G, L, grad, surf, kind, name, km, key) {
     tr.win = txt;
     tr.endLbl = kind === 'pave' ? 'Sortie du secteur !' : kind === 'desc' ? 'Bas de la descente !' : 'Sommet !';
     (sim.momentTraces = sim.momentTraces || []).push({ name, kind, km: Math.round(km), tr });
+    skyEvent(sim, 'moment', me || null, G);
     sim.liveMoment = { i: sim.momentTraces.length - 1, until: sim.t + 4 };
   }
 }
@@ -519,6 +520,7 @@ function echelonSplit(sim, G, T) {
       km: Math.round(G.pos),
       tr,
     });
+    skyEvent(sim, 'bordure', mineB[0] || mineF[0] || null, G);
     if (mineB.length || mineF.length) sim.liveMoment = { i: sim.momentTraces.length - 1, until: sim.t + 4 };
   }
 }

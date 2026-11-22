@@ -52,7 +52,7 @@ async def main():
         await pg.evaluate("()=>{ closeRace(); }")
         t=time.time(); print(await pg.evaluate(SEASON), f'({time.time()-t:.0f}s)')
         await pg.reload(); await pg.wait_for_timeout(300)
-        for v,f in [("()=>{UI.stats='watts';go('stats')}",'shot_watts.png'),("()=>go('press')",'shot_press.png'),("()=>go('mgmt')",'shot_mgmt.png'),("()=>{UI.stats='legends';go('stats')}",'shot_legends.png'),("()=>{UI.stats='review';go('stats')}",'shot_review.png'),("()=>{UI.mkt='merc';go('market')}",'shot_mercato.png'),("()=>go('home')",'shot_home.png'),("()=>{UI.stats='rivals';go('stats')}",'shot_rivals.png'),("()=>{UI.calTab='plan';go('cal')}",'shot_plan.png')]:
+        for v,f in [("()=>{UI.stats='watts';go('stats')}",'shot_watts.png'),("()=>go('press')",'shot_press.png'),("()=>go('mgmt')",'shot_mgmt.png'),("()=>{UI.stats='legends';go('stats')}",'shot_legends.png'),("()=>{UI.stats='legacy';go('stats')}",'shot_legacy.png'),("()=>{UI.stats='review';go('stats')}",'shot_review.png'),("()=>{UI.mkt='merc';go('market')}",'shot_mercato.png'),("()=>go('home')",'shot_home.png'),("()=>{UI.stats='rivals';go('stats')}",'shot_rivals.png'),("()=>{UI.calTab='plan';go('cal')}",'shot_plan.png')]:
             await pg.evaluate(v); await pg.screenshot(path=os.path.join(HERE,'out',f),full_page=True)
         await pg.evaluate("()=>{ advanceToNextRace(); const i=nextRaceIdx(); prepRace(i); }"); await pg.screenshot(path=os.path.join(HERE,'out','shot_prep.png'),full_page=True)
         await pg.evaluate("()=>{ confirmSel(); go('race'); }"); await pg.screenshot(path=os.path.join(HERE,'out','shot_brief.png'),full_page=True)
