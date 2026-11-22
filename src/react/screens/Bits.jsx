@@ -148,12 +148,14 @@ export function StageKeys({ rc, spec, Pf }) {
 }
 export function WorldsCard({ i }) {
   const pv = worldsPreview(i);
+  const oly = S.cal[i] && S.cal[i].olympic;
   const wish = S.worldsWish && S.worldsWish.s === S.season ? S.worldsWish.w : {};
   return (
     <div>
       <Info>
-        Les Mondiaux se courent par sélections nationales : chaque sélectionneur retient ses meilleurs coureurs pour ce
-        parcours. Vous pouvez demander un rôle pour vos coureurs retenus ; le rôle de leader n'est accordé qu'aux deux
+        {oly
+          ? `Les Jeux olympiques se courent par sélections nationales (${S.cal[i].per} coureurs par pays au plus) : médailles d'or, d'argent et de bronze, primes du sponsor pour vos médaillés.`
+          : 'Les Mondiaux se courent par sélections nationales : chaque sélectionneur retient ses meilleurs coureurs pour ce parcours.'} Vous pouvez demander un rôle pour vos coureurs retenus ; le rôle de leader n'est accordé qu'aux deux
         meilleurs de leur sélection.
       </Info>
       {pv.length ? (
@@ -179,7 +181,7 @@ export function WorldsCard({ i }) {
         <p className="text-sm text-slate-300">Aucun de vos coureurs n'est retenu cette année.</p>
       )}
       <Btn primary className="mt-3 w-full" onClick={() => runWorldsUI(i)}>
-        🌈 Lancer les Championnats du monde
+        {oly ? `🏅 Lancer : ${S.cal[i].name}` : '🌈 Lancer les Championnats du monde'}
       </Btn>
     </div>
   );

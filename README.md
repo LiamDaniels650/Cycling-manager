@@ -63,6 +63,7 @@ src/
     61-negotiation.js     négociations : agents, coureurs courtisés, clauses, contre-propositions
     62-physio.js          préparation physique : périodisation, laboratoire, santé typée, déplacements, chaleur
     63-racereal.js        course plus vraie : délais et gruppetto, radio-course, abandons tactiques
+    64-metier.js          métier : visibilité TV et sponsor, Jeux olympiques, motivation à domicile
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -426,6 +427,12 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     la dernière étape plate, leaders distancés qui visent un autre grand tour, un jour de repos), et pour vos
     coureurs entre deux étapes. La file des voitures (ordre, dépannage neutre, voiture derrière l'échappée) existait
     déjà.
+  - Métier (fichier 64-metier.js) : temps d'antenne partagé pendant la retransmission (échappée, groupes en chasse,
+    équipes qui mènent le peloton, arrivée et podiums), pondéré par l'audience (grands tours ×3, WorldTour ×1,5),
+    payé par le sponsor après chaque course et pris en compte pour sa confiance en fin de saison (Bureau →
+    Sponsor). Jeux olympiques les années bissextiles : contre-la-montre (deux coureurs par pays) puis course en
+    ligne (quatre), médailles, primes, palmarès et héritage. À domicile : un coureur qui court dans son pays est un
+    peu plus motivé (forme du jour +2) et gagne plus de popularité s'il brille ; signalé au briefing.
   - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
     carrousel, presse, stages, tests d'effort, forme).
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

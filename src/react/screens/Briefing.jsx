@@ -32,6 +32,16 @@ function Gear({ rc, spec }) {
         {WX[spec.wx || 'sec']} · {wind} · régime {WX_REGIME[regimeAt(S.cal[rc.calIdx].w)]}
         {reconDone(rc) ? ' · 🗺️ parcours reconnu' : ''}
       </div>
+      {(rc.sel[0] || []).some(id => isHome(rc, S.riders[id])) ? (
+        <div className="mt-1 text-xs text-emerald-300">
+          🏠 À domicile :{' '}
+          {(rc.sel[0] || [])
+            .filter(id => isHome(rc, S.riders[id]))
+            .map(id => riderName(S.riders[id]))
+            .join(', ')}{' '}
+          — devant leur public, un peu plus motivés.
+        </div>
+      ) : null}
       {rc.travel ? (
         <div className="mt-1 text-xs text-amber-200">
           ✈️ Déplacement depuis une course lointaine : {rc.travel.n} coureur{rc.travel.n > 1 ? 's' : ''} arrive

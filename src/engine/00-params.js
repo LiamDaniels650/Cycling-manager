@@ -106,6 +106,7 @@ const R = {
   summitChaseK: 0.5, // … et pour une arrivée au sommet, marge laissée par les favoris qui visent l'étape
   mtnLeaderGap: 180, // dernière montée d'une étape : les favoris roulent eux-mêmes derrière une échappée à moins de 180 s
   breakEco: 0.97,
+  homeForm: 2, // forme du jour en plus pour un coureur qui court dans son pays
   cutRushPace: 0.88, // allure d'un gruppetto qui risque les délais (part de la capacité médiane du groupe) // échappée sur le plat à plus de 30 km de l'arrivée : allure tenue (part de l'allure de relais)
   flatChaseK: 0.85, // équipes de sprinteurs : marge laissée à l'échappée (part de l'écart toléré d'origine)
   sprintCatchKm: 8, // poursuite des équipes de sprinteurs : reprendre l'échappée vers 8 km de l'arrivée…

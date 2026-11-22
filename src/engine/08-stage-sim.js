@@ -54,7 +54,7 @@ function buildStageSim(rc) {
         team: T,
         energy: rc.energy[id],
         dayForm: clamp(
-          r.forme + gauss() * fv - (sansJour ? rf(7, 13) : 0) - (r.sick > 0 ? 6 : 0) + dsGoalBoost(rc, T),
+          r.forme + gauss() * fv - (sansJour ? rf(7, 13) : 0) - (r.sick > 0 ? 6 : 0) + dsGoalBoost(rc, T) + homeBoost(rc, r),
           25,
           100
         ),
@@ -372,6 +372,7 @@ function simStep(sim) {
   finaleTick(sim);
   commentTick(sim);
   boardTick(sim); // radio-course : pointages des écarts pour le directeur sportif
+  tvTick(sim); // temps d'antenne (64-metier.js)
   sim.t += DT_MIN;
   if (sim.runners.every(x => x.fin || x.dnf)) endStageSim(sim);
 }

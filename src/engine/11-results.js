@@ -127,6 +127,7 @@ function applyStageResult(rc, spec, res, dnfIds) {
   w.moral = clamp(w.moral + 12, 0, 100);
   if (rc.specs.length > 1) palmAdd(res[0].id, rc.name, 'Étape ' + (rc.si + 1) + ' (' + typeLbl(spec.type) + ')', 1);
   for (let i = 0; i < 3 && i < res.length; i++) S.riders[res[i].id].stats.podiums++;
+  tvStageEnd(rc, res); // temps d'antenne de l'arrivée et des podiums
   aiTacticalAbandons(rc); // grands tours : qui n'a plus rien à y faire rentre chez lui
   rc.si++;
   if (rc.si >= rc.specs.length) finishRace(rc);
@@ -243,6 +244,8 @@ function finishRace(rc) {
     stages: multi ? rc.stageRes.map(st => ({ n: nm(st.res[0].id), id: st.res[0].id, ty: st.type })) : null,
   });
   legacyAfterRace(rc);
+  tvRaceEnd(rc); // primes de visibilité du sponsor
+  homeAfterRace(rc);
   // connaissance des adversaires
   const capK = 70 + S.staff.scout * 5;
   for (const T of S.teams)

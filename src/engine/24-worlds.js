@@ -45,10 +45,10 @@ function worldsSelections(cal, specs) {
   const nats = Object.entries(by)
     .map(([nat, rs]) => {
       rs.sort((a, b) => worldsFit(b, specs) - worldsFit(a, specs));
-      const top = rs.slice(0, WORLDS_PER_NATION);
+      const top = rs.slice(0, cal.per || WORLDS_PER_NATION);
       return { nat, ids: top.map(r => r.id), str: sum(top.slice(0, 3).map(r => worldsFit(r, specs))) };
     })
-    .filter(n => n.ids.length >= 3)
+    .filter(n => n.ids.length >= Math.min(3, cal.per || 3))
     .sort((a, b) => b.str - a.str)
     .slice(0, WORLDS_NATIONS);
   return nats;
@@ -164,6 +164,7 @@ function worldsPreview(i) {
 }
 // Maillot arc-en-ciel, palmarès, historique et presse.
 function worldsAfter(rc, nTeams) {
+  if (S.cal[rc.calIdx].olympic) return olympicAfter(rc); // Jeux olympiques (64-metier.js)
   const gcl = gcList(rc);
   const natOf = id => S.riders[id].nat;
   gcl.slice(0, 3).forEach((id, k) => palmAdd(id, rc.name, 'Course en ligne', k + 1));
@@ -234,7 +235,7 @@ function wearsRainbow(r) {
   return r.rainbow === S.season || (r.rainbow === S.season - 1 && !worldsDone());
 }
 function worldsDone() {
-  const c = S.cal.find(x => x.worlds);
+  const c = S.cal.find(x => x.worlds && !x.olympic);
   return !c || c.done;
 }
 
@@ -261,6 +262,9 @@ function palmScore(r) {
         if (gt) {
           s += 25;
           c.gt++;
+        } else if (d.olympic) {
+          s += 12;
+          c.worlds++;
         } else if (d.worlds) {
           s += 15;
           c.worlds++;

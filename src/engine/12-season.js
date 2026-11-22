@@ -331,6 +331,7 @@ function endSeason() {
   imageEndSeason();
   pressEndSeason(myRank);
   legacyEndSeason(rankArr);
+  tvEndSeason();
   lockerEndSeason();
   releaseClausesEndSeason();
   dsCarousel(rankArr);

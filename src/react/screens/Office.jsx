@@ -32,7 +32,38 @@ function Sponsor() {
         Chaque objectif atteint rapporte une prime et de la confiance ; chaque échec en coûte. La confiance fixe le
         versement hebdomadaire du sponsor.
       </p>
+      <TvBox />
     </Card>
+  );
+}
+// Visibilité TV : temps d'antenne de la saison, rang, primes versées, dernières courses.
+function TvBox() {
+  const k = tvRank();
+  const R0 = S.tvs && S.tvs.s === S.season ? S.tvs.races.slice(0, 5) : [];
+  return (
+    <div className="mt-3 border-t border-slate-800 pt-2 text-sm">
+      <h3 className="font-semibold text-slate-100">📺 Visibilité TV</h3>
+      {k ? (
+        <p className="text-slate-200">
+          {k.min} min d'antenne pondérées · <b>{k.rank}e</b>/{k.n} équipes · primes {fmtMoney(S.tvs.paid)}
+        </p>
+      ) : (
+        <p className="text-xs text-slate-400">Pas encore de course télévisée cette saison.</p>
+      )}
+      {R0.map((r, i) => (
+        <div key={i} className="flex justify-between text-xs text-slate-400">
+          <span>{r.name}</span>
+          <span>
+            {r.min} min · {fmtMoney(r.pay)}
+          </span>
+        </div>
+      ))}
+      <p className="mt-1 text-xs text-slate-400">
+        Le sponsor paie {fmtMoney(TV_RATE)} par minute d'antenne pondérée (×3 sur un grand tour, ×1,5 en WorldTour) :
+        échappées, tempo en tête du peloton, victoires et podiums. Les trois équipes les plus vues gagnent de la
+        confiance en fin de saison, les quatre moins vues en perdent.
+      </p>
+    </div>
   );
 }
 function Finances() {

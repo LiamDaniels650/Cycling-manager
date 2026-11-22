@@ -1307,5 +1307,28 @@ check(
   const my = (rc.sel[0] || []).find(id => !rc.out[id]);
   check(/quitte/.test(myTacticalAbandon(my)) && rc.out[my], 'abandon tactique : le coureur rentre');
 }
+{
+  // métier : visibilité TV, Jeux olympiques, motivation à domicile
+  newGame('Metier', 51);
+  const gi = S.cal.findIndex(c => c.key === 'flandres');
+  const rc = startRace(gi, aiSelect(S.teams[0], S.cal[gi], prepareRaceSpecs(S.cal[gi])));
+  Object.assign(rc.orders, autoOrders(0, rc.specs[0], rc));
+  runStageAuto(rc);
+  const tot = Object.values(rc.tv || {}).reduce((a, b) => a + b, 0);
+  check(tot > 30 && Object.keys(rc.tv).length >= 5, `visibilité TV : ${Math.round(tot)} min partagées entre ${Object.keys(rc.tv || {}).length} équipes`);
+  check(S.tvs && S.tvs.races.length === 1 && S.tvs.races[0].pay >= 0, 'visibilité : prime du sponsor après la course');
+  const bel = Object.values(S.riders).find(r => r.nat === 'BEL' && r.team != null);
+  const ita = Object.values(S.riders).find(r => r.nat === 'ITA' && r.team != null);
+  check(homeBoost(rc, bel) > 0 && homeBoost(rc, ita) === 0, 'à domicile : un Belge motivé sur une classique flandrienne');
+  check(isOlympicYear(2028) && !isOlympicYear(2027), 'Jeux olympiques tous les quatre ans');
+  S.season = 2028;
+  buildCalendar();
+  const ji = S.cal.findIndex(c => c.key === 'jochr');
+  check(ji >= 0 && S.cal.some(c => c.key === 'jo'), 'Jeux olympiques au calendrier 2028');
+  const orc = runWorlds(ji);
+  const med = Object.values(S.riders).filter(r => (r.olymp || []).some(o => o.s === 2028));
+  check(med.length === 3 && Object.keys(orc.sel).every(k => orc.sel[k].length <= 2), 'JO : chrono à deux coureurs par pays, trois médaillés');
+  check(worldsDone() === false, 'les JO ne comptent pas comme les Mondiaux');
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

@@ -33,7 +33,7 @@ function runITT(rc) {
       const x = {
         r,
         energy: rc.energy[id],
-        dayForm: clamp(r.forme + gauss() * (r.trait === 'regulier' ? 2.5 : 6), 25, 100),
+        dayForm: clamp(r.forme + gauss() * (r.trait === 'regulier' ? 2.5 : 6) + homeBoost(rc, r), 25, 100),
       };
       const tgt = o.itt === 'fond' ? 0.975 : 0.9;
       let t = 0;
@@ -97,7 +97,7 @@ function runTTT(rc) {
         id,
         r,
         energy: rc.energy[id],
-        dayForm: clamp(r.forme + gauss() * (r.trait === 'regulier' ? 2.5 : 6), 25, 100),
+        dayForm: clamp(r.forme + gauss() * (r.trait === 'regulier' ? 2.5 : 6) + homeBoost(rc, r), 25, 100),
         with: true,
         t: 0,
         di: -1,

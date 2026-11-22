@@ -623,6 +623,11 @@ export function StageResult() {
           {rc.specs[L.idx] && rc.specs[L.idx].rest && !rc.done ? (
             <p className="mt-2 text-sm">🛌 Journée de repos : récupération accrue avant l'étape suivante.</p>
           ) : null}
+          {st.tv != null ? (
+            <p className="mt-2 text-sm">
+              📺 Temps d'antenne de votre équipe : <b>{st.tv} min</b>
+            </p>
+          ) : null}
           {st.komb ? (
             <p className="mt-2 text-sm">
               🔥 Prix de la combativité : <RiderLink r={S.riders[st.komb]} />
