@@ -5,6 +5,7 @@
 import { Btn, Bar, Spark, Stars, RiderLink, KV, statColor } from '../ui.jsx';
 import { Icon } from '../icons.jsx';
 import { CompareBtn } from './Compare.jsx';
+import { PeriStrip } from './Team.jsx';
 
 function Tabs() {
   return (
@@ -173,6 +174,102 @@ function Nego({ r }) {
 // Grandes courses à venir où l'on peut promettre un rôle de leader.
 function promRaces() {
   return S.cal.filter(c => !c.done && !c.worlds && c.cat <= 1 && (!c.inv || c.inv.includes(0)));
+}
+// Préparation physique : plan de saison, laboratoire, santé.
+function PhysioRider({ r }) {
+  const P = periOf(r);
+  const L = S.cal.filter(c => !c.done && c.w > S.week && !c.worlds && (!c.inv || c.inv.includes(0)));
+  const lab = r.lab || [];
+  const d = (a, b) => (b == null ? '' : ` (${a - b >= 0 ? '+' : ''}${a - b})`);
+  const inj = r.injury > 0 ? INJ[(r.inj && r.inj.k) || 'plaies'] : null;
+  return (
+    <div className="mt-3 rounded-xl bg-slate-800/60 p-2.5 text-sm">
+      <h3 className="mb-1 font-semibold text-slate-100">Préparation physique</h3>
+      <PeriStrip r={r} />
+      <div className="mt-1 text-xs text-slate-300">
+        {P && P.targets.length
+          ? `Objectifs du plan : ${P.targets.map(k => (S.cal.find(c => c.key === k) || {}).name).join(', ')}`
+          : 'Pas de plan : entraînement choisi semaine par semaine.'}
+        {periBlockNow(r) ? ` · cette semaine : ${PERI[periBlockNow(r).k].lbl.toLowerCase()}` : ''}
+        {r.heatAcc > 0 ? ' · 🥵 acclimaté à la chaleur' : ''}
+      </div>
+      <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <select
+          className="min-h-11 rounded-xl bg-slate-800 px-2 text-sm"
+          value=""
+          onChange={e => e.target.value && doLocker(periBuild, r.id, e.target.value)}
+        >
+          <option value="">📅 Construire le plan vers…</option>
+          {L.map(c => (
+            <option key={c.key} value={c.key}>
+              {c.name} (sem. {c.w})
+            </option>
+          ))}
+        </select>
+        {P ? <Btn onClick={() => doLocker(periClear, r.id)}>Effacer le plan</Btn> : null}
+        <Btn disabled={!labReady(r) || r.injury > 0} onClick={() => doLocker(labTest, r.id)}>
+          🔬 Test en laboratoire ({fmtMoney(LAB_COST)})
+          {!labReady(r) && r.labW ? ` · possible semaine ${(r.labW % 100) + LAB_EVERY}` : ''}
+        </Btn>
+      </div>
+      {lab.length ? (
+        <table className="mt-2 w-full text-xs">
+          <thead className="text-slate-400">
+            <tr>
+              <th className="text-left">Test</th>
+              <th>Seuil</th>
+              <th>W/kg</th>
+              <th>VO2</th>
+              <th>5 s</th>
+              <th>1 min</th>
+              <th>5 min</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lab.slice(0, 4).map((m, i) => {
+              const p = lab[i + 1];
+              return (
+                <tr key={i} className="text-center">
+                  <td className="text-left">
+                    {m.s} s{m.w}
+                  </td>
+                  <td>
+                    {m.ftp}
+                    <span className="text-slate-400">{d(m.ftp, p && p.ftp)}</span>
+                  </td>
+                  <td>{fmtDec(m.ftp / m.kg, 2)}</td>
+                  <td>{fmtDec(m.vo2, 1)}</td>
+                  <td>{m.p5s}</td>
+                  <td>{m.p1}</td>
+                  <td>{m.p5}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      ) : null}
+      {inj ? (
+        <div className="mt-2 text-xs text-rose-200">
+          {inj.ic} {inj.lbl} : encore {r.injury} semaine{r.injury > 1 ? 's' : ''}
+          {r.inj && r.inj.early ? ` (reprise avancée, rechute ≈ ${Math.round(relapseP(r) * 100)} %)` : ''}.
+          {r.inj && !r.inj.early && r.injury >= 2 ? (
+            <Btn className="ml-2 min-h-9" onClick={() => doLocker(earlyReturn, r.id)}>
+              ⏩ Reprise anticipée
+            </Btn>
+          ) : null}
+        </div>
+      ) : null}
+      {(r.injHist || []).length ? (
+        <div className="mt-1 text-xs text-slate-400">
+          Antécédents :{' '}
+          {r.injHist
+            .slice(0, 4)
+            .map(e => `${(INJ[e.k] || INJ.plaies).ic} ${e.s} s${e.wk} (${e.w} sem.${e.relapse ? ', rechute' : ''})`)
+            .join(' · ')}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 // Vestiaire : caractère, leadership, capitaine, promesse de rôle, parrainage.
 function LockerRider({ r }) {
@@ -526,6 +623,7 @@ function Fiche({ r }) {
             {r.promise ? ' Vous lui avez promis un rôle de leader.' : ''}
           </p>
           <LockerRider r={r} />
+          <PhysioRider r={r} />
           <Relations r={r} />
           <RiderStories r={r} />
         </>

@@ -1238,5 +1238,40 @@ check(
   const ch = negoChance(fr, 100, 2, false, 100, { bonus: 20, role: gt.key, release: true }).parts.map(p => p[0]);
   check(ch.includes('Prime de victoire') && ch.includes('Clause libératoire'), 'clauses prises en compte');
 }
+{
+  // préparation physique : plan de saison, laboratoire, santé, déplacements, chaleur
+  newGame('Physio', 31);
+  const r = S.teams[0].riders.map(id => S.riders[id]).sort((a, b) => overall(b.s) - overall(a.s))[0];
+  check(/construit/.test(periBuild(r.id, 'gb')) && periOf(r).blocks.length === 4, 'plan de saison : quatre blocs vers la Grande Boucle');
+  const gb = S.cal.find(c => c.key === 'gb');
+  check(periBlockNow(r, gb.w - 1).k === 'affutage' && periBlockNow(r, gb.w - 4).k === 'intensite', 'plan : intensité puis affûtage');
+  r.trn = { s: S.season, f: [gb.w - 10, gb.w - 9, gb.w - 8, gb.w - 7, gb.w - 6, gb.w - 5], i: [gb.w - 6, gb.w - 5, gb.w - 4, gb.w - 3] };
+  r.peakW = gb.w;
+  check(periBonus(r, 'pic') === 5, 'surcompensation : foncier et intensité donnent un pic plus haut');
+  S.budget = 1000;
+  const t1 = labTest(r.id);
+  check(/seuil \d+ W/.test(t1) && r.lab.length === 1 && /trop récent/.test(labTest(r.id)), `laboratoire : ${t1.slice(0, 60)}…`);
+  const m = r.lab[0];
+  check(m.p5s > m.p1 && m.p1 > m.p5 && m.p5 > m.p20 && m.vo2 > 50 && m.vo2 < 95, 'profil de puissance cohérent');
+  // blessure typée, médecin spécialiste, reprise anticipée, rechute possible
+  const q = S.teams[0].riders.map(id => S.riders[id])[3];
+  injSet(q, 'fracture', 6);
+  check(q.injury === 6 && q.inj.k === 'fracture', 'blessure typée');
+  check(/reprendra dans 4/.test(earlyReturn(q.id)) && relapseP(q) > 0.2, 'reprise anticipée : arrêt plus court, risque de rechute');
+  S.doc = { k: 'traumato', n: 'X', s: S.season };
+  const q2 = S.teams[0].riders.map(id => S.riders[id])[4];
+  injSet(q2, 'fracture', 8);
+  check(q2.injury === 6, 'médecin traumatologue : arrêt raccourci');
+  // déplacements : deux courses lointaines en deux semaines
+  check(regDist('NORD', 'ITA') === 2 && regDist('FRA', 'FRA') === 0, 'distances entre régions');
+  const z = S.teams[0].riders.map(id => S.riders[id])[5];
+  z.lastReg = { s: S.season, w: gb.w - 1, reg: 'IBE' };
+  const f0 = z.fatigue;
+  travelStart({ calIdx: S.cal.indexOf(gb), sel: { 0: [z.id] } });
+  check(z.fatigue > f0, 'déplacement : fatigue en plus');
+  // chambre chaude
+  heatAccWeekly(z, 'chaleur');
+  check(z.heatAcc === 3, 'chambre chaude : acclimatation');
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

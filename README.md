@@ -61,6 +61,7 @@ src/
     59-legacy.js          héritage du directeur (dynastie, panthéon, distinctions) ; événements de la vue du ciel
     60-locker.js          vestiaire : caractères, capitaine, ambitions ciblées, promesses, parrainage, réunions
     61-negotiation.js     négociations : agents, coureurs courtisés, clauses, contre-propositions
+    62-physio.js          préparation physique : périodisation, laboratoire, santé typée, déplacements, chaleur
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -408,6 +409,13 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     jeunes), coureurs cotés courtisés par d'autres équipes, clauses (prime de victoire payée à chaque succès, rôle
     de leader garanti sur une course, clause libératoire qu'une équipe riche peut lever en fin de saison),
     contre-propositions de l'agent en trois tours au plus. L'adjoint négocie comme avant.
+  - Préparation physique (onglet Équipe et fiche coureur, fichier 62-physio.js) : plan de saison par coureur vers
+    ses courses objectifs (foncier, intensité, affûtage, récupération), appliqué chaque semaine, avec un pic plus
+    haut quand l'affûtage a été préparé (jusqu'à +5 de forme visée) ; plans automatiques vers les objectifs ; tests
+    en laboratoire (seuil, W/kg, VO2max, profil 5 s à 20 min, toutes les six semaines) ; blessures et maladies
+    typées (fracture, plaies, tendinite, virus, covid), maladies d'hiver et tendinites de surcharge pour tous,
+    médecin-chef spécialisé, reprise anticipée avec risque de rechute, infirmerie ; fatigue des déplacements entre
+    régions éloignées (toutes les équipes) ; chambre chaude pour s'acclimater à la chaleur.
   - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
     carrousel, presse, stages, tests d'effort, forme).
 - v5.0 — explications, récit, IA de course, sprint simulé, base de données ouverte, une seule interface :

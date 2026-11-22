@@ -48,7 +48,7 @@ function applyStageResult(rc, spec, res, dnfIds) {
       if (rnd() < p) {
         rc.out[e.id] = true;
         const ill = rnd() < 0.6;
-        if (ill) r.injury = Math.max(r.injury, 1);
+        if (ill) injSet(r, 'virus', 1);
         // un virus peut traverser l'équipe
         if (ill)
           for (const id of rc.sel[r.team] || []) {

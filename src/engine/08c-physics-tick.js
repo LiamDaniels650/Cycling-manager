@@ -254,13 +254,13 @@ function tickPhysics(sim) {
           // (72 de pavés : usure normale ; 86 : -35 % ; 60 : +30 %)
           (surf ? clamp(1 + (72 - (x.r.s.pav || 60)) / 40, 0.55, 1.5) : 1) *
           // chaleur : les gabarits lourds évacuent mal la chaleur (≈ +1 % d'usure par kilo au-dessus de 66 kg)
-          (sim.wx === 'chaleur' ? 1.15 * clamp(1 + ((x.r.kg || 68) - 66) * 0.01, 0.95, 1.15) : 1) *
+          (sim.wx === 'chaleur' ? 1 + (1.15 * clamp(1 + ((x.r.kg || 68) - 66) * 0.01, 0.95, 1.15) - 1) * (x.r.heatAcc > 0 ? 0.5 : 1) : 1) *
           (x.food < 25 ? 1.35 : 1) *
           (coldHigh ? 1.12 : 1);
       x.food = Math.max(
         0,
         x.food -
-          (5 + 9 * Math.min(1.2, I)) * dtH * (sim.wx === 'chaleur' ? 1.4 : coldHigh ? 1.3 : 1) * (x.eqf.food || 1)
+          (5 + 9 * Math.min(1.2, I)) * dtH * (sim.wx === 'chaleur' ? (x.r.heatAcc > 0 ? 1.2 : 1.4) : coldHigh ? 1.3 : 1) * (x.eqf.food || 1)
       );
       if (x.food < 6 && !x.bonk) {
         x.bonk = true;
@@ -447,7 +447,8 @@ function incident(sim, x, type) {
     }
     if (rnd() < 0.08 * (x.player && S.staff ? 1.2 - 0.1 * S.staff.doctor : 1)) {
       x.dnf = true;
-      x.r.injury = Math.max(1, Math.round(rint(1, 5) * (x.player && S.staff ? 1.25 - 0.1 * S.staff.doctor : 1)));
+      const wInj = Math.max(1, Math.round(rint(1, 5) * (x.player && S.staff ? 1.25 - 0.1 * S.staff.doctor : 1)));
+      injSet(x.r, crashInjKind(wInj), wInj);
       txt += ' — abandon, blessé';
       sim.rc.out[x.id] = true;
       gcDirty(sim.rc);

@@ -43,6 +43,7 @@ function setupRace(calIdx, playerSel) {
   S.weekUsed = S.weekUsed || {};
   const wu = (S.weekUsed[cal.w] = S.weekUsed[cal.w] || []);
   for (const T of S.teams) for (const id of rc.sel[T.id]) if (!wu.includes(id)) wu.push(id);
+  travelStart(rc); // fatigue des déplacements (62-physio.js)
   S.rc = rc;
   return rc;
 }

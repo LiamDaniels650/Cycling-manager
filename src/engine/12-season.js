@@ -56,6 +56,7 @@ function weeklyUpdate() {
     const r = S.riders[id];
     if (r.team === null || r.retired || r.car) continue; // (mode carrière : le joueur s'entraîne lui-même)
     const mine = r.team === 0;
+    if (mine) periApply(r); // plan de saison (62-physio.js)
     let pl = mine ? r.training : aiTraining(r);
     let tgt =
       {
@@ -69,6 +70,7 @@ function weeklyUpdate() {
         intensif: 84,
         pic: 70,
         altitude: 78,
+        chaleur: 70,
       }[pl] || 70;
     if (pl === 'pic' && r.peakW) {
       const d = r.peakW - S.week;
@@ -93,6 +95,11 @@ function weeklyUpdate() {
       r.altBoost = Math.max(r.altBoost || 0, 3);
     }
     tgt += campFormBonus(r); // stage en altitude d'équipe
+    if (mine) {
+      periLog(r, pl);
+      tgt += periBonus(r, pl); // affûtage préparé : pic plus haut
+    }
+    heatAccWeekly(r, pl);
     // charge de la saison : au-delà de ~75 jours de course, la forme plafonne plus bas (fatigue chronique)
     tgt -= Math.max(0, r.stats.days - R.daysCap) * R.daysMalus;
     const noise = mine ? 2.4 - 0.3 * S.staff.coach : 2;
@@ -111,6 +118,7 @@ function weeklyUpdate() {
       r.injury--;
       r.forme = Math.max(30, r.forme - 4);
     }
+    healthWeekly(r, mine); // guérisons, rechutes, maladies et tendinites de la saison
     r.moral = clamp(r.moral + ((mine ? lockerMoralTarget(r) : 62) - r.moral) * 0.06, 0, 100);
     // progression
     const ov = overall(r.s);

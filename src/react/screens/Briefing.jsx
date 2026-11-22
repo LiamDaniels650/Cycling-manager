@@ -32,6 +32,19 @@ function Gear({ rc, spec }) {
         {WX[spec.wx || 'sec']} · {wind} · régime {WX_REGIME[regimeAt(S.cal[rc.calIdx].w)]}
         {reconDone(rc) ? ' · 🗺️ parcours reconnu' : ''}
       </div>
+      {rc.travel ? (
+        <div className="mt-1 text-xs text-amber-200">
+          ✈️ Déplacement depuis une course lointaine : {rc.travel.n} coureur{rc.travel.n > 1 ? 's' : ''} arrive
+          {rc.travel.n > 1 ? 'nt' : ''} avec +{rc.travel.f} de fatigue.
+        </div>
+      ) : null}
+      {spec.wx === 'chaleur' ? (
+        <div className="mt-1 text-xs text-slate-300">
+          🥵 Acclimatés à la chaleur (chambre chaude) :{' '}
+          {(rc.sel[0] || []).filter(id => S.riders[id].heatAcc > 0).length}/{(rc.sel[0] || []).length} — la chaleur les use
+          moitié moins.
+        </div>
+      ) : null}
       <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Select
           value={cur.wheels}

@@ -579,6 +579,7 @@ const TRAINING = {
   intensif: 'Bloc intensif',
   pic: 'Pic de forme (objectif)',
   altitude: 'Stage en altitude',
+  chaleur: 'Chambre chaude (chaleur)',
 };
 const STEP = 0.25;
 const WX = {

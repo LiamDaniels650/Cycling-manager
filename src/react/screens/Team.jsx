@@ -186,6 +186,63 @@ function Locker() {
     </Card>
   );
 }
+// Périodisation de l'effectif et infirmerie.
+function PrepCard() {
+  const rs = myRiders().filter(r => !r.aca);
+  const hurt = rs.filter(r => r.injury > 0);
+  return (
+    <Card title="📅 Préparation physique">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <Btn onClick={() => doLocker(periAutoAll)}>📅 Plans auto vers les objectifs</Btn>
+        <span className="text-xs text-slate-400">
+          {Object.entries(PERI).map(([k, p]) => (
+            <span key={k} className="mr-2 whitespace-nowrap">
+              <i className="mr-1 inline-block h-2.5 w-2.5 rounded-sm align-middle" style={{ background: p.col }} />
+              {p.lbl}
+            </span>
+          ))}
+          <span className="whitespace-nowrap">
+            <i className="mr-1 inline-block h-2.5 w-0.5 bg-yellow-300 align-middle" />
+            objectif
+          </span>
+        </span>
+      </div>
+      <div className="space-y-1">
+        {rs.map(r => (
+          <div key={r.id} className="flex items-center gap-2 text-xs">
+            <span className="w-28 shrink-0 truncate">
+              <RiderLink r={r} />
+            </span>
+            <PeriStrip r={r} h={10} />
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-xs text-slate-400">
+        Foncier puis intensité avant l'affûtage : le pic de forme est plus haut le jour J (jusqu'à +5). Plans à
+        construire depuis la fiche d'un coureur, ou automatiquement vers leurs objectifs.
+      </p>
+      <h3 className="mt-3 text-sm font-semibold">🏥 Infirmerie</h3>
+      {hurt.length ? (
+        hurt.map(r => (
+          <div key={r.id} className="flex items-center gap-2 text-xs">
+            <span className="flex-1">
+              {(INJ[r.inj && r.inj.k] || INJ.plaies).ic} <RiderLink r={r} /> ·{' '}
+              {(INJ[r.inj && r.inj.k] || { lbl: 'indisponible' }).lbl} · encore {r.injury} sem.
+              {r.inj && r.inj.early ? ' (reprise avancée)' : ''}
+            </span>
+            {r.inj && !r.inj.early && r.injury >= 2 ? (
+              <button type="button" className="rounded bg-slate-800 px-2 py-1" onClick={() => doLocker(earlyReturn, r.id)}>
+                ⏩ Reprise anticipée
+              </button>
+            ) : null}
+          </div>
+        ))
+      ) : (
+        <p className="text-xs text-slate-400">Personne à l'infirmerie.</p>
+      )}
+    </Card>
+  );
+}
 // Fins de contrat : un compteur, la liste à déplier avec la demande de chacun et un bouton pour prolonger.
 function EndingBox({ ending }) {
   const ext = r => ((UI.flash = extendRider(r.id, 2) || `${riderName(r)} prolonge de 2 ans.`), save(), render());
@@ -218,7 +275,39 @@ function EndingBox({ ending }) {
     </details>
   );
 }
+// Bande de la saison d'un coureur : blocs du plan, courses objectifs, semaine en cours.
+export function PeriStrip({ r, h = 14 }) {
+  const P = periOf(r);
+  const W = Math.max(...S.cal.map(c => c.w + Math.ceil(c.stagesSpec.length / 7)), 42);
+  const x = w => ((w - 1) / W) * 100;
+  return (
+    <div className="relative w-full overflow-hidden rounded bg-slate-800" style={{ height: h }}>
+      {(P ? P.blocks : []).map((b, i) => (
+        <div
+          key={i}
+          title={`${PERI[b.k].lbl} · semaines ${b.w0} à ${b.w1}`}
+          className="absolute top-0 h-full"
+          style={{ left: x(b.w0) + '%', width: ((b.w1 - b.w0 + 1) / W) * 100 + '%', background: PERI[b.k].col, opacity: 0.85 }}
+        />
+      ))}
+      {(P ? P.targets : []).map(k => {
+        const c = S.cal.find(c => c.key === k);
+        return c ? (
+          <div key={k} title={c.name} className="absolute top-0 h-full w-0.5 bg-yellow-300" style={{ left: x(c.w) + '%' }} />
+        ) : null;
+      })}
+      <div className="absolute top-0 h-full w-0.5 bg-white" style={{ left: x(S.week) + '%' }} title="cette semaine" />
+    </div>
+  );
+}
 export function TrainSelect({ r }) {
+  const b = periBlockNow(r);
+  if (b)
+    return (
+      <span className="text-xs text-slate-300" title="Plan de saison : voir la fiche du coureur">
+        📅 {PERI[b.k].lbl}
+      </span>
+    );
   return (
     <span className="flex w-full min-w-0 flex-col gap-1 sm:w-auto">
       <Select value={r.training} onChange={v => setTraining(r.id, v)} options={Object.entries(TRAINING)} />
@@ -283,6 +372,7 @@ export function Team() {
           ]}
         />
       </Card>
+      <PrepCard />
       <Locker />
       <Info label="Comment marche l'entraînement ?">
         <p className="text-xs text-slate-300">

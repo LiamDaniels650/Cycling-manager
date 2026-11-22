@@ -555,6 +555,34 @@ function Prep() {
           </div>
         ))}
       </div>
+      <h3 className="mt-3 text-sm font-semibold text-slate-100">🩺 Médecin-chef</h3>
+      <p className="mt-1 text-xs text-slate-400">
+        {S.doc
+          ? `${S.doc.n}, ${DOC_SPEC[S.doc.k]} : arrêts plus courts d'un quart dans sa spécialité${S.doc.k === 'kine' ? ', rechutes deux fois moins fréquentes' : S.doc.k === 'generaliste' ? ', moins de maladies' : ''}.`
+          : 'Aucun spécialiste : les arrêts suivent seulement le niveau de votre service médical.'}
+      </p>
+      <div className="mt-2 space-y-1.5">
+        {doctorCandidates().map((c, i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between gap-2 rounded-lg bg-slate-800/50 px-2.5 py-1.5 text-sm"
+          >
+            <span className="min-w-0">
+              <b className="text-slate-100">
+                {c.fn} {c.ln}
+              </b>{' '}
+              <span className="text-xs text-slate-400">· {DOC_SPEC[c.k]}</span>
+            </span>
+            <Btn
+              className="min-h-9 shrink-0"
+              disabled={S.budget < c.fee || (S.doc && S.doc.n === `${c.fn} ${c.ln}`)}
+              onClick={() => say(hireDoctor(i))}
+            >
+              Engager ({fmtMoney(c.fee)})
+            </Btn>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 }
