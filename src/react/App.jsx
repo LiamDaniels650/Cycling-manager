@@ -274,13 +274,16 @@ function BottomNav() {
   );
 }
 // En-tête d'espace : son nom et ses sous-onglets.
-function SpaceHead() {
+function SpaceHead({ tip }) {
   const sp = spaceOf(UI.view);
   const tabs = tabsOf(sp);
   const m = counts();
   return (
     <div className="mb-4">
-      <h1 className="font-display text-3xl font-bold leading-none text-slate-50">{sp.lbl}</h1>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <h1 className="font-display text-3xl font-bold leading-none text-slate-50">{sp.lbl}</h1>
+        {tip ? <TipCard view={tip} /> : null}
+      </div>
       {tabs.length > 1 ? (
         <div className="mt-3 flex gap-5 overflow-x-auto border-b border-slate-800">
           {tabs.map(([k, l]) => (
@@ -453,16 +456,11 @@ export function App() {
     const live = UI.view === 'race' && !!UI.sim;
     const flash = takeFlash();
     let content;
+    const tipKey = live ? null : UI.view === 'race' ? (UI.lastStage ? null : 'race') : UI.view;
     if (live) content = <LiveRace />;
     else {
-      const tipKey = UI.view === 'race' ? (UI.lastStage ? null : 'race') : UI.view;
       const Native = NATIVE[UI.view] || Home;
-      content = (
-        <>
-          {tipKey ? <TipCard view={tipKey} /> : null}
-          <Native />
-        </>
-      );
+      content = <Native />;
     }
     const bare = live || UI.view === 'prep';
     return (
@@ -475,7 +473,7 @@ export function App() {
             'px-3 pt-4 md:ml-56 md:px-6 md:pt-6 ' + (live ? 'mx-auto xl:max-w-[1500px]' : 'pb-24 md:pb-8 lg:max-w-[1180px]')
           }
         >
-          {bare ? null : <SpaceHead />}
+          {bare ? null : <SpaceHead tip={tipKey} />}
           {flash ? (
             <div
               className="mb-3 rounded-md bg-slate-900 px-3 py-2.5 text-sm text-slate-100 shadow-[inset_3px_0_0_#f2c94c]"

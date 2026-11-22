@@ -39,8 +39,19 @@ export function Btn({ children, onClick, primary, active, danger, disabled, titl
       : active
         ? 'bg-slate-800 text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]'
         : 'bg-slate-800 text-slate-100 ring-1 ring-slate-700 hover:bg-slate-700';
+  // bouton de l'adjoint (🧑‍💼 en tête) : son icône, et un repère pour les tests
+  const first = typeof children === 'string' ? children : Array.isArray(children) && typeof children[0] === 'string' ? children[0] : '';
+  const asst = first.startsWith('🧑');
   return (
-    <button type="button" title={title} disabled={disabled} onClick={onClick} className={base + tone + ' ' + className}>
+    <button
+      type="button"
+      title={title}
+      disabled={disabled}
+      onClick={onClick}
+      data-auto={asst ? '1' : undefined}
+      className={base + tone + ' ' + className}
+    >
+      {asst ? <Icon name="bot" size={16} /> : null}
       {noLead(children)}
     </button>
   );
@@ -183,7 +194,7 @@ export function Effort({ I }) {
 // Barre de niveau (portage de bar()) : vert / jaune / rouge, ou bleu pour une caractéristique.
 export function Bar({ v, max = 100, tone }) {
   const p = Math.max(0, Math.min(100, (v / max) * 100));
-  const T = { b: 'bg-sky-400', g: 'bg-emerald-400', y: 'bg-yellow-300', r: 'bg-rose-500' };
+  const T = { b: 'bg-slate-300', g: 'bg-emerald-400', y: 'bg-amber-300', r: 'bg-rose-500' };
   const c = T[tone] || (p > 66 ? 'bg-emerald-400' : p > 33 ? 'bg-yellow-300' : 'bg-rose-500');
   return (
     <span className="inline-block h-1.5 w-16 overflow-hidden rounded-full bg-slate-800 align-middle">

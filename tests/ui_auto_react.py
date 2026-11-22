@@ -16,7 +16,7 @@ SCREENS = {
     'planification': "UI.calTab='plan';go('cal')",
 }
 # boutons « Auto » de l'écran courant (pas la barre de navigation)
-AUTOS = "[...document.querySelectorAll('main button, #root button')].filter(b=>b.textContent.includes('🧑‍💼') && !b.closest('nav'))"
+AUTOS = "[...document.querySelectorAll('main button, #root button')].filter(b=>(b.dataset.auto || b.textContent.includes('🧑‍💼')) && !b.closest('nav'))"
 
 
 async def click_autos(pg, label, seen):

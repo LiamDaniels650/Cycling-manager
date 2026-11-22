@@ -198,6 +198,20 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   - Charge récente (r.load) : un bloc de courses enchaînées se récupère jusqu'à 35 % moins vite.
   - Climat : régimes météo hebdomadaires persistants (anticyclone, variable, perturbé) selon la période.
   - Économie du joueur recalée sur les nouveaux effectifs (sponsor 52, frais de course 4,5 k€ par jour).
+- Interface repensée :
+  - Cinq espaces au lieu de onze rubriques : Aujourd'hui (à faire, messages, presse, histoires), Courses
+    (calendrier, course en cours), Effectif (coureurs, préparation, vestiaire, académie), Marché, Club (sponsor,
+    finances, staff, matériel, carrière) ; menu secondaire Archives et Options. Rail de navigation sur grand écran,
+    cinq onglets sur téléphone, sous-onglets soulignés dans chaque espace.
+  - Langage visuel : gris d'asphalte et couleurs des maillots (jaune : action principale et sélection ; vert : bon
+    état ; rouge : alerte ; rose : vos coureurs), typographie Barlow (étroite pour les titres et les chiffres),
+    panneaux sans bordure, une seule famille d'icônes (plus d'émojis dans les titres et les boutons ; ils restent
+    dans la radio et les commentaires). Les couleurs sont définies une fois, dans tools/build_react.mjs (THEME).
+  - Aujourd'hui : la prochaine course avec le profil de ses étapes et l'action principale, toutes les décisions en
+    attente dans une seule liste, la situation, les rivaux et les nouvelles dans une colonne à droite.
+  - Courses : le fil de chaque course (sélection, briefing, direct, bilan) ; en direct, un bandeau fixe donne les
+    kilomètres restants, la situation en tête avec l'écart de la radio-course, la vitesse et la pente.
+  - Tableaux des coureurs aérés ; contenu sur toute la largeur du grand écran.
 - v5.1 — final immersif et économie de départ :
   - Sprint rejoué : les 450 derniers mètres animés coureur par coureur (lancements, enfermements, prises de tête),
     commentés en direct, puis photo-finish avec les écarts en boyaux et longueurs. « Revoir » et « Passer ».

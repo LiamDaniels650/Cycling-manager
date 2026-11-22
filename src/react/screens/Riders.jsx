@@ -211,8 +211,8 @@ export function RiderList({ rs, state, cols = [], pre }) {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-xs text-slate-400">
+          <table className="w-full whitespace-nowrap text-sm [&_td]:px-1.5 [&_th]:px-1.5 [&_th]:py-2 [&_th]:font-display [&_th]:font-semibold">
+            <thead className="border-b border-slate-800 text-xs text-slate-400">
               <tr>
                 {pre ? <th /> : null}
                 <th className="text-left">Coureur</th>
