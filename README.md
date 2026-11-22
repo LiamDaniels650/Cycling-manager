@@ -66,6 +66,8 @@ src/
     64-metier.js          métier : visibilité TV et sponsor, Jeux olympiques, motivation à domicile
     65-reglement.js       règlement : calendrier des transferts, néo-pros, salaire minimum, antidopage
     66-monde.js           monde qui évolue : courses, sponsors, faillites, réformes de l'UCI
+    67-staff.js           staff en personnages : postes, compétences, caractères, débauchage, adjoint
+    68-reserve.js         équipe de développement (réserve) : places, âge limite, espoirs avec les pros
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -226,6 +228,18 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   faire faillite (une nouvelle structure reprend sa place) ; l'UCI annonce ses réformes un an à l'avance (taille des
   effectifs, licences WorldTour, salaire minimum). Grands tours, monuments, championnats et Jeux ne changent jamais.
   Archives › Le monde.
+- Staff en personnages (Club › Staff, fichier 67-staff.js) : chaque poste (entraîneurs, médecins et kinés,
+  recruteurs, chef mécanicien, directeur adjoint) est tenu par une personne dont la compétence fixe le niveau ;
+  caractère (pédagogue, ambitieux, fidèle, rigoureux, passionné), âge, progression, retraite ; débauchage des
+  meilleurs par les autres équipes (les retenir avec une prime ou recruter) ; candidats renouvelés toutes les quatre
+  semaines ; l'adjoint fait mieux appliquer ses consignes dans les courses qu'on lui confie.
+- Équipe de développement (Effectif › Académie, fichier 68-reserve.js) : 150 k€ puis 60 k€ par saison ; quatre places
+  de plus à l'académie, espoirs gardés jusqu'à 23 ans, deux espoirs avec les pros sur les courses de deuxième catégorie
+  toute la saison, progression +10 %.
+- Confort de jeu : sauvegardes nommées (jusqu'à huit par mode), raccourcis clavier (1 à 5 pour les espaces, Entrée pour
+  avancer, en course Espace pour la pause, 1 à 5 pour la vitesse, F pour la fin, Échap pour fermer), taille du texte et
+  contraste renforcé (Options › Affichage), libellés pour lecteur d'écran, animations coupées si le système le
+  demande ; polices intégrées (assets/fonts, licence SIL OFL) : la typographie tient hors connexion.
 - v5.1 — final immersif et économie de départ :
   - Sprint rejoué : les 450 derniers mètres animés coureur par coureur (lancements, enfermements, prises de tête),
     commentés en direct, puis photo-finish avec les écarts en boyaux et longueurs. « Revoir » et « Passer ».

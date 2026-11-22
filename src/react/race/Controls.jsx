@@ -209,9 +209,11 @@ export function Dock({ sim }) {
     <button
       type="button"
       title={title}
+      aria-label={title}
+      aria-pressed={on}
       onClick={onClick}
       className={
-        'flex h-11 min-w-0 items-center justify-center rounded-xl text-xs font-semibold active:scale-95 ' +
+        'flex h-11 min-w-0 items-center justify-center rounded-md text-xs font-semibold active:scale-95 ' +
         (on ? 'bg-sky-500 text-slate-950' : 'bg-slate-800 text-slate-100 ring-1 ring-slate-700')
       }
     >

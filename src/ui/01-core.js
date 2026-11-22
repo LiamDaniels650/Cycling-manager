@@ -227,6 +227,60 @@ async function idbRestore(key) {
     return false;
   }
 }
+// --- Sauvegardes nommées (jusqu'à huit par mode de jeu) : copies dans IndexedDB, liste dans le stockage local ---
+const NAMED_MAX = 8;
+function namedKey() {
+  return 'dsc_named_' + slotOf();
+}
+function namedSaves() {
+  try {
+    return JSON.parse(localStorage.getItem(namedKey()) || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+function namedWrite(L) {
+  try {
+    localStorage.setItem(namedKey(), JSON.stringify(L));
+  } catch (e) {}
+}
+function saveNamed(name) {
+  const L = namedSaves();
+  if (L.length >= NAMED_MAX) return Promise.resolve(`${NAMED_MAX} sauvegardes au plus : supprimez-en une.`);
+  const nm = String(name || '').trim().slice(0, 40) || `Saison ${S.season}, semaine ${S.week}`;
+  const key = (slotOf() === 'car' ? 'car-nom-' : 'nom-') + Date.now();
+  const txt = JSON.stringify({ S, sd: _sd, rid: _rid });
+  return gzipText(txt)
+    .then(v =>
+      idbOpen().then(
+        db =>
+          new Promise((res, rej) => {
+            const tx = db.transaction(IDB_STORE, 'readwrite');
+            tx.objectStore(IDB_STORE).put(v, key);
+            tx.oncomplete = () => res(undefined);
+            tx.onerror = () => rej(tx.error);
+          })
+      )
+    )
+    .then(() => {
+      L.unshift({ key, name: nm, at: Date.now(), team: S.car ? '' : S.teams[0].name, season: S.season, week: S.week });
+      namedWrite(L);
+      return `Partie enregistrée sous « ${nm} ».`;
+    })
+    .catch(() => 'Enregistrement impossible : le stockage du navigateur est indisponible.');
+}
+function loadNamed(key) {
+  return idbRestore(key).then(ok => {
+    if (ok) save();
+    return ok ? 'Partie chargée.' : 'Sauvegarde illisible.';
+  });
+}
+function deleteNamed(key) {
+  namedWrite(namedSaves().filter(e => e.key !== key));
+  idbOpen()
+    .then(db => db.transaction(IDB_STORE, 'readwrite').objectStore(IDB_STORE).delete(key))
+    .catch(() => {});
+}
 function idbClear() {
   idbOpen()
     .then(db => db.transaction(IDB_STORE, 'readwrite').objectStore(IDB_STORE).delete(idbMainKey()))

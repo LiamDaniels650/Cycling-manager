@@ -31,6 +31,19 @@ const THEME = `@theme {
   --color-emerald-200: #b8ecd0; --color-emerald-300: #7fd9a8; --color-emerald-400: #3dbe7a; --color-emerald-500: #2ea866;
   --color-rose-200: #ffc9cb; --color-rose-300: #ff9a9d; --color-rose-400: #f26b6f; --color-rose-500: #e5484d; --color-rose-600: #c93338;
 }`;
+// Polices intégrées (assets/fonts, licence SIL OFL) : le jeu garde sa typographie hors connexion.
+const FONTS = (() => {
+  const dir = path.join(ROOT, 'assets/fonts');
+  if (!fs.existsSync(path.join(dir, 'fonts.json'))) return '';
+  return JSON.parse(fs.readFileSync(path.join(dir, 'fonts.json'), 'utf8'))
+    .map(
+      f =>
+        `@font-face{font-family:'${f.fam}';font-style:normal;font-weight:${f.w};font-display:swap;src:url(data:font/woff2;base64,${fs
+          .readFileSync(path.join(dir, f.file))
+          .toString('base64')}) format('woff2');unicode-range:${f.ur}}`
+    )
+    .join('\n');
+})();
 const cat = (dir, skip = []) =>
   fs
     .readdirSync(path.join(ROOT, dir))
@@ -136,14 +149,18 @@ const html = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#171b22">
 <title>Directeur Sportif</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap">
-<style>@layer theme, base, legacy, components, utilities;
+
+<style>${FONTS}
+@layer theme, base, legacy, components, utilities;
 @layer legacy {${legacyCss}}
 ${twCss}
 body{background:#171b22;color:#e8ecf1;font-family:var(--font-sans);-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums}
 h1,h2,h3,h4{font-family:var(--font-display)}
 :focus-visible{outline:2px solid #f2c94c;outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+html.hc .text-slate-400{color:#c6cfdb}html.hc .text-slate-500{color:#aeb8c6}html.hc .text-slate-300{color:#dde3ea}
+html.hc .border-slate-800,html.hc .divide-slate-800>*{border-color:#556070}html.hc .bg-slate-900{box-shadow:inset 0 0 0 1px #3b4555}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 #root{min-height:100vh;overflow-x:hidden}
 </style>
 </head>

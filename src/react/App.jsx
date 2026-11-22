@@ -20,7 +20,7 @@ import { Office, ClubFinances, ClubStaff, ClubEquip, ClubCareer, Prep as CampsCo
 import { Inbox } from './screens/Inbox.jsx';
 import { Stats } from './screens/Stats.jsx';
 import { Press } from './screens/Press.jsx';
-import { Options, Start, TipCard } from './screens/Options.jsx';
+import { Options, Start, TipCard, applyUiPrefs } from './screens/Options.jsx';
 import { TeamCard } from './screens/Bits.jsx';
 import { Names } from './screens/Names.jsx';
 import { Stories } from './screens/Stories.jsx';
@@ -180,6 +180,7 @@ function Rail() {
       <button
         key={sp.k}
         type="button"
+        aria-current={on ? 'page' : undefined}
         onClick={() => go(tabsOf(sp)[0][0])}
         className={
           'flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-[15px] font-medium ' +
@@ -193,7 +194,10 @@ function Rail() {
     );
   };
   return (
-    <aside className="fixed inset-y-0 left-0 z-20 hidden w-56 flex-col gap-1 border-r border-slate-800 bg-slate-950 px-2.5 py-4 md:flex">
+    <aside
+      aria-label="Navigation principale"
+      className="fixed inset-y-0 left-0 z-20 hidden w-56 flex-col gap-1 border-r border-slate-800 bg-slate-950 px-2.5 py-4 md:flex"
+    >
       <div className="mb-3 flex items-center gap-2 px-3">
         <i className="h-3 w-3 shrink-0" style={{ background: T.color }} />
         <b className="truncate font-display text-lg leading-tight text-slate-50">{T.name}</b>
@@ -231,6 +235,7 @@ function Header() {
             onClick={() => openNav()}
             className="ml-1 flex h-10 w-10 items-center justify-center rounded-md bg-slate-800 text-slate-100"
             title="Menu"
+            aria-label="Menu : tous les écrans, archives et options"
           >
             <Icon name="menu" />
           </button>
@@ -244,7 +249,10 @@ function BottomNav() {
   const m = counts();
   const cur = spaceOf(UI.view);
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-800 bg-slate-950/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+    <nav
+      aria-label="Navigation principale"
+      className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-800 bg-slate-950/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+    >
       <div className="mx-auto grid max-w-3xl grid-cols-5">
         {SPACES.map(sp => {
           const n = spaceCount(sp, m);
@@ -291,6 +299,7 @@ function SpaceHead({ tip }) {
             <button
               key={k}
               type="button"
+              aria-current={UI.view === k ? 'page' : undefined}
               onClick={() => go(k)}
               className={
                 'relative flex min-h-10 shrink-0 items-center gap-1.5 text-sm font-medium ' +
@@ -425,6 +434,36 @@ function Modal() {
 }
 export function App() {
   const [, setV] = useState(0);
+  // préférences d'affichage et raccourcis clavier
+  useEffect(() => {
+    applyUiPrefs();
+    const onKey = e => {
+      if (e.ctrlKey || e.metaKey || e.altKey || !S) return;
+      const t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+      if (e.key === 'Escape') {
+        if (UI.modal) closeModal();
+        return;
+      }
+      if (UI.modal) return;
+      if (UI.view === 'race' && UI.sim && !UI.sim.done) {
+        if (e.key === ' ') {
+          e.preventDefault();
+          setSpeed(UI.speed ? 0 : UI.baseSpeed || 3);
+        } else if (/^[1-5]$/.test(e.key)) setSpeed(+e.key);
+        else if (e.key === 'f' || e.key === 'F') toEnd();
+        return;
+      }
+      if (S.car) return;
+      if (/^[1-5]$/.test(e.key)) go(tabsOf(SPACES[+e.key - 1])[0][0]);
+      else if (e.key === 'Enter' && UI.view === 'home' && t === document.body) {
+        const i = nextRaceIdx();
+        if (!(S.rc && !S.rc.done) && i >= 0 && S.week < S.cal[i].w) advance();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   useEffect(() => {
     setBump(() => setV(v => v + 1));
     return () => {
@@ -493,6 +532,7 @@ export function App() {
           {bare ? null : <SpaceHead tip={tipKey} />}
           {flash ? (
             <div
+              role="status"
               className="mb-3 rounded-md bg-slate-900 px-3 py-2.5 text-sm text-slate-100 shadow-[inset_3px_0_0_#f2c94c]"
               dangerouslySetInnerHTML={{ __html: flash }}
             />

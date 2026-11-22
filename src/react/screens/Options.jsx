@@ -150,6 +150,138 @@ function Guide() {
     </Card>
   );
 }
+// Affichage et accessibilité : taille du texte, contraste renforcé, raccourcis clavier.
+const FS = [
+  ['petit', 'Petit', 14],
+  ['normal', 'Normal', 16],
+  ['grand', 'Grand', 18],
+  ['tresgrand', 'Très grand', 20],
+];
+export function uiPrefs() {
+  try {
+    return JSON.parse(localStorage.getItem('dsc_ui') || '{}');
+  } catch (e) {
+    return {};
+  }
+}
+export function applyUiPrefs() {
+  const p = uiPrefs();
+  const f = FS.find(x => x[0] === p.fs) || FS[1];
+  document.documentElement.style.fontSize = f[2] + 'px';
+  document.documentElement.classList.toggle('hc', !!p.hc);
+}
+function setUiPref(k, v) {
+  const p = uiPrefs();
+  p[k] = v;
+  try {
+    localStorage.setItem('dsc_ui', JSON.stringify(p));
+  } catch (e) {}
+  applyUiPrefs();
+  render();
+}
+function Display() {
+  const p = uiPrefs();
+  return (
+    <Card title="Affichage et accessibilité">
+      <div className="flex flex-wrap items-center gap-2 text-sm text-slate-200">
+        Taille du texte
+        {FS.map(([k, l]) => (
+          <Btn key={k} active={(p.fs || 'normal') === k} className="min-h-10" onClick={() => setUiPref('fs', k)}>
+            {l}
+          </Btn>
+        ))}
+      </div>
+      <label className="mt-3 flex min-h-10 items-center gap-2 text-sm text-slate-200">
+        <input type="checkbox" className="h-5 w-5 accent-sky-500" checked={!!p.hc} onChange={e => setUiPref('hc', e.target.checked)} />
+        Contraste renforcé (textes secondaires plus clairs, contours visibles)
+      </label>
+      <details className="mt-2 text-sm text-slate-300">
+        <summary className="cursor-pointer py-1 underline decoration-dotted underline-offset-2">Raccourcis clavier</summary>
+        <ul className="mt-1 space-y-0.5 text-xs text-slate-400">
+          <li>
+            <b className="text-slate-200">1 à 5</b> : Aujourd'hui, Courses, Effectif, Marché, Club
+          </li>
+          <li>
+            <b className="text-slate-200">Entrée</b> (sur Aujourd'hui) : avancer jusqu'à la prochaine course
+          </li>
+          <li>
+            En course : <b className="text-slate-200">Espace</b> pause ou reprise, <b className="text-slate-200">1 à 5</b>{' '}
+            vitesse, <b className="text-slate-200">F</b> aller à la fin de l'étape
+          </li>
+          <li>
+            <b className="text-slate-200">Échap</b> : fermer une fenêtre
+          </li>
+        </ul>
+      </details>
+    </Card>
+  );
+}
+// Sauvegardes nommées : enregistrer la partie sous un nom, recharger, supprimer.
+function NamedSaves() {
+  const [name, setName] = useState('');
+  const [, bump] = useState(0);
+  const L = namedSaves();
+  const done = t => ((UI.flash = t), bump(v => v + 1), render());
+  return (
+    <Card title="Sauvegardes nommées">
+      <form
+        className="flex flex-wrap gap-2"
+        onSubmit={e => {
+          e.preventDefault();
+          saveNamed(name).then(t => (setName(''), done(t)));
+        }}
+      >
+        <label htmlFor="named-save" className="sr-only">
+          Nom de la sauvegarde
+        </label>
+        <input
+          id="named-save"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          placeholder={`Saison ${S.season}, semaine ${S.week}`}
+          className="min-h-11 min-w-0 flex-1 rounded-md bg-slate-800 px-3 text-sm text-slate-100 ring-1 ring-slate-700"
+        />
+        <Btn primary disabled={L.length >= NAMED_MAX} onClick={() => saveNamed(name).then(t => (setName(''), done(t)))}>
+          Enregistrer
+        </Btn>
+      </form>
+      {L.length ? (
+        <div className="mt-3">
+          {L.map(e => (
+            <div key={e.key} className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 py-2 text-sm">
+              <span className="min-w-0">
+                <b className="text-slate-100">{e.name}</b>
+                <span className="block text-xs text-slate-400">
+                  {e.team ? e.team + ' · ' : ''}saison {e.season}, semaine {e.week} · enregistrée le{' '}
+                  {new Date(e.at).toLocaleDateString('fr-FR')}
+                </span>
+              </span>
+              <span className="flex gap-2">
+                <Btn
+                  onClick={() =>
+                    confirmBox(`Charger « ${e.name} » ? La partie actuelle sera remplacée (enregistrez-la d'abord si besoin).`, () =>
+                      loadNamed(e.key).then(t => ((UI.view = 'home'), done(t)))
+                    )
+                  }
+                >
+                  Charger
+                </Btn>
+                <Btn onClick={() => confirmBox(`Supprimer « ${e.name} » ?`, () => (deleteNamed(e.key), done('Sauvegarde supprimée.')))}>
+                  Supprimer
+                </Btn>
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-2 text-xs text-slate-400">
+          Enregistrez la partie sous un nom pour y revenir plus tard (jusqu'à {NAMED_MAX}). La sauvegarde automatique
+          continue de son côté.
+        </p>
+      )}
+    </Card>
+  );
+}
 // Copies de sécurité de fin de saison (lues dans IndexedDB après l'affichage).
 function Backups() {
   const [keys, setKeys] = useState(null);
@@ -246,6 +378,8 @@ export function Options() {
     });
   return (
     <div className="space-y-3">
+      <NamedSaves />
+      <Display />
       <Card title="Sauvegarde">
         <p className="text-xs text-slate-400">
           La partie est sauvegardée automatiquement dans ce navigateur. Pour la mettre à l’abri, téléchargez

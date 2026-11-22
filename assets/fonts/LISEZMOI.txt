@@ -1,0 +1,2 @@
+Polices Barlow et Barlow Semi Condensed (Jeremy Tribby), sous licence SIL Open Font License 1.1.
+Sous-ensembles latin et latin étendu, intégrés au jeu par tools/build_react.mjs pour fonctionner hors connexion.
