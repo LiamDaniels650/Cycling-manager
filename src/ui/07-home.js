@@ -16,11 +16,13 @@ function todoList() {
   const L = [];
   const my = myRiders();
   const unread = S.inbox.filter(m => !m.read && (m.imp != null ? m.imp : msgImportant(m.title, m.body))).length;
-  if (S.fired) L.push(['🚨', 'Vous êtes licencié : choisissez une offre', 'mgmt']);
+  if (S.fired) L.push(['🚨', 'Vous êtes licencié : choisissez une offre', 'career']);
+  if (S.lockAsk && S.riders[S.lockAsk.a] && S.riders[S.lockAsk.b])
+    L.push(['⚔️', `${riderName(S.riders[S.lockAsk.a])} et ${riderName(S.riders[S.lockAsk.b])} veulent être leader sur la même course`, 'locker']);
   const sa = storyAsks().length;
   if (sa) L.push(['📖', `${sa} histoire${sa > 1 ? 's' : ''} : une décision vous attend`, 'stories']);
   if (S.jobOffers && S.jobOffers.length)
-    L.push(['💼', `${S.jobOffers.length} offre(s) d'emploi d'autres équipes`, 'mgmt']);
+    L.push(['💼', `${S.jobOffers.length} offre(s) d'emploi d'autres équipes`, 'career']);
   if (S.pressQ && S.pressQ.exp > S.week) L.push(['🎙️', 'Une interview attend votre réponse', 'press']);
   if (S.bid && S.riders[S.bid.id] && teamById(S.bid.t))
     L.push(['💰', `${teamById(S.bid.t).name} veut ${riderName(S.riders[S.bid.id])}`, 'team']);
@@ -28,18 +30,18 @@ function todoList() {
     const r = S.riders[S.raiseReq.id];
     if (r) L.push(['💶', `${riderName(r)} demande une augmentation`, 'team']);
   }
-  if (S.budget < 0) L.push(['🔴', 'Budget dans le rouge', 'mgmt']);
+  if (S.budget < 0) L.push(['🔴', 'Budget dans le rouge', 'fin']);
   const ending = my.filter(r => r.contract <= 1 && r.nextTeam == null);
   if (ending.length && S.week >= 8) L.push(['✍️', `${ending.length} coureur(s) en fin de contrat`, 'team']);
   const rum = my.filter(r => rumorTeam(r) && r.contract <= 1 && r.nextTeam == null);
   if (rum.length)
     L.push(['💬', `Rumeur de départ : ${rum.map(r => riderName(r)).join(', ')}`, 'market', "UI.mkt='merc'"]);
   const inj = my.filter(r => r.injury > 0);
-  if (inj.length) L.push(['🩹', `${inj.length} blessé(s)`, 'team']);
+  if (inj.length) L.push(['🩹', `${inj.length} blessé(s) ou malade(s)`, 'prepa']);
   const tired = my.filter(r => r.fatigue >= 70 && r.injury <= 0);
   if (tired.length) L.push(['😮‍💨', `${tired.length} coureur(s) très fatigué(s)`, 'team']);
   if (S.eqOffers && Object.keys(S.eqOffers).some(c => S.eqChoice[c] == null))
-    L.push(['🚲', 'Offres des équipementiers à étudier', 'mgmt']);
+    L.push(['🚲', 'Offres des équipementiers à étudier', 'equip']);
   const old = S.academy.map(id => S.riders[id]).filter(r => r && r.age >= 22);
   if (old.length) L.push(['🎓', `${old.length} espoir(s) à passer pro avant la fin de saison`, 'aca']);
   if (unread) L.push(['✉️', `${unread} message(s) important(s) non lu(s)`, 'inbox']);
@@ -85,12 +87,18 @@ function navItems() {
     ...(inRace ? [['race', '🏁', 'Course', 0]] : []),
     ['market', '🛒', 'Marché', cnt('market')],
     ...(discoOpen('aca') ? [['aca', '🎓', 'Académie', cnt('aca')]] : []),
-    ['mgmt', '💼', 'Gestion', cnt('mgmt') + (S.fired ? 1 : 0)],
+    ['mgmt', '💼', 'Gestion', cnt('mgmt')],
     ...(discoOpen('stories') ? [['stories', '📖', 'Histoires', storyAsks().length]] : []),
     ...(discoOpen('press') ? [['press', '📰', 'Presse', S.pressQ ? 1 : 0]] : []),
     ['stats', '📊', 'Stats', 0],
     ['inbox', '✉️', 'Messages', unread],
     ['opt', '⚙️', 'Options', 0],
+    // (nouveaux écrans de la navigation en espaces : leurs compteurs)
+    ['prepa', '', 'Préparation', cnt('prepa')],
+    ['locker', '', 'Vestiaire', cnt('locker')],
+    ['fin', '', 'Finances', cnt('fin')],
+    ['equip', '', 'Matériel', cnt('equip')],
+    ['career', '', 'Carrière', cnt('career') + (S.fired ? 1 : 0)],
   ];
 }
 function badge(n) {
