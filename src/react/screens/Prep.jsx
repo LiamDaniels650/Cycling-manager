@@ -10,7 +10,7 @@ export function Prep() {
   const n = raceSize(c);
   const used = (S.weekUsed && S.weekUsed[c.w]) || [];
   const rs = myRiders()
-    .concat(acaRiders().filter(r => isStag(r)))
+    .concat(acaRiders().filter(r => isStag(r) || devEligible(r, c)))
     .filter(r => !used.includes(r.id));
   const keys = [
     ...new Set(

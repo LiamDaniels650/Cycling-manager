@@ -83,7 +83,7 @@ export function NextAction() {
           .
         </p>
       ) : null}
-      {S.academy.some(id => S.riders[id].age >= 22) ? (
+      {S.academy.some(id => S.riders[id].age >= acaAgeOut() - 1) ? (
         <p className="text-sm text-amber-300">
           ⚠️ Des espoirs de 22 ans quitteront l'académie s'ils ne passent pas pros.
         </p>

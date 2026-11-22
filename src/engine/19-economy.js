@@ -124,18 +124,9 @@ function staffWeekly() {
   return (sum(Object.values(S.staff).map(l => STAFF_COST[l])) + MECA_COST[S.meca || 1]) / LAST_WEEK;
 }
 // Change le niveau d'un membre du staff (prime d'embauche à la hausse).
+// (chaque poste est tenu par une personne : embaucher quelqu'un du niveau voulu, 67-staff.js)
 function setStaff(k, l) {
-  l = clamp(l, 1, 5);
-  const cur = S.staff[k];
-  if (l === cur) return null;
-  if (l > cur) {
-    const fee = (STAFF_COST[l] - STAFF_COST[cur]) * 0.5;
-    if (S.budget < fee) return 'Budget insuffisant.';
-    S.budget -= fee;
-    finAdd('staff', -fee);
-  }
-  S.staff[k] = l;
-  return null;
+  return crewSetLevel(k, clamp(l, 1, 5));
 }
 // Versement hebdomadaire du sponsor (confiance et points UCI).
 function sponsorWeekly() {

@@ -166,6 +166,8 @@ function migrate() {
   if (!S.car) legacyInit();
   // monde qui évolue : définitions de courses et réformes de la partie
   worldApply();
+  // staff en personnages (postes tenus par quelqu'un, du niveau actuel)
+  if (!S.car) crewInit();
   // vestiaire : course visée par l'objectif de saison (objectifs fixés avant cette version)
   if (!S.car && S.teams[0].riders.some(id => S.riders[id].goal && S.riders[id].goal.s === S.season && !('race' in S.riders[id].goal)))
     ambitionsAssign();

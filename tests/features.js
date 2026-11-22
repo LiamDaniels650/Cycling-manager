@@ -1367,5 +1367,29 @@ check(
   buildCalendar();
   check(S.cal.some(c => c.key === 'gpo'), 'nouvelle partie : calendrier de base rétabli');
 }
+{
+  // staff en personnages, équipe de développement
+  newGame('Staff', 71);
+  crewInit();
+  check(Object.keys(CREW_ROLES).every(k => S.crew[k] && S.crew[k].fn) && S.staff.coach === crewLvl(S.crew.coach), 'staff : une personne par poste, niveau synchronisé');
+  S.budget = 3000;
+  const c = crewCandidates('coach')[0];
+  check(/devient/.test(crewHireCand('coach', 0)) && S.staff.coach === crewLvl(c), `staff : embauche de ${crewName(c)} (niveau ${crewLvl(c)})`);
+  check(setStaff('scout', 3) === null && S.staff.scout === 3 && S.crew.scout.sk >= 3, 'ancien réglage de niveau : embauche du bon niveau');
+  const sk0 = S.crew.adjoint.sk;
+  S.crew.adjoint.age = 30;
+  crewEndSeason();
+  check(S.crew.adjoint.sk > sk0 - 0.11, 'staff : progression en fin de saison');
+  S.crew.doctor = { ...S.crew.doctor, sk: 4.5, trait: 'ambitieux' };
+  S.crewAsk = { role: 'doctor', t: S.teams[3].id, s: S.season, exp: 4, prime: 100 };
+  check(/part chez/.test(crewAnswer('laisser')) && S.staff.doctor === 1, 'débauchage : intérimaire de niveau 1');
+  check(adjObey({ player: true }, { rc: { delegated: true } }) === 0.01 * (S.adj - 3), 'directeur adjoint : obéissance dans ses courses');
+  // équipe de développement
+  const m0 = acaMax();
+  check(/créée/.test(devCreate()) && acaMax() === m0 + DEV.places && acaAgeOut() === 24, 'réserve : places et âge limite');
+  const cat2 = S.cal.find(x => x.cat === 2 && !x.worlds);
+  const y = { aca: true, age: 20 };
+  check(devEligible(y, cat2) && !devEligible(y, S.cal.find(x => x.cat === 0)), 'réserve : courses de deuxième catégorie seulement');
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

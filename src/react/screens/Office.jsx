@@ -115,56 +115,94 @@ export function Finances() {
     </Card>
   );
 }
+// Staff : une personne par poste (niveau, caractère, âge, ancienneté, salaire), recrutement, débauchages.
+function CrewAsk() {
+  const A = S.crewAsk;
+  if (!A || !S.crew) return null;
+  const p = S.crew[A.role];
+  const T = teamById(A.t);
+  const go = k => ((UI.flash = crewAnswer(k)), save(), render());
+  return (
+    <div className="mb-3 rounded-lg bg-slate-900 p-3 text-sm shadow-[inset_3px_0_0_#f2c94c]">
+      <b>{T ? T.name : 'Une équipe'}</b> veut débaucher {crewName(p)}, votre {CREW_ROLES[A.role].lbl.toLowerCase()} (niveau{' '}
+      {crewLvl(p)}).
+      <div className="mt-2 flex flex-wrap gap-2">
+        <Btn primary onClick={() => go('garder')}>
+          Le retenir (prime {fmtMoney(A.prime)})
+        </Btn>
+        <Btn onClick={() => go('laisser')}>Le laisser partir</Btn>
+      </div>
+      <p className="mt-1 text-xs text-slate-400">Sans réponse avant la semaine {A.exp + 1}, l'adjoint décide.</p>
+    </div>
+  );
+}
+function Dots({ l }) {
+  return (
+    <span className="font-display text-base tracking-wider text-sky-400" aria-label={`niveau ${l} sur 5`}>
+      {'●'.repeat(l)}
+      <span className="text-slate-700">{'●'.repeat(5 - l)}</span>
+    </span>
+  );
+}
 export function Staff() {
+  crewInit();
+  const open = UI.crewRole;
   return (
     <Card title="Staff" right={<Btn onClick={() => doAsst('staff')}>🧑‍💼 Auto</Btn>}>
-      {Object.keys(STAFF_LBL).map(k => (
-        <div key={k} className="flex items-center gap-2 border-t border-slate-800 py-2">
-          <div className="min-w-0 flex-1">
-            <b className="text-sm text-slate-100">{STAFF_LBL[k]}</b>
-            <div className="text-xs text-slate-400">{STAFF_DESC[k]}</div>
-            <div className="mt-0.5 text-sm text-amber-300">
-              {'●'.repeat(S.staff[k])}
-              <span className="text-slate-600">{'○'.repeat(5 - S.staff[k])}</span>{' '}
-              <span className="text-xs text-slate-400">{fmtMoney(STAFF_COST[S.staff[k]])}/an</span>
+      <CrewAsk />
+      {Object.keys(CREW_ROLES).map(k => {
+        const p = S.crew[k];
+        const l = crewLvl(p);
+        return (
+          <div key={k} className="border-t border-slate-800 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-xs text-slate-400">{CREW_ROLES[k].grp}</div>
+                <b className="font-display text-lg text-slate-50">{crewName(p)}</b>{' '}
+                <span className="text-sm text-slate-400">
+                  {p.age} ans · {CREW_TRAITS[p.trait].lbl.toLowerCase()} · au club depuis {p.since}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Dots l={l} />
+                <span className="text-sm text-slate-300">{fmtMoney(crewCost(k, l))}/an</span>
+                <Btn onClick={() => ((UI.crewRole = open === k ? null : k), render())}>
+                  {open === k ? 'Fermer' : 'Recruter'}
+                </Btn>
+              </div>
             </div>
+            <div className="mt-1 text-xs text-slate-400">
+              {CREW_ROLES[k].d} {CREW_TRAITS[p.trait].d} Compétence {fmtDec(p.sk, 1)}.
+            </div>
+            {open === k ? (
+              <div className="mt-2 space-y-1.5">
+                {crewCandidates(k).map((c, i) => {
+                  const cl = crewLvl(c);
+                  const fee = cl > l ? (crewCost(k, cl) - crewCost(k, l)) * 0.5 : 0;
+                  return (
+                    <div key={i} className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-slate-800/60 px-3 py-2 text-sm">
+                      <span>
+                        <b>{crewName(c)}</b>{' '}
+                        <span className="text-slate-400">
+                          {c.age} ans · {CREW_TRAITS[c.trait].lbl.toLowerCase()}
+                        </span>{' '}
+                        <Dots l={cl} />
+                      </span>
+                      <Btn
+                        disabled={S.budget < fee}
+                        onClick={() => ((UI.flash = crewHireCand(k, i)), (UI.crewRole = null), save(), render())}
+                      >
+                        Engager · {fmtMoney(crewCost(k, cl))}/an{fee ? ` + ${fmtMoney(fee)}` : ''}
+                      </Btn>
+                    </div>
+                  );
+                })}
+                <p className="text-xs text-slate-400">Nouveaux candidats toutes les quatre semaines. Prime d'embauche : la moitié de la hausse de salaire.</p>
+              </div>
+            ) : null}
           </div>
-          <Btn disabled={S.staff[k] >= 5} className="w-11 px-0" onClick={() => staff(k, 1)}>
-            +
-          </Btn>
-          <Btn disabled={S.staff[k] <= 1} className="w-11 px-0" onClick={() => staff(k, -1)}>
-            −
-          </Btn>
-        </div>
-      ))}
-      <div className="flex items-center gap-2 border-t border-slate-800 py-2">
-        <div className="min-w-0 flex-1">
-          <b className="text-sm text-slate-100">Mécaniciens</b>
-          <div className="text-xs text-slate-400">{MECA_DESC}</div>
-          <div className="mt-0.5 text-sm text-amber-300">
-            {'●'.repeat(S.meca || 1)}
-            <span className="text-slate-600">{'○'.repeat(5 - (S.meca || 1))}</span>{' '}
-            <span className="text-xs text-slate-400">{fmtMoney(MECA_COST[S.meca || 1])}/an</span>
-          </div>
-        </div>
-        <Btn
-          disabled={(S.meca || 1) >= 5}
-          className="w-11 px-0"
-          onClick={() => ((UI.flash = setMeca((S.meca || 1) + 1)), save(), render())}
-        >
-          +
-        </Btn>
-        <Btn
-          disabled={(S.meca || 1) <= 1}
-          className="w-11 px-0"
-          onClick={() => ((UI.flash = setMeca((S.meca || 1) - 1)), save(), render())}
-        >
-          −
-        </Btn>
-      </div>
-      <p className="mt-1 text-xs text-slate-400">
-        Monter d'un niveau coûte une prime d'embauche (50 % de la différence de salaire annuel).
-      </p>
+        );
+      })}
     </Card>
   );
 }

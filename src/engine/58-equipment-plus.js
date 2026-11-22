@@ -159,18 +159,9 @@ function gearStageSeconds(spec, gear) {
 // --- Mécaniciens et ennuis mécaniques ---
 const MECA_COST = [0, 0, 60, 140, 240, 360];
 const MECA_DESC = 'Ennuis mécaniques moins fréquents (déraillement, roue voilée) et dépannages plus rapides.';
+// (le poste est tenu par une personne : 67-staff.js)
 function setMeca(l) {
-  l = clamp(l, 1, 5);
-  const cur = S.meca || 1;
-  if (l === cur) return null;
-  if (l > cur) {
-    const fee = (MECA_COST[l] - MECA_COST[cur]) * 0.5;
-    if (S.budget < fee) return 'Budget insuffisant.';
-    S.budget -= fee;
-    finAdd('staff', -fee);
-  }
-  S.meca = l;
-  return null;
+  return crewSetLevel('meca', clamp(l, 1, 5));
 }
 // Probabilité d'ennui mécanique sur ce pas (par coureur) : robustesse du vélo, pavés, pluie, mécaniciens.
 function mecaRisk(sim, x, km) {

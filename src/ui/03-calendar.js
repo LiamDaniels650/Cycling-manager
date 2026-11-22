@@ -126,7 +126,14 @@ function togSel(id) {
   const s = UI.prep.sel;
   const i = s.indexOf(id);
   if (i >= 0) s.splice(i, 1);
-  else s.push(id);
+  else {
+    const r = S.riders[id];
+    if (r && r.aca && !isStag(r) && devSelCount(s) >= DEV.perRace) {
+      UI.flash = `Deux espoirs de l'équipe de développement au plus par course.`;
+      return render();
+    }
+    s.push(id);
+  }
   render();
 }
 function confirmSel() {

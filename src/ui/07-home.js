@@ -17,6 +17,8 @@ function todoList() {
   const my = myRiders();
   const unread = S.inbox.filter(m => !m.read && (m.imp != null ? m.imp : msgImportant(m.title, m.body))).length;
   if (S.fired) L.push(['🚨', 'Vous êtes licencié : choisissez une offre', 'career']);
+  if (S.crewAsk && S.crew && teamById(S.crewAsk.t))
+    L.push(['💼', `${teamById(S.crewAsk.t).name} veut débaucher ${crewName(S.crew[S.crewAsk.role])} (staff)`, 'staff']);
   if (S.lockAsk && S.riders[S.lockAsk.a] && S.riders[S.lockAsk.b])
     L.push(['⚔️', `${riderName(S.riders[S.lockAsk.a])} et ${riderName(S.riders[S.lockAsk.b])} veulent être leader sur la même course`, 'locker']);
   const sa = storyAsks().length;
@@ -42,7 +44,7 @@ function todoList() {
   if (tired.length) L.push(['😮‍💨', `${tired.length} coureur(s) très fatigué(s)`, 'team']);
   if (S.eqOffers && Object.keys(S.eqOffers).some(c => S.eqChoice[c] == null))
     L.push(['🚲', 'Offres des équipementiers à étudier', 'equip']);
-  const old = S.academy.map(id => S.riders[id]).filter(r => r && r.age >= 22);
+  const old = S.academy.map(id => S.riders[id]).filter(r => r && r.age >= acaAgeOut() - 1);
   if (old.length) L.push(['🎓', `${old.length} espoir(s) à passer pro avant la fin de saison`, 'aca']);
   if (unread) L.push(['✉️', `${unread} message(s) important(s) non lu(s)`, 'inbox']);
   const ex = S.lastExport;
@@ -99,6 +101,7 @@ function navItems() {
     ['fin', '', 'Finances', cnt('fin')],
     ['equip', '', 'Matériel', cnt('equip')],
     ['career', '', 'Carrière', cnt('career') + (S.fired ? 1 : 0)],
+    ['staff', '', 'Staff', cnt('staff')],
   ];
 }
 function badge(n) {

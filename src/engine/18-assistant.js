@@ -154,7 +154,7 @@ function asstAcademy() {
   const out = [];
   for (const r of teamAca().slice()) {
     if (S.teams[0].riders.length >= ROSTER.max) break;
-    if (r.age >= 22 || (r.age >= 20 && overall(r.s) >= 70)) {
+    if (r.age >= acaAgeOut() - 1 || (r.age >= 20 && overall(r.s) >= 70)) {
       if (!promoteRider(r.id)) out.push(`${riderName(r)} passe pro`);
     }
   }

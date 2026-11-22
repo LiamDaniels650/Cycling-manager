@@ -30,7 +30,7 @@ function Espoir({ r, ments, stagOpen }) {
         {isStag(r) ? <Badge tone="sky">stagiaire</Badge> : null}
         {r.approach != null ? <Badge tone="red">courtisé par {teamShort(r.approach)}</Badge> : null}
         {r.injury > 0 ? <Badge tone="red">blessé {r.injury} sem.</Badge> : null}
-        {r.age >= 22 ? <Badge tone="red">dernière saison</Badge> : null}
+        {r.age >= acaAgeOut() - 1 ? <Badge tone="red">dernière saison</Badge> : null}
       </div>
       <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-slate-300">
         <span>
@@ -369,6 +369,45 @@ function Alumni() {
     </Card>
   );
 }
+// Équipe de développement (réserve) : création, avantages, espoirs qui peuvent courir avec les pros.
+function DevTeam() {
+  const go = f => ((UI.flash = f()), save(), render());
+  const elig = acaRiders().filter(r => r.age >= 19);
+  return (
+    <Card title="Équipe de développement">
+      {devOn() ? (
+        <>
+          <p className="text-sm text-slate-200">
+            <b>{devName()}</b> · créée en {S.dev.s} · entretien {fmtMoney(DEV.upk)} par saison.
+          </p>
+          <ul className="mt-2 list-disc pl-5 text-sm text-slate-300">
+            <li>{DEV.places} places de plus à l'académie ({acaMax()} au total)</li>
+            <li>espoirs gardés jusqu'à {acaAgeOut() - 1} ans révolus</li>
+            <li>
+              deux espoirs de 19 ans et plus peuvent courir avec les pros sur les courses de deuxième catégorie, toute la
+              saison ({elig.length} éligible{elig.length > 1 ? 's' : ''} : {elig.map(r => riderName(r)).join(', ') || 'aucun'})
+            </li>
+            <li>progression des espoirs +10 %</li>
+          </ul>
+          <Btn className="mt-3" onClick={() => go(devClose)}>
+            Dissoudre l'équipe de développement
+          </Btn>
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-slate-300">
+            Comme les grandes équipes, créez une réserve : la passerelle entre l'académie et les pros. Quatre places de
+            plus, des espoirs gardés un an de plus, et deux d'entre eux qui courent avec les pros sur les courses de
+            deuxième catégorie toute la saison.
+          </p>
+          <Btn primary className="mt-3" disabled={S.budget < DEV.cost} onClick={() => go(devCreate)}>
+            Créer l'équipe ({fmtMoney(DEV.cost)}, puis {fmtMoney(DEV.upk)} par saison)
+          </Btn>
+        </>
+      )}
+    </Card>
+  );
+}
 export function Academy() {
   const tab = UI.acaTab;
   return (
@@ -386,6 +425,7 @@ export function Academy() {
       {tab === 'aca' ? (
         <>
           <Main />
+          <DevTeam />
           <Facility />
         </>
       ) : tab === 'esp' ? (

@@ -17,7 +17,7 @@ function acaLvl() {
   return clamp(S.acaLvl || 1, 1, 4);
 }
 function acaMax() {
-  return ACA_FAC[acaLvl()].places;
+  return ACA_FAC[acaLvl()].places + (S.dev ? DEV.places : 0); // (équipe de développement : 68-reserve.js)
 }
 function acaUpgrade() {
   const l = acaLvl();
@@ -33,10 +33,12 @@ function acaUpgrade() {
 // Progression supplémentaire d'un espoir de l'académie (appelée avec la progression de la semaine).
 function acaFacGain(r, g0) {
   const F = ACA_FAC[acaLvl()];
-  if (r.aca && F.gain > 0) trainGain(r, r.training || 'normal', g0 * F.gain);
+  const g = F.gain + (S.dev ? DEV.gain : 0);
+  if (r.aca && g > 0) trainGain(r, r.training || 'normal', g0 * g);
 }
 // Entretien du centre (fin de saison).
 function acaFacEndSeason() {
+  devEndSeason();
   const F = ACA_FAC[acaLvl()];
   S.budget -= F.upk;
   finAdd('aca', -F.upk);

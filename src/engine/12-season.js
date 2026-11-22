@@ -51,6 +51,7 @@ function weeklyUpdate() {
   storiesWeekly();
   lockerWeekly();
   dopeWeekly(); // localisation, contrôles, suspensions (65-reglement.js)
+  crewWeekly(); // staff : salaire de l'adjoint, débauchages en attente (67-staff.js)
   discoWeekly();
   const coachMul = 0.8 + 0.15 * S.staff.coach;
   for (const id in S.riders) {
@@ -336,6 +337,7 @@ function endSeason() {
   tvEndSeason();
   lockerEndSeason();
   worldEndSeason(rankArr); // courses, sponsors, faillites, réformes (66-monde.js)
+  crewEndSeason(); // staff : progression, retraites, débauchages
   releaseClausesEndSeason();
   dsCarousel(rankArr);
   careerEndSeason(myRank);
@@ -507,15 +509,16 @@ function endSeason() {
   // académie : limite d'âge
   for (const id of S.academy.slice()) {
     const r = S.riders[id];
-    if (r.age >= 23) {
+    if (r.age >= acaAgeOut()) {
       S.academy.splice(S.academy.indexOf(id), 1);
       r.aca = false;
       r.team = null;
       r.contract = 0;
       r.salary = salaryFor(overall(r.s), r.age);
       S.free.push(id);
-      msg('Académie', `${riderName(r)} (23 ans) quitte l'académie sans être passé pro.`);
-    } else if (r.age >= 22) msg('Académie', `${riderName(r)} a 22 ans : passez-le pro cette saison ou il partira.`);
+      msg('Académie', `${riderName(r)} (${r.age} ans) quitte l'académie sans être passé pro.`);
+    } else if (r.age >= acaAgeOut() - 1)
+      msg('Académie', `${riderName(r)} a ${r.age} ans : passez-le pro cette saison ou il partira.`);
   }
   // jeunes : pré-contrats signés en cours de saison, puis les équipes IA recrutent, le vivier vieillit
   youthPreContracts();

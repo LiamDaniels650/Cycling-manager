@@ -154,6 +154,9 @@ function acceptJob(tid) {
     doctor: clamp(Math.round(1.5 + A.tier / 2), 1, 4),
     scout: clamp(Math.round(1 + A.tier / 2), 1, 4),
   };
+  S.crew = null; // nouveau club, nouveau staff
+  S.crewAsk = null;
+  crewInit();
   S.eqDeal = {
     bike: { pay: Math.round(eqBrand('bike', A.eq.bike).pay * 0.9), years: 1 },
     tt: { pay: Math.round(eqBrand('tt', A.eq.tt).pay * 0.9), years: 1 },

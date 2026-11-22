@@ -365,7 +365,7 @@ function lockerWeekly() {
 function lockerMoralTarget(r) {
   if (r.team !== 0 || S.car) return 62;
   const C = captain();
-  return 62 + (C ? clamp((leadOf(C) - 55) / 10, 0, 3) : 0) + (trustOf() - LOCK.trust0) / 20;
+  return 62 + (C ? clamp((leadOf(C) - 55) / 10, 0, 3) : 0) + (trustOf() - LOCK.trust0) / 20 + crewMoral();
 }
 function lockerEndSeason() {
   if (S.car) return;
