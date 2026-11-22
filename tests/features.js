@@ -1061,5 +1061,26 @@ check(
   }
   check(ok, 'offres de rachat : au plus la valeur du coureur');
 }
+
+// ---- Choix de l'équipe en début de partie ----
+{
+  const before = S;
+  const rows = previewTeams('Moi', 90, 'normal', 'moyen');
+  check(S === before, 'aperçu sans effet de bord (la partie en cours est intacte)');
+  check(rows.length === 18 && rows[0].f.rank === 1, `aperçu : ${rows.length} équipes, ${rows[0].T.name} favorite`);
+  newGame('Moi', 90, 'normal', { take: rows[0].T.id });
+  const P = S.teams[0];
+  check(
+    P.name === rows[0].T.name && P.riders.every(id => S.riders[id].team === 0),
+    `reprise de ${P.name} : effectif et identité`
+  );
+  check(
+    S.teams.length === 18 && S.teams.some(T => RESERVE_TEAMS.some(r => r[0] === T.name)),
+    'une équipe de réserve la remplace'
+  );
+  check(S.lastRank === 1 && S.obj.find(o => o.k === 'wins').n >= 10, 'objectifs de favori');
+  newGame('Moi', 90, 'normal', { level: 'petit' });
+  check(teamForecast(S.teams[0]).rank >= 12, `petit budget : rang prévu ${teamForecast(S.teams[0]).rank}`);
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

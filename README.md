@@ -336,6 +336,10 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     décisif la course se met en pause et le rejeu reste affiché avec son explication et le sort de mes coureurs,
     jusqu'à « Reprendre la course » (réglable : « pause aux moments décisifs ») ; boutons « Revoir » pour chaque
     moment de l'étape ; bandeaux de moments forts affichés plus longtemps (7 s pour mon équipe).
+  - Choix de l'équipe en début de partie : créer la sienne (petit budget, moyen, ambitieux) ou reprendre une des 17
+    équipes du peloton (elle est remplacée par une équipe de réserve). Pour chacune, niveau prévisionnel (rang
+    attendu d'après les 8 meilleurs coureurs : Favori, Ambitieux, Milieu de tableau, Outsider), leaders par terrain,
+    effectif et masse salariale ; budget et objectifs du sponsor s'y adaptent.
   - Marge du sprint : le meilleur sprinteur gagne 36 à 37 % des sprints massifs (contre 31 %).
   - Tests automatiques des nouveautés dans `tests/features.js` (moments, consignes, rejeux, directeurs, offres,
     carrousel, presse, stages, tests d'effort, forme).

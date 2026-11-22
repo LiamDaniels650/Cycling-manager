@@ -340,6 +340,92 @@ export function Options() {
     </div>
   );
 }
+// Choix de l'équipe : créer la sienne (petit, moyen ou gros budget) ou reprendre une des 17 équipes du peloton, avec
+// pour chacune son niveau prévisionnel (rang attendu d'après ses 8 meilleurs coureurs), ses leaders et sa masse
+// salariale. Le monde est généré une fois (même graine) pour l'aperçu, puis de nouveau avec le choix fait.
+let PREVIEW = null;
+function TeamPick({ pick, name, diff, level, setLevel, start, back }) {
+  // aperçu : monde généré avec la graine retenue (et le niveau choisi pour une équipe créée), sans créer la partie
+  const key = pick.seed + '/' + level + '/' + diff;
+  if (!PREVIEW || PREVIEW.key !== key)
+    PREVIEW = { key, rows: previewTeams((name || 'Mon Équipe').trim(), pick.seed, diff || 'normal', level) };
+  const rows = PREVIEW.rows;
+  const mineRow = rows.find(r => r.T.player);
+  const Row = ({ T, f, mine }) => (
+    <div
+      className={'rounded-xl p-2.5 text-left ' + (mine ? 'bg-pink-500/10 ring-1 ring-pink-400/40' : 'bg-slate-800/60')}
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+        <b className="text-slate-50">
+          <i className="mr-1.5 inline-block h-3 w-3 rounded-sm align-middle" style={{ background: T.color }} />
+          {T.name}
+        </b>
+        <span className="text-xs text-slate-300">
+          {f.lbl} · rang prévu <b className="text-slate-100">{f.rank}</b>/{f.n}
+        </span>
+      </div>
+      <div className="mt-0.5 text-xs text-slate-400">{f.goal}</div>
+      <div className="mt-1 text-xs text-slate-300">
+        {f.leaders.map(([k, r, v]) => (
+          <span key={k} className="mr-2 inline-block">
+            {k} : <b className="text-slate-100">{riderName(r)}</b> ({v})
+          </span>
+        ))}
+      </div>
+      <div className="mt-0.5 text-xs text-slate-400">
+        {f.size} coureurs · masse salariale {fmtMoney(f.pay)}/an · force {f.str}
+      </div>
+      <Btn primary={mine} className="mt-2 w-full min-h-10" onClick={() => start(mine ? { level } : { take: T.id })}>
+        {mine ? `Créer ${(name || 'Mon Équipe').trim()}` : `Reprendre ${T.name}`}
+      </Btn>
+    </div>
+  );
+  return (
+    <Card>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-xl font-bold text-slate-50">Choisissez votre équipe</h1>
+        <Btn className="min-h-9" onClick={back}>
+          ← Retour
+        </Btn>
+      </div>
+      <p className="mt-1 text-sm text-slate-400">
+        Le rang prévu vient de la force des 8 meilleurs coureurs de chaque équipe. Les objectifs du sponsor et le budget
+        s'adaptent à l'équipe choisie : une grande équipe a plus de moyens, mais on lui demande de gagner.
+      </p>
+      <h2 className="mt-3 text-sm font-semibold text-slate-100">Créer ma propre équipe</h2>
+      <div className="mt-1 flex flex-wrap gap-1.5">
+        {[
+          ['petit', '🌱 Petit budget'],
+          ['moyen', '⚖️ Moyen'],
+          ['grand', '🎯 Ambitieux'],
+        ].map(([k, l]) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setLevel(k)}
+            className={
+              'min-h-9 rounded-full px-3 text-sm font-semibold ring-1 ' +
+              (level === k ? 'bg-pink-500 text-white ring-pink-400' : 'bg-slate-800 text-slate-200 ring-slate-700')
+            }
+          >
+            {l}
+          </button>
+        ))}
+      </div>
+      <div className="mt-2">
+        <Row T={mineRow.T} f={mineRow.f} mine />
+      </div>
+      <h2 className="mt-4 text-sm font-semibold text-slate-100">… ou reprendre une équipe du peloton</h2>
+      <div className="mt-1 space-y-2">
+        {rows
+          .filter(r => !r.T.player)
+          .map(r => (
+            <Row key={r.T.id} T={r.T} f={r.f} />
+          ))}
+      </div>
+    </Card>
+  );
+}
 // Écran de démarrage : nom, difficulté, mode essentiel, import.
 export function Start() {
   const [name, setName] = useState('Mon Équipe');
@@ -347,15 +433,29 @@ export function Start() {
   const [simple, setSimpleOn] = useState(true);
   const [disco, setDisco] = useState(true);
   const [txt, setTxt] = useState('');
-  const start = () => {
+  const [pick, setPick] = useState(null); // écran de choix de l'équipe : { seed }
+  const [level, setLevel] = useState('moyen');
+  const start = (o = {}) => {
     const n = (name || 'Mon Équipe').trim();
-    newGame(n, Date.now(), diff || 'normal');
+    newGame(n, pick ? pick.seed : Date.now(), diff || 'normal', o);
     if (simple) setSimple(true);
     if (disco) discoStart();
     save();
     UI.view = 'home';
     render();
   };
+  if (pick)
+    return (
+      <TeamPick
+        pick={pick}
+        name={name}
+        diff={diff}
+        level={level}
+        setLevel={setLevel}
+        start={start}
+        back={() => setPick(null)}
+      />
+    );
   return (
     <Card className="text-center">
       <h1 className="mb-2 text-2xl font-bold text-slate-50">🚴 Directeur Sportif</h1>
@@ -405,8 +505,8 @@ export function Start() {
           Presse, planification, staff, équipementiers, histoires et académie se débloquent au fil de la première saison
           (l'adjoint s'en charge en attendant). Tout débloquer à tout moment dans ⚙ Options.
         </p>
-        <Btn primary className="w-full" onClick={start}>
-          Nouvelle partie
+        <Btn primary className="w-full" onClick={() => setPick({ seed: Date.now() })}>
+          Choisir mon équipe →
         </Btn>
         <Btn className="w-full" onClick={() => switchSlot('car')}>
           🚴 Mode carrière : vivre la carrière d'un coureur

@@ -91,6 +91,14 @@ const TEAM_NAMES = [
   ['Pacific Wave', 'PAC', '#00695c'],
   ['Toscana Ferro', 'TOS', '#9e9d24'],
 ];
+// Niveaux proposés pour une équipe créée de toutes pièces (petit budget, moyen, ambitieux).
+const START_LEVELS = { petit: -3.2, moyen: -0.8, grand: 1.6 };
+// Équipes de réserve : remplacent dans le peloton celle que le joueur reprend.
+const RESERVE_TEAMS = [
+  ['Horizon Cycles', 'HOR', '#7cb342', 'FRA', 'opportuniste'],
+  ['Cantabria Rutas', 'CAN', '#d84315', 'ESP', 'agressif'],
+  ['Polder Pro', 'POL', '#fb8c00', 'NED', 'sprint'],
+];
 // Niveaux des 17 équipes IA (du WorldTour de pointe aux équipes invitées) ; votre équipe démarre à -0,8.
 const TIERS = [4.5, 3.8, 3.2, 2.6, 2.0, 1.4, 0.9, 0.4, 0, -0.4, -0.9, -1.4, -1.9, -2.4, -3, -3.5, -4.2];
 // Effectifs : comme dans le peloton réel, une équipe aligne 25 à 30 coureurs pour courir plusieurs programmes ;
@@ -134,7 +142,7 @@ const COMPO = [
   'grimpeur',
 ];
 // Nouvelle partie : équipes, coureurs, calendrier, vivier de jeunes.
-function newGame(teamName, seed, diff) {
+function newGame(teamName, seed, diff, opts = {}) {
   _sd = (seed || Date.now()) | 0;
   const seed0 = _sd;
   _rid = 1;
@@ -190,7 +198,7 @@ function newGame(teamName, seed, diff) {
     name: teamName || 'Mon Équipe',
     short: 'MOI',
     color: '#e91e63',
-    tier: -0.8,
+    tier: START_LEVELS[opts.level] != null ? START_LEVELS[opts.level] : -0.8,
     riders: [],
     player: true,
   };
@@ -298,6 +306,11 @@ function newGame(teamName, seed, diff) {
       const r = S.riders[id];
       r.salary = salaryFor(overall(r.s) - R.initAge.find(e => r.age <= e[0])[1] / 2, r.age);
     }
+  // reprise d'une équipe existante : on prend son identité, son niveau et son effectif ; elle est remplacée dans le
+  // peloton par une nouvelle équipe (réserve de noms) qui hérite de l'effectif prévu pour la vôtre
+  if (opts.take) takeOverTeam(opts.take);
+  // objectifs du sponsor à la mesure de l'équipe choisie : son rang prévisionnel sert de rang de la saison passée
+  if (opts.take || (opts.level && opts.level !== 'moyen')) S.lastRank = teamForecast(pT).rank;
   initAiBudgets();
   genFreeAgents(30);
   genYouth(40);
@@ -420,4 +433,75 @@ function pruneWorld(hard) {
     if (S.inbox) S.inbox.length = Math.min(S.inbox.length, 40);
   }
   return n;
+}
+
+// Le joueur reprend l'équipe k de l'ordinateur : identité, style de jeu, niveau et effectif échangés avec ceux prévus
+// pour lui ; l'équipe k devient une équipe de réserve (nouveau nom) avec l'effectif d'origine du joueur.
+function takeOverTeam(k) {
+  const P = S.teams[0],
+    T = S.teams.find(t => t.id === +k);
+  if (!T || T.player) return;
+  const R0 = RESERVE_TEAMS.find(r => !S.teams.some(t => t.name === r[0])) || RESERVE_TEAMS[0];
+  const pr = P.riders,
+    tr = T.riders;
+  const ident = { name: T.name, short: T.short, color: T.color, tier: T.tier, natBias: T.natBias, style: T.style };
+  Object.assign(T, { name: R0[0], short: R0[1], color: R0[2], tier: P.tier, natBias: R0[3], style: R0[4], riders: pr });
+  Object.assign(P, { name: ident.name, short: ident.short, color: ident.color, tier: ident.tier, riders: tr });
+  P.natBias = ident.natBias;
+  for (const id of tr) S.riders[id].team = 0;
+  for (const id of pr) S.riders[id].team = T.id;
+  delete T.ds; // nouveau directeur pour l'équipe de réserve
+}
+// Niveau prévisionnel d'une équipe : force de ses 8 meilleurs coureurs, rang attendu, étiquette, leaders par terrain.
+function teamForecast(T) {
+  const top8 = T2 =>
+    T2.riders
+      .map(id => overall(S.riders[id].s))
+      .sort((a, b) => b - a)
+      .slice(0, 8);
+  const str = T2 => sum(top8(T2)) / 8;
+  const order = S.teams.slice().sort((a, b) => str(b) - str(a));
+  const rank = order.indexOf(T) + 1;
+  const n = S.teams.length;
+  const lbl =
+    rank <= 3
+      ? ['🏆 Favori', 'Viser les grands tours et le classement UCI']
+      : rank <= 7
+        ? ['🎯 Ambitieux', 'Victoires d’étapes, un podium de grand tour possible']
+        : rank <= 12
+          ? ['⚖️ Milieu de tableau', 'Des victoires ici et là, progresser saison après saison']
+          : ['🌱 Outsider', 'Chaque victoire compte : construire à partir de rien'];
+  const rs = T.riders.map(id => S.riders[id]);
+  const best = f => rs.slice().sort((a, b) => f(b) - f(a))[0];
+  const gc = best(r => r.s.mon * 0.6 + r.s.clm * 0.4),
+    sp = best(r => r.s.spr),
+    cl = best(r => (r.s.col + (r.s.pav || 60)) / 2);
+  return {
+    rank,
+    n,
+    str: Math.round(str(T) * 10) / 10,
+    lbl: lbl[0],
+    goal: lbl[1],
+    pay: Math.round(sum(rs.map(r => r.salary))),
+    size: rs.length,
+    leaders: [
+      ['Grands tours', gc, Math.round(gc.s.mon * 0.6 + gc.s.clm * 0.4)],
+      ['Sprint', sp, sp.s.spr],
+      ['Classiques', cl, Math.round((cl.s.col + (cl.s.pav || 60)) / 2)],
+    ],
+  };
+}
+
+// Aperçu du choix d'équipe : génère le monde (même graine que la partie qui suivra), relève le niveau prévisionnel
+// de chaque équipe, puis rétablit l'état d'avant (aucune partie n'est créée).
+function previewTeams(teamName, seed, diff, level) {
+  const keep = { S, sd: _sd, rid: _rid };
+  try {
+    newGame(teamName, seed, diff, { level });
+    return S.teams.map(T => ({ T, f: teamForecast(T) })).sort((a, b) => a.f.rank - b.f.rank);
+  } finally {
+    S = keep.S;
+    _sd = keep.sd;
+    _rid = keep.rid;
+  }
 }

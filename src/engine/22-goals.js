@@ -104,7 +104,7 @@ function genObjectives() {
   // classement UCI visé : la place de la saison passée, avec une place de marge hors du haut du classement
   const uciN = clamp(rk + (rk > 6 ? 2 : 1) - d, 1, nT - 1);
   S.obj = [
-    { k: 'wins', n: nW, txt: `Remporter au moins ${nW} victoires (étapes comprises)`, rew: 200 },
+    { k: 'wins', n: nW, txt: `Remporter au moins ${nW} victoire${nW > 1 ? 's' : ''} (étapes comprises)`, rew: 200 },
     {
       k: 'uci',
       n: uciN,
