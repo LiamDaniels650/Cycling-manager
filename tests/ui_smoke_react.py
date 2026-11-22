@@ -47,7 +47,7 @@ async def main():
         pg=await b.new_page(viewport={'width':400,'height':860})
         errs=[]; pg.on('pageerror',lambda e: errs.append(str(e)))
         await pg.goto(URL); await pg.evaluate("()=>new Promise(r=>{try{localStorage.clear()}catch(e){}; const q=indexedDB.deleteDatabase('dsc_save'); q.onsuccess=q.onerror=q.onblocked=()=>r(1);})"); await pg.reload()
-        await pg.click('text=Nouvelle partie')
+        await pg.click('text=Choisir mon équipe'); await pg.click('text=Créer Mon Équipe')
         print(await pg.evaluate(RADIO))
         await pg.evaluate("()=>{ closeRace(); }")
         t=time.time(); print(await pg.evaluate(SEASON), f'({time.time()-t:.0f}s)')

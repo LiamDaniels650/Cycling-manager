@@ -167,7 +167,7 @@ class Bot:
 
 async def director(pg, seasons):
     bot = Bot(pg, 'dir')
-    await pg.click('text=Nouvelle partie')
+    await pg.click('text=Choisir mon équipe'); await pg.click('text=Créer Mon Équipe')
     await pg.evaluate('()=>{S.tipsOff=true;save();}')
     s0 = await pg.evaluate('()=>S.season')
     t0 = time.time()
