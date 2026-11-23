@@ -47,7 +47,8 @@ export function AskPanel({ sim }) {
         ))}
       </div>
       <div className="mt-1 text-xs text-slate-300">
-        Sans réponse dans {Math.floor(left / 60)} min {String(left % 60).padStart(2, '0')} s : {a.self}
+        Sans réponse dans {Math.floor(left / 60)} min {String(left % 60).padStart(2, '0')} s :{' '}
+        {S.car ? a.self : `${adjName()} choisira « ${askAdjChoice(a) || '—'} ».`}
       </div>
     </div>
   );

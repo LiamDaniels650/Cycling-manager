@@ -58,6 +58,21 @@ function askAnswer(sim, k, src) {
   a.act(k, src);
 }
 
+// Nom du directeur adjoint (dans la voiture avec vous), pour les réponses qu'il donne à votre place.
+function adjName() {
+  return S.crew && S.crew.adjoint ? `votre adjoint ${crewName(S.crew.adjoint)}` : 'votre adjoint';
+}
+// Ce que l'adjoint répondra si vous ne répondez pas (pour l'affichage du compte à rebours).
+function askAdjChoice(a) {
+  if (!a) return null;
+  try {
+    const k = a.auto();
+    const o = a.opts.find(o => o[0] === k);
+    return o ? o[1] : k;
+  } catch (e) {
+    return null;
+  }
+}
 function radioTick(sim) {
   // fin des pactes dont un des deux a été lâché
   for (const pc of sim.pacts || []) {
@@ -74,17 +89,20 @@ function radioTick(sim) {
   aiPactTick(sim);
   const a = sim.ask;
   if (a && sim.t >= a.exp) {
-    // sans réponse, le coureur juge lui-même la situation (comme le ferait un directeur sportif) ; seuls les
-    // caractères marqués (tête brûlée, équipier modèle) suivent leur pente
-    const x = a.xid != null ? sim.runners.find(y => y.id === a.xid) : null;
-    const k = !x || ['tete', 'modele'].includes(x.r.trait) ? a.def : a.auto();
-    const o = a.opts.find(o => o[0] === k);
-    log(
-      sim,
-      `📻 Pas de réponse de la voiture : ${k === a.def ? a.self : `il choisit seul : « ${o ? o[1] : k} ».`}`,
-      'info'
-    );
-    askAnswer(sim, k, 'self');
+    // sans réponse du directeur sportif, c'est l'adjoint, assis à côté de lui dans la voiture, qui répond (le choix
+    // raisonné de la situation) ; en mode carrière, le coureur décide seul
+    if (S.car) {
+      const x = a.xid != null ? sim.runners.find(y => y.id === a.xid) : null;
+      const k = !x || ['tete', 'modele'].includes(x.r.trait) ? a.def : a.auto();
+      const o = a.opts.find(o => o[0] === k);
+      log(sim, `📻 Pas de réponse de la voiture : ${k === a.def ? a.self : `il choisit seul : « ${o ? o[1] : k} ».`}`, 'info');
+      askAnswer(sim, k, 'self');
+    } else {
+      const k = a.auto();
+      const o = a.opts.find(o => o[0] === k);
+      log(sim, `📻 Vous n'avez pas répondu : ${adjName()} prend le micro : « ${o ? o[1] : k} ».`, 'me');
+      askAnswer(sim, k, 'adjoint');
+    }
   }
   if (sim.ask || sim.t - (sim.askT ?? -99) < ASK_GAP) return;
   const mine = sim.runners.filter(x => x.player && !x.fin && !x.dnf && x.g);

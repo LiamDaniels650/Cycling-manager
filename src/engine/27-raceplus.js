@@ -107,15 +107,16 @@ function allyTick(sim, chase) {
     return;
   }
   const kmLeft = sim.dist - pel.pos;
-  // proposition restée sans réponse : les coureurs jugent eux-mêmes (comme le ferait un directeur sportif)
+  // proposition restée sans réponse : l'adjoint tranche à votre place (selon l'intérêt de l'équipe)
   if (sim.allyOffer && sim.t > sim.allyOffer.exp) {
     const yes = allyInterest(sim, P0) || teamRelOf(sim.allyOffer.T.id) >= 2;
+    const who = S.car ? 'tes coureurs' : adjName();
     log(
       sim,
       yes
-        ? `🤝 Sans réponse de la voiture, tes coureurs acceptent de rouler avec ${sim.allyOffer.T.name}.`
-        : `🤝 ${sim.allyOffer.T.name} n'a pas eu de réponse : chacun pour soi.`,
-      ''
+        ? `🤝 Sans réponse de votre part, ${who} accepte de rouler avec ${sim.allyOffer.T.name}.`
+        : `🤝 Sans réponse de votre part, ${who} refuse l'alliance avec ${sim.allyOffer.T.name} : chacun pour soi.`,
+      'me'
     );
     allyDecide(sim, yes, true);
   }

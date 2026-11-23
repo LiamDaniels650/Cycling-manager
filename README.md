@@ -497,6 +497,10 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     entre deux groupes qui se suivent, et un écart affiché n'est jamais plus petit que celui d'un groupe qui roule
     devant. Vue du ciel : chaque coureur suit exactement son groupe mais glisse en douceur vers sa place (≈ 0,5 s),
     ordre stable dans le groupe ; une jonction se voit au lieu d'une téléportation.
+  - Question de la radio, moment décisif ou proposition d'alliance restés sans réponse : c'est le directeur adjoint,
+    dans la voiture avec vous, qui répond (le choix raisonné de la situation), et le compte à rebours dit ce qu'il
+    choisira ; avant, le coureur décidait seul (les têtes brûlées et équipiers modèles suivant leur pente). En mode
+    carrière, le coureur décide toujours seul.
   - Vue du ciel au plus près : zoom serré par défaut (plus encore sur téléphone) et boutons − / + (du peloton entier
     au gros plan) ; en gros plan, de vrais petits cyclistes vus du dessus (ombre, roues, jambes qui pédalent au
     rythme de la vitesse, maillot de l'équipe, jaune pour le leader, casque ; liseré rose pour mes coureurs, blanc

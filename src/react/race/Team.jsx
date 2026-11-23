@@ -148,7 +148,8 @@ function AllyOffer({ sim }) {
           <Btn onClick={() => allyUI(false)}>Refuser</Btn>
         </div>
         <div className="mt-1 text-xs text-slate-400">
-          Accepter améliore vos relations avec eux ; refuser les froisse.
+          Accepter améliore vos relations avec eux ; refuser les froisse. Sans réponse dans{' '}
+          {Math.max(0, Math.round((sim.allyOffer.exp - sim.t) * 60))} s, {adjName()} tranchera selon l'intérêt de l'équipe.
         </div>
       </div>
     );
