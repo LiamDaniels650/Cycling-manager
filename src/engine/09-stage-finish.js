@@ -24,10 +24,13 @@ function tickCrossings(sim) {
     }
   });
   decisiveSplit(sim); // moments décisifs : sommets des grands cols et secteurs pavés rejoués au détail
+  let byPos = null; // (groupes dans l'ordre de la route, triés une seule fois par pas)
   for (const c of sim.klimbs) {
     if (c.done) continue;
+    // (rien à faire tant qu'aucun groupe n'a franchi ce sommet)
+    if (!c.order.length && sim.groups.length && !sim.groups.some(G => G.pos >= c.end)) continue;
     const pts = komPts(sim.rc, c, c.end >= sim.dist - 0.5);
-    for (const G of sim.groups.slice().sort((a, b) => b.pos - a.pos)) {
+    for (const G of byPos || (byPos = sim.groups.slice().sort((a, b) => b.pos - a.pos))) {
       if (G.prev < c.end && G.pos >= c.end) {
         const ord = c.preOrd
           ? c.preOrd.map(id => sim.runners.find(x => x.id === id)).filter(x => x && !x.dnf)

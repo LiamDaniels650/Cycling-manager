@@ -466,6 +466,12 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     - Le monde du vélo (Aujourd'hui › Le monde) : fil d'actualité du peloton (vainqueurs, blessures des coureurs en
       vue, mercato, inaugurations, directeurs remerciés, point sur la saison), rivalité de la saison avec l'équipe la
       plus proche au classement (duels dans les dix premiers, moral et notoriété), classement des directeurs sportifs.
+  - Optimisations : moteur plus rapide à résultats identiques (équipes devant chaque groupe cumulées le long de la
+    route au lieu d'une double boucle, équipes en course comptées en un passage, sommets ignorés tant que personne
+    ne les a franchis) ; Mondiaux et avances de plus de deux semaines calculés en arrière-plan (Worker) comme les
+    courses ; retraités gardés pour le palmarès encore allégés ; polices réduites aux caractères utiles
+    (tools/subset_fonts.sh, 261 → 119 Ko, originaux dans assets/fonts/full) ; calibrage avec arrêt anticipé
+    (./dev.sh auto : 20 saisons par graine, 60 seulement si une mesure est trop près d'un bord pour le bruit statistique).
   - Moteur, nouvelles mesures réelles dans la calibration (44 au lieu de 40) : porteurs du maillot de leader d'un
     grand tour (≈ 5), équipes qui gagnent une étape (≈ 8 sur 18), écart maximal de l'échappée sur le plat (≈ 4 min),
     distance de reprise (≈ 17 km). Corrections : une échappée reprise très tôt laisse place à une nouvelle bagarre ;

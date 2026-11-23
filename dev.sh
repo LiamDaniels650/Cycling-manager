@@ -5,6 +5,7 @@
 #   test           check + fonctionnalités, non-régression, biais, audit, interface (≈ 6 min)
 #   calib [n=30]   calibrage sur deux séries de n saisons en parallèle (graines 200 et 300), écarts au réel
 #   rapide         calibrage rapide (2 × 20 saisons, ≈ 5 min) pour vérifier en cours de route
+#   auto           calibrage avec arrêt anticipé : 20 saisons, puis 60 seulement si une mesure reste douteuse
 #   impact         poids de chaque caractéristique et de chaque choix (≈ 4 min)
 #   prodiges       jeunes talents sur 9 saisons (≈ 2 min 30)
 #   play           une saison jouée comme un joueur dans le navigateur
@@ -50,15 +51,15 @@ case "$1" in
   economie) build; node tests/economy.js 4 3 ;;
   finals) build; node tests/finals.js ;;
   expert) build; for m in passif expert; do node tests/expert.js $m ${2:-41} ${3:-8} | tail -1; done ;;
-  calib|rapide)
+  calib|rapide|auto)
     # rapide : 20 saisons par graine (≈ 5 min), pour les vérifications en cours de route ; calib N : N saisons.
     # Chaque graine répartit ses saisons sur la moitié des cœurs (résultats identiques, saisons indépendantes).
-    if [ "$1" = rapide ]; then n=20; else n=${2:-30}; fi; build
+    if [ "$1" = rapide ]; then n=20; elif [ "$1" = auto ]; then n=60; export CAL_STAGE=20; else n=${2:-30}; fi; build
     j=$(( $(nproc) / 2 )); [ "$j" -lt 1 ] && j=1
     JOBS=$j node tests/calibrate.js "$n" 200 > /tmp/calib200.txt 2>&1 &
     JOBS=$j node tests/calibrate.js "$n" 300 > /tmp/calib300.txt 2>&1
     wait
-    for s in 200 300; do echo "graine $s : $(grep -c '✔' /tmp/calib$s.txt) mesures dans le réel"; grep '✖' /tmp/calib$s.txt || true; done
+    for s in 200 300; do echo "graine $s : $(grep -c '✔' /tmp/calib$s.txt) mesures dans le réel"; grep '✖\|arrêt anticipé\|on poursuit' /tmp/calib$s.txt || true; done
     echo "(détail : /tmp/calib200.txt, /tmp/calib300.txt)" ;;
   impact) build; node tests/impact.js 20 ;;
   prodiges) build; node tests/prodigies.js 3 9 ;;

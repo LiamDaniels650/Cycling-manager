@@ -670,12 +670,20 @@ function tickTeamPlans(sim, live) {
     for (const y of H.riders) if (!y.fin) ts.add(y.team);
     present.set(H, ts);
   }
+  // (équipes devant : cumul le long des groupes triés du premier au dernier, au lieu d'une double boucle)
+  const byPos = sim.groups.slice().sort((a, b) => b.pos - a.pos);
+  const acc = new Set();
+  let j = 0;
+  for (const G of byPos) {
+    while (j < byPos.length && byPos[j].pos > G.pos + 0.03) {
+      for (const T of present.get(byPos[j])) acc.add(T);
+      j++;
+    }
+    sim._teamsAhead.set(G, new Set(acc));
+  }
   for (const G of sim.groups) {
     const ah = sim.groups.filter(H => H !== G && H.pos > G.pos + 0.03 && present.get(H).size);
     sim._ahead.set(G, ah);
-    const ts = new Set();
-    for (const H of sim.groups) if (H.pos > G.pos + 0.03) for (const T of present.get(H)) ts.add(T);
-    sim._teamsAhead.set(G, ts);
   }
   for (const G of sim.groups) {
     const kmLeft = sim.dist - G.pos;
@@ -714,8 +722,12 @@ function tickTeamPlans(sim, live) {
   for (const x of live) {
     if (x.player && x.conds && x.conds.length) evalConds(sim, x);
   }
-  if (Math.round(sim.t * 2) % 4 === 0)
-    for (const T of S.teams) if (sim.runners.some(x => x.team === T && !x.fin && !x.dnf)) dsBrain(sim, T);
+  if (Math.round(sim.t * 2) % 4 === 0) {
+    // (équipes encore en course : un seul passage sur les coureurs)
+    const alive = new Set();
+    for (const x of sim.runners) if (!x.fin && !x.dnf) alive.add(x.team);
+    for (const T of S.teams) if (alive.has(T)) dsBrain(sim, T);
+  }
   const workersCount = new Map();
   for (const G of sim.groups) {
     const ch = [...new Set(G.riders.map(x => x.team))]

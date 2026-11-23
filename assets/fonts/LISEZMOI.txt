@@ -1,2 +1,4 @@
 Polices Barlow et Barlow Semi Condensed (Jeremy Tribby), sous licence SIL Open Font License 1.1.
 Sous-ensembles latin et latin étendu, intégrés au jeu par tools/build_react.mjs pour fonctionner hors connexion.
+Les fichiers de ce dossier sont réduits aux caractères utiles au jeu (tools/subset_fonts.sh) ; les originaux
+complets sont dans full/. Un caractère absent (nom saisi dans une autre écriture) s'affiche dans la police du système.

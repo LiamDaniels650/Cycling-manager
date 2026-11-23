@@ -63,23 +63,28 @@ function skipRace(i) {
   });
 }
 function runWorldsUI(i) {
-  UI.busy = { txt: 'Simulation : ' + S.cal[i].name, k: 0, n: 1 };
-  renderBusy();
-  setTimeout(() => {
-    const rc = runWorlds(i);
-    UI.busy = null;
-    renderBusy();
+  workerOp('worlds', i, 'Simulation : ' + S.cal[i].name, () => ({ win: runWorlds(i).stageRes[0].res[0].id }), d => {
     save();
-    const w = S.riders[rc.stageRes[0].res[0].id];
+    const w = S.riders[d.win];
     UI.flash = `🌈 ${riderName(w)} (${NAT_NAME[w.nat] || w.nat}) est champion du monde. Bilan dans la messagerie.`;
     render();
-  }, 0);
+  });
 }
 function advance() {
-  advanceToNextRace();
-  save();
-  UI.flash = `Semaine ${S.week}. Les coureurs se sont entraînés.`;
-  render();
+  if (UI.busy) return;
+  const i = nextRaceIdx();
+  const n = i >= 0 ? S.cal[i].w - S.week : 0;
+  const fin = () => {
+    save();
+    UI.flash = `Semaine ${S.week}. Les coureurs se sont entraînés.`;
+    render();
+  };
+  // une ou deux semaines : immédiat ; au-delà, en arrière-plan (courses des espoirs, marché, presse…)
+  if (n <= 2) {
+    advanceToNextRace();
+    return fin();
+  }
+  workerOp('advance', i, `Semaines d'entraînement (${n})`, () => advanceToNextRace(), fin);
 }
 function doEndSeason() {
   confirmBox(`Clôturer la saison ${S.season} ?`, () => {
@@ -162,7 +167,17 @@ function simWorker() {
 onmessage = e => {
   const d = e.data;
   try {
-    S = d.state; _sd = d.sd;
+    S = d.state; _sd = d.sd; if (d.rid != null) _rid = d.rid;
+    if (d.op === 'worlds') {
+      const rc = runWorlds(d.i);
+      postMessage({ done: true, state: S, sd: _sd, rid: _rid, win: rc.stageRes[0].res[0].id });
+      return;
+    }
+    if (d.op === 'advance') {
+      advanceToNextRace();
+      postMessage({ done: true, state: S, sd: _sd, rid: _rid });
+      return;
+    }
     if (d.delegate) {
       // course confiée à l'adjoint : même déroulé, avec la progression étape par étape
       const rs = runStageAuto;
@@ -174,7 +189,7 @@ onmessage = e => {
       while (!rc.done) { runStageAuto(rc); postMessage({ k: rc.si, n: rc.specs.length }); }
     }
     S.rc = null;
-    postMessage({ done: true, state: S, sd: _sd });
+    postMessage({ done: true, state: S, sd: _sd, rid: _rid });
   } catch (err) { postMessage({ error: String(err && err.message || err) }); }
 };`;
     SIM_WORKER = new Worker(URL.createObjectURL(new Blob([src, glue], { type: 'text/javascript' })));
@@ -209,6 +224,7 @@ function simulateRaceAsync(i, done, delegate) {
     }
     S = d.state;
     _sd = d.sd;
+    if (d.rid != null) _rid = d.rid;
     UI.busy = null;
     renderBusy();
     done(null);
@@ -218,7 +234,39 @@ function simulateRaceAsync(i, done, delegate) {
     UI.busy = null;
     simulateRaceSteps(i, done, delegate);
   };
-  w.postMessage({ state: S, sd: _sd, i, delegate: !!delegate });
+  w.postMessage({ state: S, sd: _sd, rid: _rid, i, delegate: !!delegate });
+}
+// Une opération longue du moteur (Mondiaux, semaines d'entraînement) calculée en arrière-plan, l'écran reste
+// fluide ; repli : calcul ici même. done(résultat) une fois l'état repris.
+function workerOp(op, i, txt, local, done) {
+  const w = UI.noWorker ? null : simWorker();
+  const fallback = () => {
+    UI.busy = null;
+    renderBusy();
+    done(local());
+  };
+  if (!w) return setTimeout(fallback, 0);
+  UI.busy = { txt, k: 0, n: 1 };
+  renderBusy();
+  w.onmessage = e => {
+    const d = e.data;
+    if (d.error) {
+      UI.noWorker = true;
+      return fallback();
+    }
+    if (!d.done) return;
+    S = d.state;
+    _sd = d.sd;
+    if (d.rid != null) _rid = d.rid;
+    UI.busy = null;
+    renderBusy();
+    done(d);
+  };
+  w.onerror = () => {
+    UI.noWorker = true;
+    fallback();
+  };
+  w.postMessage({ op, state: S, sd: _sd, rid: _rid, i });
 }
 // Calcul par étapes sur la page (repli sans Worker) : une étape par tour de boucle, l'écran se met à jour entre deux.
 function simulateRaceSteps(i, done, delegate) {

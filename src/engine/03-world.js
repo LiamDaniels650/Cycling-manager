@@ -411,14 +411,15 @@ function pruneWorld(hard) {
       n++;
     }
     // retraité notable gardé pour les palmarès : il n'a plus besoin de son état de course ni de sa progression
-    else if (r.retired && !r.slim) {
-      for (const k of ['sx', 'load', 'wkDays', 'training', 'fh', 'fs', 'peakW', 'postPeak', 'altBoost', 'goal'])
+    else if (r.retired && r.slim !== 2) {
+      // (estimations, santé et déplacements ne servent plus : seule la fiche et le palmarès restent)
+      for (const k of ['sx', 'load', 'wkDays', 'training', 'fh', 'fs', 'peakW', 'postPeak', 'altBoost', 'goal', 'nz', 'nzc', 'injHist', 'lastReg', 'mtD'])
         delete r[k];
       if (r.pb) {
         const best = Object.entries(r.pb).sort((a, b) => (b[1] ? b[1].wkg : 0) - (a[1] ? a[1].wkg : 0))[0];
         r.pb = best ? { [best[0]]: best[1] } : {};
       }
-      r.slim = 1;
+      r.slim = 2;
     }
   }
   if (n && S.rel)

@@ -262,9 +262,9 @@ if (process.env.CAL_CHILD) {
   // sortir seulement une fois tout écrit (sinon un gros résultat est tronqué dans le tube)
   process.stdout.write(JSON.stringify({ M, ARCHS }), () => process.exit(0));
 }
-async function runAll() {
-  const jobs = Math.max(1, Math.min(NS, +(process.env.JOBS || require('os').cpus().length)));
-  const seeds = Array.from({ length: NS }, (_, i) => SEED0 + i);
+// Saisons d'une liste de graines, réparties entre JOBS processus, fusionnées dans M et ARCHS.
+async function runList(seeds) {
+  const jobs = Math.max(1, Math.min(seeds.length, +(process.env.JOBS || require('os').cpus().length)));
   const parts = Array.from({ length: jobs }, (_, j) => seeds.filter((_, i) => i % jobs === j));
   const outs = await Promise.all(
     parts.map(
@@ -288,20 +288,60 @@ async function runAll() {
         o[x] = (o[x] || 0) + a[k][x];
       }
   }
+}
+// Valeur comparée au réel : la moyenne pour un taux (échappées, victoires en solitaire…), sinon la médiane.
+function measureOf(k) {
+  const rate =
+    k.startsWith('echap_') ||
+    k.startsWith('solo_') ||
+    k.startsWith('favori_') ||
+    k === 'kom_vainqueur_top10_gc' ||
+    k === 'sprint_meilleur';
+  const a = M[k];
+  return rate ? sum(a) / a.length : quant(a, 0.5);
+}
+// Arrêt anticipé : chaque mesure est dans le réel, et assez loin du bord pour que le bruit des saisons manquantes
+// ne puisse pas l'en faire sortir (au moins 3 erreurs types ; une mesure figée sur un bord, comme 0 seconde d'écart
+// au sprint, a une erreur nulle et passe). Erreur type : écart type / √n (×1,25 pour une médiane).
+function decisive(out) {
+  let ok = true;
+  for (const k of Object.keys(REAL)) {
+    const v = M[k];
+    if (!v || v.length < 10) return false;
+    const m = measureOf(k),
+      [a, b] = REAL[k];
+    const mu = sum(v) / v.length;
+    const sd = Math.sqrt(sum(v.map(x => (x - mu) ** 2)) / (v.length - 1));
+    const se = (sd / Math.sqrt(v.length)) * (k.startsWith('echap_') || k.startsWith('solo_') || k.startsWith('favori_') || k === 'kom_vainqueur_top10_gc' || k === 'sprint_meilleur' ? 1 : 1.25);
+    const d = Math.min(m - a, b - m);
+    if (d < 0 || d < 3 * se) {
+      ok = false;
+      if (out) out.push(`${k} (${m.toFixed(2)}, ${(d / Math.max(se, 1e-9)).toFixed(1)} erreurs types du bord)`);
+    }
+  }
+  return ok;
+}
+async function runAll() {
+  const seeds = Array.from({ length: NS }, (_, i) => SEED0 + i);
+  // CAL_STAGE=n : on calcule d'abord n saisons ; si toutes les mesures sont nettement dans le réel, on s'arrête là
+  const ST = +(process.env.CAL_STAGE || 0);
+  if (ST > 0 && ST < NS) {
+    await runList(seeds.slice(0, ST));
+    const near = [];
+    if (decisive(near)) {
+      console.log(`(arrêt anticipé après ${ST} saisons : toutes les mesures sont nettement dans le réel)`);
+      return report();
+    }
+    console.log(`(on poursuit jusqu'à ${NS} saisons : ${near.join(', ')})`);
+    await runList(seeds.slice(ST));
+  } else await runList(seeds);
   report();
 }
 function report() {
   const f = v => v.toFixed(2).padStart(8);
   for (const k of Object.keys(M).sort()) {
-    // pour un taux (échappées, victoires en solitaire…), on compare la moyenne ; sinon la médiane
-    const rate =
-      k.startsWith('echap_') ||
-      k.startsWith('solo_') ||
-      k.startsWith('favori_') ||
-      k === 'kom_vainqueur_top10_gc' ||
-      k === 'sprint_meilleur';
     const a = M[k],
-      m = rate ? sum(a) / a.length : quant(a, 0.5),
+      m = measureOf(k),
       R = REAL[k];
     const ref = R ? `   réel ${R[0]}–${R[1]} ${m >= R[0] && m <= R[1] ? '✔' : '✖'}` : '';
     console.log(
