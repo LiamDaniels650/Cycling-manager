@@ -313,7 +313,9 @@ function decisive(out) {
     const mu = sum(v) / v.length;
     const sd = Math.sqrt(sum(v.map(x => (x - mu) ** 2)) / (v.length - 1));
     const se = (sd / Math.sqrt(v.length)) * (k.startsWith('echap_') || k.startsWith('solo_') || k.startsWith('favori_') || k === 'kom_vainqueur_top10_gc' || k === 'sprint_meilleur' ? 1 : 1.25);
-    const d = Math.min(m - a, b - m);
+    // (une borne basse à 0 pour une mesure jamais négative ne peut pas être franchie)
+    const lo = a <= 0 && v.every(x => x >= 0) ? Infinity : m - a;
+    const d = Math.min(lo, b - m);
     if (d < 0 || d < 3 * se) {
       ok = false;
       if (out) out.push(`${k} (${m.toFixed(2)}, ${(d / Math.max(se, 1e-9)).toFixed(1)} erreurs types du bord)`);
