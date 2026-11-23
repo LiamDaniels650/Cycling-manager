@@ -929,11 +929,16 @@ export function Sky({ sim, compact }) {
         />
         {compact ? null : <GapLadder sim={sim} G0={st.current.G0} onPick={pick} />}
       </div>
-      <div className="sm:hidden">
-        <GapLadder sim={sim} G0={st.current.G0} onPick={pick} chips />
-      </div>
-      <SkyCaption sim={sim} G={st.current.G0} />
-      <StageProfileLive sim={sim} G0={st.current.G0} onPick={pick} />
+      {/* pendant le final, l'encart du final donne déjà les groupes et la route jusqu'à la ligne */}
+      {compact ? null : (
+        <>
+          <div className="sm:hidden">
+            <GapLadder sim={sim} G0={st.current.G0} onPick={pick} chips />
+          </div>
+          <SkyCaption sim={sim} G={st.current.G0} />
+          <StageProfileLive sim={sim} G0={st.current.G0} onPick={pick} />
+        </>
+      )}
       <div className="flex flex-wrap items-center gap-1.5 px-2 py-1.5">
         {CAMS.concat(cam === 'grp' ? [['grp', 'Groupe choisi']] : []).map(([k, l]) => (
           <button

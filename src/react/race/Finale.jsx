@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '../icons.jsx';
 import { Html, Effort } from '../ui.jsx';
-import { RoadStrip } from './Broadcast.jsx';
 
 // Le final a-t-il commencé (tête à 15 km ou moins, ou arrivée en cours) ?
 export function inFinale(sim) {
@@ -14,10 +13,10 @@ export function inFinale(sim) {
 // (rose : avec un de mes coureurs). Se lit d'un coup d'œil : qui est où par rapport à la ligne.
 function FinalTrack({ sim, frac }) {
   const W = 640,
-    H = 96,
+    H = 112,
     L = 24,
     R = 44,
-    y = 50;
+    y = 48;
   const D = FINALE_KM;
   const X = kmL => L + ((D - clamp(kmL, 0, D)) / D) * (W - L - R);
   const live = sim.groups.filter(G => G.riders.some(x => !x.fin)).slice(0, 8);
@@ -44,48 +43,54 @@ function FinalTrack({ sim, frac }) {
       <text x={W - R + 6} y={H - 2} textAnchor="middle" fontSize="22" fill="#e2e8f0">
         🏁
       </text>
-      {live
-        .map((G, i) => {
-          const cx = X(sim.dist - ipos(G, frac));
+      {(() => {
+        // étiquettes « effectif · écart » : au-dessus, sinon en dessous, jamais l'une sur l'autre ; la tête, le peloton
+        // et mes groupes passent en premier
+        const pel = live.includes(sim.pel) ? sim.pel : null;
+        const its = live.map((G, i) => {
+          const n = G.riders.filter(x => !x.fin).length;
           const mine = G.riders.some(x => x.player && !x.fin);
-          // une étiquette seulement si elle ne chevauche pas celle d'un groupe plus en avant
-          const lbl =
-            (mine || !i) &&
-            !live
-              .slice(0, i)
-              .some(
-                (H, j) =>
-                  (j === 0 || H.riders.some(x => x.player && !x.fin)) && Math.abs(X(sim.dist - ipos(H, frac)) - cx) < 44
-              );
-          return { G, cx, mine, lbl, n: G.riders.filter(x => !x.fin).length };
-        })
-        .reverse()
-        .map(({ G, cx, mine, lbl, n }, i) => {
-          return (
-            <g key={i}>
+          return { G, i, n, mine, cx: X(sim.dist - ipos(G, frac)), pri: !i || mine ? 0 : G === pel ? 1 : 2 };
+        });
+        const rows = [[], []];
+        for (const it of [...its].sort((a, b) => a.pri - b.pri || a.i - b.i)) {
+          const t = it.i ? `${it.n} · ${boardGapTxt(sim, live[0], it.G)}` : `${it.n} · Tête`;
+          const w = t.length * 11 + 10;
+          const tx = clamp(it.cx, L + w / 2 - 20, W - w / 2);
+          const r = rows.findIndex(row => row.every(o => Math.abs(o.tx - tx) > (o.w + w) / 2 + 4));
+          if (r >= 0) rows[r].push((it.lb = { tx, w, t, r }));
+        }
+        return (
+          <>
+            {[...its].reverse().map(it => (
               <circle
-                cx={cx}
+                key={'c' + it.i}
+                cx={it.cx}
                 cy={y}
-                r={Math.min(16, 7 + Math.sqrt(n))}
-                fill={mine ? '#f472b6' : '#e2e8f0'}
+                r={Math.min(16, 7 + Math.sqrt(it.n))}
+                fill={it.mine ? '#f472b6' : !it.i ? '#f2c94c' : '#e2e8f0'}
                 stroke="#0f172a"
                 strokeWidth="2"
               />
-              {lbl ? (
+            ))}
+            {its
+              .filter(it => it.lb)
+              .map(it => (
                 <text
-                  x={clamp(cx, 20, W - 20)}
-                  y={y - 20}
+                  key={'t' + it.i}
+                  x={it.lb.tx}
+                  y={it.lb.r ? y + 40 : y - 22}
                   textAnchor="middle"
-                  fontSize="24"
-                  fontWeight="700"
-                  fill={mine ? '#f9a8d4' : '#e2e8f0'}
+                  fontSize="20"
+                  fontWeight={it.mine || !it.i ? 700 : 500}
+                  fill={it.mine ? '#f9a8d4' : !it.i ? '#f2c94c' : '#e2e8f0'}
                 >
-                  {n}
+                  {it.lb.t}
                 </text>
-              ) : null}
-            </g>
-          );
-        })}
+              ))}
+          </>
+        );
+      })()}
     </svg>
   );
 }
@@ -132,7 +137,6 @@ export function Finale({ sim, children }) {
         <span className="line-clamp-2 min-h-8 text-right text-xs text-slate-300">{terr}</span>
       </div>
       <FinalTrack sim={sim} frac={UI.acc || 0} />
-      <RoadStrip sim={sim} frac={UI.acc || 0} />
       {/* mes actions juste sous la route : visibles sans faire défiler, au-dessus des commandes */}
       {children ? <div className="mt-2">{children}</div> : null}
       {/* hauteurs fixes partout : les groupes qui se font et se défont ne font pas bouger l'écran */}

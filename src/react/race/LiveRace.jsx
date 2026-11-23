@@ -3,7 +3,7 @@
 // et mes ordres passent en haut ; la retransmission complète, le détail des groupes et la radio sont repliés.
 import { useEffect } from 'react';
 import { Card, noLead } from '../ui.jsx';
-import { RaceHeader, Clock, StageProfile, RoadStrip, GapChart, VirtualLeader } from './Broadcast.jsx';
+import { RaceHeader, Clock, StageProfile, GapChart, VirtualLeader } from './Broadcast.jsx';
 import { Finale, inFinale } from './Finale.jsx';
 import { FinalActions } from './FinalActions.jsx';
 import { Peloton } from './Peloton.jsx';
@@ -96,7 +96,6 @@ export function LiveRace() {
           <RaceHeader sim={sim} rc={rc} />
           <Clock sim={sim} frac={frac} />
           <StageProfile spec={sim.spec} Pf={UI.Pf} sim={sim} frac={frac} />
-          <RoadStrip sim={sim} frac={frac} />
           <GapChart sim={sim} />
           <div className="min-h-5">
             <VirtualLeader sim={sim} />

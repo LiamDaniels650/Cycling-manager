@@ -437,6 +437,9 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     l'image sur grand écran, en pastilles sur téléphone), un clic sur un groupe le filme. Sous l'image, le vrai
     profil de l'étape (altitude, cols en rouge avec leur catégorie, sprint, kilomètres restants) avec les groupes
     placés dessus, eux aussi cliquables.
+  - Final plus net : une seule piste des 15 derniers km (la bande des écarts en double est retirée), chaque groupe
+    avec « effectif · écart » placé au-dessus ou en dessous sans chevauchement (tête en jaune, mes groupes en rose) ;
+    pendant le final, la vue du ciel ne répète plus le profil et les écarts que l'encart donne déjà.
   - Moteur, nouvelles mesures réelles dans la calibration (44 au lieu de 40) : porteurs du maillot de leader d'un
     grand tour (≈ 5), équipes qui gagnent une étape (≈ 8 sur 18), écart maximal de l'échappée sur le plat (≈ 4 min),
     distance de reprise (≈ 17 km). Corrections : une échappée reprise très tôt laisse place à une nouvelle bagarre ;
