@@ -594,7 +594,7 @@ function teamChaseLevel1(sim, T, G, kmLeft) {
       let allowed =
         t === 'montagne' || t === 'sommet'
           ? Math.max(180, (kmLeft - 15) * 5.5) * R.mtnChaseK
-          : Math.max(60, (kmLeft - 10) * 3.5) * (t === 'vallonne' ? 1.5 : 1); // (vallonné : plus dur à contrôler)
+          : Math.max(60, (kmLeft - 10) * 3.5) * (t === 'vallonne' ? R.hillyControlK : 1); // (vallonné : plus dur à contrôler)
       // une échappée sans danger pour le général (tous à plus de 10 minutes) a droit à bien plus de marge
       if (sim.stageRace) {
         const front = ahead.reduce((a, b) => (a.pos > b.pos ? a : b));
@@ -677,11 +677,11 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
     nw = 0;
   if (
     spr &&
-    (t === 'plat' || (t === 'punch' && kmLeft < 95) || (t === 'vallonne' && kmLeft < 80 && spr.r.s.col >= 72)) &&
+    (t === 'plat' || (t === 'punch' && kmLeft < 95) || (t === 'vallonne' && kmLeft < 80 && spr.r.s.col >= R.sprintHillCol)) &&
     !aheadMate
   ) {
     // (final vallonné : plus dur à contrôler pour une équipe de sprinteur, l'échappée a plus de marge)
-    const allowed = Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK * (t === 'vallonne' ? 1.35 : 1);
+    const allowed = Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK * (t === 'vallonne' ? R.hillyChaseK : 1);
     if (gap > allowed * 1.5 + 40) {
       level = 0.97;
       nw = 4;

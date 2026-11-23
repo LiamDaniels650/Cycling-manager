@@ -299,15 +299,11 @@ async function runList(seeds) {
   }
 }
 // Valeur comparée au réel : la moyenne pour un taux (échappées, victoires en solitaire…), sinon la médiane.
+const isRate = k =>
+  k.startsWith('echap_') || k.startsWith('solo_') || k.startsWith('favori_') || k === 'kom_vainqueur_top10_gc' || k === 'sprint_meilleur';
 function measureOf(k) {
-  const rate =
-    k.startsWith('echap_') ||
-    k.startsWith('solo_') ||
-    k.startsWith('favori_') ||
-    k === 'kom_vainqueur_top10_gc' ||
-    k === 'sprint_meilleur';
   const a = M[k];
-  return rate ? sum(a) / a.length : quant(a, 0.5);
+  return isRate(k) ? sum(a) / a.length : quant(a, 0.5);
 }
 // Arrêt anticipé : chaque mesure est dans le réel, et assez loin du bord pour que le bruit des saisons manquantes
 // ne puisse pas l'en faire sortir (au moins 3 erreurs types ; une mesure figée sur un bord, comme 0 seconde d'écart
@@ -321,7 +317,7 @@ function decisive(out) {
       [a, b] = REAL[k];
     const mu = sum(v) / v.length;
     const sd = Math.sqrt(sum(v.map(x => (x - mu) ** 2)) / (v.length - 1));
-    const se = (sd / Math.sqrt(v.length)) * (k.startsWith('echap_') || k.startsWith('solo_') || k.startsWith('favori_') || k === 'kom_vainqueur_top10_gc' || k === 'sprint_meilleur' ? 1 : 1.25);
+    const se = (sd / Math.sqrt(v.length)) * (isRate(k) ? 1 : 1.25);
     // (une borne basse à 0 pour une mesure jamais négative ne peut pas être franchie)
     const lo = a <= 0 && v.every(x => x >= 0) ? Infinity : m - a;
     const d = Math.min(lo, b - m);

@@ -113,5 +113,11 @@ const R = {
   chaseAhead: 2, // … une équipe en avance sur cet objectif (vitesse de reprise > 1,4 × nécessaire) lève le pied
   chaseBehind: 0.85, // … en retard (< 0,7 × nécessaire), elle accélère et engage un rouleur de plus
   pavFinalPace: 0.9, // 30 derniers km d'une classique pavée : allure d'un groupe de tête où personne ne relaie
-  noWorkAhead: 0.7, // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
+  noWorkAhead: 0.7,
+  hillyChaseK: 1.35, // vallonné : marge laissée à l'échappée par une équipe de sprinteur (× la marge du plat)
+  hillyControlK: 1.5, // vallonné : marge laissée par une équipe qui contrôle la course (× celle du plat)
+  sprintHillCol: 72, // vallonné : une équipe ne roule pour son sprinteur que s'il passe les côtes (collines ≥ 72)
+  brkSprintKm: 12, // un échappé dont le sprinteur est derrière relaie au ralenti dans les 12 derniers km
+  tttK: 0.98, // contre-la-montre par équipes : réglage de vitesse de l'exercice (51-57 km/h dans la réalité)
+  komPassK: 2, // grands tours : les cols de passage rapportent deux fois les points du barème // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
 };

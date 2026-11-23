@@ -80,8 +80,6 @@ function runStageAuto(rc) {
   return sim;
 }
 // Contre-la-montre par équipes : le rythme est celui du cœur de l'équipe ; les lâchés finissent seuls.
-// (TTT_K : réglage de vitesse de l'exercice, pour viser le milieu de la fourchette réelle, 51-57 km/h)
-const TTT_K = 0.98;
 function runTTT(rc) {
   const spec = rc.specs[rc.si];
   const P = buildProfile(spec);
@@ -143,7 +141,7 @@ function runTTT(rc) {
         L = Math.min(L, (capOf(ldr, i) * 0.99) / share);
       }
       for (let j = 0; j < n; j++) if (skip[j]) grp[j].skips = (grp[j].skips || 0) + 1;
-      const v = physSpeed(speedOf(L, P.g[i], P.surf[i], true, true) * eqTT * TTT_K, P.g[i], CO[i], 0.22);
+      const v = physSpeed(speedOf(L, P.g[i], P.surf[i], true, true) * eqTT * R.tttK, P.g[i], CO[i], 0.22);
       const dt = STEP / v;
       t += dt * 3600;
       grp.forEach((x, j) => {

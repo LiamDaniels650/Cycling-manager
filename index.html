@@ -3591,7 +3591,13 @@ const R = {
   chaseAhead: 2, // … une équipe en avance sur cet objectif (vitesse de reprise > 1,4 × nécessaire) lève le pied
   chaseBehind: 0.85, // … en retard (< 0,7 × nécessaire), elle accélère et engage un rouleur de plus
   pavFinalPace: 0.9, // 30 derniers km d'une classique pavée : allure d'un groupe de tête où personne ne relaie
-  noWorkAhead: 0.7, // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
+  noWorkAhead: 0.7,
+  hillyChaseK: 1.35, // vallonné : marge laissée à l'échappée par une équipe de sprinteur (× la marge du plat)
+  hillyControlK: 1.5, // vallonné : marge laissée par une équipe qui contrôle la course (× celle du plat)
+  sprintHillCol: 72, // vallonné : une équipe ne roule pour son sprinteur que s'il passe les côtes (collines ≥ 72)
+  brkSprintKm: 12, // un échappé dont le sprinteur est derrière relaie au ralenti dans les 12 derniers km
+  tttK: 0.98, // contre-la-montre par équipes : réglage de vitesse de l'exercice (51-57 km/h dans la réalité)
+  komPassK: 2, // grands tours : les cols de passage rapportent deux fois les points du barème // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
 };
 
 // ---- src/engine/01-util.js ----
@@ -6838,7 +6844,7 @@ function teamChaseLevel1(sim, T, G, kmLeft) {
       let allowed =
         t === 'montagne' || t === 'sommet'
           ? Math.max(180, (kmLeft - 15) * 5.5) * R.mtnChaseK
-          : Math.max(60, (kmLeft - 10) * 3.5) * (t === 'vallonne' ? 1.5 : 1); // (vallonné : plus dur à contrôler)
+          : Math.max(60, (kmLeft - 10) * 3.5) * (t === 'vallonne' ? R.hillyControlK : 1); // (vallonné : plus dur à contrôler)
       // une échappée sans danger pour le général (tous à plus de 10 minutes) a droit à bien plus de marge
       if (sim.stageRace) {
         const front = ahead.reduce((a, b) => (a.pos > b.pos ? a : b));
@@ -6921,11 +6927,11 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
     nw = 0;
   if (
     spr &&
-    (t === 'plat' || (t === 'punch' && kmLeft < 95) || (t === 'vallonne' && kmLeft < 80 && spr.r.s.col >= 72)) &&
+    (t === 'plat' || (t === 'punch' && kmLeft < 95) || (t === 'vallonne' && kmLeft < 80 && spr.r.s.col >= R.sprintHillCol)) &&
     !aheadMate
   ) {
     // (final vallonné : plus dur à contrôler pour une équipe de sprinteur, l'échappée a plus de marge)
-    const allowed = Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK * (t === 'vallonne' ? 1.35 : 1);
+    const allowed = Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK * (t === 'vallonne' ? R.hillyChaseK : 1);
     if (gap > allowed * 1.5 + 40) {
       level = 0.97;
       nw = 4;
@@ -7791,8 +7797,9 @@ function ckey(G, T) {
 }
 // Étape de plaine, loin de l'arrivée : si, au rythme actuel, l'échappée serait reprise bien avant le final, le
 // peloton entier lève le pied (une équipe au tempo, un rouleur chacune) : reprendre trop tôt, c'est s'exposer aux
-// contres. Sans cela, les équipes qui roulent pour d'autres raisons (alliances, menaces) avalaient l'échappée à
-// 60-100 km de l'arrivée (18 % des étapes de plaine).
+// contres. Complète la projection de poursuite (chaseProject), qui ne concerne que les équipes de sprinteurs :
+// sans ce frein, les autres équipes qui roulent (alliances, menaces) font reprendre l'échappée vers 22 km de
+// l'arrivée en moyenne, hors de la fourchette réelle (5 à 15 km ; calibration de 60 saisons, mesure vérifiée).
 function flatPatience(sim, chase) {
   const G = sim.pel;
   if (sim.spec.type !== 'plat' || !G) return;
@@ -8103,9 +8110,9 @@ function decideRider(sim, x, ctx) {
     if ((eo === 'protect' || eo === 'control' || eo === 'leadout') && ldr && ldr.g !== G && !ldr.fin)
       w = kmLeft < 25 ? 0.3 : 0;
     const spB = sim.teamSprinter[x.team.id];
-    // (dans les 12 derniers km seulement, et il relaie au ralenti : à 60 km, toute l'échappée s'arrêtait de rouler,
+    // (dans les derniers km seulement (R.brkSprintKm), et il relaie au ralenti : à 60 km, toute l'échappée s'arrêtait de rouler,
     // presque chaque équipe ayant un sprinteur derrière, et elle était reprise bien avant le final)
-    if (spB && spB !== x && spB.g !== G && !spB.fin && sim.P.finishGrad < 3 && kmLeft < 12) w = Math.min(w, 0.3);
+    if (spB && spB !== x && spB.g !== G && !spB.fin && sim.P.finishGrad < 3 && kmLeft < R.brkSprintKm) w = Math.min(w, 0.3);
     if (G.riders.length >= 3 && sim.P.finishGrad < 3 && kmLeft < 15) {
       const bs = G.riders.reduce((a, b) => (b.r.s.spr > a.r.s.spr ? b : a));
       if (bs === x && x.r.s.bar < 75) w = Math.min(w, 0.35);
@@ -9955,8 +9962,6 @@ function runStageAuto(rc) {
   return sim;
 }
 // Contre-la-montre par équipes : le rythme est celui du cœur de l'équipe ; les lâchés finissent seuls.
-// (TTT_K : réglage de vitesse de l'exercice, pour viser le milieu de la fourchette réelle, 51-57 km/h)
-const TTT_K = 0.98;
 function runTTT(rc) {
   const spec = rc.specs[rc.si];
   const P = buildProfile(spec);
@@ -10018,7 +10023,7 @@ function runTTT(rc) {
         L = Math.min(L, (capOf(ldr, i) * 0.99) / share);
       }
       for (let j = 0; j < n; j++) if (skip[j]) grp[j].skips = (grp[j].skips || 0) + 1;
-      const v = physSpeed(speedOf(L, P.g[i], P.surf[i], true, true) * eqTT * TTT_K, P.g[i], CO[i], 0.22);
+      const v = physSpeed(speedOf(L, P.g[i], P.surf[i], true, true) * eqTT * R.tttK, P.g[i], CO[i], 0.22);
       const dt = STEP / v;
       t += dt * 3600;
       grp.forEach((x, j) => {
@@ -16043,9 +16048,9 @@ function jerseyOrder(G, kind, sim, c) {
 // Points d'un sommet selon la course et la catégorie (arrivée au sommet doublée sur le Tour).
 function komPts(rc, c, summitFinish) {
   let sc = (KOM_GT[rc.key] || KOM_PTS)[c.cat] || KOM_PTS[c.cat];
-  // réglage de jeu (grands tours) : les cols de passage valent deux fois plus, pour que les chasseurs du maillot
+  // réglage de jeu (grands tours) : les cols de passage valent plus (R.komPassK), pour que les chasseurs du maillot
   // échappés puissent rivaliser avec les favoris, qui ramassent les points des arrivées au sommet
-  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * 2));
+  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * R.komPassK));
   // (les arrivées au sommet de la Grande Boucle ne comptent plus double : le maillot allait trop souvent à un
   // homme du général, la moitié des cas contre un quart dans la réalité)
   return sc;

@@ -671,8 +671,9 @@ function ckey(G, T) {
 }
 // Étape de plaine, loin de l'arrivée : si, au rythme actuel, l'échappée serait reprise bien avant le final, le
 // peloton entier lève le pied (une équipe au tempo, un rouleur chacune) : reprendre trop tôt, c'est s'exposer aux
-// contres. Sans cela, les équipes qui roulent pour d'autres raisons (alliances, menaces) avalaient l'échappée à
-// 60-100 km de l'arrivée (18 % des étapes de plaine).
+// contres. Complète la projection de poursuite (chaseProject), qui ne concerne que les équipes de sprinteurs :
+// sans ce frein, les autres équipes qui roulent (alliances, menaces) font reprendre l'échappée vers 22 km de
+// l'arrivée en moyenne, hors de la fourchette réelle (5 à 15 km ; calibration de 60 saisons, mesure vérifiée).
 function flatPatience(sim, chase) {
   const G = sim.pel;
   if (sim.spec.type !== 'plat' || !G) return;

@@ -75,9 +75,9 @@ function jerseyOrder(G, kind, sim, c) {
 // Points d'un sommet selon la course et la catégorie (arrivée au sommet doublée sur le Tour).
 function komPts(rc, c, summitFinish) {
   let sc = (KOM_GT[rc.key] || KOM_PTS)[c.cat] || KOM_PTS[c.cat];
-  // réglage de jeu (grands tours) : les cols de passage valent deux fois plus, pour que les chasseurs du maillot
+  // réglage de jeu (grands tours) : les cols de passage valent plus (R.komPassK), pour que les chasseurs du maillot
   // échappés puissent rivaliser avec les favoris, qui ramassent les points des arrivées au sommet
-  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * 2));
+  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * R.komPassK));
   // (les arrivées au sommet de la Grande Boucle ne comptent plus double : le maillot allait trop souvent à un
   // homme du général, la moitié des cas contre un quart dans la réalité)
   return sc;
