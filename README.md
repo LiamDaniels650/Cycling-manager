@@ -487,6 +487,11 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     sans les cassures en bordure. Résultat (60 saisons × 2 graines) : 44/44, et 3 mesures près d'un bord au lieu de
     14 (écart du 10e aux arrivées au sommet, équipes gagnant une étape de grand tour : affaire de répartition des
     forces entre équipes, à revoir avec la construction des effectifs de l'ordinateur).
+  - Course en direct plus lisible sur téléphone : la caméra de la vue du ciel est accrochée au groupe filmé (seuls
+    le zoom et le cadrage sont lissés ; avant, elle le suivait avec un retard qui grandissait avec la vitesse et le
+    perdait sur petit écran) ; plan élargi cadré de la queue du groupe le plus en arrière à la tête du plus en avant.
+    Vitesses ralenties : lent ×3, normal ×7,5 (au lieu de ×15), ▶▶ ×30 ; le rythme automatique n'accélère plus une
+    course animée, seulement les temps morts et la bagarre du début.
   - Moteur, quatre chantiers :
     - Identité des équipes de l'ordinateur (75-identity.js) : grands tours, classiques, sprint, échappées, et une
       super-équipe (le plus haut standing, de vraies vedettes) ; vedettes de départ, recrutement (marché, transferts,

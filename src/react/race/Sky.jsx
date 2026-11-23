@@ -63,7 +63,7 @@ const SKY_EV = {
 const fracNow = () =>
   clamp(
     (UI.acc || 0) +
-      ((performance.now() - (UI.loopT || performance.now())) / 1000) * ([0, 0.25, 0.5, 1.5, 5, 20][UI.speed] || 0),
+      ((performance.now() - (UI.loopT || performance.now())) / 1000) * (SPEEDS[UI.speed] || 0),
     0,
     1
   );
@@ -206,27 +206,35 @@ function draw(cv, sim, cam, st) {
     .filter(([, k]) => Math.abs(k - fKm) * 1000 < 320)
     .sort((a, b) => Math.abs(a[1] - fKm) - Math.abs(b[1] - fKm))[0];
   if (near) {
-    const d = Math.abs(near[1] - fKm) * 1000;
-    span = clamp(Math.max(span, d * 1.35 + 50), 50, 520);
-    mid = (fKm + near[1]) / 2 - len / 4000;
+    // plan élargi : de la queue du groupe le plus en arrière à la tête du plus en avant (un gros peloton est long)
+    const nN = near[0].riders.filter(x => !x.fin && !x.dnf).length;
+    const nLen = (Math.ceil(nN / clamp(Math.ceil(Math.sqrt(nN) * 0.75), 1, 8)) * 1.7) / 1000;
+    const front = Math.max(fKm, near[1]);
+    const rear = Math.min(fKm - len / 1000, near[1] - nLen);
+    span = clamp(Math.max(span, (front - rear) * 1000 * 1.25 + 40), 50, 520);
+    mid = (front + rear) / 2;
   }
   st.near = near ? near[0] : null;
   // (mouvement de caméra fluide ; saut direct si le groupe filmé change ou après une avance rapide)
-  const far = st.mid == null || Math.abs(mid - st.mid) * 1000 > Math.max(span, st.span || 0) * 1.5 || st.lastG !== G0;
-  st.lastG = G0;
-  if (far && (st.mid == null || Math.abs(mid - st.mid) * 1000 > 250)) {
-    st.mid = mid;
+  // la caméra est accrochée au groupe filmé (position exacte à chaque image) : seuls le zoom et le cadrage autour
+  // de lui (plan élargi vers un groupe voisin) sont lissés. Avant, elle courait derrière le groupe avec un retard
+  // qui grandissait avec la vitesse de lecture ; sur téléphone, le groupe sortait de l'image.
+  const off = mid - fKm;
+  if (st.off == null || st.lastG !== G0) {
+    st.off = off;
     st.span = span;
   } else {
     st.span = st.span ? st.span + (span - st.span) * 0.06 : span;
-    st.mid = st.mid + (mid - st.mid) * (far ? 0.25 : 0.08);
+    st.off = st.off + (off - st.off) * 0.08;
   }
+  st.lastG = G0;
+  st.mid = fKm + st.off;
   // (sur grand écran, le classement des écarts occupe la droite de l'image : on cadre dans la partie libre)
   const padR = !st.compact && W >= 600 ? 200 : 0;
   const CX = (W - padR) / 2;
   const sc = (W - padR) / st.span; // pixels par mètre
   // (l'image est centrée sur le milieu du groupe, un peu en avant : on voit la route qui arrive)
-  const [fx, fy, fh] = at(R, st.mid + (st.span * 0.08) / 1000);
+  const [fx, fy, fh] = at(R, st.mid + (st.near ? 0 : (st.span * 0.06) / 1000));
   st.h = st.h == null ? fh : st.h + Math.atan2(Math.sin(fh - st.h), Math.cos(fh - st.h)) * 0.04;
   const P = sim.P;
   const iAt = km => clamp(Math.floor(km / STEP), 0, P.n - 1);

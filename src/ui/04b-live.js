@@ -2,8 +2,10 @@
    du final et photo-finish, groupes et coureurs, radio et appels, négociations, alliances. */
 
 // Vitesses de la course en direct : pas de simulation (30 s de course) par seconde réelle.
-// 0,25 pas/s = 7,5 fois le temps réel (une étape de 4 h 30 dure environ 36 minutes).
-const SPEEDS = [0, 0.25, 0.5, 1.5, 5, 20];
+// lent 0,1 pas/s = 3 fois le temps réel ; normal 0,25 = 7,5 fois (la vue du ciel suit un groupe sur quelques
+// centaines de mètres : plus vite, les coureurs y défilaient en une seconde) ; ▶▶ 30 fois ; ×4 120 fois ; max 600.
+// Le rythme automatique accélère seul les passages où il ne se passe rien.
+const SPEEDS = [0, 0.1, 0.25, 1, 4, 20];
 const SPEED_LBL = ['⏸', '🐢', '▶', '▶▶', '▶▶▶', '⏩'];
 const LOOP_MS = 180;
 // Avance rapide jusqu'au prochain moment clé (final de l'étape, attaque, incident ou appel radio de l'équipe).
@@ -42,8 +44,8 @@ function autoPace(sim) {
   const base = UI.baseSpeed || 2;
   const lvl = paceLevel(sim);
   UI.paceState = lvl;
-  const target =
-    lvl === 'calm' ? Math.max(base, 5) : lvl === 'fight' ? Math.max(base, 4) : lvl === 'mod' ? Math.max(base, 3) : base;
+  // (une course animée reste à la vitesse choisie : seuls les temps morts et la bagarre du début accélèrent)
+  const target = lvl === 'calm' ? Math.max(base, 4) : lvl === 'fight' ? Math.max(base, 3) : base;
   if (target !== UI.speed) {
     if (target < UI.speed) UI.acc = 0; // retour au direct : on ne saute pas le moment
     UI.speed = target;

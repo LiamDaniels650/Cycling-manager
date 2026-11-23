@@ -202,7 +202,7 @@ const PACE_LBL = {
   mod: '▶▶ course animée',
   live: '▶ en direct',
 };
-const SPEED_ICON = [['pause'], ['play', 'lent'], ['play'], ['ff'], ['ff', '×3'], ['ff', 'max']];
+const SPEED_ICON = [['pause'], ['play', 'lent'], ['play'], ['ff'], ['ff', 'vite'], ['ff', 'max']];
 export function Dock({ sim }) {
   const mult = k => '×' + fmtDec(SPEEDS[k] * 30, SPEEDS[k] * 30 < 10 ? 1 : 0);
   const btn = (on, onClick, title, children) => (
