@@ -428,6 +428,15 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     la taille du groupe ; sons désactivables (cloche du dernier kilomètre et de l'arrivée, foule dans les cols et le
     final, bip de la radio). Animation interpolée entre deux pas de la simulation : ≈ 43 images/s sur un téléphone
     moyen simulé (processeur bridé 4 fois), une étape entière calculée en moins d'une seconde.
+  - Vue du ciel, refonte de la clarté : bandeau d'information (kilomètres restants, pente en couleur, vent de face,
+    de dos ou de côté, vitesse), coureurs plus grands aux couleurs de leur équipe (liseré jaune : leader ; rose : les
+    vôtres ; blanc : ceux qui roulent), noms des favoris et des vôtres, groupes dessinés comme une masse colorée
+    selon leur rôle (tête, contre, peloton, retardataires) avec une étiquette « Échappée · 4 +1'20" » ; plan élargi
+    automatique quand deux groupes sont à moins de 300 m (jonction, reprise) ; saut de caméra après une avance
+    rapide ; bandeau d'événement (chute, crevaison, attaque). Classement des écarts façon télévision (à droite de
+    l'image sur grand écran, en pastilles sur téléphone), un clic sur un groupe le filme. Sous l'image, le vrai
+    profil de l'étape (altitude, cols en rouge avec leur catégorie, sprint, kilomètres restants) avec les groupes
+    placés dessus, eux aussi cliquables.
   - Moteur, nouvelles mesures réelles dans la calibration (44 au lieu de 40) : porteurs du maillot de leader d'un
     grand tour (≈ 5), équipes qui gagnent une étape (≈ 8 sur 18), écart maximal de l'échappée sur le plat (≈ 4 min),
     distance de reprise (≈ 17 km). Corrections : une échappée reprise très tôt laisse place à une nouvelle bagarre ;

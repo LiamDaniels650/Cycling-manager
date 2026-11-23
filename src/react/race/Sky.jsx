@@ -4,7 +4,6 @@
 // et quelques sons (cloche, foule, radio), désactivables. Dessin sur un canevas, à son propre rythme d'images :
 // la position des groupes est interpolée entre deux pas de la simulation.
 import { useEffect, useRef, useState } from 'react';
-import { Card } from '../ui.jsx';
 
 const CAMS = [
   ['auto', '🎬 Réalisateur'],
@@ -197,20 +196,46 @@ function draw(cv, sim, cam, st) {
   let wG = nG <= 3 ? 1 : nG <= 10 ? 2 : clamp(Math.ceil(Math.sqrt(nG) * 0.75), 3, 8);
   if (hardG && wG > 2) wG = Math.max(2, Math.ceil(wG * 0.55));
   const len = Math.ceil(nG / wG) * (wG === 1 ? 2.2 : 1.7);
-  const span = clamp(len * 2.2 + 60, 110, 520);
-  st.span = st.span ? st.span + (span - st.span) * 0.05 : span;
-  const sc = W / st.span; // pixels par mètre
+  // cadrage serré sur le groupe ; plan élargi quand un autre groupe est tout proche (jonction, échappée qui va être
+  // reprise) : les deux groupes sont alors à l'image
+  let span = clamp(len * 1.8 + 34, 50, 380);
+  let mid = fKm - len / 2000;
+  const near = live(sim)
+    .filter(G => G !== G0)
+    .map(G => [G, ipos(G, frac)])
+    .filter(([, k]) => Math.abs(k - fKm) * 1000 < 320)
+    .sort((a, b) => Math.abs(a[1] - fKm) - Math.abs(b[1] - fKm))[0];
+  if (near) {
+    const d = Math.abs(near[1] - fKm) * 1000;
+    span = clamp(Math.max(span, d * 1.35 + 50), 50, 520);
+    mid = (fKm + near[1]) / 2 - len / 4000;
+  }
+  st.near = near ? near[0] : null;
+  // (mouvement de caméra fluide ; saut direct si le groupe filmé change ou après une avance rapide)
+  const far = st.mid == null || Math.abs(mid - st.mid) * 1000 > Math.max(span, st.span || 0) * 1.5 || st.lastG !== G0;
+  st.lastG = G0;
+  if (far && (st.mid == null || Math.abs(mid - st.mid) * 1000 > 250)) {
+    st.mid = mid;
+    st.span = span;
+  } else {
+    st.span = st.span ? st.span + (span - st.span) * 0.06 : span;
+    st.mid = st.mid + (mid - st.mid) * (far ? 0.25 : 0.08);
+  }
+  // (sur grand écran, le classement des écarts occupe la droite de l'image : on cadre dans la partie libre)
+  const padR = !st.compact && W >= 600 ? 200 : 0;
+  const CX = (W - padR) / 2;
+  const sc = (W - padR) / st.span; // pixels par mètre
   // (l'image est centrée sur le milieu du groupe, un peu en avant : on voit la route qui arrive)
-  const [fx, fy, fh] = at(R, fKm - len / 2000 + (st.span * 0.1) / 1000);
+  const [fx, fy, fh] = at(R, st.mid + (st.span * 0.08) / 1000);
   st.h = st.h == null ? fh : st.h + Math.atan2(Math.sin(fh - st.h), Math.cos(fh - st.h)) * 0.04;
   const P = sim.P;
   const iAt = km => clamp(Math.floor(km / STEP), 0, P.n - 1);
   // fond : la campagne (plus sombre en montagne)
   const gF = P.g[iAt(fKm)] || 0;
-  c.fillStyle = gF >= 5 ? '#23301f' : gF >= 2 ? '#26382a' : '#203a2c';
+  c.fillStyle = gF >= 6 ? '#2a2f24' : gF >= 3 ? '#27352a' : gF <= -3 ? '#1d3530' : '#21392d';
   c.fillRect(0, 0, W, H);
   c.save();
-  c.translate(W / 2, H * 0.55);
+  c.translate(CX, H * 0.55);
   c.scale(sc, sc);
   c.rotate(-st.h);
   c.translate(-fx, -fy);
@@ -225,11 +250,20 @@ function draw(cv, sim, cam, st) {
     const i = iAt(m / 1000);
     const nx = Math.cos(h + 1.5708) * side,
       ny = Math.sin(h + 1.5708) * side;
-    if (hsh % 7 < 3) {
-      const d = 9 + ((hsh >>> 3) % 22);
+    // champs en bandes le long de la route (texture discrète), quelques arbres
+    if (hsh % 4 === 0) {
+      c.save();
+      c.translate(x + nx * 22, y + ny * 22);
+      c.rotate(h);
+      c.fillStyle = (hsh >>> 4) % 3 === 0 ? 'rgba(163,190,120,0.07)' : 'rgba(30,60,40,0.25)';
+      c.fillRect(-11, -9, 22, 18);
+      c.restore();
+    }
+    if (hsh % 9 < 2) {
+      const d = 9 + ((hsh >>> 3) % 18);
       c.beginPath();
-      c.arc(x + nx * d, y + ny * d, 2 + ((hsh >>> 8) % 3), 0, Math.PI * 2);
-      c.fillStyle = (hsh >>> 5) % 3 ? '#14532d' : '#166534';
+      c.arc(x + nx * d, y + ny * d, 1.2 + ((hsh >>> 8) % 2) * 0.6, 0, Math.PI * 2);
+      c.fillStyle = (hsh >>> 5) % 3 ? '#1f4d2f' : '#245a36';
       c.fill();
     } else if (P.narrow && P.narrow[i] && hsh % 7 === 3) {
       c.fillStyle = (hsh >>> 6) % 2 ? '#78350f' : '#57534e';
@@ -342,6 +376,10 @@ function draw(cv, sim, cam, st) {
   const leaderId = sim.stageRace && sim.rc.gc ? gcCached(sim.rc).arr[0] : null;
   // (le coureur touché par un incident récent garde son icône au-dessus de lui)
   const posOf = new Map();
+  const groups = []; // (capsules et étiquettes des groupes, dessinées à l'écran après la scène)
+  const rpx = clamp(sc * 0.42, 3.2, 6.5); // rayon d'un coureur à l'écran (px)
+  const H0 = live(sim).slice().sort((a, b) => b.pos - a.pos)[0];
+  const pelG = sim.pel && live(sim).includes(sim.pel) ? sim.pel : H0;
   const evOf = new Map((sim.skyEv || []).filter(e => e.id != null && sim.t - e.t <= 3).map(e => [e.id, e]));
   for (const G of live(sim)) {
     const gKm = ipos(G, frac);
@@ -353,6 +391,9 @@ function draw(cv, sim, cam, st) {
     let wid = n <= 3 ? 1 : n <= 10 ? 2 : clamp(Math.ceil(Math.sqrt(n) * 0.75), 3, 8);
     if (hard && wid > 2) wid = Math.max(2, Math.ceil(wid * 0.55));
     const ech = sim.echelon && sim.echelon.T && G.expo && sim.P.wind && sim.t < sim.echelon.until;
+    let front = null,
+      rear = null;
+    const pts = [];
     xs.forEach((x, k) => {
       const row = Math.floor(k / wid),
         col = k % wid;
@@ -363,40 +404,46 @@ function draw(cv, sim, cam, st) {
       const px = x0 + Math.cos(h + 1.5708) * lat,
         py = y0 + Math.sin(h + 1.5708) * lat;
       if (evOf.has(x.id)) posOf.set(x.id, [px, py]);
-      const me = x.player;
-      const r0 = me ? 0.6 : 0.45;
+      if (k === 0) front = [px, py];
+      rear = [px, py];
+      pts.push([x, px, py]);
+    });
+    // capsule du groupe (sous les coureurs) : couleur selon son rôle dans la course
+    const kind = G === H0 && G !== pelG ? 'tete' : G === pelG ? 'pel' : G.pos > pelG.pos ? 'chasse' : 'retard';
+    if (front) {
+      const KC = { tete: '242,201,76', pel: '232,236,241', chasse: '125,211,252', retard: '149,161,179' };
+      const wdt = (wid - 1) * 0.95 + (2 * rpx + 10) / sc;
+      c.lineCap = 'round';
       c.beginPath();
-      c.arc(px, py, Math.max(r0, (me ? 3.6 : 2.8) / sc), 0, Math.PI * 2);
+      c.moveTo(rear[0], rear[1]);
+      c.lineTo(front[0] + 0.001, front[1]);
+      c.strokeStyle = `rgba(${KC[kind]},${G === G0 ? 0.55 : 0.3})`;
+      c.lineWidth = wdt + 2.4 / sc;
+      c.stroke();
+      c.strokeStyle = 'rgba(14,20,28,0.55)';
+      c.lineWidth = wdt;
+      c.stroke();
+    }
+    for (const [x, px, py] of pts) {
+      const me = x.player;
+      const rr = (rpx * (me ? 1.3 : 1)) / sc;
+      c.beginPath();
+      c.arc(px, py, rr, 0, Math.PI * 2);
       c.fillStyle = x.team.color || '#cbd5e1';
       c.fill();
-      if (me || x.id === leaderId) {
-        c.lineWidth = Math.max(0.25, 1.4 / sc);
-        c.strokeStyle = x.id === leaderId ? '#facc15' : '#f472b6';
-        c.stroke();
-      } else if (x.work > 0) {
-        // coureur qui roule (relais, tempo) : cerclé de blanc
-        c.lineWidth = Math.max(0.2, 1 / sc);
-        c.strokeStyle = 'rgba(248,250,252,0.85)';
-        c.stroke();
-      }
+      // contour : leader du général (jaune), vos coureurs (rose), coureur qui roule (blanc), sinon un liseré sombre
+      c.lineWidth = (me || x.id === leaderId ? 2 : 1.2) / sc;
+      c.strokeStyle = x.id === leaderId ? '#facc15' : me ? '#f472b6' : x.work > 0 ? 'rgba(248,250,252,0.95)' : 'rgba(10,14,20,0.8)';
+      c.stroke();
+      if (sim.favs.has(x.id) && !me && st.span < 170) labels.push([px, py, '★ ' + riderName(x.r), '#e2e8f0', false]);
       if (G.attacker === x && G.burst > 0) labels.push([px, py, '⚡', '#fde047', true]);
       else if (evOf.has(x.id) && evOf.get(x.id).kind !== 'reprise')
         labels.push([px, py, (SKY_EV[evOf.get(x.id).kind] || SKY_EV.moment)[0], '#fde68a', true]);
-      if (me && st.span < 220) labels.push([px, py, riderName(x.r), '#fbcfe8', false]);
-    });
-    // étiquette du groupe
-    const [lx, ly] = at(R, gKm);
-    const head = live(sim)
-      .slice()
-      .sort((a, b) => b.pos - a.pos)[0];
-    const gap = G === head ? '' : ' · ' + boardGapTxt(sim, head, G);
-    const name =
-      G === sim.pel
-        ? `Peloton (${n})`
-        : G === head
-          ? `${n === 1 ? riderName(xs[0].r) : 'Tête (' + n + ')'}`
-          : `Groupe (${n})`;
-    labels.push([lx, ly, name + gap, G.riders.some(y => y.player) ? '#f9a8d4' : '#e2e8f0', 'grp']);
+      if (me && st.span < 420) labels.push([px, py, riderName(x.r), '#fbcfe8', false]);
+    }
+    if (front) {
+      groups.push({ front, rear, wid, n, kind, mine: xs.some(y => y.player), G, focus: G === G0 });
+    }
   }
   // moments forts à l'endroit où ils se produisent (chute, crevaison, ennui mécanique, attaque, bordure, reprise) :
   // un cercle qui pulse sur la route pendant trois minutes de course, et le nom du coureur concerné
@@ -424,9 +471,57 @@ function draw(cv, sim, cam, st) {
       dy = y - fy;
     const cs = Math.cos(-st.h),
       sn = Math.sin(-st.h);
-    return [W / 2 + (dx * cs - dy * sn) * sc, H * 0.55 + (dx * sn + dy * cs) * sc];
+    return [CX + (dx * cs - dy * sn) * sc, H * 0.55 + (dx * sn + dy * cs) * sc];
   };
   const used = [];
+  // étiquettes des groupes : rôle, effectif, écart annoncé ; liseré de couleur (jaune : tête ; blanc : peloton ;
+  // bleu : contre ; gris : retardataires) et bord rose s'il y a l'un de vos coureurs
+  const KCOL = { tete: '#f2c94c', pel: '#e8ecf1', chasse: '#7dd3fc', retard: '#95a1b3' };
+  for (const g of groups.sort((a, b) => b.focus - a.focus)) {
+    const [sx, sy] = toScr(g.front[0], g.front[1]);
+    if (sx < -60 || sx > W + 60) continue;
+    const xs0 = g.G.riders.filter(x => !x.fin && !x.dnf);
+    const nm =
+      g.kind === 'tete'
+        ? g.n === 1
+          ? riderName(xs0[0].r)
+          : `Échappée · ${g.n}`
+        : g.kind === 'pel'
+          ? `Peloton · ${g.n}`
+          : g.n === 1
+            ? riderName(xs0[0].r)
+            : `${g.kind === 'chasse' ? 'Contre' : 'Groupe'} · ${g.n}`;
+    const gap = g.G === H0 ? '' : boardGapTxt(sim, H0, g.G);
+    c.font = '600 12px "Barlow Semi Condensed", sans-serif';
+    const w1 = c.measureText(nm).width;
+    c.font = '12px "Barlow Semi Condensed", sans-serif';
+    const w2 = gap ? c.measureText(gap).width + 8 : 0;
+    const w = w1 + w2 + 16;
+    let yy = sy - 18 - rpx * 1.4;
+    if (yy < 30) yy = sy + 26 + rpx;
+    const x0 = Math.max(4, Math.min(W - padR - w - 4, sx - w / 2));
+    if (used.some(u => Math.abs(u[0] - (x0 + w / 2)) < (u[2] + w) / 2 && Math.abs(u[1] - yy) < 18)) continue;
+    used.push([x0 + w / 2, yy, w]);
+    c.fillStyle = 'rgba(15,19,26,0.88)';
+    c.beginPath();
+    c.roundRect ? c.roundRect(x0, yy - 13, w, 19, 4) : c.rect(x0, yy - 13, w, 19);
+    c.fill();
+    if (g.mine) {
+      c.strokeStyle = '#f472b6';
+      c.lineWidth = 1.2;
+      c.stroke();
+    }
+    c.fillStyle = KCOL[g.kind];
+    c.fillRect(x0, yy - 13, 4, 19);
+    c.fillStyle = '#f5f7fa';
+    c.font = '600 12px "Barlow Semi Condensed", sans-serif';
+    c.fillText(nm, x0 + 10, yy + 1);
+    if (gap) {
+      c.fillStyle = g.kind === 'tete' ? '#f2c94c' : '#b9c2cf';
+      c.font = '12px "Barlow Semi Condensed", sans-serif';
+      c.fillText(gap, x0 + 10 + w1 + 6, yy + 1);
+    }
+  }
   for (const [x, y, t, col, kind] of labels) {
     const [sx, sy] = toScr(x, y);
     if (sx < -40 || sx > W + 40) continue;
@@ -443,22 +538,80 @@ function draw(cv, sim, cam, st) {
     c.fillStyle = col;
     c.fillText(t, sx - w / 2, yy);
   }
-  // bandeau : km de la tête de course suivie, pente, vitesse, caméra
-  c.fillStyle = 'rgba(15,23,42,0.7)';
-  c.fillRect(0, 0, W, 20);
-  c.fillStyle = '#f8fafc';
-  c.font = 'bold 11px sans-serif';
+  // bandeau du haut : km restants, pente (couleur selon la difficulté), vent (sens par rapport à la route, qui va
+  // vers la droite de l'image), vitesse du groupe, caméra
   const kmL = Math.max(0, sim.dist - fKm);
-  c.fillText(
-    `${kmL < 10 ? kmL.toFixed(1).replace('.', ',') : Math.round(kmL)} km · ${gF.toFixed(1).replace('.', ',')} % · ${G0.speed ? Math.round(G0.speed) : 0} km/h`,
-    8,
-    14
-  );
-  const cl = (CAMS.find(a => a[0] === cam) || CAMS[0])[1];
-  c.font = '10px sans-serif';
-  const cw = c.measureText(cl).width;
-  c.fillStyle = '#94a3b8';
-  c.fillText(cl, W - cw - 8, 14);
+  c.fillStyle = 'rgba(15,19,26,0.82)';
+  c.fillRect(0, 0, W, 28);
+  c.textBaseline = 'middle';
+  let hx = 10;
+  c.fillStyle = '#f5f7fa';
+  c.font = '700 18px "Barlow Semi Condensed", sans-serif';
+  const kmT = kmL < 10 ? kmL.toFixed(1).replace('.', ',') : String(Math.round(kmL));
+  c.fillText(kmT, hx, 14);
+  hx += c.measureText(kmT).width + 3;
+  c.font = '11px "Barlow", sans-serif';
+  c.fillStyle = '#95a1b3';
+  c.fillText('km', hx, 15);
+  hx += 26;
+  const gcol = gF >= 6 ? '#f26b6f' : gF >= 3 ? '#ff9d52' : gF <= -3 ? '#7dd3fc' : '#d4dae2';
+  c.fillStyle = gcol;
+  c.font = '600 15px "Barlow Semi Condensed", sans-serif';
+  const gT = (gF >= 0.5 ? '↗ ' : gF <= -0.5 ? '↘ ' : '→ ') + Math.abs(gF).toFixed(1).replace('.', ',') + ' %';
+  c.fillText(gT, hx, 14);
+  hx += c.measureText(gT).width + 22;
+  // vent
+  const hw = typeof headwindAt === 'function' ? headwindAt(sim, fKm) : 0;
+  const cross = P.expo && P.expo[iAt(fKm)] && (P.wind || 0) >= 2;
+  const wk = cross ? 'côté' : Math.abs(hw) < 1 ? 'faible' : hw > 0 ? 'face' : 'dos';
+  if (W > 360) {
+    c.save();
+    c.translate(hx + 8, 14);
+    c.rotate(wk === 'face' ? Math.PI : wk === 'côté' ? Math.PI / 2 : 0);
+    c.strokeStyle = wk === 'côté' ? '#7dd3fc' : '#b9c2cf';
+    c.lineWidth = 2;
+    c.beginPath();
+    c.moveTo(-7, 0);
+    c.lineTo(6, 0);
+    c.moveTo(2, -4);
+    c.lineTo(6, 0);
+    c.lineTo(2, 4);
+    c.stroke();
+    c.restore();
+    c.fillStyle = wk === 'côté' ? '#7dd3fc' : '#d4dae2';
+    c.font = '12px "Barlow", sans-serif';
+    c.fillText(`vent ${wk === 'faible' ? 'faible' : 'de ' + wk}${wk !== 'faible' && wk !== 'côté' ? ' ' + Math.round(Math.abs(hw) * 3.6) + ' km/h' : ''}`, hx + 20, 15);
+  }
+  const cl = (CAMS.find(a => a[0] === cam) || [cam, 'Groupe choisi'])[1].replace(/^\S+ /, '');
+  c.font = '600 14px "Barlow Semi Condensed", sans-serif';
+  const spT = `${G0.speed ? Math.round(G0.speed) : 0} km/h`;
+  const spW = c.measureText(spT).width;
+  c.fillStyle = '#f5f7fa';
+  c.fillText(spT, W - spW - 10, 14);
+  if (W > 520) {
+    c.font = '11px "Barlow", sans-serif';
+    const cw = c.measureText(cl).width;
+    c.fillStyle = '#95a1b3';
+    c.fillText(cl, W - spW - cw - 22, 15);
+  }
+  c.textBaseline = 'alphabetic';
+  // bandeau d'événement (bas de l'image) : la dernière action marquante, pendant une minute et demie de course
+  const evL = (sim.skyEv || []).filter(e => sim.t - e.t <= 1.5 && (e.mine || e.fav || e.kind !== 'attaque')).slice(-1)[0];
+  if (evL) {
+    const S1 = SKY_EV[evL.kind] || SKY_EV.moment;
+    const who = evL.id != null ? sim.runners.find(z => z.id === evL.id) : null;
+    const txt = `${S1[0]}  ${S1[2].charAt(0).toUpperCase() + S1[2].slice(1)}${who ? ' : ' + riderName(who.r) + ' (' + who.team.short + ')' : ''}`;
+    c.font = '600 14px "Barlow Semi Condensed", sans-serif';
+    const tw = c.measureText(txt).width + 24;
+    c.fillStyle = evL.mine ? 'rgba(157,23,77,0.92)' : 'rgba(15,19,26,0.9)';
+    c.beginPath();
+    c.roundRect ? c.roundRect(10, H - 40, tw, 28, 5) : c.rect(10, H - 40, tw, 28);
+    c.fill();
+    c.fillStyle = S1[1].replace('A)', '1)');
+    c.fillRect(10, H - 40, 4, 28);
+    c.fillStyle = '#f5f7fa';
+    c.fillText(txt, 22, H - 21);
+  }
   // sons : cloche au dernier kilomètre et à l'arrivée de la tête, foule dans le final et en haut des cols
   if (UI.skySound) {
     const L = live(sim);
@@ -545,47 +698,172 @@ function SkyCaption({ sim, G }) {
     </div>
   );
 }
-// Mini-carte de l'étape : les montées, le sprint, l'arrivée, et tous les groupes (taille selon le nombre de coureurs ;
-// rose : vos coureurs ; anneau jaune : le groupe filmé). Un clic sur un groupe y envoie la caméra.
-function MiniMap({ sim, G0, onPick }) {
-  const L = live(sim);
-  const D = sim.dist || 1;
-  const X = km => (Math.max(0, Math.min(D, km)) / D) * 100;
-  return (
-    <div className="border-t border-slate-800 px-3 pb-2 pt-1.5">
-      <svg viewBox="0 0 100 14" preserveAspectRatio="none" className="block h-8 w-full overflow-visible" aria-label="Carte de l'étape">
-        <line x1="0" x2="100" y1="9" y2="9" stroke="#46505f" strokeWidth="0.6" vectorEffect="non-scaling-stroke" />
-        {(sim.klimbs || []).map((c, i) => (
-          <line key={i} x1={X(c.start)} x2={X(c.end)} y1="9" y2="9" stroke="#e5484d" strokeWidth="3" vectorEffect="non-scaling-stroke">
-            <title>{c.name}</title>
-          </line>
+// Rôle d'un groupe dans la course (tête, peloton, contre, retardataires) et son libellé.
+function grpRole(sim, G, H, pel) {
+  return G === H && G !== pel ? 'tete' : G === pel ? 'pel' : G.pos > pel.pos ? 'chasse' : 'retard';
+}
+const ROLE_COL = { tete: '#f2c94c', pel: '#e8ecf1', chasse: '#7dd3fc', retard: '#6b7686' };
+function grpName(G, role, n) {
+  const xs = G.riders.filter(x => !x.fin && !x.dnf);
+  if (n === 1) return riderName(xs[0].r);
+  return role === 'tete' ? 'Échappée' : role === 'pel' ? 'Peloton' : role === 'chasse' ? 'Contre' : 'Groupe';
+}
+// Échelle des écarts, comme à la télévision : tous les groupes de la tête au dernier, effectif, écart annoncé, vos
+// coureurs. Un clic filme le groupe.
+function GapLadder({ sim, G0, onPick, chips }) {
+  const L = live(sim).sort((a, b) => b.pos - a.pos);
+  if (!L.length) return null;
+  const H = L[0];
+  const pel = sim.pel && L.includes(sim.pel) ? sim.pel : H;
+  const rows = L.slice(0, chips ? 8 : 6).map(G => {
+    const n = G.riders.filter(x => !x.fin && !x.dnf).length;
+    const role = grpRole(sim, G, H, pel);
+    const mine = G.riders.filter(x => x.player && !x.fin && !x.dnf).length;
+    return { G, n, role, mine, gap: G === H ? 'Tête' : boardGapTxt(sim, H, G), name: grpName(G, role, n) };
+  });
+  const more = L.length - rows.length;
+  if (chips)
+    return (
+      <div className="flex gap-1.5 overflow-x-auto border-t border-slate-800 px-3 py-2" aria-label="Écarts entre les groupes">
+        {rows.map(r => (
+          <button
+            key={grpKey(r.G)}
+            type="button"
+            onClick={() => onPick(r.G)}
+            className={
+              'flex shrink-0 items-center gap-1.5 rounded-md bg-slate-800 px-2 py-1 text-xs ' +
+              (r.G === G0 ? 'ring-2 ring-sky-400' : '') +
+              (r.mine ? ' shadow-[inset_0_-2px_0_#e0457b]' : '')
+            }
+          >
+            <i className="h-3 w-1 rounded-sm" style={{ background: ROLE_COL[r.role] }} />
+            <b className="font-display">{r.name}</b>
+            {r.n > 1 ? <span className="text-slate-400">{r.n}</span> : null}
+            <span className={r.G === H ? 'text-sky-400' : 'text-slate-300'}>{r.gap}</span>
+          </button>
         ))}
-        {sim.isp ? <line x1={X(sim.isp.at)} x2={X(sim.isp.at)} y1="6" y2="12" stroke="#3dbe7a" strokeWidth="1.5" vectorEffect="non-scaling-stroke" /> : null}
-        <line x1="100" x2="100" y1="4" y2="13" stroke="#f8fafc" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-      </svg>
-      <div className="relative -mt-8 h-8">
+      </div>
+    );
+  return (
+    <div
+      className="pointer-events-auto absolute right-2 top-9 hidden w-48 overflow-hidden rounded-md bg-slate-950/80 text-xs shadow-lg ring-1 ring-slate-700 sm:block"
+      aria-label="Écarts entre les groupes"
+    >
+      {rows.map(r => (
+        <button
+          key={grpKey(r.G)}
+          type="button"
+          onClick={() => onPick(r.G)}
+          className={
+            'flex w-full items-center gap-2 border-b border-slate-800/80 px-2 py-1.5 text-left last:border-0 hover:bg-slate-800 ' +
+            (r.G === G0 ? 'bg-slate-800' : '')
+          }
+        >
+          <i className="h-4 w-1 shrink-0 rounded-sm" style={{ background: ROLE_COL[r.role] }} />
+          <span className="min-w-0 flex-1 truncate">
+            <b className="font-display text-[13px] text-slate-50">{r.name}</b>
+            {r.n > 1 ? <span className="text-slate-400"> {r.n}</span> : null}
+            {r.mine ? <span className="ml-1 text-pink-300">● {r.mine}</span> : null}
+          </span>
+          <span className={'font-display text-[13px] ' + (r.G === H ? 'text-sky-400' : 'text-slate-200')}>{r.gap}</span>
+        </button>
+      ))}
+      {more > 0 ? <div className="px-2 py-1 text-[11px] text-slate-500">et {more} autre{more > 1 ? 's' : ''} groupe{more > 1 ? 's' : ''}</div> : null}
+    </div>
+  );
+}
+// Profil de l'étape (altitude réelle) : cols et sprint, kilomètres restants, et tous les groupes placés dessus (rose :
+// vos coureurs ; anneau jaune : le groupe filmé). Un clic sur un groupe le filme.
+function StageProfileLive({ sim, G0, onPick }) {
+  const P = sim.P;
+  if (!P || !P.alt) return null;
+  const D = sim.dist || 1;
+  const n = P.n;
+  const step = Math.max(1, Math.floor(n / 240));
+  let lo = Infinity,
+    hi = -Infinity;
+  for (let i = 0; i < n; i++) {
+    lo = Math.min(lo, P.alt[i]);
+    hi = Math.max(hi, P.alt[i]);
+  }
+  if (hi - lo < 150) hi = lo + 150;
+  const X = km => (Math.max(0, Math.min(D, km)) / D) * 1000;
+  const Y = a => 52 - ((a - lo) / (hi - lo)) * 44;
+  const altAt = km => P.alt[clamp(Math.floor(km / STEP), 0, n - 1)];
+  let d = '';
+  for (let i = 0; i < n; i += step) d += (i ? 'L' : 'M') + X(i * STEP).toFixed(1) + ' ' + Y(P.alt[i]).toFixed(1);
+  d += 'L' + X(D) + ' ' + Y(P.alt[n - 1]).toFixed(1);
+  const L = live(sim).sort((a, b) => b.pos - a.pos);
+  const H = L[0];
+  const pel = sim.pel && L.includes(sim.pel) ? sim.pel : H;
+  // repères de kilomètres restants, sans chevauchement (ni entre eux, ni avec « arrivée »)
+  const ticks = [];
+  for (const k of [50, 20, 10, 5]) {
+    const x = X(D - k) / 10;
+    if (k < D - 5 && x < 90 && ticks.every(t => Math.abs(X(D - t) / 10 - x) > 9)) ticks.push(k);
+  }
+  return (
+    <div className="border-t border-slate-800 px-3 pb-2 pt-1">
+      <div className="relative">
+        <svg viewBox="0 0 1000 62" preserveAspectRatio="none" className="block h-16 w-full" aria-label="Profil de l'étape">
+          <path d={d + `L${X(D)} 58 L0 58 Z`} fill="#262d3a" />
+          <path d={d} fill="none" stroke="#6b7686" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+          {(sim.klimbs || []).map((c, i) => {
+            let p = '';
+            const a = Math.floor(c.start / STEP),
+              b = Math.min(n - 1, Math.ceil(c.end / STEP));
+            for (let k = a; k <= b; k++) p += (k === a ? 'M' : 'L') + X(k * STEP).toFixed(1) + ' ' + Y(P.alt[k]).toFixed(1);
+            return <path key={i} d={p} fill="none" stroke="#e5484d" strokeWidth="2.5" vectorEffect="non-scaling-stroke" />;
+          })}
+          {ticks.map(k => (
+            <line key={k} x1={X(D - k)} x2={X(D - k)} y1="0" y2="58" stroke="#2f3847" strokeDasharray="2 3" vectorEffect="non-scaling-stroke" />
+          ))}
+          {sim.isp ? <line x1={X(sim.isp.at)} x2={X(sim.isp.at)} y1={Y(altAt(sim.isp.at)) - 6} y2="58" stroke="#3dbe7a" strokeWidth="2" vectorEffect="non-scaling-stroke" /> : null}
+        </svg>
+        {/* (repères et groupes en HTML : nets à toutes les tailles, et cliquables) */}
+        {(sim.klimbs || [])
+          .filter(c => c.cat != null && c.cat !== 4)
+          .map((c, i) => (
+            <span
+              key={i}
+              title={c.name}
+              className="absolute -translate-x-1/2 rounded-sm bg-rose-500/90 px-1 font-display text-[10px] font-semibold leading-4 text-white"
+              style={{ left: X(c.end) / 10 + '%', top: Math.max(0, (Y(altAt(c.end)) / 62) * 64 - 18) + 'px' }}
+            >
+              {c.cat === 'HC' ? 'HC' : c.cat}
+            </span>
+          ))}
         {L.map(G => {
-          const n = G.riders.filter(x => !x.fin && !x.dnf).length;
+          const k = G.riders.filter(x => !x.fin && !x.dnf).length;
           const me = G.riders.some(x => x.player && !x.fin && !x.dnf);
-          const sz = n >= 40 ? 14 : n >= 10 ? 11 : 8;
+          const role = grpRole(sim, G, H, pel);
+          const sz = k >= 40 ? 13 : k >= 10 ? 11 : 8;
           return (
             <button
               key={grpKey(G)}
               type="button"
-              title={`${G === sim.pel ? 'Peloton' : 'Groupe'} de ${n} · km ${Math.round(G.pos)}${me ? ' · vos coureurs' : ''}`}
-              aria-label={`Filmer le groupe de ${n} coureurs, kilomètre ${Math.round(G.pos)}`}
+              title={`${grpName(G, role, k)}${k > 1 ? ' (' + k + ')' : ''} · km ${Math.round(G.pos)}${me ? ' · vos coureurs' : ''}`}
+              aria-label={`Filmer : ${grpName(G, role, k)}, kilomètre ${Math.round(G.pos)}`}
               onClick={() => onPick(G)}
-              className={'absolute -translate-x-1/2 -translate-y-1/2 rounded-full ' + (G === G0 ? 'ring-2 ring-sky-400' : '')}
+              className={'absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-slate-950 ' + (G === G0 ? 'ring-2 ring-sky-400' : '')}
               style={{
-                left: X(G.pos) + '%',
-                top: '64%',
+                left: X(G.pos) / 10 + '%',
+                top: (Y(altAt(G.pos)) / 62) * 64 + 'px',
                 width: sz,
                 height: sz,
-                background: me ? '#e0457b' : G === sim.pel ? '#e8ecf1' : '#95a1b3',
+                background: me ? '#e0457b' : ROLE_COL[role],
               }}
             />
           );
         })}
+      </div>
+      <div className="relative mt-0.5 h-4 text-[10px] text-slate-500">
+        {ticks.map(k => (
+          <span key={k} className="absolute -translate-x-1/2" style={{ left: X(D - k) / 10 + '%' }}>
+            {k} km
+          </span>
+        ))}
+        <span className="absolute right-0">arrivée</span>
       </div>
       <div className="flex flex-wrap gap-x-3 text-[11px] text-slate-400">
         <span>
@@ -593,8 +871,8 @@ function MiniMap({ sim, G0, onPick }) {
           vos coureurs
         </span>
         <span>
-          <i className="mr-1 inline-block h-2 w-2 rounded-full ring-1 ring-[#facc15] align-middle" />
-          leader du général
+          <i className="mr-1 inline-block h-2 w-2 rounded-full ring-2 ring-[#facc15] align-middle" />
+          maillot de leader
         </span>
         <span>
           <i className="mr-1 inline-block h-2 w-2 rounded-full ring-1 ring-white align-middle" />
@@ -602,9 +880,13 @@ function MiniMap({ sim, G0, onPick }) {
         </span>
         <span>
           <i className="mr-1 inline-block h-1 w-3 bg-[#e5484d] align-middle" />
-          montée
+          col (catégorie)
         </span>
-        <span>touchez un groupe pour le filmer</span>
+        <span>
+          <i className="mr-1 inline-block h-2 w-1 bg-[#3dbe7a] align-middle" />
+          sprint
+        </span>
+        <span>un clic sur un groupe le filme</span>
       </div>
     </div>
   );
@@ -618,6 +900,7 @@ export function Sky({ sim, compact }) {
     let raf = 0;
     const loop = () => {
       try {
+        st.current.compact = compact;
         draw(ref.current, UI.sim, cam, st.current);
       } catch (e) {
         // (le dessin ne doit jamais casser l'écran de course)
@@ -636,15 +919,21 @@ export function Sky({ sim, compact }) {
   if (!sim) return null;
   const pick = G => ((st.current.pick = grpKey(G)), (UI.skyCam = 'grp'), setCam('grp'));
   return (
-    <Card className="overflow-hidden p-0">
-      <canvas
-        ref={ref}
-        className={'block w-full ' + (compact ? 'h-48' : 'h-60 sm:h-72 xl:h-96')}
-        role="img"
-        aria-label="Retransmission vue du ciel"
-      />
+    <section className="overflow-hidden rounded-lg bg-slate-900">
+      <div className="relative">
+        <canvas
+          ref={ref}
+          className={'block w-full ' + (compact ? 'h-52' : 'h-64 sm:h-80 xl:h-[26rem]')}
+          role="img"
+          aria-label="Retransmission vue du ciel"
+        />
+        {compact ? null : <GapLadder sim={sim} G0={st.current.G0} onPick={pick} />}
+      </div>
+      <div className="sm:hidden">
+        <GapLadder sim={sim} G0={st.current.G0} onPick={pick} chips />
+      </div>
       <SkyCaption sim={sim} G={st.current.G0} />
-      <MiniMap sim={sim} G0={st.current.G0} onPick={pick} />
+      <StageProfileLive sim={sim} G0={st.current.G0} onPick={pick} />
       <div className="flex flex-wrap items-center gap-1.5 px-2 py-1.5">
         {CAMS.concat(cam === 'grp' ? [['grp', 'Groupe choisi']] : []).map(([k, l]) => (
           <button
@@ -675,6 +964,6 @@ export function Sky({ sim, compact }) {
           {snd ? '🔊 Son' : '🔇 Son'}
         </button>
       </div>
-    </Card>
+    </section>
   );
 }
