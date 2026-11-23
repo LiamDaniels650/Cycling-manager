@@ -83,18 +83,46 @@ function boardTick(sim) {
   const step = kmL < 10 ? 1 : kmL < 30 ? 2.5 : 5;
   const B = sim.board;
   if (B && H.pos - B.km < step && sim.t - B.t < 12) return;
+  // (l'erreur de mesure porte sur l'écart entre deux groupes qui se suivent : l'ordre de la route est toujours
+  // respecté ; tirée groupe par groupe, elle pouvait annoncer un contre derrière le peloton qu'il précède)
   const gaps = {};
+  L.sort((a, b) => b.pos - a.pos);
+  let prevT = 0,
+    prevV = 0;
   for (const G of L) {
     const k = grpKey(G);
-    const tg = G === H ? 0 : gapSec(H, G);
+    if (G === H) {
+      gaps[k] = 0;
+      continue;
+    }
+    const tg = gapSec(H, G);
+    const d = Math.max(0, tg - prevT);
     const h = dsHash('ard' + sim.rc.key + sim.rc.si + ':' + k + ':' + Math.round(H.pos * 4));
-    const err = ((h % 2001) / 1000 - 1) * (0.05 * tg + 6) * (H.g >= 4 ? 1.4 : 1);
-    gaps[k] = G === H ? 0 : Math.max(5, Math.round((tg + err) / 5) * 5);
+    const err = ((h % 2001) / 1000 - 1) * (0.05 * d + 3) * (H.g >= 4 ? 1.4 : 1);
+    const v = Math.max(prevV + (d >= 3 ? 5 : 0), Math.round((prevV + Math.max(0, d + err)) / 5) * 5, 5);
+    gaps[k] = v;
+    prevT = tg;
+    prevV = v;
   }
   sim.board = { t: sim.t, km: H.pos, gaps };
 }
 // Écart annoncé entre deux groupes (A devant B) : { v (s), ok (pointage officiel), km (du pointage) }.
+// Écart affiché entre A (devant) et B : jamais plus petit que celui d'un groupe qui roule entre les deux (un groupe
+// a pu en doubler un autre depuis le dernier pointage).
 function boardGap(sim, A, B) {
+  const g = boardGapRaw(sim, A, B);
+  if (A === B || !realGaps()) return g;
+  for (const C of sim.groups) {
+    if (C === A || C === B || !(C.pos < A.pos && C.pos > B.pos) || !C.riders.some(x => !x.fin && !x.dnf)) continue;
+    const c = boardGapRaw(sim, A, C);
+    if (c.v > g.v) {
+      g.v = c.v;
+      g.ok = g.ok && c.ok;
+    }
+  }
+  return g;
+}
+function boardGapRaw(sim, A, B) {
   if (A === B) return { v: 0, ok: true };
   if (!realGaps() || !sim.board) return { v: gapSec(A, B), ok: true };
   const a = sim.board.gaps[grpKey(A)],

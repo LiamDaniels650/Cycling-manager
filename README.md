@@ -492,6 +492,11 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     perdait sur petit écran) ; plan élargi cadré de la queue du groupe le plus en arrière à la tête du plus en avant.
     Vitesses ralenties : lent ×3, normal ×7,5 (au lieu de ×15), ▶▶ ×30 ; le rythme automatique n'accélère plus une
     course animée, seulement les temps morts et la bagarre du début.
+  - Écarts cohérents et jonctions fluides : la radio-course mesurait chaque groupe avec une erreur tirée à part, si
+    bien qu'un contre pouvait être annoncé derrière le peloton qu'il précède ; l'erreur porte désormais sur l'écart
+    entre deux groupes qui se suivent, et un écart affiché n'est jamais plus petit que celui d'un groupe qui roule
+    devant. Vue du ciel : chaque coureur suit exactement son groupe mais glisse en douceur vers sa place (≈ 0,5 s),
+    ordre stable dans le groupe ; une jonction se voit au lieu d'une téléportation.
   - Moteur, quatre chantiers :
     - Identité des équipes de l'ordinateur (75-identity.js) : grands tours, classiques, sprint, échappées, et une
       super-équipe (le plus haut standing, de vraies vedettes) ; vedettes de départ, recrutement (marché, transferts,

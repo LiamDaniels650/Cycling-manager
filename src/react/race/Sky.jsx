@@ -389,10 +389,23 @@ function draw(cv, sim, cam, st) {
   const H0 = live(sim).slice().sort((a, b) => b.pos - a.pos)[0];
   const pelG = sim.pel && live(sim).includes(sim.pel) ? sim.pel : H0;
   const evOf = new Map((sim.skyEv || []).filter(e => e.id != null && sim.t - e.t <= 3).map(e => [e.id, e]));
+  // positions affichées des coureurs : elles suivent exactement leur groupe, mais glissent en douceur vers leur
+  // place dans le groupe (≈ 0,5 s) ; une jonction se voit (les coureurs rejoignent l'autre groupe au lieu d'y être
+  // téléportés) et les échanges de place dans le peloton ne sautent plus
+  const nowT = performance.now();
+  const aEase = st.rpT ? 1 - Math.exp(-Math.min(200, nowT - st.rpT) / 450) : 1;
+  st.rpT = nowT;
+  if (!st.rp || st.rpSim !== sim) {
+    st.rp = new Map();
+    st.rpSim = sim;
+  }
   for (const G of live(sim)) {
     const gKm = ipos(G, frac);
     if (gKm < k0 - 0.3 || gKm > k1 + 0.3) continue;
-    const xs = G.riders.filter(x => !x.fin && !x.dnf).sort((a, b) => b.pos - a.pos);
+    // (ordre stable : seuls les vrais changements de placement font bouger un coureur dans le groupe)
+    const xs = G.riders
+      .filter(x => !x.fin && !x.dnf)
+      .sort((a, b) => Math.round(b.pos / 15) - Math.round(a.pos / 15) || a.id - b.id);
     const n = xs.length;
     // le peloton est plus long que large ; à vive allure (ou quand une équipe roule à bloc) il s'étire en file
     const hard = G.speed > 50 || G.riders.some(y => y.work >= 0.92);
@@ -408,12 +421,24 @@ function draw(cv, sim, cam, st) {
       const back = row * (wid === 1 ? 2.2 : 1.7) + ((x.id * 37) % 7) * 0.08;
       let lat = (col - (wid - 1) / 2) * 0.95 + (((x.id * 53) % 9) - 4) * 0.05;
       if (ech) lat += row * 0.55 - 3; // éventail en diagonale, contre le vent
-      const [x0, y0, h] = at(R, gKm - back / 1000);
-      const px = x0 + Math.cos(h + 1.5708) * lat,
-        py = y0 + Math.sin(h + 1.5708) * lat;
+      const tOff = -back / 1000;
+      let rp = st.rp.get(x.id);
+      if (!rp || Math.abs(rp.abs - (gKm + tOff)) > 0.6) rp = { off: tOff, lat, G };
+      else {
+        if (rp.G !== G) rp.off = rp.abs - gKm; // il change de groupe : il part d'où il était
+        rp.off += (tOff - rp.off) * aEase;
+        rp.lat += (lat - rp.lat) * aEase;
+      }
+      rp.G = G;
+      rp.abs = gKm + rp.off;
+      rp.seen = nowT;
+      st.rp.set(x.id, rp);
+      const [x0, y0, h] = at(R, rp.abs);
+      const px = x0 + Math.cos(h + 1.5708) * rp.lat,
+        py = y0 + Math.sin(h + 1.5708) * rp.lat;
       if (evOf.has(x.id)) posOf.set(x.id, [px, py]);
-      if (k === 0) front = [px, py];
-      rear = [px, py];
+      if (!front || rp.abs > front[2]) front = [x0, y0, rp.abs];
+      if (!rear || rp.abs < rear[2]) rear = [x0, y0, rp.abs];
       pts.push([x, px, py]);
     });
     // capsule du groupe (sous les coureurs) : couleur selon son rôle dans la course
