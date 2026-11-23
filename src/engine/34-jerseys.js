@@ -50,6 +50,10 @@ function komSitUp(sim, x, G) {
 // Points de la montagne et sprint intermédiaire : ordre de passage dans un groupe (ceux qui visent le maillot
 // se dépensent pour passer en tête).
 function jerseyOrder(G, kind, sim, c) {
+  const gcTop = x => {
+    const k = leaderGcRank(sim.rc, x.id);
+    return k > 0 && k <= 10;
+  };
   // au sommet d'un col qui n'est pas l'arrivée, les leaders ne sprintent pas pour les points : passent en tête
   // ceux qui roulent devant (équipiers qui mènent) et les chasseurs de points
   const summitFinish = !c || c.end >= sim.dist - 0.5;
@@ -57,7 +61,10 @@ function jerseyOrder(G, kind, sim, c) {
     kind === 'kom'
       ? x =>
           cap(x, 6, 0) +
-          (!summitFinish && effOrder(x) === 'leader' && x.aim !== 'kom' ? -12 : 0) +
+          // (les hommes du général, leaders ou non, laissent les points des cols de passage aux chasseurs)
+          (!summitFinish && x.aim !== 'kom' && (effOrder(x) === 'leader' || (sim.stageRace && gcTop(x)))
+            ? -12
+            : 0) +
           (x.work > 0.5 ? 3 : 0)
       : x => x.r.s.spr + x.pos * 0.1;
   const sc = new Map(G.riders.map(x => [x, base(x) + (x.aim === kind ? 9 : 0) + gauss() * (kind === 'kom' ? 1.5 : 3)]));
@@ -68,8 +75,10 @@ function jerseyOrder(G, kind, sim, c) {
 // Points d'un sommet selon la course et la catégorie (arrivée au sommet doublée sur le Tour).
 function komPts(rc, c, summitFinish) {
   let sc = (KOM_GT[rc.key] || KOM_PTS)[c.cat] || KOM_PTS[c.cat];
-  // réglage de jeu (grands tours) : les cols de passage valent 55 % de plus, pour que les chasseurs du maillot
+  // réglage de jeu (grands tours) : les cols de passage valent deux fois plus, pour que les chasseurs du maillot
   // échappés puissent rivaliser avec les favoris, qui ramassent les points des arrivées au sommet
-  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * 1.55));
-  return rc.key === 'gb' && summitFinish && (c.cat === 'HC' || c.cat === 1 || c.cat === 2) ? sc.map(v => v * 2) : sc;
+  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * 2));
+  // (les arrivées au sommet de la Grande Boucle ne comptent plus double : le maillot allait trop souvent à un
+  // homme du général, la moitié des cas contre un quart dans la réalité)
+  return sc;
 }

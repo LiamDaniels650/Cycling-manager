@@ -96,7 +96,8 @@ function idsAhead(sim, ref) {
 function debugFinish(sim, spec, res, brk) {
   const top = res.slice(0, 5).map(e => {
     const r = S.riders[e.id];
-    return `${r.arch.slice(0, 5)}(${r.s.col}/${r.s.spr}/${r.s.mon})+${Math.round(e.gap)}`;
+    const rk = [...sim.favs].indexOf(e.id);
+    return `${r.arch.slice(0, 5)}(${r.s.col}/${r.s.spr}/${r.s.mon})${sim.favs.has(e.id) ? '*' : ''}+${Math.round(e.gap)}`;
   });
   console.error(
     `${spec.type} ${spec.dist}km pente finale ${sim.P.finishGrad.toFixed(1)} ${brk ? 'ÉCHAPPÉE' : '         '} ${top.join(' ')}`
@@ -107,6 +108,7 @@ function runRoadStage(rc, spec, cal) {
   const sim = newStageSim(rc);
   let half = null,
     brk = 0,
+    brkOnly = 0,
     caughtKm = null,
     brkSeen = false,
     lastIds = null;
@@ -117,9 +119,16 @@ function runRoadStage(rc, spec, cal) {
     // même si l'échappée s'est scindée en plusieurs groupes dans les premiers cols
     const P = favGroup(sim);
     if (P && P.pos > spec.dist * 0.3 && spec.dist - P.pos > 30) {
-      let n = 0;
-      for (const H of sim.groups) if (H !== P && H.pos > P.pos && gapSec(H, P) > 60) n += H.riders.length;
+      let n = 0,
+        nb = 0;
+      for (const H of sim.groups)
+        if (H !== P && H.pos > P.pos && gapSec(H, P) > 60) {
+          n += H.riders.length;
+          // (sur le plat, seuls les groupes de l'échappée du jour comptent : une cassure en bordure n'en est pas une)
+          if (sim.brkIds && H.riders.some(x => sim.brkIds.has(x.id))) nb += H.riders.length;
+        }
       brk = Math.max(brk, n);
+      brkOnly = Math.max(brkOnly, nb);
     }
     // reprise de l'échappée du jour : plus aucun groupe d'échappés devant le peloton (à plus de 10 s)
     if (sim.brkIds !== lastIds) {
@@ -134,7 +143,7 @@ function runRoadStage(rc, spec, cal) {
       else if (brkSeen && !sim.finish.length) caughtKm = Math.round(spec.dist - P.pos);
     }
   }
-  return { sim, half, brk, caughtKm };
+  return { sim, half, brk, brkOnly, caughtKm };
 }
 
 function measureStage(rc, spec, cal, out) {
@@ -180,7 +189,7 @@ function measureStage(rc, spec, cal, out) {
       const bestSpr = Math.max(...bunch.map(e => S.riders[e.id].s.spr));
       add('sprint_meilleur', S.riders[res[0].id].s.spr >= bestSpr ? 1 : 0);
     }
-    if (out.brk && ty === 'plat') add('taille_echap_plat', out.brk);
+    if (out.brkOnly && ty === 'plat') add('taille_echap_plat', out.brkOnly);
     if (out.brk && ty === 'montagne' && cal.cat === 0) add('taille_echap_montagne_GT', out.brk);
     if (DBG === ty) debugFinish(out.sim, spec, res, brk);
   }

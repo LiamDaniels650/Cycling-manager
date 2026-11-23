@@ -472,6 +472,17 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     courses ; retraités gardés pour le palmarès encore allégés ; polices réduites aux caractères utiles
     (tools/subset_fonts.sh, 261 → 119 Ko, originaux dans assets/fonts/full) ; calibrage avec arrêt anticipé
     (./dev.sh auto : 20 saisons par graine, 60 seulement si une mesure est trop près d'un bord pour le bruit statistique).
+  - Calibration recentrée : 14 mesures restaient collées à un bord de leur fourchette réelle depuis des dizaines de
+    versions (chaque réglage était accepté dès qu'il repassait « dans le réel », jamais au centre). Corrigé à la
+    source : un échappé dont l'équipe a un sprinteur derrière ne cessait de relayer qu'à 12 km (et non 60 km) de
+    l'arrivée, d'où des échappées toutes reprises à 60-100 km ; sans vrai rival devant, seule l'équipe du maillot
+    défend sa place hors montagne ; les favoris d'une classique sont choisis sur les côtes et pavés du final (côtes
+    courtes comprises) et non plus surtout sur le plat et le sprint ; les hommes du général laissent les points des
+    cols de passage aux chasseurs ; peloton patient sur le plat si la reprise s'annonce trop tôt ; équipes de
+    sprinteurs moins pressées en vallonné ; vitesses abaissées de 1 à 3 % ; taille de l'échappée sur le plat mesurée
+    sans les cassures en bordure. Résultat (60 saisons × 2 graines) : 44/44, et 3 mesures près d'un bord au lieu de
+    14 (écart du 10e aux arrivées au sommet, équipes gagnant une étape de grand tour : affaire de répartition des
+    forces entre équipes, à revoir avec la construction des effectifs de l'ordinateur).
   - Moteur, nouvelles mesures réelles dans la calibration (44 au lieu de 40) : porteurs du maillot de leader d'un
     grand tour (≈ 5), équipes qui gagnent une étape (≈ 8 sur 18), écart maximal de l'échappée sur le plat (≈ 4 min),
     distance de reprise (≈ 17 km). Corrections : une échappée reprise très tôt laisse place à une nouvelle bagarre ;

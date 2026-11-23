@@ -230,11 +230,22 @@ function courseScorer(P) {
   const i0 = Math.floor(Math.max(0, P.n * STEP - 60) / STEP);
   const pts = [];
   for (let j = i0; j < P.n; j++) if (P.g[j] >= -2) pts.push(j);
+  // les côtes et les pavés du final font la course : chaque portion compte selon sa difficulté (une rampe à 8 %
+  // pèse sept fois plus qu'un bout de plat) ; et un final accidenté ne finit guère au sprint, la pointe de vitesse
+  // y compte moins (sans cela, des sprinteurs et des rouleurs passaient pour favoris d'une classique ardennaise)
+  const w = j => 1 + Math.max(0, P.g[j]) * 0.8 + (P.surf[j] ? 1.5 : 0);
+  let wSum = 0,
+    steep = 0;
+  for (const j of pts) {
+    wSum += w(j);
+    if (P.g[j] >= 4) steep++;
+  }
+  const sprW = P.finishGrad < 3 ? R.courseSprintW * Math.max(0, 1 - (pts.length ? steep / pts.length : 0) * 6) : 0;
   return x => {
     let t = 0;
-    for (const j of pts) t += terrStat(x.r.s, P.g[j], P.surf[j], false);
-    const base = pts.length ? t / pts.length : x.r.s.pla;
-    return base * (0.86 + (0.14 * x.dayForm) / 100) + (P.finishGrad < 3 ? (x.r.s.spr - 70) * R.courseSprintW : 0);
+    for (const j of pts) t += terrStat(x.r.s, P.g[j], P.surf[j], !!(P.short && P.short[j])) * w(j);
+    const base = pts.length ? t / wSum : x.r.s.pla;
+    return base * (0.86 + (0.14 * x.dayForm) / 100) + (x.r.s.spr - 70) * sprW;
   };
 }
 // Ajoute une ligne au journal de course.
@@ -379,7 +390,7 @@ function simStep(sim) {
 // Taille de l'échappée du jour selon le terrain : 2 à 5 coureurs sur le plat, 15 à 30 sur une étape de montagne
 // d'un Grand Tour, où beaucoup d'équipes veulent placer un homme devant.
 function breakTarget(t, gt) {
-  if (t === 'plat') return rint(2, 5);
+  if (t === 'plat') return rint(2, 4);
   if (t === 'montagne' || t === 'sommet') return gt ? rint(14, 30) : rint(7, 16);
   if (t === 'paves') return rint(5, 12);
   return rint(2, 7);
@@ -658,6 +669,27 @@ function tickRoadEvents(sim) {
 function ckey(G, T) {
   return G.id * 4096 + T.id;
 }
+// Étape de plaine, loin de l'arrivée : si, au rythme actuel, l'échappée serait reprise bien avant le final, le
+// peloton entier lève le pied (une équipe au tempo, un rouleur chacune) : reprendre trop tôt, c'est s'exposer aux
+// contres. Sans cela, les équipes qui roulent pour d'autres raisons (alliances, menaces) avalaient l'échappée à
+// 60-100 km de l'arrivée (18 % des étapes de plaine).
+function flatPatience(sim, chase) {
+  const G = sim.pel;
+  if (sim.spec.type !== 'plat' || !G) return;
+  const kmLeft = sim.dist - G.pos;
+  const H = sim.gapHist || [];
+  if (kmLeft < 45 || H.length < 6) return;
+  const a = H[H.length - 6],
+    b = H[H.length - 1];
+  if (!a.gap || !b.gap) return;
+  const rate = (a.gap - b.gap) / Math.max(1, b.km - a.km);
+  if (rate <= 0.5 || kmLeft - b.gap / rate <= R.sprintCatchKm + 30) return;
+  for (const x of G.riders) {
+    const k = ckey(G, x.team);
+    const c = chase.get(k);
+    if (c && c[0] > 0.72) chase.set(k, [0.72, 1]);
+  }
+}
 function tickTeamPlans(sim, live) {
   const chase = new Map();
   // groupes devant chaque groupe et équipes qui y ont un coureur : calculés une fois pour toutes les équipes
@@ -694,6 +726,7 @@ function tickTeamPlans(sim, live) {
   }
   sim._ahead = sim._teamsAhead = null;
   allyTick(sim, chase);
+  flatPatience(sim, chase);
   // ressenti des coureurs du joueur
   for (const x of live) {
     if (!x.felt && x.g.pos > Math.min(25, sim.dist * 0.15) && x.player) {

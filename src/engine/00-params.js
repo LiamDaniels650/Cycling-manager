@@ -63,8 +63,8 @@ const R = {
   shelterSeen: 0.3, // chance d'être vu par les commissaires
 
   // --- Course ---
-  sprintNoise: 3.6, // aléa du sprint (placement, timing, jambes du jour)
-  sprintVk: 0.1, // sprint simulé : vitesse de pointe (m/s) gagnée par point de qualité de sprint (16,6 m/s à 75)
+  sprintNoise: 2.4, // aléa du sprint (placement, timing, jambes du jour)
+  sprintVk: 0.13, // sprint simulé : vitesse de pointe (m/s) gagnée par point de qualité de sprint (16,6 m/s à 75)
   sprintPlc: 0.8, // … mètres d'avance au départ du sprint par point de placement au-dessus de 65
   sprintSpread: 0.8, // … mètres de retard sur la tête au dernier km par point de placement manquant (0-100)
   sprintDraft: 0.45, // … gain de vitesse (m/s) dans la roue d'un coureur à moins de 6 m (×1,6 vent de face)
@@ -102,16 +102,16 @@ const R = {
   murFollow: 0.99, // pour suivre une attaque sur un mur pavé, il faut 99 % de la capacité de l'attaquant (95 % ailleurs)
   murAttack: 1.2, // envie d'attaquer d'un leader sur un mur pavé du final (0,6 sur un secteur pavé plat)
   classicMarking: 65, // % du temps où un leader « se regarde » au lieu de chasser un favori parti seul (final de classique)
-  mtnChaseK: 0.65, // montagne : marge laissée à l'échappée (écarts mesurés en temps de passage, plus justes en montée)
+  mtnChaseK: 0.6, // montagne : marge laissée à l'échappée (écarts mesurés en temps de passage, plus justes en montée)
   summitChaseK: 0.5, // … et pour une arrivée au sommet, marge laissée par les favoris qui visent l'étape
   mtnLeaderGap: 180, // dernière montée d'une étape : les favoris roulent eux-mêmes derrière une échappée à moins de 180 s
   breakEco: 0.97,
   homeForm: 2, // forme du jour en plus pour un coureur qui court dans son pays
   cutRushPace: 0.88, // allure d'un gruppetto qui risque les délais (part de la capacité médiane du groupe) // échappée sur le plat à plus de 30 km de l'arrivée : allure tenue (part de l'allure de relais)
-  flatChaseK: 0.85, // équipes de sprinteurs : marge laissée à l'échappée (part de l'écart toléré d'origine)
-  sprintCatchKm: 8, // poursuite des équipes de sprinteurs : reprendre l'échappée vers 8 km de l'arrivée…
+  flatChaseK: 0.75, // équipes de sprinteurs : marge laissée à l'échappée (part de l'écart toléré d'origine)
+  sprintCatchKm: 5, // poursuite des équipes de sprinteurs : reprendre l'échappée vers 5 km de l'arrivée…
   chaseAhead: 2, // … une équipe en avance sur cet objectif (vitesse de reprise > 1,4 × nécessaire) lève le pied
-  chaseBehind: 0.7, // … en retard (< 0,7 × nécessaire), elle accélère et engage un rouleur de plus
+  chaseBehind: 0.85, // … en retard (< 0,7 × nécessaire), elle accélère et engage un rouleur de plus
   pavFinalPace: 0.9, // 30 derniers km d'une classique pavée : allure d'un groupe de tête où personne ne relaie
   noWorkAhead: 0.7, // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
 };

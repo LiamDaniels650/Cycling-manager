@@ -176,7 +176,9 @@ function decideRider(sim, x, ctx) {
     if ((eo === 'protect' || eo === 'control' || eo === 'leadout') && ldr && ldr.g !== G && !ldr.fin)
       w = kmLeft < 25 ? 0.3 : 0;
     const spB = sim.teamSprinter[x.team.id];
-    if (spB && spB !== x && spB.g !== G && !spB.fin && sim.P.finishGrad < 3 && kmLeft < 60) w = 0;
+    // (dans les 12 derniers km seulement, et il relaie au ralenti : à 60 km, toute l'échappée s'arrêtait de rouler,
+    // presque chaque équipe ayant un sprinteur derrière, et elle était reprise bien avant le final)
+    if (spB && spB !== x && spB.g !== G && !spB.fin && sim.P.finishGrad < 3 && kmLeft < 12) w = Math.min(w, 0.3);
     if (G.riders.length >= 3 && sim.P.finishGrad < 3 && kmLeft < 15) {
       const bs = G.riders.reduce((a, b) => (b.r.s.spr > a.r.s.spr ? b : a));
       if (bs === x && x.r.s.bar < 75) w = Math.min(w, 0.35);

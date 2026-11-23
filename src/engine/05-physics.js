@@ -47,7 +47,7 @@ function capRaw(x, g, surf) {
 }
 // Vitesse (km/h) d'un groupe roulant au niveau L sur une pente g.
 // Calibrage 2024-2025 : plat ~44 km/h, montagne ~35-38, chrono ~52, CLM par équipes ~55 (voir tests/calibrate.js).
-const SPEED_K = { plat: 1.09, colline: 1.06, montee: 1.075, aero: 1.07 };
+const SPEED_K = { plat: 1.08, colline: 1.05, montee: 1.05, aero: 1.06 };
 // En montée, la vitesse est un peu moins sensible au niveau (écarts plus réalistes).
 // noSurf : le ralentissement des pavés est laissé à la physique (roulement), qui l'applique ensuite.
 function speedOf(L, g, surf, aero, noSurf) {

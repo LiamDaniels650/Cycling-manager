@@ -3541,8 +3541,8 @@ const R = {
   shelterSeen: 0.3, // chance d'être vu par les commissaires
 
   // --- Course ---
-  sprintNoise: 3.6, // aléa du sprint (placement, timing, jambes du jour)
-  sprintVk: 0.1, // sprint simulé : vitesse de pointe (m/s) gagnée par point de qualité de sprint (16,6 m/s à 75)
+  sprintNoise: 2.4, // aléa du sprint (placement, timing, jambes du jour)
+  sprintVk: 0.13, // sprint simulé : vitesse de pointe (m/s) gagnée par point de qualité de sprint (16,6 m/s à 75)
   sprintPlc: 0.8, // … mètres d'avance au départ du sprint par point de placement au-dessus de 65
   sprintSpread: 0.8, // … mètres de retard sur la tête au dernier km par point de placement manquant (0-100)
   sprintDraft: 0.45, // … gain de vitesse (m/s) dans la roue d'un coureur à moins de 6 m (×1,6 vent de face)
@@ -3580,16 +3580,16 @@ const R = {
   murFollow: 0.99, // pour suivre une attaque sur un mur pavé, il faut 99 % de la capacité de l'attaquant (95 % ailleurs)
   murAttack: 1.2, // envie d'attaquer d'un leader sur un mur pavé du final (0,6 sur un secteur pavé plat)
   classicMarking: 65, // % du temps où un leader « se regarde » au lieu de chasser un favori parti seul (final de classique)
-  mtnChaseK: 0.65, // montagne : marge laissée à l'échappée (écarts mesurés en temps de passage, plus justes en montée)
+  mtnChaseK: 0.6, // montagne : marge laissée à l'échappée (écarts mesurés en temps de passage, plus justes en montée)
   summitChaseK: 0.5, // … et pour une arrivée au sommet, marge laissée par les favoris qui visent l'étape
   mtnLeaderGap: 180, // dernière montée d'une étape : les favoris roulent eux-mêmes derrière une échappée à moins de 180 s
   breakEco: 0.97,
   homeForm: 2, // forme du jour en plus pour un coureur qui court dans son pays
   cutRushPace: 0.88, // allure d'un gruppetto qui risque les délais (part de la capacité médiane du groupe) // échappée sur le plat à plus de 30 km de l'arrivée : allure tenue (part de l'allure de relais)
-  flatChaseK: 0.85, // équipes de sprinteurs : marge laissée à l'échappée (part de l'écart toléré d'origine)
-  sprintCatchKm: 8, // poursuite des équipes de sprinteurs : reprendre l'échappée vers 8 km de l'arrivée…
+  flatChaseK: 0.75, // équipes de sprinteurs : marge laissée à l'échappée (part de l'écart toléré d'origine)
+  sprintCatchKm: 5, // poursuite des équipes de sprinteurs : reprendre l'échappée vers 5 km de l'arrivée…
   chaseAhead: 2, // … une équipe en avance sur cet objectif (vitesse de reprise > 1,4 × nécessaire) lève le pied
-  chaseBehind: 0.7, // … en retard (< 0,7 × nécessaire), elle accélère et engage un rouleur de plus
+  chaseBehind: 0.85, // … en retard (< 0,7 × nécessaire), elle accélère et engage un rouleur de plus
   pavFinalPace: 0.9, // 30 derniers km d'une classique pavée : allure d'un groupe de tête où personne ne relaie
   noWorkAhead: 0.7, // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
 };
@@ -5529,7 +5529,7 @@ function capRaw(x, g, surf) {
 }
 // Vitesse (km/h) d'un groupe roulant au niveau L sur une pente g.
 // Calibrage 2024-2025 : plat ~44 km/h, montagne ~35-38, chrono ~52, CLM par équipes ~55 (voir tests/calibrate.js).
-const SPEED_K = { plat: 1.09, colline: 1.06, montee: 1.075, aero: 1.07 };
+const SPEED_K = { plat: 1.08, colline: 1.05, montee: 1.05, aero: 1.06 };
 // En montée, la vitesse est un peu moins sensible au niveau (écarts plus réalistes).
 // noSurf : le ralentissement des pavés est laissé à la physique (roulement), qui l'applique ensuite.
 function speedOf(L, g, surf, aero, noSurf) {
@@ -6838,7 +6838,7 @@ function teamChaseLevel1(sim, T, G, kmLeft) {
       let allowed =
         t === 'montagne' || t === 'sommet'
           ? Math.max(180, (kmLeft - 15) * 5.5) * R.mtnChaseK
-          : Math.max(60, (kmLeft - 10) * 3.5);
+          : Math.max(60, (kmLeft - 10) * 3.5) * (t === 'vallonne' ? 1.5 : 1); // (vallonné : plus dur à contrôler)
       // une échappée sans danger pour le général (tous à plus de 10 minutes) a droit à bien plus de marge
       if (sim.stageRace) {
         const front = ahead.reduce((a, b) => (a.pos > b.pos ? a : b));
@@ -6869,7 +6869,7 @@ function chaseProject(sim, G, gap, kmLeft, targetKm, level, nw) {
   // et la laisse respirer (sous 2 min) ou roule au simple tempo, pour la reprendre dans le final
   if (level > 0 && rate > 0.5) {
     const catchAt = kmLeft - gap / rate;
-    if (catchAt > targetKm + 25) return gap < 120 ? [0, 0] : [Math.min(level, 0.75), 1];
+    if (catchAt > targetKm + 20) return gap < 150 ? [0, 0] : [Math.min(level, 0.7), 1];
   }
   if (level > 0 && rate > need * R.chaseAhead && nw > 1 && kmLeft > targetKm + 20)
     return [Math.max(0.8, level - 0.04), nw - 1];
@@ -6921,10 +6921,11 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
     nw = 0;
   if (
     spr &&
-    (t === 'plat' || (t === 'punch' && kmLeft < 95) || (t === 'vallonne' && kmLeft < 80 && spr.r.s.col >= 66)) &&
+    (t === 'plat' || (t === 'punch' && kmLeft < 95) || (t === 'vallonne' && kmLeft < 80 && spr.r.s.col >= 72)) &&
     !aheadMate
   ) {
-    const allowed = Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK;
+    // (final vallonné : plus dur à contrôler pour une équipe de sprinteur, l'échappée a plus de marge)
+    const allowed = Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK * (t === 'vallonne' ? 1.35 : 1);
     if (gap > allowed * 1.5 + 40) {
       level = 0.97;
       nw = 4;
@@ -6957,7 +6958,11 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
           const d = sim.rc.gc[y.id] - myGc;
           if (d >= gh + 30) continue;
           const rival = sim.favs.has(y.id) || (rk.has(y.id) && rk.get(y.id) < 10);
-          if (rival || gh > tol || (yel && d < gh - tol * 0.4)) {
+          // (sans vrai rival devant, seule l'équipe du maillot défend sa place : les autres laissent filer une
+          // échappée sans danger, comme en course ; avant, toutes roulaient dès 80 s d'avance dans le final)
+          // (en montagne, les équipes des favoris veulent aussi l'étape : elles roulent comme avant)
+          const loose = t !== 'montagne' && t !== 'sommet';
+          if (rival || ((yel || !loose) && gh > tol) || (yel && d < gh - tol * 0.4)) {
             threat = true;
             break;
           }
@@ -7345,11 +7350,22 @@ function courseScorer(P) {
   const i0 = Math.floor(Math.max(0, P.n * STEP - 60) / STEP);
   const pts = [];
   for (let j = i0; j < P.n; j++) if (P.g[j] >= -2) pts.push(j);
+  // les côtes et les pavés du final font la course : chaque portion compte selon sa difficulté (une rampe à 8 %
+  // pèse sept fois plus qu'un bout de plat) ; et un final accidenté ne finit guère au sprint, la pointe de vitesse
+  // y compte moins (sans cela, des sprinteurs et des rouleurs passaient pour favoris d'une classique ardennaise)
+  const w = j => 1 + Math.max(0, P.g[j]) * 0.8 + (P.surf[j] ? 1.5 : 0);
+  let wSum = 0,
+    steep = 0;
+  for (const j of pts) {
+    wSum += w(j);
+    if (P.g[j] >= 4) steep++;
+  }
+  const sprW = P.finishGrad < 3 ? R.courseSprintW * Math.max(0, 1 - (pts.length ? steep / pts.length : 0) * 6) : 0;
   return x => {
     let t = 0;
-    for (const j of pts) t += terrStat(x.r.s, P.g[j], P.surf[j], false);
-    const base = pts.length ? t / pts.length : x.r.s.pla;
-    return base * (0.86 + (0.14 * x.dayForm) / 100) + (P.finishGrad < 3 ? (x.r.s.spr - 70) * R.courseSprintW : 0);
+    for (const j of pts) t += terrStat(x.r.s, P.g[j], P.surf[j], !!(P.short && P.short[j])) * w(j);
+    const base = pts.length ? t / wSum : x.r.s.pla;
+    return base * (0.86 + (0.14 * x.dayForm) / 100) + (x.r.s.spr - 70) * sprW;
   };
 }
 // Ajoute une ligne au journal de course.
@@ -7494,7 +7510,7 @@ function simStep(sim) {
 // Taille de l'échappée du jour selon le terrain : 2 à 5 coureurs sur le plat, 15 à 30 sur une étape de montagne
 // d'un Grand Tour, où beaucoup d'équipes veulent placer un homme devant.
 function breakTarget(t, gt) {
-  if (t === 'plat') return rint(2, 5);
+  if (t === 'plat') return rint(2, 4);
   if (t === 'montagne' || t === 'sommet') return gt ? rint(14, 30) : rint(7, 16);
   if (t === 'paves') return rint(5, 12);
   return rint(2, 7);
@@ -7773,6 +7789,27 @@ function tickRoadEvents(sim) {
 function ckey(G, T) {
   return G.id * 4096 + T.id;
 }
+// Étape de plaine, loin de l'arrivée : si, au rythme actuel, l'échappée serait reprise bien avant le final, le
+// peloton entier lève le pied (une équipe au tempo, un rouleur chacune) : reprendre trop tôt, c'est s'exposer aux
+// contres. Sans cela, les équipes qui roulent pour d'autres raisons (alliances, menaces) avalaient l'échappée à
+// 60-100 km de l'arrivée (18 % des étapes de plaine).
+function flatPatience(sim, chase) {
+  const G = sim.pel;
+  if (sim.spec.type !== 'plat' || !G) return;
+  const kmLeft = sim.dist - G.pos;
+  const H = sim.gapHist || [];
+  if (kmLeft < 45 || H.length < 6) return;
+  const a = H[H.length - 6],
+    b = H[H.length - 1];
+  if (!a.gap || !b.gap) return;
+  const rate = (a.gap - b.gap) / Math.max(1, b.km - a.km);
+  if (rate <= 0.5 || kmLeft - b.gap / rate <= R.sprintCatchKm + 30) return;
+  for (const x of G.riders) {
+    const k = ckey(G, x.team);
+    const c = chase.get(k);
+    if (c && c[0] > 0.72) chase.set(k, [0.72, 1]);
+  }
+}
 function tickTeamPlans(sim, live) {
   const chase = new Map();
   // groupes devant chaque groupe et équipes qui y ont un coureur : calculés une fois pour toutes les équipes
@@ -7809,6 +7846,7 @@ function tickTeamPlans(sim, live) {
   }
   sim._ahead = sim._teamsAhead = null;
   allyTick(sim, chase);
+  flatPatience(sim, chase);
   // ressenti des coureurs du joueur
   for (const x of live) {
     if (!x.felt && x.g.pos > Math.min(25, sim.dist * 0.15) && x.player) {
@@ -8065,7 +8103,9 @@ function decideRider(sim, x, ctx) {
     if ((eo === 'protect' || eo === 'control' || eo === 'leadout') && ldr && ldr.g !== G && !ldr.fin)
       w = kmLeft < 25 ? 0.3 : 0;
     const spB = sim.teamSprinter[x.team.id];
-    if (spB && spB !== x && spB.g !== G && !spB.fin && sim.P.finishGrad < 3 && kmLeft < 60) w = 0;
+    // (dans les 12 derniers km seulement, et il relaie au ralenti : à 60 km, toute l'échappée s'arrêtait de rouler,
+    // presque chaque équipe ayant un sprinteur derrière, et elle était reprise bien avant le final)
+    if (spB && spB !== x && spB.g !== G && !spB.fin && sim.P.finishGrad < 3 && kmLeft < 12) w = Math.min(w, 0.3);
     if (G.riders.length >= 3 && sim.P.finishGrad < 3 && kmLeft < 15) {
       const bs = G.riders.reduce((a, b) => (b.r.s.spr > a.r.s.spr ? b : a));
       if (bs === x && x.r.s.bar < 75) w = Math.min(w, 0.35);
@@ -9915,6 +9955,8 @@ function runStageAuto(rc) {
   return sim;
 }
 // Contre-la-montre par équipes : le rythme est celui du cœur de l'équipe ; les lâchés finissent seuls.
+// (TTT_K : réglage de vitesse de l'exercice, pour viser le milieu de la fourchette réelle, 51-57 km/h)
+const TTT_K = 0.98;
 function runTTT(rc) {
   const spec = rc.specs[rc.si];
   const P = buildProfile(spec);
@@ -9976,7 +10018,7 @@ function runTTT(rc) {
         L = Math.min(L, (capOf(ldr, i) * 0.99) / share);
       }
       for (let j = 0; j < n; j++) if (skip[j]) grp[j].skips = (grp[j].skips || 0) + 1;
-      const v = physSpeed(speedOf(L, P.g[i], P.surf[i], true, true) * eqTT, P.g[i], CO[i], 0.22);
+      const v = physSpeed(speedOf(L, P.g[i], P.surf[i], true, true) * eqTT * TTT_K, P.g[i], CO[i], 0.22);
       const dt = STEP / v;
       t += dt * 3600;
       grp.forEach((x, j) => {
@@ -15976,6 +16018,10 @@ function komSitUp(sim, x, G) {
 // Points de la montagne et sprint intermédiaire : ordre de passage dans un groupe (ceux qui visent le maillot
 // se dépensent pour passer en tête).
 function jerseyOrder(G, kind, sim, c) {
+  const gcTop = x => {
+    const k = leaderGcRank(sim.rc, x.id);
+    return k > 0 && k <= 10;
+  };
   // au sommet d'un col qui n'est pas l'arrivée, les leaders ne sprintent pas pour les points : passent en tête
   // ceux qui roulent devant (équipiers qui mènent) et les chasseurs de points
   const summitFinish = !c || c.end >= sim.dist - 0.5;
@@ -15983,7 +16029,10 @@ function jerseyOrder(G, kind, sim, c) {
     kind === 'kom'
       ? x =>
           cap(x, 6, 0) +
-          (!summitFinish && effOrder(x) === 'leader' && x.aim !== 'kom' ? -12 : 0) +
+          // (les hommes du général, leaders ou non, laissent les points des cols de passage aux chasseurs)
+          (!summitFinish && x.aim !== 'kom' && (effOrder(x) === 'leader' || (sim.stageRace && gcTop(x)))
+            ? -12
+            : 0) +
           (x.work > 0.5 ? 3 : 0)
       : x => x.r.s.spr + x.pos * 0.1;
   const sc = new Map(G.riders.map(x => [x, base(x) + (x.aim === kind ? 9 : 0) + gauss() * (kind === 'kom' ? 1.5 : 3)]));
@@ -15994,10 +16043,12 @@ function jerseyOrder(G, kind, sim, c) {
 // Points d'un sommet selon la course et la catégorie (arrivée au sommet doublée sur le Tour).
 function komPts(rc, c, summitFinish) {
   let sc = (KOM_GT[rc.key] || KOM_PTS)[c.cat] || KOM_PTS[c.cat];
-  // réglage de jeu (grands tours) : les cols de passage valent 55 % de plus, pour que les chasseurs du maillot
+  // réglage de jeu (grands tours) : les cols de passage valent deux fois plus, pour que les chasseurs du maillot
   // échappés puissent rivaliser avec les favoris, qui ramassent les points des arrivées au sommet
-  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * 1.55));
-  return rc.key === 'gb' && summitFinish && (c.cat === 'HC' || c.cat === 1 || c.cat === 2) ? sc.map(v => v * 2) : sc;
+  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * 2));
+  // (les arrivées au sommet de la Grande Boucle ne comptent plus double : le maillot allait trop souvent à un
+  // homme du général, la moitié des cas contre un quart dans la réalité)
+  return sc;
 }
 
 // ---- src/engine/35-officials.js ----

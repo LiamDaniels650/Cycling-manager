@@ -594,7 +594,7 @@ function teamChaseLevel1(sim, T, G, kmLeft) {
       let allowed =
         t === 'montagne' || t === 'sommet'
           ? Math.max(180, (kmLeft - 15) * 5.5) * R.mtnChaseK
-          : Math.max(60, (kmLeft - 10) * 3.5);
+          : Math.max(60, (kmLeft - 10) * 3.5) * (t === 'vallonne' ? 1.5 : 1); // (vallonné : plus dur à contrôler)
       // une échappée sans danger pour le général (tous à plus de 10 minutes) a droit à bien plus de marge
       if (sim.stageRace) {
         const front = ahead.reduce((a, b) => (a.pos > b.pos ? a : b));
@@ -625,7 +625,7 @@ function chaseProject(sim, G, gap, kmLeft, targetKm, level, nw) {
   // et la laisse respirer (sous 2 min) ou roule au simple tempo, pour la reprendre dans le final
   if (level > 0 && rate > 0.5) {
     const catchAt = kmLeft - gap / rate;
-    if (catchAt > targetKm + 25) return gap < 120 ? [0, 0] : [Math.min(level, 0.75), 1];
+    if (catchAt > targetKm + 20) return gap < 150 ? [0, 0] : [Math.min(level, 0.7), 1];
   }
   if (level > 0 && rate > need * R.chaseAhead && nw > 1 && kmLeft > targetKm + 20)
     return [Math.max(0.8, level - 0.04), nw - 1];
@@ -677,10 +677,11 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
     nw = 0;
   if (
     spr &&
-    (t === 'plat' || (t === 'punch' && kmLeft < 95) || (t === 'vallonne' && kmLeft < 80 && spr.r.s.col >= 66)) &&
+    (t === 'plat' || (t === 'punch' && kmLeft < 95) || (t === 'vallonne' && kmLeft < 80 && spr.r.s.col >= 72)) &&
     !aheadMate
   ) {
-    const allowed = Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK;
+    // (final vallonné : plus dur à contrôler pour une équipe de sprinteur, l'échappée a plus de marge)
+    const allowed = Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK * (t === 'vallonne' ? 1.35 : 1);
     if (gap > allowed * 1.5 + 40) {
       level = 0.97;
       nw = 4;
@@ -713,7 +714,11 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
           const d = sim.rc.gc[y.id] - myGc;
           if (d >= gh + 30) continue;
           const rival = sim.favs.has(y.id) || (rk.has(y.id) && rk.get(y.id) < 10);
-          if (rival || gh > tol || (yel && d < gh - tol * 0.4)) {
+          // (sans vrai rival devant, seule l'équipe du maillot défend sa place : les autres laissent filer une
+          // échappée sans danger, comme en course ; avant, toutes roulaient dès 80 s d'avance dans le final)
+          // (en montagne, les équipes des favoris veulent aussi l'étape : elles roulent comme avant)
+          const loose = t !== 'montagne' && t !== 'sommet';
+          if (rival || ((yel || !loose) && gh > tol) || (yel && d < gh - tol * 0.4)) {
             threat = true;
             break;
           }
