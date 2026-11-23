@@ -1481,5 +1481,26 @@ check(
   me.mf = 95;
   check(mfForm(me) > 0, 'fraîcheur : un coureur frais en gagne');
 }
+{
+  // dernière étape d'un grand tour : parade (pas de bordure), le maillot ne perd pas de temps au général
+  newGame('Par', 405);
+  for (const k of Object.keys(AUTO_LBL)) setAuto(k, true);
+  const gi = S.cal.findIndex(c => c.key === 'gb');
+  S.week = S.cal[gi].w;
+  const rc = startRace(gi, delegateSelection(gi));
+  rc.autoDS = true;
+  rc.delegated = true;
+  while (rc.si < rc.specs.length - 1) {
+    Object.assign(rc.orders, autoOrders(0, rc.specs[rc.si], rc));
+    runStageAuto(rc);
+  }
+  const y = gcList(rc)[0];
+  const g0 = rc.gc[y];
+  Object.assign(rc.orders, autoOrders(0, rc.specs[rc.si], rc));
+  const sim = runStageAuto(rc);
+  const lost = rc.gc[y] - g0 - rc.stageRes[rc.stageRes.length - 1].res[0].time;
+  check(sim.parade && !sim.log.some(l => /BORDURE/.test(l.txt)), 'parade : pas de bordure le dernier jour');
+  check(lost < 10 && gcList(rc)[0] === y, `parade : le maillot ne perd pas de temps (${Math.round(lost)} s)`);
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

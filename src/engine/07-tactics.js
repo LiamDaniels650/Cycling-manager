@@ -500,11 +500,15 @@ function doAttack(sim, x, opts = {}) {
           rc.gc[x.id] != null &&
           rc.gc[y.id] != null &&
           rc.gc[x.id] - rc.gc[y.id] < R.rivalGap;
-        const counts = sim.favs.has(x.id) || rival || phaseOf(sim, G) === 'final';
-        want = counts ? (y.att === 'defensif' ? R.leaderFollowDef : R.leaderFollow) : R.leaderFollowIdle;
+        // étape plate d'une course par étapes : seul un rival au général compte (les favoris du jour sont les
+        // sprinteurs, et une attaque dans le final ne change rien au classement : on reste dans le peloton, même
+        // temps) ; le jour de la parade, un leader ne suit rien
+        const flatSR = sim.stageRace && sim.spec.type === 'plat' && sim.P.finishGrad < 3;
+        const counts = flatSR ? rival : sim.favs.has(x.id) || rival || phaseOf(sim, G) === 'final';
+        want = sim.parade ? 0 : counts ? (y.att === 'defensif' ? R.leaderFollowDef : R.leaderFollow) : R.leaderFollowIdle;
       } else if (eo === 'free') want = (y.r.amb / 100) * 0.55 + (sim.favs.has(y.id) ? 0.2 : 0);
       else if (eo === 'break' && G.pos < sim.dist * 0.5) want = 0.5;
-      if (sim.favs.has(x.id) && eo === 'leader') want += 0.15;
+      if (sim.favs.has(x.id) && eo === 'leader' && !(sim.stageRace && sim.spec.type === 'plat') && !sim.parade) want += 0.15;
       if (y.markId === x.id) want = 0.98;
       if (y.energy < 20) want *= 0.3;
       if (rnd() < want) {
@@ -811,6 +815,7 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
 function tryEchelon(sim) {
   const G = sim.groups.find(H => H.riders.some(x => x.player) && H.riders.length >= 25);
   if (!G) return 'Pas de gros peloton avec vos coureurs.';
+  if (sim.parade) return 'Étape de parade : on ne fait pas la bordure le dernier jour.';
   if (!G.expo || !sim.P.wind) return 'Pas de vent de côté ici : impossible de faire la bordure.';
   const mine = G.riders.filter(x => x.player && x.energy > 30 && !x.rebel);
   if (mine.length < 3) return 'Il faut au moins 3 coureurs frais dans le peloton.';

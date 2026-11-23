@@ -26,6 +26,8 @@ function buildStageSim(rc) {
     klimbs: P.climbs.map(c => ({ ...c, order: [], done: false })),
     pauseReq: null,
     stageRace: rc.specs.length > 1,
+    // dernière étape plate d'un grand tour : étape de parade (pas de bordure, le général ne se joue plus)
+    parade: rc.cat === 0 && rc.specs.length >= 15 && rc.si === rc.specs.length - 1 && spec.type === 'plat',
     rc,
     carId: rc.carId == null ? null : rc.carId, // mode carrière : le seul coureur piloté par le joueur
   };
@@ -439,8 +441,13 @@ function tickPrepare(sim) {
   sim.pel = pel;
   breakUpdate(sim, pel);
   // règle des 3 km : sur une arrivée plate, les coureurs du peloton à 3 km de la ligne sont protégés au général
-  if (sim.stageRace && !sim.pel3 && sim.P.finishGrad < 3 && sim.spec.type !== 'paves' && pel.pos >= sim.dist - 3)
+  // (et les morceaux de peloton à moins de 15 s derrière : un peloton étiré par les trains de sprint n'est pas une
+  // vraie cassure ; sans cela, un leader coincé dans un morceau à 5 s perdait près d'une minute au général)
+  if (sim.stageRace && !sim.pel3 && sim.P.finishGrad < 3 && sim.spec.type !== 'paves' && pel.pos >= sim.dist - 3) {
     sim.pel3 = new Set(pel.riders.map(x => x.id));
+    for (const H of sim.groups)
+      if (H !== pel && H.pos < pel.pos && gapSec(pel, H) <= 15) for (const x of H.riders) sim.pel3.add(x.id);
+  }
   // trains de sprint à 3 km : nombre de poissons-pilotes encore frais par équipe
   if (!sim.trains3 && sim.P.finishGrad < 3 && pel.pos >= sim.dist - 3) {
     sim.trains3 = {};
@@ -595,7 +602,7 @@ function tickRoadEvents(sim) {
   echelonAsk(sim);
   dangerTick(sim);
   for (const G of sim.groups.slice()) {
-    if (!G.expo || !sim.P.wind || G !== pel || G.riders.length < 30 || G.pos < 15 || sim.dist - G.pos < 3) continue;
+    if (sim.parade || !G.expo || !sim.P.wind || G !== pel || G.riders.length < 30 || G.pos < 15 || sim.dist - G.pos < 3) continue;
     if (sim.echelonT && sim.t - sim.echelonT < 70) continue;
     const teams = [...new Set(G.riders.map(x => x.team))];
     for (const T of teams) {

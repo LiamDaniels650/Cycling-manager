@@ -497,6 +497,13 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     entre deux groupes qui se suivent, et un écart affiché n'est jamais plus petit que celui d'un groupe qui roule
     devant. Vue du ciel : chaque coureur suit exactement son groupe mais glisse en douceur vers sa place (≈ 0,5 s),
     ordre stable dans le groupe ; une jonction se voit au lieu d'une téléportation.
+  - Tactique du général sur les étapes de plaine (un maillot perdait plus d'une minute le dernier jour) :
+    - un leader du général ne suit plus n'importe quelle attaque dans le final d'une étape plate d'une course par
+      étapes : seulement celle d'un rival au classement (les « favoris » du jour y sont les sprinteurs) ; avant, les
+      hommes du général s'y jetaient, le peloton éclatait et le maillot perdait 30 à 90 s une étape sur deux ;
+    - la dernière étape plate d'un grand tour est une parade : pas de bordure, les leaders ne suivent rien ;
+    - règle des 3 km étendue aux morceaux de peloton à moins de 15 s ; règle des 3 s des grands tours (même temps
+      pour qui suit le précédent à moins de 3 s sur une arrivée plate d'une course par étapes, 1 s ailleurs).
   - Moteur, quatre chantiers :
     - Identité des équipes de l'ordinateur (75-identity.js) : grands tours, classiques, sprint, échappées, et une
       super-équipe (le plus haut standing, de vraies vedettes) ; vedettes de départ, recrutement (marché, transferts,

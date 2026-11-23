@@ -871,6 +871,14 @@ function endStageSim(sim) {
     .map(x => ({ ...powerSummary(x.id, x.st, x.r.kg || 68), rk: res.indexOf(x) + 1, kf: +x.st.kf.toFixed(1) }))
     .filter(e => e.id)
     .sort((a, b) => (a.rk || 999) - (b.rk || 999));
+  // même temps (règle UCI) : un coureur qui suit le précédent à moins d'1 s a son temps ; 3 s sur l'arrivée plate
+  // d'une course par étapes (règle des grands tours depuis 2022)
+  const thr = sim.stageRace && sim.P.finishGrad < 3 && sim.spec.type !== 'paves' ? 3 : 1;
+  const ct = new Map();
+  for (let i = 0; i < res.length; i++) {
+    const x = res[i];
+    ct.set(x.id, i && x.time - res[i - 1].time < thr ? ct.get(res[i - 1].id) : x.time);
+  }
   let bunch = null;
   if (sim.pel3) {
     const cnt = new Map();
@@ -891,9 +899,9 @@ function endStageSim(sim) {
     sim.spec,
     res.map(x => ({
       id: x.id,
-      time: x.time,
+      time: ct.get(x.id),
       energy: x.energy,
-      gcTime: bunch !== null && sim.pel3.has(x.id) && x.time > bunch ? bunch : undefined,
+      gcTime: bunch !== null && sim.pel3.has(x.id) && ct.get(x.id) > bunch ? bunch : undefined,
     })),
     sim.runners.filter(x => x.dnf).map(x => x.id)
   );

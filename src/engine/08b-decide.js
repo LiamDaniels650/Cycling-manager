@@ -283,7 +283,7 @@ function decideRider(sim, x, ctx) {
       if (surf && kmLeft < 70) window = g >= 3 && !sim.stageRace ? R.murAttack : 0.6; // mur pavé : le moment de partir
       if (kmLeft < 15) window = Math.max(window, 0.5);
     } else if (t === 'plat') {
-      if (kmLeft < 8 && kmLeft > 1.5) window = 0.15;
+      if (kmLeft < 8 && kmLeft > 1.5 && !(sim.parade && eo === 'leader')) window = 0.15;
     }
     if (window > 0) {
       const capX = cap(x, g, surf);

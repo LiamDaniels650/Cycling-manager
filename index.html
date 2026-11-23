@@ -6765,11 +6765,15 @@ function doAttack(sim, x, opts = {}) {
           rc.gc[x.id] != null &&
           rc.gc[y.id] != null &&
           rc.gc[x.id] - rc.gc[y.id] < R.rivalGap;
-        const counts = sim.favs.has(x.id) || rival || phaseOf(sim, G) === 'final';
-        want = counts ? (y.att === 'defensif' ? R.leaderFollowDef : R.leaderFollow) : R.leaderFollowIdle;
+        // étape plate d'une course par étapes : seul un rival au général compte (les favoris du jour sont les
+        // sprinteurs, et une attaque dans le final ne change rien au classement : on reste dans le peloton, même
+        // temps) ; le jour de la parade, un leader ne suit rien
+        const flatSR = sim.stageRace && sim.spec.type === 'plat' && sim.P.finishGrad < 3;
+        const counts = flatSR ? rival : sim.favs.has(x.id) || rival || phaseOf(sim, G) === 'final';
+        want = sim.parade ? 0 : counts ? (y.att === 'defensif' ? R.leaderFollowDef : R.leaderFollow) : R.leaderFollowIdle;
       } else if (eo === 'free') want = (y.r.amb / 100) * 0.55 + (sim.favs.has(y.id) ? 0.2 : 0);
       else if (eo === 'break' && G.pos < sim.dist * 0.5) want = 0.5;
-      if (sim.favs.has(x.id) && eo === 'leader') want += 0.15;
+      if (sim.favs.has(x.id) && eo === 'leader' && !(sim.stageRace && sim.spec.type === 'plat') && !sim.parade) want += 0.15;
       if (y.markId === x.id) want = 0.98;
       if (y.energy < 20) want *= 0.3;
       if (rnd() < want) {
@@ -7076,6 +7080,7 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
 function tryEchelon(sim) {
   const G = sim.groups.find(H => H.riders.some(x => x.player) && H.riders.length >= 25);
   if (!G) return 'Pas de gros peloton avec vos coureurs.';
+  if (sim.parade) return 'Étape de parade : on ne fait pas la bordure le dernier jour.';
   if (!G.expo || !sim.P.wind) return 'Pas de vent de côté ici : impossible de faire la bordure.';
   const mine = G.riders.filter(x => x.player && x.energy > 30 && !x.rebel);
   if (mine.length < 3) return 'Il faut au moins 3 coureurs frais dans le peloton.';
@@ -7167,6 +7172,8 @@ function buildStageSim(rc) {
     klimbs: P.climbs.map(c => ({ ...c, order: [], done: false })),
     pauseReq: null,
     stageRace: rc.specs.length > 1,
+    // dernière étape plate d'un grand tour : étape de parade (pas de bordure, le général ne se joue plus)
+    parade: rc.cat === 0 && rc.specs.length >= 15 && rc.si === rc.specs.length - 1 && spec.type === 'plat',
     rc,
     carId: rc.carId == null ? null : rc.carId, // mode carrière : le seul coureur piloté par le joueur
   };
@@ -7580,8 +7587,13 @@ function tickPrepare(sim) {
   sim.pel = pel;
   breakUpdate(sim, pel);
   // règle des 3 km : sur une arrivée plate, les coureurs du peloton à 3 km de la ligne sont protégés au général
-  if (sim.stageRace && !sim.pel3 && sim.P.finishGrad < 3 && sim.spec.type !== 'paves' && pel.pos >= sim.dist - 3)
+  // (et les morceaux de peloton à moins de 15 s derrière : un peloton étiré par les trains de sprint n'est pas une
+  // vraie cassure ; sans cela, un leader coincé dans un morceau à 5 s perdait près d'une minute au général)
+  if (sim.stageRace && !sim.pel3 && sim.P.finishGrad < 3 && sim.spec.type !== 'paves' && pel.pos >= sim.dist - 3) {
     sim.pel3 = new Set(pel.riders.map(x => x.id));
+    for (const H of sim.groups)
+      if (H !== pel && H.pos < pel.pos && gapSec(pel, H) <= 15) for (const x of H.riders) sim.pel3.add(x.id);
+  }
   // trains de sprint à 3 km : nombre de poissons-pilotes encore frais par équipe
   if (!sim.trains3 && sim.P.finishGrad < 3 && pel.pos >= sim.dist - 3) {
     sim.trains3 = {};
@@ -7736,7 +7748,7 @@ function tickRoadEvents(sim) {
   echelonAsk(sim);
   dangerTick(sim);
   for (const G of sim.groups.slice()) {
-    if (!G.expo || !sim.P.wind || G !== pel || G.riders.length < 30 || G.pos < 15 || sim.dist - G.pos < 3) continue;
+    if (sim.parade || !G.expo || !sim.P.wind || G !== pel || G.riders.length < 30 || G.pos < 15 || sim.dist - G.pos < 3) continue;
     if (sim.echelonT && sim.t - sim.echelonT < 70) continue;
     const teams = [...new Set(G.riders.map(x => x.team))];
     for (const T of teams) {
@@ -8232,7 +8244,7 @@ function decideRider(sim, x, ctx) {
       if (surf && kmLeft < 70) window = g >= 3 && !sim.stageRace ? R.murAttack : 0.6; // mur pavé : le moment de partir
       if (kmLeft < 15) window = Math.max(window, 0.5);
     } else if (t === 'plat') {
-      if (kmLeft < 8 && kmLeft > 1.5) window = 0.15;
+      if (kmLeft < 8 && kmLeft > 1.5 && !(sim.parade && eo === 'leader')) window = 0.15;
     }
     if (window > 0) {
       const capX = cap(x, g, surf);
@@ -9818,6 +9830,14 @@ function endStageSim(sim) {
     .map(x => ({ ...powerSummary(x.id, x.st, x.r.kg || 68), rk: res.indexOf(x) + 1, kf: +x.st.kf.toFixed(1) }))
     .filter(e => e.id)
     .sort((a, b) => (a.rk || 999) - (b.rk || 999));
+  // même temps (règle UCI) : un coureur qui suit le précédent à moins d'1 s a son temps ; 3 s sur l'arrivée plate
+  // d'une course par étapes (règle des grands tours depuis 2022)
+  const thr = sim.stageRace && sim.P.finishGrad < 3 && sim.spec.type !== 'paves' ? 3 : 1;
+  const ct = new Map();
+  for (let i = 0; i < res.length; i++) {
+    const x = res[i];
+    ct.set(x.id, i && x.time - res[i - 1].time < thr ? ct.get(res[i - 1].id) : x.time);
+  }
   let bunch = null;
   if (sim.pel3) {
     const cnt = new Map();
@@ -9838,9 +9858,9 @@ function endStageSim(sim) {
     sim.spec,
     res.map(x => ({
       id: x.id,
-      time: x.time,
+      time: ct.get(x.id),
       energy: x.energy,
-      gcTime: bunch !== null && sim.pel3.has(x.id) && x.time > bunch ? bunch : undefined,
+      gcTime: bunch !== null && sim.pel3.has(x.id) && ct.get(x.id) > bunch ? bunch : undefined,
     })),
     sim.runners.filter(x => x.dnf).map(x => x.id)
   );
