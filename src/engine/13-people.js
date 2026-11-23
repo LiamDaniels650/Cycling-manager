@@ -6,7 +6,7 @@ function knowOf(r) {
 // Erreur d'estimation des caractéristiques d'un coureur adverse (brouillard d'information).
 function estErr(r) {
   if (r.team === 0) return 0;
-  return (1 - knowOf(r) / 100) * 9 * (1.25 - 0.1 * S.staff.scout);
+  return (1 - knowOf(r) / 100) * 9 * (1.25 - 0.1 * S.staff.scout) * facDataMul();
 }
 // Valeur affichée d'une caractéristique (exacte pour vos coureurs, estimée sinon).
 function shownStat(r, k) {
@@ -243,7 +243,7 @@ function toggleWatch(id) {
   const i = S.watch.indexOf(id);
   if (i >= 0) S.watch.splice(i, 1);
   else {
-    if (S.watch.length >= 12) return 'Liste de suivi pleine (12).';
+    if (S.watch.length >= WATCH_MAX) return `Liste de suivi pleine (${WATCH_MAX}).`;
     S.watch.push(id);
   }
   return null;

@@ -54,7 +54,7 @@ function buildStageSim(rc) {
         team: T,
         energy: rc.energy[id],
         dayForm: clamp(
-          r.forme + gauss() * fv - (sansJour ? rf(7, 13) : 0) - (r.sick > 0 ? 6 : 0) + dsGoalBoost(rc, T) + homeBoost(rc, r),
+          r.forme + gauss() * fv - (sansJour ? rf(7, 13) : 0) - (r.sick > 0 ? 6 : 0) + dsGoalBoost(rc, T) + homeBoost(rc, r) + mentalBig(rc, r),
           25,
           100
         ),

@@ -179,7 +179,7 @@ function hireDoctor(i) {
 }
 // Durée d'indisponibilité selon la spécialité du médecin-chef (mon équipe).
 function injDurMul(r, k) {
-  return r.team === 0 && S.doc && INJ[k] && S.doc.k === INJ[k].spec ? 0.75 : 1;
+  return (r.team === 0 && S.doc && INJ[k] && S.doc.k === INJ[k].spec ? 0.75 : 1) * (r.team === 0 ? facInjMul() : 1);
 }
 // Blessure ou maladie typée (les durées viennent des règles existantes, ajustées par le médecin).
 function injSet(r, k, weeks) {
@@ -187,6 +187,7 @@ function injSet(r, k, weeks) {
   if (r.injury >= w && r.inj && r.inj.k) return;
   r.injury = Math.max(r.injury, w);
   r.inj = { k, w0: r.injury, s: S.season, wk: S.week };
+  newsInjury(r, w); // fil d'actualité (74-news.js)
 }
 // Type d'une blessure de chute selon sa durée.
 function crashInjKind(weeks) {

@@ -2,6 +2,7 @@
 // suivis, mercato ; filtre par profil, profils de l'effectif, demande, indemnité et aide à la décision.
 import { Card, Btn, Badge, RiderLink, Select, Tabs, Pills } from '../ui.jsx';
 import { RiderList } from './Riders.jsx';
+import { Scouting } from './Club.jsx';
 
 function Mercato() {
   const all = S.merc || [];
@@ -74,9 +75,17 @@ export function Market() {
     ['pre', 'Fin de contrat'],
     ['transfer', 'Sous contrat'],
     ['watch', `👁 Suivis (${S.watch.length})`],
+    ['scout', `🔭 Recrutement${scmUnread() ? ` (${scmUnread()})` : ''}`],
     ['merc', '📰 Mercato'],
   ];
   const head = <Tabs items={tabs} value={tab} onChange={k => ((UI.mkt = k), render())} />;
+  if (tab === 'scout')
+    return (
+      <div className="space-y-3">
+        {head}
+        <Scouting />
+      </div>
+    );
   if (tab === 'merc')
     return (
       <div className="space-y-3">
@@ -97,7 +106,7 @@ export function Market() {
     pre: 'Coureurs dont le contrat se termine : un pré-contrat les fait arriver en fin de saison, sans indemnité.',
     transfer:
       'Coureurs sous contrat : il faut payer une indemnité de transfert ; les équipes refusent de céder leurs deux meilleurs.',
-    watch: 'Votre liste de suivi : vos recruteurs affinent chaque semaine leurs estimations.',
+    watch: `Votre liste de suivi (${WATCH_MAX} coureurs au plus) : vos recruteurs affinent chaque semaine leurs estimations, et finissent par deviner leur caractère.`,
   }[tab];
   return (
     <div className="space-y-3">

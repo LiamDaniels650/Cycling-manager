@@ -51,6 +51,10 @@ function weeklyUpdate() {
   storiesWeekly();
   lockerWeekly();
   dopeWeekly(); // localisation, contrôles, suspensions (65-reglement.js)
+  scmWeekly(); // missions de recrutement (70-scouting.js)
+  facWeekly(); // chantiers des installations (71-facilities.js)
+  boardWeekly(); // direction du club (72-board.js)
+  newsWeekly(); // le monde du vélo (74-news.js)
   crewWeekly(); // staff : salaire de l'adjoint, débauchages en attente (67-staff.js)
   discoWeekly();
   const coachMul = 0.8 + 0.15 * S.staff.coach;
@@ -136,7 +140,7 @@ function weeklyUpdate() {
     const cm = (mine ? coachMul : 1.05) * (r.aca ? mentorMul(r) : 1);
     // la course fait progresser : la charge récente (jours de course) module la progression (0,9 à 1,2)
     const loadF = 0.9 + Math.min(0.3, (r.load || 0) * 0.04);
-    const g0 = ageF * gapF * cm * loadF;
+    const g0 = ageF * gapF * cm * loadF * mentalProg(r) * (mine ? facTrainMul() : 1);
     trainGain(r, pl, g0);
     prepGain(r, g0); // stage de montagne, entraîneur en chef spécialisé (mon équipe)
     if (mine) proMentorGain(r, pl, g0); // parrainage d'un ancien (60-locker.js)
@@ -338,6 +342,9 @@ function endSeason() {
   lockerEndSeason();
   worldEndSeason(rankArr); // courses, sponsors, faillites, réformes (66-monde.js)
   crewEndSeason(); // staff : progression, retraites, débauchages
+  facEndSeason(); // entretien des installations
+  boardEndSeason(myRank); // projet de la direction
+  newsEndSeason(rankArr); // rivalité, classement des directeurs
   releaseClausesEndSeason();
   dsCarousel(rankArr);
   careerEndSeason(myRank);

@@ -303,6 +303,7 @@ export function Home() {
           <Kv k="Objectifs du sponsor" v={`${objOk} / ${(S.obj || []).length}`} onClick={() => go('mgmt')} />
           <Kv k="Budget" v={fmtMoney(S.budget)} neg={S.budget < 0} onClick={() => go('fin')} />
           <Gauge k="Confiance du sponsor" v={S.conf} tone="bg-sky-500" />
+          {S.board && !S.car ? <Gauge k={`Confiance du président${S.board.v ? ` (${VISIONS[S.board.v].lbl.toLowerCase()})` : ''}`} v={S.board.t} tone="bg-amber-300" /> : null}
           <Gauge k={`Notoriété (${repLabel(repOf()).toLowerCase()})`} v={repOf()} tone="bg-slate-300" />
           <Gauge k="Ambiance du vestiaire" v={mood} tone={mood >= 55 ? 'bg-emerald-400' : mood >= 40 ? 'bg-sky-500' : 'bg-rose-500'} />
           <div className="mt-3 text-sm text-slate-300">
@@ -321,7 +322,28 @@ export function Home() {
             </button>
           </div>
           <RivalsTable rows={rivalsWindow(1)} />
+          {S.rival && rivalTeam() ? (
+            <button type="button" className="mt-2 block text-left text-sm text-slate-300" onClick={() => go('world')}>
+              ⚔️ Rivalité avec <b className="text-slate-100">{rivalTeam().name}</b> : {S.rival.me}–{S.rival.them}
+            </button>
+          ) : null}
         </section>
+        {newsFeed(3).length ? (
+          <section>
+            <div className="mb-1 flex items-baseline justify-between">
+              <h3 className="font-display text-lg font-semibold text-slate-300">Le monde du vélo</h3>
+              <button type="button" className="text-sm text-slate-400 underline" onClick={() => go('world')}>
+                Tout voir
+              </button>
+            </div>
+            {newsFeed(3).map((e, i) => (
+              <div key={i} className="border-t border-slate-800 py-1.5 text-sm text-slate-300">
+                <span className="mr-1">{(NEWS_CAT[e.c] || {}).ic}</span>
+                {e.txt}
+              </div>
+            ))}
+          </section>
+        ) : null}
         <section>
           <div className="mb-1 flex items-baseline justify-between">
             <h3 className="font-display text-lg font-semibold text-slate-300">Votre adjoint</h3>

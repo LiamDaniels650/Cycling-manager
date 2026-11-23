@@ -106,7 +106,7 @@ function applyStageResult(rc, spec, res, dnfIds) {
         45 +
         r.s.rec * 0.45 -
         r.fatigue * 0.25 +
-        (r.team === 0 ? (S.staff.doctor - 1) * 1.5 : 2) +
+        (r.team === 0 ? (S.staff.doctor - 1) * 1.5 + facRecup() : 2) +
         (r.team != null ? nutriRecup(r.team) : 0) + // nutrition (récupération)
         (spec.rest ? 15 : 0),
       30,
@@ -247,6 +247,8 @@ function finishRace(rc) {
   legacyAfterRace(rc);
   tvRaceEnd(rc); // primes de visibilité du sponsor
   homeAfterRace(rc);
+  mentalAfterRace(rc); // on découvre le caractère de ses coureurs (73-mental.js)
+  newsAfterRace(rc, gcl); // fil d'actualité, rivalité (74-news.js)
   // connaissance des adversaires
   const capK = 70 + S.staff.scout * 5;
   for (const T of S.teams)

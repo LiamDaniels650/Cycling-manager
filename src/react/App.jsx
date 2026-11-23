@@ -24,6 +24,7 @@ import { Options, Start, TipCard, applyUiPrefs } from './screens/Options.jsx';
 import { TeamCard } from './screens/Bits.jsx';
 import { Names } from './screens/Names.jsx';
 import { Stories } from './screens/Stories.jsx';
+import { Board, Facilities, World } from './screens/Club.jsx';
 import { CarCreate, CarHeader, CarBottomNav, CarNav, CarRiderSheet, CareerApp, CarRail, carTitle } from './career/Career.jsx';
 
 // écran de course hors direct : briefing avant l'étape ou résultats après (portage de viewRace)
@@ -60,6 +61,9 @@ const NATIVE = {
   staff: ClubStaff,
   equip: ClubEquip,
   career: ClubCareer,
+  board: Board,
+  facil: Facilities,
+  world: World,
 };
 // Les cinq espaces du jeu (et le menu secondaire) : chacun regroupe des écrans, présentés en sous-onglets.
 const SPACES = [
@@ -70,6 +74,7 @@ const SPACES = [
     tabs: () => [
       ['home', 'À faire'],
       ['inbox', 'Messages'],
+      ['world', 'Le monde'],
       discoOpen('press') && ['press', 'Presse'],
       discoOpen('stories') && ['stories', 'Histoires'],
     ],
@@ -98,6 +103,8 @@ const SPACES = [
     icon: 'briefcase',
     tabs: () => [
       ['mgmt', 'Sponsor'],
+      ['board', 'Direction'],
+      ['facil', 'Installations'],
       ['adjoint', 'Adjoint'],
       ['fin', 'Finances'],
       ['staff', 'Staff'],

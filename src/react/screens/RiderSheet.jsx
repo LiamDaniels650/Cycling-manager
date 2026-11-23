@@ -6,6 +6,7 @@ import { Btn, Bar, Spark, Stars, RiderLink, KV, statColor } from '../ui.jsx';
 import { Icon } from '../icons.jsx';
 import { CompareBtn } from './Compare.jsx';
 import { PeriStrip } from './Team.jsx';
+import { MentalRider } from './Club.jsx';
 
 function Tabs() {
   return (
@@ -615,6 +616,11 @@ function Fiche({ r }) {
         <p className="mt-2 text-xs text-slate-400">
           Caractère et état de forme inconnus tant qu'il n'est pas dans votre équipe.
         </p>
+      )}
+      {r.car ? null : (
+        <div className="mt-2">
+          <MentalRider r={r} />
+        </div>
       )}
       <div className="mt-2 rounded-xl bg-slate-800/70 px-2.5 py-2 text-sm text-slate-100 ring-1 ring-slate-700">
         🧭 <b>Terrains de prédilection :</b> {riderTerrains(r).join(', ')}

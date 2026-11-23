@@ -69,6 +69,11 @@ src/
     67-staff.js           staff en personnages : postes, compétences, caractères, débauchage, adjoint
     68-reserve.js         équipe de développement (réserve) : places, âge limite, espoirs avec les pros
     69-notes.js           notes des coureurs après chaque étape et sur la course (attendu contre obtenu)
+    70-scouting.js        réseau de recrutement : missions (zone, profil, âge, salaire), rapports, recommandations
+    71-facilities.js      installations : centre de performance, service médical, logistique, soufflerie, analyse
+    72-board.js           direction du club : président, projet sur trois saisons, confiance, réunions et demandes
+    73-mental.js          caractère caché : grands rendez-vous et professionnalisme, découverts peu à peu
+    74-news.js            monde du vélo : fil d'actualité, rivalité de la saison, classement des directeurs
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -440,6 +445,27 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
   - Final plus net : une seule piste des 15 derniers km (la bande des écarts en double est retirée), chaque groupe
     avec « effectif · écart » placé au-dessus ou en dessous sans chevauchement (tête en jaune, mes groupes en rose) ;
     pendant le final, la vue du ciel ne répète plus le profil et les écarts que l'encart donne déjà.
+  - Gestion à long terme, comme un manager de football :
+    - Réseau de recrutement (Marché › Recrutement) : missions par zone (monde, France-Belgique-Pays-Bas, Europe du
+      Sud, du Nord, pays alpins, Colombie et Australie), profil, âge et salaire maximal ; 3 à 5 semaines selon le chef
+      recruteur, qui fixe aussi le nombre de missions simultanées (1 à 3) ; rapport des cinq meilleurs profils avec
+      recommandation (à signer, à suivre, pas pour nous), points forts et faibles, situation et coût, trait de
+      caractère deviné ; les coureurs du rapport sont mieux connus. Liste de suivi portée à 20 coureurs.
+    - Installations (Gestion › Installations) : cinq chantiers de trois niveaux (centre de performance +4 % de
+      progression par niveau, service médical -8 % de durée des blessures, logistique +1 point de récupération par
+      soir, soufflerie +0,5 de forme en chrono, cellule d'analyse -10 % d'erreur d'estimation), un seul à la fois,
+      de 6 à 26 semaines, entretien à chaque fin de saison.
+    - Direction (Gestion › Direction) : un président (patient, exigeant ou généreux) et un projet sur trois saisons
+      parmi sept (jeunesse, grands tours, classiques, victoires, classement, comptes, équipe de chez nous), jugé
+      chaque fin de saison ; sa confiance déteint sur celle du sponsor, une prime de 150 à 300 k€ en fin de cycle
+      réussi ; réunions toutes les six semaines : rallonge pour le mercato, moitié d'un chantier payée, changement
+      de projet.
+    - Caractère caché de chaque coureur : grands rendez-vous (forme du jour de -1,5 à +1,5 sur grands tours,
+      monuments, Mondiaux, Jeux) et professionnalisme (progression de -14 % à +14 %), découverts après quelques
+      courses ensemble ou par le recrutement (fiche coureur). Centrés sur le peloton : l'équilibre général ne bouge pas.
+    - Le monde du vélo (Aujourd'hui › Le monde) : fil d'actualité du peloton (vainqueurs, blessures des coureurs en
+      vue, mercato, inaugurations, directeurs remerciés, point sur la saison), rivalité de la saison avec l'équipe la
+      plus proche au classement (duels dans les dix premiers, moral et notoriété), classement des directeurs sportifs.
   - Moteur, nouvelles mesures réelles dans la calibration (44 au lieu de 40) : porteurs du maillot de leader d'un
     grand tour (≈ 5), équipes qui gagnent une étape (≈ 8 sur 18), écart maximal de l'échappée sur le plat (≈ 4 min),
     distance de reprise (≈ 17 km). Corrections : une échappée reprise très tôt laisse place à une nouvelle bagarre ;

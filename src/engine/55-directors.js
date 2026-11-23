@@ -301,6 +301,7 @@ function dsCarousel(rankArr) {
   }
   if (!out.length) return;
   press('Le carrousel des directeurs sportifs', out.join(' '), 0, []);
+  for (const o of out) newsAdd('club', o);
   msg('🔄 Carrousel des directeurs', out.join('<br>'));
 }
 // Objectifs réussis : une victoire de l'équipe dans une de ses courses objectifs protège le directeur.

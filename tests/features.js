@@ -1406,5 +1406,38 @@ check(
   }
   check(waits > 0, `adjoint : ordres d'attendre le leader ou de ramener le sprinteur (${waits})`);
 }
+{
+  // gestion à long terme : recrutement, installations, direction, mental, monde du vélo
+  newGame('Fm', 5);
+  S.budget = 5000;
+  check(/Mission lancée/.test(scmStart('monde', 'grimpeur', 'jeune', 0)) && /en mission/.test(scmStart('ouest', null, 'tous', 0)), 'recrutement : une mission à la fois (recruteur niveau 1)');
+  for (let i = 0; i < 6; i++) scmWeekly();
+  const rep = S.scm.rep[0];
+  check(rep && rep.items.length === 5 && rep.items.every(x => S.riders[x.id].arch === 'grimpeur' && S.riders[x.id].age <= 23), 'recrutement : rapport de cinq coureurs conformes');
+  check(rep.items.every(x => knowOf(S.riders[x.id]) >= 55), 'recrutement : coureurs du rapport mieux connus');
+  check(/ajouté/.test(scmWatchAll(rep.id)) || rep.items.every(x => x.rec === 'non'), 'recrutement : suivi des recommandés');
+  check(/Chantier lancé/.test(facBuild('perf')) && /déjà en cours/.test(facBuild('med')), 'installations : un chantier à la fois');
+  for (let i = 0; i < 10; i++) facWeekly();
+  check(facL('perf') === 1 && facTrainMul() > 1 && !S.fac.b, 'installations : livraison et effet');
+  boardInit();
+  check(/Projet validé/.test(boardChoose('comptes')) && boardStatus() && boardStatus().ok, 'direction : projet et suivi');
+  S.board.t = 90;
+  check(boardChance('mercato') > 0.9 && /refuse|accepte/.test(boardAsk('mercato')) && /il y a peu/.test(boardAsk('fac', 'med')), 'direction : réunion espacée');
+  const rs = Object.values(S.riders);
+  const mp = rs.reduce((a, r) => a + mentalOf(r).pres, 0) / rs.length;
+  check(Math.abs(mp - 10.5) < 1.2, `mental : centré sur le peloton (${mp.toFixed(2)})`);
+  const gt = S.cal.findIndex(c => c.key === 'gb');
+  const rcG = { calIdx: gt, key: 'gb', cat: 0, specs: new Array(21) };
+  const strong = rs.find(r => mentalOf(r).pres >= 18);
+  check(strong && mentalBig(rcG, strong) > 1 && mentalBig({ calIdx: 0, key: 'x', cat: 2, specs: [1] }, strong) === 0, 'mental : effet dans les grands rendez-vous seulement');
+  const other = rs.find(r => r.team > 0);
+  check(mentalKnown(other) === 0 || knowOf(other) >= 55, 'mental : inconnu tant qu’on ne le connaît pas');
+  rivalInit();
+  check(rivalTeam() && !rivalTeam().player, 'monde : une rivale de la saison');
+  newsAdd('course', 'test');
+  check(newsFeed(5).some(e => e.txt === 'test'), "monde : fil d'actualité");
+  dsRankUpdate(uciRanking());
+  check(dsRanking().length === S.teams.length && dsRankOf('__me') >= 1, 'monde : classement des directeurs');
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

@@ -226,4 +226,5 @@ function worldEndSeason(rankArr) {
   if (W.hist.length > 60) W.hist.length = 60;
   msg('🌍 Le monde du cyclisme bouge', news.join('<br>'));
   press('Le peloton change', news.join(' '), 0, []);
+  for (const o of news) newsAdd('club', o);
 }
