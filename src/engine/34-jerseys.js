@@ -68,8 +68,8 @@ function jerseyOrder(G, kind, sim, c) {
 // Points d'un sommet selon la course et la catégorie (arrivée au sommet doublée sur le Tour).
 function komPts(rc, c, summitFinish) {
   let sc = (KOM_GT[rc.key] || KOM_PTS)[c.cat] || KOM_PTS[c.cat];
-  // réglage de jeu (grands tours) : les cols de passage valent 40 % de plus, pour que les chasseurs du maillot
+  // réglage de jeu (grands tours) : les cols de passage valent 55 % de plus, pour que les chasseurs du maillot
   // échappés puissent rivaliser avec les favoris, qui ramassent les points des arrivées au sommet
-  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * 1.4));
+  if (rc.cat === 0 && !summitFinish) sc = sc.map(v => Math.round(v * 1.55));
   return rc.key === 'gb' && summitFinish && (c.cat === 'HC' || c.cat === 1 || c.cat === 2) ? sc.map(v => v * 2) : sc;
 }
