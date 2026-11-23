@@ -841,7 +841,7 @@ function GapLadder({ sim, G0, onPick, chips }) {
 }
 // Profil de l'étape (altitude réelle) : cols et sprint, kilomètres restants, et tous les groupes placés dessus (rose :
 // vos coureurs ; anneau jaune : le groupe filmé). Un clic sur un groupe le filme.
-function StageProfileLive({ sim, G0, onPick }) {
+function StageProfileLive({ sim, G0, onPick, lite }) {
   const P = sim.P;
   if (!P || !P.alt) return null;
   const D = sim.dist || 1;
@@ -932,7 +932,8 @@ function StageProfileLive({ sim, G0, onPick }) {
         ))}
         <span className="absolute right-0">arrivée</span>
       </div>
-      <div className="flex flex-wrap gap-x-3 text-[11px] text-slate-400">
+      {/* (légende repliée sur téléphone : elle prenait trois lignes) */}
+      <div className={'flex-wrap gap-x-3 text-[11px] text-slate-400 ' + (lite ? 'hidden sm:flex' : 'flex')}>
         <span>
           <i className="mr-1 inline-block h-2 w-2 rounded-full bg-[#e0457b] align-middle" />
           vos coureurs
@@ -1015,7 +1016,7 @@ function drawRider(c, x, px, py, h, sc, yel, t) {
   c.restore();
 }
 const ZOOMS = [0.5, 0.75, 1, 1.15, 1.6, 2.3, 3.5];
-export function Sky({ sim, compact }) {
+export function Sky({ sim, compact, lite }) {
   const ref = useRef(null);
   const [cam, setCam] = useState(UI.skyCam || 'auto');
   const [snd, setSnd] = useState(!!UI.skySound);
@@ -1047,7 +1048,7 @@ export function Sky({ sim, compact }) {
       <div className="relative">
         <canvas
           ref={ref}
-          className={'block w-full cursor-pointer ' + (compact ? 'h-56' : 'h-80 xl:h-[26rem]')}
+          className={'block w-full cursor-pointer ' + (compact ? 'h-56' : lite ? 'h-60' : 'h-80 xl:h-[26rem]')}
           role="img"
           aria-label="Retransmission vue du ciel : touchez un coureur pour ouvrir sa fiche"
           onClick={e => {
@@ -1075,8 +1076,8 @@ export function Sky({ sim, compact }) {
           <div className="sm:hidden">
             <GapLadder sim={sim} G0={st.current.G0} onPick={pick} chips />
           </div>
-          <SkyCaption sim={sim} G={st.current.G0} />
-          <StageProfileLive sim={sim} G0={st.current.G0} onPick={pick} />
+          {lite ? null : <SkyCaption sim={sim} G={st.current.G0} />}
+          <StageProfileLive sim={sim} G0={st.current.G0} onPick={pick} lite={lite} />
         </>
       )}
       <div className="flex flex-wrap items-center gap-1.5 px-2 py-1.5">

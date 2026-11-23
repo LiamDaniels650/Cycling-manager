@@ -161,7 +161,7 @@ h1,h2,h3,h4{font-family:var(--font-display)}
 html.hc .text-slate-400{color:#c6cfdb}html.hc .text-slate-500{color:#aeb8c6}html.hc .text-slate-300{color:#dde3ea}
 html.hc .border-slate-800,html.hc .divide-slate-800>*{border-color:#556070}html.hc .bg-slate-900{box-shadow:inset 0 0 0 1px #3b4555}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
-#root{min-height:100vh;overflow-x:hidden}
+#root{min-height:100vh;overflow-x:clip}
 </style>
 </head>
 <body>

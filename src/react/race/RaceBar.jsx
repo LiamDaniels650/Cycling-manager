@@ -21,7 +21,7 @@ export function RaceSteps({ step }) {
     </ol>
   );
 }
-export function RaceBar({ sim }) {
+export function RaceBar({ sim, flat }) {
   const L = sim.groups.filter(G => G.riders.some(x => !x.fin && !x.dnf)).sort((a, b) => b.pos - a.pos);
   if (!L.length) return null;
   const H = L[0];
@@ -36,7 +36,7 @@ export function RaceBar({ sim }) {
       : `${n === 1 ? riderName(H.riders[0].r) + ' seul' : 'Échappée de ' + n}`;
   const grad = H.g || 0;
   return (
-    <div className="sticky top-[57px] z-10 -mx-3 mb-3 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b border-slate-800 bg-slate-900/95 px-3 py-2 backdrop-blur md:top-0 md:mx-0 md:rounded-lg md:border-0">
+    <div className={(flat ? 'relative' : 'sticky top-[57px]') + ' z-10 -mx-3 mb-3 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b border-slate-800 bg-slate-900/95 px-3 py-2 backdrop-blur md:top-0 md:mx-0 md:rounded-lg md:border-0'}>
       <div>
         <div className="font-display text-3xl font-bold leading-none text-slate-50">
           {kmL < 10 ? kmL.toFixed(1).replace('.', ',') : Math.round(kmL)}

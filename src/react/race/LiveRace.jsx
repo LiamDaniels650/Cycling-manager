@@ -78,6 +78,9 @@ export function LiveRace() {
         <Dock sim={sim} />
       </div>
     );
+  // téléphone et tablette : la retransmission reste en haut, le reste passe en onglets (un seul ouvert à la fois),
+  // au lieu d'une colonne d'une dizaine de blocs à faire défiler
+  if (typeof window !== 'undefined' && window.innerWidth < 1280) return <LiveMobile sim={sim} rc={rc} frac={frac} />;
   return (
     <div className="space-y-3 pb-36 xl:grid xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:items-start xl:gap-3 xl:space-y-0">
       {/* sur grand écran : la retransmission et les groupes à gauche, mes coureurs et la radio à droite */}
@@ -104,24 +107,74 @@ export function LiveRace() {
       </div>
       <div className="space-y-3">
         <MyTeam sim={sim} />
-        {/* téléphone : la radio repliée, son dernier message en titre ; grand écran : ouverte */}
-        {typeof window !== 'undefined' && window.innerWidth < 1280 ? (
-          <details className="rounded-lg bg-slate-900">
-            <summary className="flex min-h-12 cursor-pointer items-center gap-2 px-4 text-sm text-slate-200">
-              <b className="shrink-0 font-display text-base">Radio</b>
-              <span
-                className="min-w-0 flex-1 truncate text-slate-400"
-                dangerouslySetInnerHTML={{ __html: (sim.log[sim.log.length - 1] || { txt: '' }).txt }}
-              />
-            </summary>
-            <div className="p-2 pt-0">
-              <RadioFeed sim={sim} />
-            </div>
-          </details>
-        ) : (
-          <RadioFeed sim={sim} />
-        )}
+        <RadioFeed sim={sim} />
       </div>
+      <Dock sim={sim} />
+    </div>
+  );
+}
+const LIVE_TABS = [
+  ['course', 'Course'],
+  ['equipe', 'Mon équipe'],
+  ['groupes', 'Groupes'],
+  ['radio', 'Radio'],
+  ['ecarts', 'Écarts'],
+];
+// Disposition téléphone : bandeau, moment décisif et vue du ciel en haut ; onglets collés en haut pendant le
+// défilement ; un seul panneau ouvert. Pastille : un de mes coureurs a faim ou une fringale, un message radio nouveau.
+function LiveMobile({ sim, rc, frac }) {
+  const tab = LIVE_TABS.some(t => t[0] === UI.liveTab) ? UI.liveTab : 'course';
+  const alertTeam = sim.runners.some(x => x.player && !x.fin && !x.dnf && (x.hungry || x.bonk));
+  const nLog = sim.log.length;
+  if (tab === 'radio') UI.liveLogSeen = nLog;
+  const newRadio = tab !== 'radio' && nLog > (UI.liveLogSeen || 0) && sim.log.slice(UI.liveLogSeen || 0).some(l => l.cls === 'me' || l.cls === 'bad');
+  const go = k => ((UI.liveTab = k), renderLive());
+  return (
+    <div className="space-y-2 pb-36">
+      <div className="flex items-baseline justify-between gap-x-3">
+        <h1 className="truncate font-display text-xl font-bold leading-tight text-slate-50">{rc.name}</h1>
+        <span className="shrink-0 text-xs text-slate-400">{sim.spec.name}</span>
+      </div>
+      <RaceBar sim={sim} flat />
+      <MomentPanel sim={sim} />
+      <Sky sim={sim} lite />
+      <div className="sticky top-[57px] z-10 -mx-1 bg-slate-950/95 px-1 py-1 backdrop-blur md:top-0" role="tablist">
+        <div className="grid grid-cols-5 gap-1">
+          {LIVE_TABS.map(([k, l]) => (
+            <button
+              key={k}
+              type="button"
+              role="tab"
+              aria-selected={tab === k}
+              onClick={() => go(k)}
+              className={
+                'relative min-h-10 rounded-md px-1 text-[12px] font-semibold leading-tight ' +
+                (tab === k ? 'bg-slate-800 text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]' : 'bg-slate-900 text-slate-400')
+              }
+            >
+              {l}
+              {(k === 'equipe' && alertTeam) || (k === 'radio' && newRadio) ? (
+                <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-rose-500" />
+              ) : null}
+            </button>
+          ))}
+        </div>
+      </div>
+      {tab === 'course' ? <Situation sim={sim} /> : null}
+      {tab === 'equipe' ? <MyTeam sim={sim} compact /> : null}
+      {tab === 'groupes' ? <Peloton sim={sim} /> : null}
+      {tab === 'radio' ? <RadioFeed sim={sim} /> : null}
+      {tab === 'ecarts' ? (
+        <Card>
+          <RaceHeader sim={sim} rc={rc} />
+          <Clock sim={sim} frac={frac} />
+          <StageProfile spec={sim.spec} Pf={UI.Pf} sim={sim} frac={frac} />
+          <GapChart sim={sim} />
+          <div className="min-h-5">
+            <VirtualLeader sim={sim} />
+          </div>
+        </Card>
+      ) : null}
       <Dock sim={sim} />
     </div>
   );

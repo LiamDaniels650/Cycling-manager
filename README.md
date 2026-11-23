@@ -497,6 +497,12 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     entre deux groupes qui se suivent, et un écart affiché n'est jamais plus petit que celui d'un groupe qui roule
     devant. Vue du ciel : chaque coureur suit exactement son groupe mais glisse en douceur vers sa place (≈ 0,5 s),
     ordre stable dans le groupe ; une jonction se voit au lieu d'une téléportation.
+  - Course en direct sur téléphone sans longue page à faire défiler : bandeau, moment décisif et vue du ciel en
+    haut, puis des onglets collés sous l'en-tête (Course, Mon équipe, Groupes, Radio, Écarts ; un seul ouvert, pastille
+    rouge si un coureur a faim ou si la radio a du nouveau) ; fiches de mes coureurs compactes (trois jauges sur une
+    ligne) ; légende du profil repliée. La page passe de 4,9 écrans de haut à 1,4 (onglet Course). Correctif général :
+    la racine de l'application coupait le débordement avec `overflow-x: hidden`, ce qui empêchait tout élément
+    collant de rester en place (en-tête du téléphone, onglets du bilan d'étape) ; `overflow-x: clip` à la place.
   - Question de la radio, moment décisif ou proposition d'alliance restés sans réponse : c'est le directeur adjoint,
     dans la voiture avec vous, qui répond (le choix raisonné de la situation), et le compte à rebours dit ce qu'il
     choisira ; avant, le coureur décidait seul (les têtes brûlées et équipiers modèles suivant leur pente). En mode

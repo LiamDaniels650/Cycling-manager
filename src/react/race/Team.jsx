@@ -4,7 +4,7 @@ import { Card, Btn, Meter, Badge, Effort, RiderLink, Jersey } from '../ui.jsx';
 import { Icon } from '../icons.jsx';
 import { RADIO_HELP, doingNow, orderInfo } from './orders.js';
 
-function RiderLive({ sim, x, front }) {
+function RiderLive({ sim, x, front, compact }) {
   const gi = x.g ? sim.groups.indexOf(x.g) : -1;
   const out = x.fin || x.dnf;
   let st = null;
@@ -22,7 +22,7 @@ function RiderLive({ sim, x, front }) {
   const oi = orderInfo(x);
   const R = x.radio && RADIO_HELP[x.radio];
   return (
-    <div className={'rounded-xl bg-slate-800/60 p-2.5 ' + (out ? 'opacity-60' : '')}>
+    <div className={'rounded-xl bg-slate-800/60 ' + (compact ? 'p-2 ' : 'p-2.5 ') + (out ? 'opacity-60' : '')}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 text-sm">
           <RiderLink r={x.r} />
@@ -34,7 +34,7 @@ function RiderLive({ sim, x, front }) {
             {x.aim ? <span className="text-sky-300"> · 🎯 {x.aim === 'kom' ? 'montagne' : 'points'}</span> : null}
             {x.conds && x.conds.some(c => !c.done) ? <span> · ordre conditionnel</span> : null}
           </div>
-          <div className="min-h-5 text-xs">
+          <div className={compact && !(R && !out) ? 'hidden' : 'min-h-5 text-xs'}>
             {R && !out ? (
               <span className="inline-flex items-center gap-1 rounded-md bg-slate-800/70 px-1.5 text-slate-100">
                 📻 {R.ic} {R.short}
@@ -64,13 +64,34 @@ function RiderLive({ sim, x, front }) {
       <div className="mt-1 truncate text-sm text-slate-100">
         <Effort I={out ? null : x.I} />
         {doingNow(sim, x)}
+        {compact && st && !out ? <span className="text-xs text-slate-400"> · {st}</span> : null}
       </div>
-      <div className="truncate text-xs text-slate-400">{st}</div>
+      {compact && !out ? null : <div className="truncate text-xs text-slate-400">{st}</div>}
       {out ? (
         avg != null ? (
           <div className="mt-1 text-xs text-slate-400">⚡ moy. {avg} W</div>
         ) : null
       ) : (
+        compact ? (
+          // téléphone : les trois jauges sur une seule ligne
+          <div className="mt-1.5 grid grid-cols-3 gap-2 text-[11px] text-slate-400">
+            {[
+              ['Fond', x.energy, 'bg-emerald-400'],
+              ['Jus', x.punch, 'bg-cyan-400'],
+              ['Alim.', x.food, 'bg-amber-400'],
+            ].map(([l, v, c]) => (
+              <span key={l}>
+                <span className="flex justify-between">
+                  {l}
+                  <b className={'tabular-nums ' + (v < 25 ? 'text-rose-300' : 'text-slate-200')}>{Math.round(v)}</b>
+                </span>
+                <span className="mt-0.5 block h-1.5 overflow-hidden rounded-full bg-slate-700">
+                  <span className={'block h-full ' + c} style={{ width: clamp(v, 0, 100) + '%' }} />
+                </span>
+              </span>
+            ))}
+          </div>
+        ) : (
         <>
           <div className="mt-2 space-y-1">
             <Meter icon="battery" label="Fond" v={x.energy} color="bg-emerald-400" />
@@ -88,6 +109,7 @@ function RiderLive({ sim, x, front }) {
             {x.pocket ? ` · 🍫 ${x.pocket} barre${x.pocket > 1 ? 's' : ''}` : ''}
           </div>
         </>
+        )
       )}
     </div>
   );
@@ -189,7 +211,7 @@ function TeamOrders({ sim }) {
     </div>
   );
 }
-export function MyTeam({ sim }) {
+export function MyTeam({ sim, compact }) {
   const front = sim.groups[0];
   // ordre fixe pour l'étape (sélection) : les cartes ne changent pas de place quand les groupes bougent
   const mine = sim.runners.filter(x => (S.car ? x.id === S.car.id : x.player));
@@ -207,7 +229,7 @@ export function MyTeam({ sim }) {
     >
       <div className="space-y-2">
         {mine.map(x => (
-          <RiderLive key={x.id} sim={sim} x={x} front={front} />
+          <RiderLive key={x.id} sim={sim} x={x} front={front} compact={compact} />
         ))}
         {/* négociation dans l'échappée et pacte : dans la page (ils durent des dizaines de km), pas en surimpression */}
         <Nego sim={sim} />
