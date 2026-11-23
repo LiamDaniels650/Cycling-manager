@@ -566,7 +566,7 @@ check(
   );
 }
 {
-  // appel radio : sans réponse, le coureur décide seul à l'expiration
+  // appel radio : sans réponse, l'adjoint répond à la place du directeur sportif (le choix raisonné)
   const simA = { t: 0, log: [], hls: [], runners: [], groups: [], pacts: [] };
   let got = null;
   askOpen(simA, {
@@ -583,7 +583,7 @@ check(
   });
   simA.t = ASK_TTL;
   radioTick(simA);
-  check(got === 'b' && !simA.ask, 'radio : sans réponse de la voiture, le coureur applique son propre choix');
+  check(got === 'a' && !simA.ask && simA.log.some(l => /adjoint/.test(l.txt)), "radio : sans réponse, l'adjoint prend le micro et choisit");
   const simB = { t: 0, log: [], hls: [], runners: [], groups: [], pacts: [], autoDS: true };
   askOpen(simB, {
     key: 'k',
