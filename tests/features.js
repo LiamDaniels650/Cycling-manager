@@ -1439,5 +1439,47 @@ check(
   dsRankUpdate(uciRanking());
   check(dsRanking().length === S.teams.length && dsRankOf('__me') >= 1, 'monde : classement des directeurs');
 }
+{
+  // moteur : identité des équipes, allure en chrono, fraîcheur mentale, bilan tactique
+  newGame('Mot', 6);
+  const sup = superTeam();
+  check(identOf(sup) === 'super' && S.teams.filter(T => !T.player && identOf(T) === 'super').length === 1, 'identité : une seule super-équipe');
+  const gtT = S.teams.find(T => !T.player && identOf(T) === 'gt');
+  const climber = Object.values(S.riders).find(r => r.arch === 'grimpeur');
+  if (gtT) {
+    const save = gtT.riders.slice();
+    gtT.riders = gtT.riders.filter(id => S.riders[id].arch !== 'grimpeur');
+    check(aiWant(gtT, climber) === 3, 'identité : une équipe de grands tours veut des grimpeurs');
+    gtT.riders = save;
+  }
+  check(ttIntensity('fond', 0.5, 0) > ttIntensity('gerer', 0.5, 0) && ttIntensity('montee', 0.9, 6) > ttIntensity('montee', 0.2, 0), 'chrono : allures');
+  const ri = S.cal.findIndex(c => c.stagesSpec.length >= 5 && c.stagesSpec.some(x => x[0] === 'clm'));
+  S.week = S.cal[ri].w;
+  const rcT = startRace(ri, aiSelect(S.teams[0], S.cal[ri], prepareRaceSpecs(S.cal[ri])));
+  while (!isITT(rcT.specs[rcT.si])) {
+    Object.assign(rcT.orders, autoOrders(0, rcT.specs[rcT.si], rcT));
+    runStageAuto(rcT);
+  }
+  Object.assign(rcT.orders, autoOrders(0, rcT.specs[rcT.si], rcT));
+  for (const id of rcT.sel[0]) rcT.orders[id].itt = 'fond';
+  runStageAuto(rcT);
+  const stT = rcT.stageRes[rcT.stageRes.length - 1];
+  check(stT.tt && rcT.sel[0].every(id => !stT.tt[id] || (stT.tt[id].sp.length === 2 && stT.tt[id].pace === 'fond')), 'chrono : temps intermédiaires gardés');
+  Object.assign(rcT.orders, autoOrders(0, rcT.specs[rcT.si], rcT));
+  if (!isITT(rcT.specs[rcT.si]) && !isTTT(rcT.specs[rcT.si])) {
+    runStageAuto(rcT);
+    const st2 = rcT.stageRes[rcT.stageRes.length - 1];
+    check(st2.tac && Array.isArray(st2.tac.work) && gcStory(rcT) && gcStory(rcT).total >= 0, 'bilan tactique : consignes et général');
+  }
+  S.rc = null;
+  const me = S.riders[S.teams[0].riders[0]];
+  me.mf = 20;
+  let mfSum = 0;
+  for (let k = 0; k < 400; k++) mfSum += mfForm(me);
+  check(mfSum / 400 < -1.5, `fraîcheur : un coureur usé perd de la forme (${(mfSum / 400).toFixed(1)} en moyenne)`);
+  check(/coupure/.test(mfBreak(me.id)) && !availableRiders(S.teams[0], S.week).includes(me), 'fraîcheur : coupure, coureur indisponible');
+  me.mf = 95;
+  check(mfForm(me) > 0, 'fraîcheur : un coureur frais en gagne');
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

@@ -81,6 +81,7 @@ function applyStageResult(rc, spec, res, dnfIds) {
     cutInfo: rc.cutInfo ? { pct: rc.cutInfo.pct, lim: Math.round(rc.cutInfo.lim), n: rc.cutInfo.n, graced: rc.cutInfo.graced } : null,
     stats: rc._stats || null,
     brk: rc._brk || null,
+    tac: rc._tac || null,
     moments: rc._moments || null,
     wxs: rc._wxs || null,
     komb: rc._komb || null,
@@ -92,6 +93,7 @@ function applyStageResult(rc, spec, res, dnfIds) {
   rc._wxs = null;
   rc._power = null;
   rc._stats = null;
+  rc._tac = null;
   rc._komb = null;
   // récupération entre étapes
   for (const id in rc.energy) {
@@ -248,6 +250,7 @@ function finishRace(rc) {
   tvRaceEnd(rc); // primes de visibilité du sponsor
   homeAfterRace(rc);
   mentalAfterRace(rc); // on découvre le caractère de ses coureurs (73-mental.js)
+  mfAfterRace(rc, gcl); // fraîcheur mentale (77-fresh.js)
   newsAfterRace(rc, gcl); // fil d'actualité, rivalité (74-news.js)
   // connaissance des adversaires
   const capK = 70 + S.staff.scout * 5;

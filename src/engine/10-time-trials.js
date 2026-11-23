@@ -33,14 +33,21 @@ function runITT(rc) {
       const x = {
         r,
         energy: rc.energy[id],
-        dayForm: clamp(r.forme + gauss() * (r.trait === 'regulier' ? 2.5 : 6) + homeBoost(rc, r) + mentalBig(rc, r) + (r.team === 0 ? facTT() : 0), 25, 100),
+        dayForm: clamp(r.forme + gauss() * (r.trait === 'regulier' ? 2.5 : 6) + homeBoost(rc, r) + mentalBig(rc, r) + mfForm(r) + (r.team === 0 ? facTT() : 0), 25, 100),
       };
-      const tgt = o.itt === 'fond' ? 0.975 : 0.9;
+      // allure choisie, limite du jour, réserve (76-ttpacing.js)
+      const mode = TT_PACE[o.itt] ? o.itt : 'gerer';
+      const lim = ttLimit(r, spec.dist);
+      let res = 100,
+        boom = null;
+      const sp = [];
       let t = 0;
       const acc = (accs[id] = powerAcc());
       for (let i = 0; i < P.n - 1; i++) {
         const g = P.g[i],
           surf = P.surf[i];
+        let tgt = ttIntensity(mode, i / (P.n - 1), g);
+        if (res <= 0) tgt = Math.min(tgt, lim - 0.04); // à sec : il explose
         const c =
           terrStat2(r.s, g, surf) *
           (0.86 + (0.14 * x.dayForm) / 100) *
@@ -50,20 +57,40 @@ function runITT(rc) {
         const dt = STEP / v;
         t += dt * 3600;
         acc.add(riderWatts(r.kg || 68, v, g, 1, 0.2, CO[i]), dt * 3600);
-        let dr = o.itt === 'fond' ? 34 : 16;
+        if (tgt > lim && res > 0) {
+          res -= (tgt - lim) * TT_DRAIN * dt;
+          if (res <= 0) boom = Math.round(i * STEP * 10) / 10;
+        }
+        let dr = 16 + Math.max(0, tgt - 0.9) * 240;
         dr *= 1.38 - r.s.end / 140;
         x.energy = Math.max(0, x.energy - dr * dt);
-      }
-      if (o.itt === 'fond' && rnd() < 0.06) {
-        t += rf(5, 20);
+        if (sp.length < 2 && (i + 1) * STEP >= (spec.dist * (sp.length + 1)) / 3) sp.push(Math.round(t));
       }
       t += gauss() * 4;
-      out.push({ id, time: t, energy: x.energy, itt: o.itt });
+      out.push({ id, time: t, energy: x.energy, itt: mode, sp, boom });
     }
   }
   out.sort((a, b) => a.time - b.time);
   rc._power = stagePowerList(out, accs);
   applyStageResult(rc, spec, out, []);
+  // temps intermédiaires et défaillances (bilan du chrono) : les 15 premiers et mes coureurs
+  const st = rc.stageRes[rc.stageRes.length - 1];
+  if (st) {
+    st.tt = {};
+    // rang et retard à chaque point intermédiaire (sur tous les partants)
+    const rk = [0, 1].map(k => {
+      const o = out.filter(e => e.sp[k] != null).sort((a, b) => a.sp[k] - b.sp[k]);
+      return { best: o.length ? o[0].sp[k] : 0, pos: new Map(o.map((e, j) => [e.id, j + 1])) };
+    });
+    out.forEach((e, k) => {
+      if (k < 15 || (S.riders[e.id] && S.riders[e.id].team === 0))
+        st.tt[e.id] = {
+          pace: e.itt,
+          boom: e.boom,
+          sp: e.sp.map((v, j) => ({ rk: rk[j].pos.get(e.id), gap: Math.round(v - rk[j].best) })),
+        };
+    });
+  }
   return out;
 }
 // Simule une étape entière sans affichage (contre-la-montre compris).
@@ -97,7 +124,7 @@ function runTTT(rc) {
         id,
         r,
         energy: rc.energy[id],
-        dayForm: clamp(r.forme + gauss() * (r.trait === 'regulier' ? 2.5 : 6) + homeBoost(rc, r) + mentalBig(rc, r) + (r.team === 0 ? facTT() : 0), 25, 100),
+        dayForm: clamp(r.forme + gauss() * (r.trait === 'regulier' ? 2.5 : 6) + homeBoost(rc, r) + mentalBig(rc, r) + mfForm(r) + (r.team === 0 ? facTT() : 0), 25, 100),
         with: true,
         t: 0,
         di: -1,

@@ -189,6 +189,57 @@ function Debrief({ rc, L, st, mine }) {
         ))}
       </>
     );
+  // ce que l'ordinateur a fait contre vous, vos consignes, où le général se joue (78-tactics-review.js)
+  const tac = st.tac;
+  if (tac && tac.ai && tac.ai.length)
+    items.push(
+      <>
+        🤖 Les autres équipes :
+        {tac.ai.map((l, k) => (
+          <div key={k} className="text-xs text-slate-300">
+            km {l.km} · {l.txt}
+          </div>
+        ))}
+      </>
+    );
+  if (tac && (tac.work.length || tac.att.length || tac.refused.length))
+    items.push(
+      <>
+        📋 Vos consignes :
+        {tac.work.length ? (
+          <div className="text-xs text-slate-300">
+            En tête : {tac.work.map(w => `${riderName(S.riders[w.id])} ${w.km} km`).join(', ')}
+          </div>
+        ) : null}
+        {tac.att.length ? (
+          <div className="text-xs text-slate-300">
+            Attaques : {tac.att.map(a => `${riderName(S.riders[a.id])}${a.n > 1 ? ` ×${a.n}` : ''}`).join(', ')}
+          </div>
+        ) : null}
+        {tac.refused.length ? (
+          <div className="text-xs text-amber-300">
+            N'ont pas suivi la consigne : {tac.refused.map(id => riderName(S.riders[id])).join(', ')}
+          </div>
+        ) : null}
+      </>
+    );
+  const gs = gcStory(rc);
+  if (gs)
+    items.push(
+      <>
+        🧭 Où le général se joue :
+        <div className="text-xs text-slate-300">
+          {gs.isLead
+            ? `${riderName(S.riders[gs.me])} porte le maillot de leader.`
+            : `${riderName(S.riders[gs.me])} est à ${fmtGap(gs.total)} de ${riderName(S.riders[gs.lead])}.`}
+          {gs.loss.length
+            ? ` Temps perdu surtout : ${gs.loss.map(l => `étape ${l.k} (${fmtGap(l.d)})`).join(', ')}.`
+            : ''}
+          {gs.gain.length ? ` Repris : étape ${gs.gain[0].k} (${fmtGap(-gs.gain[0].d)}).` : ''}
+          {gs.made && !gs.isLead ? ` Le leader a fait la différence à l'étape ${gs.made.k} (${fmtGap(gs.made.d)} sur son dauphin).` : ''}
+        </div>
+      </>
+    );
   if (!rc.done) {
     const nx = rc.specs[rc.si];
     items.push(
@@ -527,6 +578,52 @@ function TacticalBox({ rc }) {
     </details>
   );
 }
+// Contre-la-montre : l'allure choisie, les temps intermédiaires et les défaillances de mes coureurs.
+function TTSplits({ st }) {
+  const ids = Object.keys(st.tt || {})
+    .map(Number)
+    .filter(id => S.riders[id] && S.riders[id].team === 0);
+  if (!ids.length) return null;
+  const fin = new Map(st.res.map((e, i) => [e.id, [i + 1, i ? e.gap : 0]]));
+  const g = s => (s ? '+' + fmtGap(s).replace(/^\+/, '') : 'meilleur temps');
+  return (
+    <Card title="Le chrono de mes coureurs">
+      <p className="mb-2 text-xs text-slate-400">
+        Allure choisie, rang et retard au tiers et aux deux tiers du parcours, puis à l'arrivée. Un coureur parti trop vite
+        pour sa limite du jour « explose » et finit loin de son allure.
+      </p>
+      {ids.map(id => {
+        const e = st.tt[id];
+        const f = fin.get(id) || [null, 0];
+        const sp = e.sp || [];
+        const trend = sp.length === 2 && f[0] ? sp[0].rk - f[0] : 0;
+        return (
+          <div key={id} className="border-t border-slate-800 py-2 text-sm">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <span>
+                <b className="text-pink-300">{riderName(S.riders[id])}</b>{' '}
+                <span className="text-xs text-slate-400">{(TT_PACE[e.pace] || {}).lbl || e.pace}</span>
+              </span>
+              <span className="tabular-nums text-slate-100">
+                {f[0] ? `${f[0]}e · ${g(f[1])}` : '—'}
+              </span>
+            </div>
+            <div className="mt-0.5 flex flex-wrap gap-x-4 text-xs text-slate-300">
+              {sp.map((p, j) => (
+                <span key={j}>
+                  {j ? '2/3' : '1/3'} : {p.rk}e ({g(p.gap)})
+                </span>
+              ))}
+              {trend > 2 ? <span className="text-emerald-300">▲ finit fort (+{trend} places)</span> : null}
+              {trend < -2 ? <span className="text-amber-300">▼ a faibli ({trend} places)</span> : null}
+              {e.boom != null ? <span className="text-rose-300">💥 a explosé au km {fmtDec(e.boom, 1)}</span> : null}
+            </div>
+          </div>
+        );
+      })}
+    </Card>
+  );
+}
 // Notes de mes coureurs : place obtenue contre place attendue (ou travail fourni pour un équipier), verdict.
 function noteTone(n) {
   return n == null ? 'text-slate-400' : n >= 7.5 ? 'text-emerald-300' : n <= 4.5 ? 'text-rose-300' : 'text-slate-100';
@@ -661,6 +758,7 @@ export function StageResult() {
       {tab === 'resume' ? (
         <>
           <Commentary rc={rc} idx={L.idx} />
+          <TTSplits st={st} />
           <RiderNotes st={st} rc={rc} />
           <ReplayCard sim={L.sim} />
           <MomentsCard sim={L.sim} />

@@ -115,7 +115,7 @@ const R = {
   pavFinalPace: 0.9, // 30 derniers km d'une classique pavée : allure d'un groupe de tête où personne ne relaie
   noWorkAhead: 0.7,
   hillyChaseK: 1.35, // vallonné : marge laissée à l'échappée par une équipe de sprinteur (× la marge du plat)
-  hillyControlK: 1.5, // vallonné : marge laissée par une équipe qui contrôle la course (× celle du plat)
+  hillyControlK: 1.9, // vallonné : marge laissée par une équipe qui contrôle la course (× celle du plat)
   sprintHillCol: 72, // vallonné : une équipe ne roule pour son sprinteur que s'il passe les côtes (collines ≥ 72)
   brkSprintKm: 12, // un échappé dont le sprinteur est derrière relaie au ralenti dans les 12 derniers km
   tttK: 0.98, // contre-la-montre par équipes : réglage de vitesse de l'exercice (51-57 km/h dans la réalité)

@@ -50,7 +50,7 @@ function setupRace(calIdx, playerSel) {
 // Coureurs d'une équipe disponibles cette semaine (ni blessés, ni déjà engagés ailleurs).
 function availableRiders(T, w) {
   const used = (S.weekUsed && w != null && S.weekUsed[w]) || [];
-  return T.riders.map(id => S.riders[id]).filter(r => r.injury <= 0 && !used.includes(r.id));
+  return T.riders.map(id => S.riders[id]).filter(r => r.injury <= 0 && !used.includes(r.id) && !mfInBreak(r));
 }
 // Sélection d'une équipe pour une course, adaptée au profil des étapes.
 function aiSelect(T, cal, specs) {
@@ -66,6 +66,10 @@ function aiSelect(T, cal, specs) {
     !(cal.cat === 0 && T.goals && T.goals.gt === cal.key);
   let rs = availableRiders(T, cal.w).filter(r => T.player || !aiRestForGt(T, cal, r));
   if (rs.filter(r => !overRaced(r)).length >= n) rs = rs.filter(r => !overRaced(r));
+  // grand tour d'une équipe de classement général (super-équipe comprise) : tout pour le leader, le sprinteur
+  // reste à la maison (75-identity.js)
+  const allIn = !T.player && cal.cat === 0 && cal.stagesSpec.length >= 15 && ['super', 'gt'].includes(identOf(T));
+  if (allIn && rs.filter(r => r.arch !== 'sprinteur').length >= n) rs = rs.filter(r => r.arch !== 'sprinteur');
   const w = { pla: 0, mon: 0, col: 0, spr: 0, clm: 0, pav: 0 };
   for (const sp of specs) {
     const t = sp.type;
@@ -95,12 +99,13 @@ function aiSelect(T, cal, specs) {
       s += r.s[k] * w[k];
       tw += w[k];
     }
-    return (s / tw) * (0.85 + (0.15 * r.forme) / 100) - r.fatigue * 0.25 + rnd() * 2;
+    // (un coureur usé mentalement est ménagé : 77-fresh.js)
+    return (s / tw) * (0.85 + (0.15 * r.forme) / 100) - r.fatigue * 0.25 - Math.max(0, 40 - mfOf(r)) * 0.3 + rnd() * 2;
   };
   rs.sort((a, b) => score(b) - score(a));
   // garder un sprinteur si étapes plates
   const sel = rs.slice(0, n);
-  if (w.spr > 0) {
+  if (w.spr > 0 && !allIn) {
     const bestS = rs.slice().sort((a, b) => b.s.spr - a.s.spr)[0];
     if (bestS && !sel.includes(bestS) && bestS.s.spr >= 72) {
       sel[sel.length - 1] = bestS;
@@ -154,7 +159,12 @@ function autoOrders(teamId, spec, rc) {
     if (stageRace) {
       gcLeader = rs.slice().sort((a, b) => rc.gc[a.id] - rc.gc[b.id])[0];
     }
-    for (const r of rs) o[r.id] = { o: 'itt', itt: !stageRace || r === gcLeader || r.s.clm >= 74 ? 'fond' : 'gerer' };
+    const PT = buildProfile(spec);
+    for (const r of rs)
+      o[r.id] = {
+        o: 'itt',
+        itt: ttAdvice(r, spec, PT, !stageRace || r === gcLeader || r.s.clm >= 74 ? 'leader' : 'equipier'),
+      };
     return o;
   }
   const sc = (r, k) => r.s[k] * (0.85 + (0.15 * r.forme) / 100);
@@ -232,6 +242,9 @@ function autoOrders(teamId, spec, rc) {
         : 0;
   const T_ = teamById(teamId);
   if (T_ && rnd() < (styleMul(T_, 'break') - 1) * 0.8) nBreak++;
+  // équipe encore bredouille après le premier tiers d'une course par étapes : elle cherche l'échappée hors montagne
+  // (en montagne, les échappées sont déjà fournies) (75-identity.js)
+  if (T_ && identHungry(rc, T_) && t !== 'clm' && t !== 'montagne' && t !== 'sommet' && rnd() < 0.6) nBreak++;
   if (T_ && T_.style === 'defensif' && nBreak > 0 && rnd() < 0.5) nBreak--;
   if (sprinter && t === 'plat') nBreak = 0;
   if (leader && rc.si > 0 && leaderGcRank(rc, leader.id) <= 3) nBreak = Math.min(nBreak, 1);
@@ -440,6 +453,6 @@ function styleMul(T, k) {
       (COAL && COAL.has(T.id) ? 1.25 : 1) // coalition : ils durcissent la course pour user le leader
     );
   if (k === 'break')
-    return s === 'agressif' ? 1.6 : s === 'opportuniste' ? 1.4 : s === 'defensif' ? 0.6 : s === 'gc' ? 0.8 : 1;
+    return (s === 'agressif' ? 1.6 : s === 'opportuniste' ? 1.4 : s === 'defensif' ? 0.6 : s === 'gc' ? 0.8 : 1) * identBreakMul(T);
   return 1;
 }

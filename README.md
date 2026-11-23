@@ -74,6 +74,10 @@ src/
     72-board.js           direction du club : président, projet sur trois saisons, confiance, réunions et demandes
     73-mental.js          caractère caché : grands rendez-vous et professionnalisme, découverts peu à peu
     74-news.js            monde du vélo : fil d'actualité, rivalité de la saison, classement des directeurs
+    75-identity.js        identité des équipes de l'ordinateur : projet, super-équipe, recrutement ciblé
+    76-ttpacing.js        contre-la-montre : allures, limite du jour, réserve et défaillances, intermédiaires
+    77-fresh.js           fraîcheur mentale sur la saison, coupure
+    78-tactics-review.js  bilan tactique d'une étape et d'une course par étapes
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     interface
     01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
@@ -483,6 +487,23 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     sans les cassures en bordure. Résultat (60 saisons × 2 graines) : 44/44, et 3 mesures près d'un bord au lieu de
     14 (écart du 10e aux arrivées au sommet, équipes gagnant une étape de grand tour : affaire de répartition des
     forces entre équipes, à revoir avec la construction des effectifs de l'ordinateur).
+  - Moteur, quatre chantiers :
+    - Identité des équipes de l'ordinateur (75-identity.js) : grands tours, classiques, sprint, échappées, et une
+      super-équipe (le plus haut standing, de vraies vedettes) ; vedettes de départ, recrutement (marché, transferts,
+      néo-pros) orientés vers le profil qui manque ; petites équipes plus offensives ; une équipe encore bredouille
+      après le premier tiers d'une course par étapes cherche l'échappée ; sur un grand tour, une équipe de classement
+      général laisse son sprinteur à la maison.
+    - Gestion de l'effort en contre-la-montre (76-ttpacing.js) : cinq allures (prudent, régulier, à bloc, départ
+      prudent puis fin à bloc, tout pour la montée), limite du jour selon l'endurance, la spécialité, la distance et
+      la fraîcheur (avec une incertitude), réserve qui se vide au-dessus : à sec, le coureur explose ; temps
+      intermédiaires au tiers et aux deux tiers ; conseil de l'adjoint au briefing, bilan « Le chrono de mes coureurs ».
+    - Fraîcheur mentale (77-fresh.js) : usée par les jours de course, les grands rendez-vous et le rôle de leader,
+      libérée par une victoire, reconstituée par le repos et l'hiver ; un coureur usé perd un peu de forme du jour et
+      devient irrégulier ; coupure de deux semaines (fiche coureur), alerte sur l'accueil ; l'ordinateur ménage ses
+      coureurs usés.
+    - Bilan tactique (78-tactics-review.js) : ce que les autres équipes ont fait (rancunes, alliances, coalitions),
+      vos consignes (km en tête, attaques, refus), et où le général se joue (étapes où votre leader a perdu ou repris
+      du temps, étape qui a fait le leader).
   - Moteur, nouvelles mesures réelles dans la calibration (44 au lieu de 40) : porteurs du maillot de leader d'un
     grand tour (≈ 5), équipes qui gagnent une étape (≈ 8 sur 18), écart maximal de l'échappée sur le plat (≈ 4 min),
     distance de reprise (≈ 17 km). Corrections : une échappée reprise très tôt laisse place à une nouvelle bagarre ;

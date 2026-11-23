@@ -116,6 +116,7 @@ function weeklyUpdate() {
     );
     const fd = { repos: 18, intensif: -4, pic: 6, altitude: 7 }[pl];
     // charge récente (jours de course des dernières semaines) : un bloc de courses enchaînées se récupère moins vite
+    mfWeekly(r, pl); // fraîcheur mentale (77-fresh.js)
     r.load = (r.load || 0) * 0.55 + (r.wkDays || 0);
     r.wkDays = 0;
     const blockF = 1 - Math.min(0.35, Math.max(0, r.load - 3) * 0.05);
@@ -224,7 +225,7 @@ function weeklyUpdate() {
     const fr = S.free
       .map(i => S.riders[i])
       .filter(r => r && !r.retired && !r.car)
-      .sort((a, b) => overall(b.s) - overall(a.s));
+      .sort((a, b) => overall(b.s) + aiWant(T, b) - (overall(a.s) + aiWant(T, a))); // (profil qui manque : 75-identity.js)
     const r = fr.find(q => aiCanAfford(T, salaryFor(overall(q.s), q.age)));
     if (r) {
       S.free.splice(S.free.indexOf(r.id), 1);
@@ -402,6 +403,7 @@ function endSeason() {
     const r = S.riders[id];
     if (r.retired) continue;
     r.age++;
+    mfEndSeason(r); // l'hiver remet les têtes à l'endroit (77-fresh.js)
     // intersaison : quelques kilos pris (moins chez les coureurs réguliers), à perdre avant les grands objectifs
     if (!r.car && r.kgOpt != null)
       r.kg = +Math.min(r.kgOpt + 4, r.kg + (r.trait === 'regulier' ? 1 : R.winterKg)).toFixed(2);
@@ -532,7 +534,9 @@ function endSeason() {
   const pool = S.youth.map(i => S.riders[i]).filter(Boolean);
   for (const T of S.teams) {
     if (T.player) continue;
-    const cand = pool.filter(r => r.youth && r.age >= 19).sort((a, b) => b.ceil + gauss() * 3 - (a.ceil + gauss() * 3));
+    const cand = pool
+      .filter(r => r.youth && r.age >= 19)
+      .sort((a, b) => b.ceil + aiWant(T, b) + gauss() * 3 - (a.ceil + aiWant(T, a) + gauss() * 3));
     if (cand.length && rnd() < 0.75 && aiCanAfford(T, 40)) {
       const r = cand[0];
       r.youth = false;

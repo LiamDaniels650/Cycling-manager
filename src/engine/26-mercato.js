@@ -136,7 +136,7 @@ function aiTransfers(maxMoves = 5, p = 0.4) {
           cands.push([r, U]);
     }
     if (!cands.length) continue;
-    const [r, U] = cands.sort((a, b) => overall(b[0].s) - overall(a[0].s))[0];
+    const [r, U] = cands.sort((a, b) => overall(b[0].s) + aiWant(T, b[0]) - (overall(a[0].s) + aiWant(T, a[0])))[0];
     U.riders.splice(U.riders.indexOf(r.id), 1);
     T.riders.push(r.id);
     mercLog(r, 'transfert', U.id, T.id);

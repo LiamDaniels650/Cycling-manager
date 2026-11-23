@@ -173,14 +173,17 @@ function Orders({ rc, spec, ids }) {
                     {rc.tttLeader === id ? '⭐ leader du chrono' : 'rouleur'}
                   </span>
                 ) : itt ? (
-                  <Select
-                    value={o.itt === 'fond' ? 'fond' : 'gerer'}
-                    onChange={v => (setOrd(id, 'itt', v), render())}
-                    options={[
-                      ['fond', 'À bloc'],
-                      ['gerer', 'Gérer (économiser)'],
-                    ]}
-                  />
+                  <span className="block">
+                    <Select
+                      value={TT_PACE[o.itt] ? o.itt : 'gerer'}
+                      onChange={v => (setOrd(id, 'itt', v), render())}
+                      options={Object.entries(TT_PACE).map(([k, p]) => [k, p.lbl])}
+                    />
+                    <span className="mt-0.5 block text-xs text-slate-400">
+                      {TT_PACE[TT_PACE[o.itt] ? o.itt : 'gerer'].d} Conseil de l'adjoint :{' '}
+                      {TT_PACE[ttAdvice(r, rc.specs[rc.si], buildProfile(rc.specs[rc.si]), 'leader')].lbl.toLowerCase()}.
+                    </span>
+                  </span>
                 ) : (
                   <>
                     <Select

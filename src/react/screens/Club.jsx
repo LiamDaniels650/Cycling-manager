@@ -441,6 +441,35 @@ export function MentalRider({ r }) {
             : 'Une mission de recrutement ou la liste de suivi vous en apprendra plus.'}
         </div>
       )}
+      {r.team === 0 ? <FreshRider r={r} /> : null}
+    </div>
+  );
+}
+// Fraîcheur mentale d'un de mes coureurs, et la coupure de deux semaines.
+function FreshRider({ r }) {
+  const m = Math.round(mfOf(r));
+  const tone = m >= 60 ? 'bg-emerald-400' : m >= 40 ? 'bg-amber-300' : 'bg-rose-500';
+  return (
+    <div className="mt-2 border-t border-slate-700 pt-2">
+      <div className="flex items-center justify-between text-xs text-slate-400">
+        <span>
+          🧠 Fraîcheur mentale : <b className="text-slate-100">{mfLabel(m)}</b> ({m}/100)
+        </span>
+        {mfInBreak(r) ? (
+          <span className="text-sky-300">en coupure jusqu'à la semaine {r.brk}</span>
+        ) : (
+          <button type="button" className="text-sky-300 underline" onClick={() => act(() => mfBreak(r.id))}>
+            Offrir une coupure (2 semaines)
+          </button>
+        )}
+      </div>
+      <div className="mt-1">
+        <Gauge v={m} tone={tone} />
+      </div>
+      <p className="mt-1 text-xs text-slate-400">
+        Les jours de course l'usent, plus encore les grands rendez-vous et le rôle de leader ; une victoire le libère. Usé,
+        il perd un peu de forme le jour J et devient irrégulier.
+      </p>
     </div>
   );
 }

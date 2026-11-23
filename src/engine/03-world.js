@@ -100,7 +100,7 @@ const RESERVE_TEAMS = [
   ['Polder Pro', 'POL', '#fb8c00', 'NED', 'sprint'],
 ];
 // Niveaux des 17 équipes IA (du WorldTour de pointe aux équipes invitées) ; votre équipe démarre à -0,8.
-const TIERS = [4.5, 3.8, 3.2, 2.6, 2.0, 1.4, 0.9, 0.4, 0, -0.4, -0.9, -1.4, -1.9, -2.4, -3, -3.5, -4.2];
+const TIERS = [5.6, 3.9, 3.2, 2.6, 2.0, 1.4, 0.9, 0.4, 0, -0.4, -0.9, -1.4, -1.9, -2.4, -3, -3.5, -4.2];
 // Effectifs : comme dans le peloton réel, une équipe aligne 25 à 30 coureurs pour courir plusieurs programmes ;
 // chacun dispute ainsi 50 à 80 jours de course par saison. min : seuil sous lequel l'équipe doit recruter.
 const ROSTER = { max: 30, minAI: 20, minPlayer: 16, player: 22 };
@@ -254,7 +254,8 @@ function newGame(teamName, seed, diff, opts = {}) {
     const comp = core.concat(COMPO_EXTRA.slice(0, (T.player ? ROSTER.player : aiTarget(T)) - core.length));
     // vedettes de l'équipe : 2 ou 3 profils différents (pas toujours un leader de classement général)
     /** @type {[string, number][]} */
-    const SW = [
+    // (équipes de l'ordinateur : selon leur identité, 75-identity.js)
+    const SW = identStars(T) || [
       ['complet', 24],
       ['grimpeur', 16],
       ['sprinteur', 20],
@@ -275,7 +276,8 @@ function newGame(teamName, seed, diff, opts = {}) {
       }
       if (!stars.includes(a)) stars.push(a);
     }
-    const bonus = [2.6, 1.8, 1.0];
+    // (super-équipe : de vraies vedettes, comme les deux ou trois cadors du peloton réel)
+    const bonus = identOf(T) === 'super' ? [3.3, 2.5, 1.7] : [2.6, 1.8, 1.0];
     const used = {};
     comp.forEach((a, i) => {
       const si = stars.indexOf(a);
