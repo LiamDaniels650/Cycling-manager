@@ -497,6 +497,11 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     entre deux groupes qui se suivent, et un écart affiché n'est jamais plus petit que celui d'un groupe qui roule
     devant. Vue du ciel : chaque coureur suit exactement son groupe mais glisse en douceur vers sa place (≈ 0,5 s),
     ordre stable dans le groupe ; une jonction se voit au lieu d'une téléportation.
+  - Vue du ciel au plus près : zoom serré par défaut (plus encore sur téléphone) et boutons − / + (du peloton entier
+    au gros plan) ; en gros plan, de vrais petits cyclistes vus du dessus (ombre, roues, jambes qui pédalent au
+    rythme de la vitesse, maillot de l'équipe, jaune pour le leader, casque ; liseré rose pour mes coureurs, blanc
+    pour ceux qui roulent), noms des coureurs des petits groupes, jauge de réserves et couleur de l'effort au-dessus
+    de mes coureurs ; toucher un coureur ouvre sa fiche ; image plus haute sur téléphone.
   - Tactique du général sur les étapes de plaine (un maillot perdait plus d'une minute le dernier jour) :
     - un leader du général ne suit plus n'importe quelle attaque dans le final d'une étape plate d'une course par
       étapes : seulement celle d'un rival au classement (les « favoris » du jour y sont les sprinteurs) ; avant, les

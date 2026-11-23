@@ -198,20 +198,24 @@ function draw(cv, sim, cam, st) {
   const len = Math.ceil(nG / wG) * (wG === 1 ? 2.2 : 1.7);
   // cadrage serré sur le groupe ; plan élargi quand un autre groupe est tout proche (jonction, échappée qui va être
   // reprise) : les deux groupes sont alors à l'image
-  let span = clamp(len * 1.8 + 34, 50, 380);
+  // zoom du joueur (boutons − / +) : par défaut plus serré sur téléphone, où l'image est étroite
+  const zf = clamp(UI.skyZoom || (W < 600 ? 1.6 : 1.15), 0.5, 3.5);
+  st.zf = zf;
+  let span = clamp((len * 1.3 + 20) / zf, 16, 380);
   let mid = fKm - len / 2000;
   const near = live(sim)
     .filter(G => G !== G0)
     .map(G => [G, ipos(G, frac)])
     .filter(([, k]) => Math.abs(k - fKm) * 1000 < 320)
     .sort((a, b) => Math.abs(a[1] - fKm) - Math.abs(b[1] - fKm))[0];
-  if (near) {
+  // (seulement si le joueur n'a pas choisi le gros plan)
+  if (near && zf <= 1.2) {
     // plan élargi : de la queue du groupe le plus en arrière à la tête du plus en avant (un gros peloton est long)
     const nN = near[0].riders.filter(x => !x.fin && !x.dnf).length;
     const nLen = (Math.ceil(nN / clamp(Math.ceil(Math.sqrt(nN) * 0.75), 1, 8)) * 1.7) / 1000;
     const front = Math.max(fKm, near[1]);
     const rear = Math.min(fKm - len / 1000, near[1] - nLen);
-    span = clamp(Math.max(span, (front - rear) * 1000 * 1.25 + 40), 50, 520);
+    span = clamp(Math.max(span, (front - rear) * 1000 * 1.25 + 40), 40, 520);
     mid = (front + rear) / 2;
   }
   st.near = near ? near[0] : null;
@@ -386,6 +390,9 @@ function draw(cv, sim, cam, st) {
   const posOf = new Map();
   const groups = []; // (capsules et étiquettes des groupes, dessinées à l'écran après la scène)
   const rpx = clamp(sc * 0.42, 3.2, 6.5); // rayon d'un coureur à l'écran (px)
+  // gros plan (au moins 7 px par mètre) : de vrais petits cyclistes, leurs noms, les réserves de mes coureurs
+  const det = sc >= 7;
+  const allPts = []; // (coureurs à l'image, pour les toucher et pour les jauges)
   const H0 = live(sim).slice().sort((a, b) => b.pos - a.pos)[0];
   const pelG = sim.pel && live(sim).includes(sim.pel) ? sim.pel : H0;
   const evOf = new Map((sim.skyEv || []).filter(e => e.id != null && sim.t - e.t <= 3).map(e => [e.id, e]));
@@ -439,7 +446,7 @@ function draw(cv, sim, cam, st) {
       if (evOf.has(x.id)) posOf.set(x.id, [px, py]);
       if (!front || rp.abs > front[2]) front = [x0, y0, rp.abs];
       if (!rear || rp.abs < rear[2]) rear = [x0, y0, rp.abs];
-      pts.push([x, px, py]);
+      pts.push([x, px, py, h]);
     });
     // capsule du groupe (sous les coureurs) : couleur selon son rôle dans la course
     const kind = G === H0 && G !== pelG ? 'tete' : G === pelG ? 'pel' : G.pos > pelG.pos ? 'chasse' : 'retard';
@@ -450,24 +457,30 @@ function draw(cv, sim, cam, st) {
       c.beginPath();
       c.moveTo(rear[0], rear[1]);
       c.lineTo(front[0] + 0.001, front[1]);
-      c.strokeStyle = `rgba(${KC[kind]},${G === G0 ? 0.55 : 0.3})`;
+      c.strokeStyle = `rgba(${KC[kind]},${(G === G0 ? 0.55 : 0.3) * (det ? 0.45 : 1)})`;
       c.lineWidth = wdt + 2.4 / sc;
       c.stroke();
       c.strokeStyle = 'rgba(14,20,28,0.55)';
       c.lineWidth = wdt;
       c.stroke();
     }
-    for (const [x, px, py] of pts) {
+    for (const [x, px, py, hh] of pts) {
       const me = x.player;
-      const rr = (rpx * (me ? 1.3 : 1)) / sc;
-      c.beginPath();
-      c.arc(px, py, rr, 0, Math.PI * 2);
-      c.fillStyle = x.team.color || '#cbd5e1';
-      c.fill();
-      // contour : leader du général (jaune), vos coureurs (rose), coureur qui roule (blanc), sinon un liseré sombre
-      c.lineWidth = (me || x.id === leaderId ? 2 : 1.2) / sc;
-      c.strokeStyle = x.id === leaderId ? '#facc15' : me ? '#f472b6' : x.work > 0 ? 'rgba(248,250,252,0.95)' : 'rgba(10,14,20,0.8)';
-      c.stroke();
+      allPts.push([x, px, py]);
+      if (det) drawRider(c, x, px, py, hh, sc, x.id === leaderId, nowT / 1000);
+      else {
+        const rr = (rpx * (me ? 1.3 : 1)) / sc;
+        c.beginPath();
+        c.arc(px, py, rr, 0, Math.PI * 2);
+        c.fillStyle = x.team.color || '#cbd5e1';
+        c.fill();
+        // contour : leader du général (jaune), vos coureurs (rose), coureur qui roule (blanc), sinon un liseré sombre
+        c.lineWidth = (me || x.id === leaderId ? 2 : 1.2) / sc;
+        c.strokeStyle = x.id === leaderId ? '#facc15' : me ? '#f472b6' : x.work > 0 ? 'rgba(248,250,252,0.95)' : 'rgba(10,14,20,0.8)';
+        c.stroke();
+      }
+      // en gros plan, les coureurs des petits groupes sont nommés
+      if (det && !me && !sim.favs.has(x.id) && n <= 12) labels.push([px, py, riderName(x.r), '#cbd5e1', false]);
       if (sim.favs.has(x.id) && !me && st.span < 170) labels.push([px, py, '★ ' + riderName(x.r), '#e2e8f0', false]);
       if (G.attacker === x && G.burst > 0) labels.push([px, py, '⚡', '#fde047', true]);
       else if (evOf.has(x.id) && evOf.get(x.id).kind !== 'reprise')
@@ -506,6 +519,27 @@ function draw(cv, sim, cam, st) {
       sn = Math.sin(-st.h);
     return [CX + (dx * cs - dy * sn) * sc, H * 0.55 + (dx * sn + dy * cs) * sc];
   };
+  // coureurs à toucher (fiche) ; en gros plan, jauge de réserves et effort du moment au-dessus de mes coureurs
+  st.hits = [];
+  for (const [x, px, py] of allPts) {
+    const [sx, sy] = toScr(px, py);
+    if (sx < -10 || sx > W + 10 || sy < -10 || sy > H + 10) continue;
+    st.hits.push([sx, sy, x.id]);
+    if (det && x.player) {
+      const e = clamp(x.energy / 100, 0, 1);
+      const bx = sx - 8,
+        by = sy - 0.9 * sc - 6;
+      c.fillStyle = 'rgba(10,14,20,0.85)';
+      c.fillRect(bx - 1, by - 1, 18, 5);
+      c.fillStyle = e > 0.5 ? '#4ade80' : e > 0.25 ? '#facc15' : '#f43f5e';
+      c.fillRect(bx, by, 16 * e, 3);
+      const I = x.I || 0;
+      c.fillStyle = I < 0.6 ? '#34d399' : I < 0.8 ? '#fde047' : I < 0.95 ? '#fb923c' : '#f43f5e';
+      c.beginPath();
+      c.arc(bx + 21, by + 1.5, 2.5, 0, Math.PI * 2);
+      c.fill();
+    }
+  }
   const used = [];
   // étiquettes des groupes : rôle, effectif, écart annoncé ; liseré de couleur (jaune : tête ; blanc : peloton ;
   // bleu : contre ; gris : retardataires) et bord rose s'il y a l'un de vos coureurs
@@ -924,6 +958,63 @@ function StageProfileLive({ sim, G0, onPick }) {
     </div>
   );
 }
+// Un cycliste vu du dessus (mètres, orienté selon la route) : ombre, roues et cadre, jambes qui pédalent au rythme
+// de la vitesse, maillot aux couleurs de l'équipe (jaune pour le leader du général), bras, casque. Liseré : jaune
+// (leader), rose (mes coureurs), blanc (il roule en tête).
+function drawRider(c, x, px, py, h, sc, yel, t) {
+  const me = x.player;
+  const col = yel ? '#facc15' : x.team.color || '#cbd5e1';
+  c.save();
+  c.translate(px, py);
+  c.rotate(h);
+  c.fillStyle = 'rgba(0,0,0,0.3)';
+  c.beginPath();
+  c.ellipse(0.15, 0.22, 0.95, 0.3, 0, 0, Math.PI * 2);
+  c.fill();
+  c.fillStyle = '#0b0f14';
+  for (const wx of [-0.6, 0.6]) {
+    c.beginPath();
+    c.ellipse(wx, 0, 0.34, 0.06, 0, 0, Math.PI * 2);
+    c.fill();
+  }
+  c.strokeStyle = '#475569';
+  c.lineWidth = 0.07;
+  c.beginPath();
+  c.moveTo(-0.6, 0);
+  c.lineTo(0.6, 0);
+  c.stroke();
+  // jambes : un pédalage qui suit la vitesse du groupe
+  const ph = t * ((x.g && x.g.speed) || 38) * 0.16 + x.id;
+  const lo = Math.sin(ph) * 0.17;
+  c.fillStyle = '#1e293b';
+  c.beginPath();
+  c.ellipse(0.06 + lo, 0.16, 0.14, 0.06, 0, 0, Math.PI * 2);
+  c.fill();
+  c.beginPath();
+  c.ellipse(0.06 - lo, -0.16, 0.14, 0.06, 0, 0, Math.PI * 2);
+  c.fill();
+  c.fillStyle = col;
+  c.beginPath();
+  c.ellipse(-0.08, 0, 0.42, 0.26, 0, 0, Math.PI * 2);
+  c.fill();
+  c.lineWidth = (me || yel ? 2.2 : 1) / sc;
+  c.strokeStyle = me ? '#f472b6' : yel ? '#fef08a' : x.work > 0 ? '#f8fafc' : 'rgba(10,14,20,0.85)';
+  c.stroke();
+  c.strokeStyle = col;
+  c.lineWidth = 0.09;
+  c.beginPath();
+  c.moveTo(0.12, 0.17);
+  c.lineTo(0.48, 0.2);
+  c.moveTo(0.12, -0.17);
+  c.lineTo(0.48, -0.2);
+  c.stroke();
+  c.fillStyle = yel ? '#fde68a' : '#e5e7eb';
+  c.beginPath();
+  c.ellipse(0.33, 0, 0.14, 0.12, 0, 0, Math.PI * 2);
+  c.fill();
+  c.restore();
+}
+const ZOOMS = [0.5, 0.75, 1, 1.15, 1.6, 2.3, 3.5];
 export function Sky({ sim, compact }) {
   const ref = useRef(null);
   const [cam, setCam] = useState(UI.skyCam || 'auto');
@@ -956,9 +1047,25 @@ export function Sky({ sim, compact }) {
       <div className="relative">
         <canvas
           ref={ref}
-          className={'block w-full ' + (compact ? 'h-52' : 'h-64 sm:h-80 xl:h-[26rem]')}
+          className={'block w-full cursor-pointer ' + (compact ? 'h-56' : 'h-80 xl:h-[26rem]')}
           role="img"
-          aria-label="Retransmission vue du ciel"
+          aria-label="Retransmission vue du ciel : touchez un coureur pour ouvrir sa fiche"
+          onClick={e => {
+            // le coureur le plus proche du doigt (à moins de 20 px) : sa fiche
+            const b = e.currentTarget.getBoundingClientRect();
+            const mx = e.clientX - b.left,
+              my = e.clientY - b.top;
+            let best = null,
+              bd = 20 * 20;
+            for (const [sx, sy, id] of st.current.hits || []) {
+              const d = (sx - mx) ** 2 + (sy - my) ** 2;
+              if (d < bd) {
+                bd = d;
+                best = id;
+              }
+            }
+            if (best != null) openRider(best);
+          }}
         />
         {compact ? null : <GapLadder sim={sim} G0={st.current.G0} onPick={pick} />}
       </div>
@@ -986,6 +1093,28 @@ export function Sky({ sim, compact }) {
             {l}
           </button>
         ))}
+        <span className="ml-auto flex items-center gap-1">
+          {[
+            ['−', -1, 'Plan plus large'],
+            ['+', 1, 'Plus près des coureurs'],
+          ].map(([l, d, t]) => (
+            <button
+              key={l}
+              type="button"
+              title={t}
+              aria-label={t}
+              onClick={() => {
+                const z = st.current.zf || 1;
+                let i = ZOOMS.findIndex(v => v >= z - 0.01);
+                if (i < 0) i = ZOOMS.length - 1;
+                UI.skyZoom = ZOOMS[clamp(i + d, 0, ZOOMS.length - 1)];
+              }}
+              className="flex h-8 w-9 items-center justify-center rounded-full bg-slate-800 text-base font-bold text-slate-100 ring-1 ring-slate-700"
+            >
+              {l}
+            </button>
+          ))}
+        </span>
         <button
           type="button"
           onClick={() => {
@@ -996,7 +1125,7 @@ export function Sky({ sim, compact }) {
               if (c && c.state === 'suspended') c.resume();
             }
           }}
-          className="ml-auto min-h-8 rounded-full bg-slate-800 px-2.5 text-xs text-slate-200 ring-1 ring-slate-700"
+          className="min-h-8 rounded-full bg-slate-800 px-2.5 text-xs text-slate-200 ring-1 ring-slate-700"
           title="Cloche du dernier kilomètre, foule, bip de la radio"
         >
           {snd ? '🔊 Son' : '🔇 Son'}
