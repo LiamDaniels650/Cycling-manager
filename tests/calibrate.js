@@ -306,7 +306,11 @@ async function runList(seeds) {
 }
 // Valeur comparée au réel : la moyenne pour un taux (échappées, victoires en solitaire…), sinon la médiane.
 const isRate = k =>
-  k.startsWith('echap_') || k.startsWith('solo_') || k.startsWith('favori_') || k === 'kom_vainqueur_top10_gc' || k === 'sprint_meilleur';
+  k.startsWith('echap_') ||
+  k.startsWith('solo_') ||
+  k.startsWith('favori_') ||
+  k === 'kom_vainqueur_top10_gc' ||
+  k === 'sprint_meilleur';
 function measureOf(k) {
   const a = M[k];
   return isRate(k) ? sum(a) / a.length : quant(a, 0.5);
