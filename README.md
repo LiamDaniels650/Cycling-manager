@@ -89,6 +89,7 @@ src/
     76-ttpacing.js        contre-la-montre : allures, limite du jour, réserve et défaillances, intermédiaires
     77-fresh.js           fraîcheur mentale sur la saison, coupure
     78-tactics-review.js  bilan tactique d'une étape et d'une course par étapes
+    79-journal.js         journal de partie ; actions du joueur en course (liveAct), notées pour rejouer l'étape
     98-worker.js          Web Worker : état dérivé recalculé à chaque reprise (stateRestored), traitement des demandes
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
   ui/                     couche d'application (entre l'écran React et le moteur)
@@ -110,6 +111,7 @@ tests/
   ui_auto_react.py        chaque bouton « Auto » cliqué pour de vrai, appel radio, DS automatique
   ui_worker.py            simulation d'une course dans un Web Worker (même résultat qu'en direct)
   ui_rng_react.py         l'affichage ne touche pas au hasard (tous les écrans, en saison, en course, en carrière)
+  ui_replay.py            une étape jouée avec des ordres, signalée puis rejouée hors du jeu : course identique
   worker_roundtrip.js     Web Worker : un calcul dans un contexte vierge donne exactement le même état qu'en direct
   anomalies.js            détecteur d'anomalies de course (./dev.sh anomalies)
   finals.js               ordres de final : bancs d'essai du sprint et de la côte (chaque ordre garde son sens)
@@ -142,6 +144,7 @@ node tests/features.js               # matériel, presse, carrière (changement 
 node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fourchettes réelles (✔/✖)
 ./dev.sh calib 60                    # référence : deux séries de 60 saisons (graines 200 et 300), tous les cœurs
 ./dev.sh rapide                      # vérification rapide : deux séries de 20 saisons (≈ 5 min)
+node tools/replay.js signalement.json # rejoue l'étape d'un signalement du joueur (--pas km, --tout, --apres km)
 ```
 
 ## Points clés du modèle
@@ -589,6 +592,18 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     qui perd plus de 2 min sur le plat (2 %, groupes de grimpeurs coupés d'un peloton lancé par les rouleurs), un
     vainqueur avec plus de 8 min d'avance et une étape plate à plus de 52 km/h (un cas chacun sur 1 632 étapes).
     Calibrage 45/45 sur deux séries de 60 saisons (échappées au sommet 0,37, vallonné 0,38, côte 0,25-0,27).
+  - Journal de partie, signalement et rejeu exact :
+    - toutes les actions du joueur en course (radio, marquage, ordres d'équipe, négociations, alliances, réponses
+      aux moments décisifs, ordres de final) passent par liveAct (79-journal.js) : exécutées dans le hasard de
+      l'étape et notées avec leur instant ; avec l'état au départ de l'étape, l'étape se rejoue à l'identique (les
+      ordres de final tiraient auparavant dans le hasard de la partie) ;
+    - bouton « 🚩 Signaler » en course (met la course en pause), sur le bilan d'étape et dans les options : un
+      commentaire, puis un fichier signalement-….json (état de départ, ordres, empreintes de la course, fin du
+      journal) ; node tools/replay.js le rejoue et vérifie que la course est identique à celle du joueur ;
+    - journal de partie (S.journal, 300 entrées) lisible dans les options : bilans d'étape de mes coureurs et du
+      général, ordres donnés, signalements ;
+    - test : tests/ui_replay.py joue une étape avec des ordres dans le navigateur, la signale en cours et à
+      l'arrivée, la rejoue (identique) et vérifie qu'un rejeu sans les ordres diffère.
   - Fragilités d'architecture traitées, et ancienne interface nettoyée :
     - l'affichage ne touche plus au hasard, par construction : garde dans App.jsx (série rétablie, écran fautif
       signalé) et test qui parcourt tous les écrans (tests/ui_rng_react.py, vérifié en y introduisant un tirage) ;

@@ -33,7 +33,10 @@ export function Peloton({ sim }) {
       title="Course"
       right={
         boardAge(sim) != null ? (
-          <span className="text-xs text-slate-400" title="Écarts donnés par la radio-course et l'ardoisier, avec un peu d'imprécision">
+          <span
+            className="text-xs text-slate-400"
+            title="Écarts donnés par la radio-course et l'ardoisier, avec un peu d'imprécision"
+          >
             📻 pointage il y a {fmtDec(boardAge(sim), 1)} km
           </span>
         ) : null

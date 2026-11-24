@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { RADIO_GROUPS, RADIO_HELP, doingNow, orderInfo } from './orders.js';
 import { Ally } from './Team.jsx';
-import { Card, Btn, Html, Effort } from '../ui.jsx';
+import { Card, Btn, Html, Effort, SignalButton } from '../ui.jsx';
 import { Icon } from '../icons.jsx';
 
 // Décision à prendre maintenant, en surimpression au-dessus des commandes : seulement ce qui demande une réponse
@@ -290,6 +290,7 @@ export function Dock({ sim }) {
                 .join(' · ')}
             </span>
           </button>
+          <SignalButton compact />
           {/* réglages repliés : le bandeau du bas reste bas, l'écran de course garde la place */}
           {UI.dockOpts ? (
             <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-1">
@@ -335,7 +336,10 @@ export function Dock({ sim }) {
                 />{' '}
                 pause aux moments décisifs
               </label>
-              <label className="flex min-h-8 items-center gap-1.5" title="Sans radio-course : écarts exacts et immédiats">
+              <label
+                className="flex min-h-8 items-center gap-1.5"
+                title="Sans radio-course : écarts exacts et immédiats"
+              >
                 <input
                   type="checkbox"
                   className="h-4 w-4 accent-sky-500"

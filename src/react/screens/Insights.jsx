@@ -31,8 +31,8 @@ export function WtBrief() {
       <br />
       {k < wtN() ? (
         <>
-          {k + 1}e du classement sur trois saisons — {out ? `${me.pts - out.pts} pts d'avance sur le ${wtN() + 1}e` : ''}
-          .
+          {k + 1}e du classement sur trois saisons —{' '}
+          {out ? `${me.pts - out.pts} pts d'avance sur le ${wtN() + 1}e` : ''}.
         </>
       ) : (
         <>
@@ -93,8 +93,8 @@ export function WtTable() {
     <Card title="Licences WorldTour">
       <WtBrief />
       <Info>
-        Les {wtN()} premières équipes au classement UCI cumulé sur trois saisons obtiennent une licence WorldTour pour le
-        cycle suivant : invitations d'office aux Grands Tours et aux grandes classiques. Les autres sont ProTeams et
+        Les {wtN()} premières équipes au classement UCI cumulé sur trois saisons obtiennent une licence WorldTour pour
+        le cycle suivant : invitations d'office aux Grands Tours et aux grandes classiques. Les autres sont ProTeams et
         dépendent des invitations, sauf les deux meilleures de la saison passée. Une relégation coûte cher : clause du
         sponsor (−12 % d'apport, confiance −15), moral de l'effectif en baisse, leaders ambitieux qui font jouer leur
         clause de sortie, et coureurs cotés plus difficiles à recruter. Une promotion rapporte +8 % d'apport.

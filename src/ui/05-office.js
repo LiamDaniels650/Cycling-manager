@@ -22,6 +22,56 @@ async function dlSave() {
   }
   render();
 }
+// Rapport « Signaler » : le commentaire du joueur, le moment (course, km), l'étape en cours ou la dernière finie
+// (état au départ et ordres donnés : rejouable à l'identique par tools/replay.js), sinon l'état actuel, et la fin
+// du journal de partie. Proposé au téléchargement (repli : copie dans le presse-papiers).
+function reportBuild(comment) {
+  const sim = UI.sim;
+  const live = !!(sim && UI.rec);
+  const R = live ? { ...UI.rec, inputs: sim.rec || [], t: sim.t } : UI.lastRec || null;
+  const G0 = live && sim.groups.length ? sim.groups[0] : null;
+  journalAdd('signal', String(comment || '').slice(0, 400), live ? { km: G0 ? Math.round(G0.pos) : 0 } : null);
+  return {
+    kind: 'dsc-rapport',
+    v: 1,
+    at: new Date().toISOString(),
+    comment: String(comment || ''),
+    season: S.season,
+    week: S.week,
+    view: UI.view,
+    // le moment signalé : en course, l'instant et le km de la tête ; sinon la fin de la dernière étape
+    race: R ? { name: R.name, si: R.si, t: R.t, km: G0 ? Math.round(G0.pos * 10) / 10 : null, live } : null,
+    stage: R ? { snap: R.snap, autoDS: R.autoDS, inputs: R.inputs } : null,
+    // de quoi vérifier que le rejeu reproduit bien la partie : groupes à l'instant signalé, ou résultat de l'étape
+    check: live ? { t: sim.t, groups: simCheck(sim) } : R ? { res: R.res } : null,
+    state: R ? null : saveText(),
+    journal: (S.journal || []).slice(-80),
+  };
+}
+async function reportExport(comment) {
+  const t = JSON.stringify(reportBuild(comment));
+  save();
+  const filename = `signalement-${S.season}-sem${S.week}-${Date.now() % 100000}.json`;
+  try {
+    const cl = /** @type {any} */ (window).claude;
+    const dl = cl && cl.use ? await cl.use('downloads') : null;
+    if (!dl) throw new Error('indisponible');
+    await dl.save({ filename, data: t });
+    UI.flash = '🚩 Signalement enregistré : envoyez ce fichier pour que la situation soit rejouée et corrigée.';
+  } catch (e) {
+    try {
+      await navigator.clipboard.writeText(t);
+      UI.flash = '🚩 Signalement copié dans le presse-papiers (le téléchargement est indisponible ici).';
+    } catch (e2) {
+      UI.flash = '⚠️ Signalement impossible à exporter ici.';
+    }
+  }
+  render();
+}
+// Le journal de partie seul (texte lisible).
+function journalText() {
+  return (S.journal || []).map(e => `${e.s} sem. ${e.w} · ${e.txt}`).join('\n');
+}
 // Dernier fichier de sauvegarde téléchargé (copie hors du navigateur).
 function exportStatus() {
   const e = S.lastExport;

@@ -37,4 +37,5 @@ jobs:
         run: |
           pip install playwright
           python3 tests/ui_rng_react.py
+          python3 tests/ui_replay.py
           python3 tests/ui_smoke_react.py

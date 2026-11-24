@@ -712,7 +712,12 @@ function DynastyCurve({ hist }) {
     Y = v => h - 4 - (v / hi) * (h - 12);
   const d = hist.map((p, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(p.score).toFixed(1)}`).join(' ');
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="mt-2 h-20 w-full max-w-md" role="img" aria-label="Score de dynastie au fil des saisons">
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      className="mt-2 h-20 w-full max-w-md"
+      role="img"
+      aria-label="Score de dynastie au fil des saisons"
+    >
       <path d={`${d} L${X(n - 1)},${h - 4} L${X(0)},${h - 4} Z`} fill="#f59e0b" opacity="0.15" />
       <path d={d} fill="none" stroke="#f59e0b" strokeWidth="2" />
       {hist.map((p, i) => (
@@ -761,7 +766,9 @@ function LegacyTab() {
             ))}
           </ul>
         ) : (
-          <p className="mt-2 text-sm text-slate-400">Pas encore de grand succès : il vous faut une première grande victoire.</p>
+          <p className="mt-2 text-sm text-slate-400">
+            Pas encore de grand succès : il vous faut une première grande victoire.
+          </p>
         )}
       </Card>
       <Card title="🎖️ Distinctions">
@@ -769,7 +776,9 @@ function LegacyTab() {
           {B.map(b => (
             <div
               key={b.n}
-              className={'rounded-lg p-2 ring-1 ' + (b.ok ? 'bg-amber-500/10 ring-amber-500/40' : 'opacity-50 ring-slate-700')}
+              className={
+                'rounded-lg p-2 ring-1 ' + (b.ok ? 'bg-amber-500/10 ring-amber-500/40' : 'opacity-50 ring-slate-700')
+              }
             >
               <div className="text-sm font-semibold">
                 {b.ic} {b.n} {b.ok ? '✓' : ''}
@@ -792,7 +801,9 @@ function LegacyTab() {
                   </td>
                   <td>{e.wins}</td>
                   <td className="text-xs">{e.big.join(' · ') || '—'}</td>
-                  <td className="text-xs text-slate-400">{r.retired ? 'retraité' : teamOf(r) ? teamOf(r).short : 'libre'}</td>
+                  <td className="text-xs text-slate-400">
+                    {r.retired ? 'retraité' : teamOf(r) ? teamOf(r).short : 'libre'}
+                  </td>
                 </Tr>
               );
             })}
@@ -870,7 +881,10 @@ function WorldTab() {
         <Card title="Courses nées pendant la partie">
           {added.map(d => (
             <p key={d.key} className="text-sm">
-              {d.name} <span className="text-slate-400">· semaine {d.w} · {REG_LBL[d.reg]} · depuis {d.born}</span>
+              {d.name}{' '}
+              <span className="text-slate-400">
+                · semaine {d.w} · {REG_LBL[d.reg]} · depuis {d.born}
+              </span>
             </p>
           ))}
         </Card>

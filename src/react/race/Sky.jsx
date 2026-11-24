@@ -61,12 +61,7 @@ const SKY_EV = {
   moment: ['🎬', 'rgba(244,114,182,A)', 'moment décisif'],
 };
 const fracNow = () =>
-  clamp(
-    (UI.acc || 0) +
-      ((performance.now() - (UI.loopT || performance.now())) / 1000) * (SPEEDS[UI.speed] || 0),
-    0,
-    1
-  );
+  clamp((UI.acc || 0) + ((performance.now() - (UI.loopT || performance.now())) / 1000) * (SPEEDS[UI.speed] || 0), 0, 1);
 const live = sim => sim.groups.filter(G => G.riders.some(x => !x.fin && !x.dnf));
 // Groupe suivi par la caméra.
 function focusGroup(sim, cam, st) {
@@ -99,7 +94,8 @@ function focusGroup(sim, cam, st) {
   if (ev && ev !== st.ev && sim.t - ev.t < 3) {
     st.ev = ev;
     const x = ev.id != null && sim.runners.find(y => y.id === ev.id);
-    const g = x && !x.fin && !x.dnf ? x.g : L.slice().sort((a, b) => Math.abs(a.pos - ev.km) - Math.abs(b.pos - ev.km))[0];
+    const g =
+      x && !x.fin && !x.dnf ? x.g : L.slice().sort((a, b) => Math.abs(a.pos - ev.km) - Math.abs(b.pos - ev.km))[0];
     if (g) {
       st.hlUntil = now + 6000;
       st.hlG = g;
@@ -393,7 +389,9 @@ function draw(cv, sim, cam, st) {
   // gros plan (au moins 7 px par mètre) : de vrais petits cyclistes, leurs noms, les réserves de mes coureurs
   const det = sc >= 7;
   const allPts = []; // (coureurs à l'image, pour les toucher et pour les jauges)
-  const H0 = live(sim).slice().sort((a, b) => b.pos - a.pos)[0];
+  const H0 = live(sim)
+    .slice()
+    .sort((a, b) => b.pos - a.pos)[0];
   const pelG = sim.pel && live(sim).includes(sim.pel) ? sim.pel : H0;
   const evOf = new Map((sim.skyEv || []).filter(e => e.id != null && sim.t - e.t <= 3).map(e => [e.id, e]));
   // positions affichées des coureurs : elles suivent exactement leur groupe, mais glissent en douceur vers leur
@@ -476,7 +474,8 @@ function draw(cv, sim, cam, st) {
         c.fill();
         // contour : leader du général (jaune), vos coureurs (rose), coureur qui roule (blanc), sinon un liseré sombre
         c.lineWidth = (me || x.id === leaderId ? 2 : 1.2) / sc;
-        c.strokeStyle = x.id === leaderId ? '#facc15' : me ? '#f472b6' : x.work > 0 ? 'rgba(248,250,252,0.95)' : 'rgba(10,14,20,0.8)';
+        c.strokeStyle =
+          x.id === leaderId ? '#facc15' : me ? '#f472b6' : x.work > 0 ? 'rgba(248,250,252,0.95)' : 'rgba(10,14,20,0.8)';
         c.stroke();
       }
       // en gros plan, les coureurs des petits groupes sont nommés
@@ -507,7 +506,10 @@ function draw(cv, sim, cam, st) {
     c.lineWidth = Math.max(0.4, 2 / sc);
     c.strokeStyle = S0[1].replace('A)', (fade * (1 - pulse)).toFixed(2) + ')');
     c.stroke();
-    const who = e.id != null && ['chute', 'crevaison', 'meca', 'attaque'].includes(e.kind) && sim.runners.find(z => z.id === e.id);
+    const who =
+      e.id != null &&
+      ['chute', 'crevaison', 'meca', 'attaque'].includes(e.kind) &&
+      sim.runners.find(z => z.id === e.id);
     labels.unshift([x, y, S0[0] + (who ? ' ' + riderName(who.r) : ' ' + S0[2]), e.mine ? '#f9a8d4' : '#fde68a', 'ev']);
   }
   // étiquettes, toujours horizontales à l'écran
@@ -592,7 +594,8 @@ function draw(cv, sim, cam, st) {
   for (const [x, y, t, col, kind] of labels) {
     const [sx, sy] = toScr(x, y);
     if (sx < -40 || sx > W + 40) continue;
-    const yy = kind === 'grp' ? sy - 18 : kind === true ? sy - 8 : kind === 'mk' ? sy - 12 : kind === 'ev' ? sy + 26 : sy + 14;
+    const yy =
+      kind === 'grp' ? sy - 18 : kind === true ? sy - 8 : kind === 'mk' ? sy - 12 : kind === 'ev' ? sy + 26 : sy + 14;
     const wNear = kind === 'grp' || kind === 'ev' ? 90 : 60;
     if (used.some(u => Math.abs(u[0] - sx) < wNear && Math.abs(u[1] - yy) < 13)) continue;
     used.push([sx, yy]);
@@ -647,7 +650,11 @@ function draw(cv, sim, cam, st) {
     c.restore();
     c.fillStyle = wk === 'côté' ? '#7dd3fc' : '#d4dae2';
     c.font = '12px "Barlow", sans-serif';
-    c.fillText(`vent ${wk === 'faible' ? 'faible' : 'de ' + wk}${wk !== 'faible' && wk !== 'côté' ? ' ' + Math.round(Math.abs(hw) * 3.6) + ' km/h' : ''}`, hx + 20, 15);
+    c.fillText(
+      `vent ${wk === 'faible' ? 'faible' : 'de ' + wk}${wk !== 'faible' && wk !== 'côté' ? ' ' + Math.round(Math.abs(hw) * 3.6) + ' km/h' : ''}`,
+      hx + 20,
+      15
+    );
   }
   const cl = (CAMS.find(a => a[0] === cam) || [cam, 'Groupe choisi'])[1].replace(/^\S+ /, '');
   c.font = '600 14px "Barlow Semi Condensed", sans-serif';
@@ -663,7 +670,9 @@ function draw(cv, sim, cam, st) {
   }
   c.textBaseline = 'alphabetic';
   // bandeau d'événement (bas de l'image) : la dernière action marquante, pendant une minute et demie de course
-  const evL = (sim.skyEv || []).filter(e => sim.t - e.t <= 1.5 && (e.mine || e.fav || e.kind !== 'attaque')).slice(-1)[0];
+  const evL = (sim.skyEv || [])
+    .filter(e => sim.t - e.t <= 1.5 && (e.mine || e.fav || e.kind !== 'attaque'))
+    .slice(-1)[0];
   if (evL) {
     const S1 = SKY_EV[evL.kind] || SKY_EV.moment;
     const who = evL.id != null ? sim.runners.find(z => z.id === evL.id) : null;
@@ -720,7 +729,12 @@ function SkyCaption({ sim, G }) {
         : n === 1
           ? riderName(xs[0].r)
           : `Groupe de ${n}`;
-  const gap = G === H ? (pel !== H ? ` · ${boardGapTxt(sim, H, pel)} d'avance sur le peloton` : '') : ` · à ${boardGapTxt(sim, H, G)}`;
+  const gap =
+    G === H
+      ? pel !== H
+        ? ` · ${boardGapTxt(sim, H, pel)} d'avance sur le peloton`
+        : ''
+      : ` · à ${boardGapTxt(sim, H, G)}`;
   const work = [...new Set(xs.filter(x => x.work > 0).map(x => (x.team.player ? 'votre équipe' : x.team.short)))];
   const mine = xs.filter(x => x.player);
   const favs = xs.filter(x => !x.player && sim.favs.has(x.id)).slice(0, 3);
@@ -751,9 +765,13 @@ function SkyCaption({ sim, G }) {
       </div>
       {mine.length || favs.length ? (
         <div className="text-xs">
-          {mine.length ? <span className="text-pink-300">Vos coureurs : {mine.map(x => riderName(x.r)).join(', ')}</span> : null}
+          {mine.length ? (
+            <span className="text-pink-300">Vos coureurs : {mine.map(x => riderName(x.r)).join(', ')}</span>
+          ) : null}
           {mine.length && favs.length ? <span className="text-slate-500"> · </span> : null}
-          {favs.length ? <span className="text-slate-300">Favoris : {favs.map(x => riderName(x.r)).join(', ')}</span> : null}
+          {favs.length ? (
+            <span className="text-slate-300">Favoris : {favs.map(x => riderName(x.r)).join(', ')}</span>
+          ) : null}
         </div>
       ) : null}
       {ev ? (
@@ -791,7 +809,10 @@ function GapLadder({ sim, G0, onPick, chips }) {
   const more = L.length - rows.length;
   if (chips)
     return (
-      <div className="flex gap-1.5 overflow-x-auto border-t border-slate-800 px-3 py-2" aria-label="Écarts entre les groupes">
+      <div
+        className="flex gap-1.5 overflow-x-auto border-t border-slate-800 px-3 py-2"
+        aria-label="Écarts entre les groupes"
+      >
         {rows.map(r => (
           <button
             key={grpKey(r.G)}
@@ -835,7 +856,11 @@ function GapLadder({ sim, G0, onPick, chips }) {
           <span className={'font-display text-[13px] ' + (r.G === H ? 'text-sky-400' : 'text-slate-200')}>{r.gap}</span>
         </button>
       ))}
-      {more > 0 ? <div className="px-2 py-1 text-[11px] text-slate-500">et {more} autre{more > 1 ? 's' : ''} groupe{more > 1 ? 's' : ''}</div> : null}
+      {more > 0 ? (
+        <div className="px-2 py-1 text-[11px] text-slate-500">
+          et {more} autre{more > 1 ? 's' : ''} groupe{more > 1 ? 's' : ''}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -872,20 +897,47 @@ function StageProfileLive({ sim, G0, onPick, lite }) {
   return (
     <div className="border-t border-slate-800 px-3 pb-2 pt-1">
       <div className="relative">
-        <svg viewBox="0 0 1000 62" preserveAspectRatio="none" className="block h-16 w-full" aria-label="Profil de l'étape">
+        <svg
+          viewBox="0 0 1000 62"
+          preserveAspectRatio="none"
+          className="block h-16 w-full"
+          aria-label="Profil de l'étape"
+        >
           <path d={d + `L${X(D)} 58 L0 58 Z`} fill="#262d3a" />
           <path d={d} fill="none" stroke="#6b7686" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
           {(sim.klimbs || []).map((c, i) => {
             let p = '';
             const a = Math.floor(c.start / STEP),
               b = Math.min(n - 1, Math.ceil(c.end / STEP));
-            for (let k = a; k <= b; k++) p += (k === a ? 'M' : 'L') + X(k * STEP).toFixed(1) + ' ' + Y(P.alt[k]).toFixed(1);
-            return <path key={i} d={p} fill="none" stroke="#e5484d" strokeWidth="2.5" vectorEffect="non-scaling-stroke" />;
+            for (let k = a; k <= b; k++)
+              p += (k === a ? 'M' : 'L') + X(k * STEP).toFixed(1) + ' ' + Y(P.alt[k]).toFixed(1);
+            return (
+              <path key={i} d={p} fill="none" stroke="#e5484d" strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
+            );
           })}
           {ticks.map(k => (
-            <line key={k} x1={X(D - k)} x2={X(D - k)} y1="0" y2="58" stroke="#2f3847" strokeDasharray="2 3" vectorEffect="non-scaling-stroke" />
+            <line
+              key={k}
+              x1={X(D - k)}
+              x2={X(D - k)}
+              y1="0"
+              y2="58"
+              stroke="#2f3847"
+              strokeDasharray="2 3"
+              vectorEffect="non-scaling-stroke"
+            />
           ))}
-          {sim.isp ? <line x1={X(sim.isp.at)} x2={X(sim.isp.at)} y1={Y(altAt(sim.isp.at)) - 6} y2="58" stroke="#3dbe7a" strokeWidth="2" vectorEffect="non-scaling-stroke" /> : null}
+          {sim.isp ? (
+            <line
+              x1={X(sim.isp.at)}
+              x2={X(sim.isp.at)}
+              y1={Y(altAt(sim.isp.at)) - 6}
+              y2="58"
+              stroke="#3dbe7a"
+              strokeWidth="2"
+              vectorEffect="non-scaling-stroke"
+            />
+          ) : null}
         </svg>
         {/* (repères et groupes en HTML : nets à toutes les tailles, et cliquables) */}
         {(sim.klimbs || [])
@@ -912,7 +964,10 @@ function StageProfileLive({ sim, G0, onPick, lite }) {
               title={`${grpName(G, role, k)}${k > 1 ? ' (' + k + ')' : ''} · km ${Math.round(G.pos)}${me ? ' · vos coureurs' : ''}`}
               aria-label={`Filmer : ${grpName(G, role, k)}, kilomètre ${Math.round(G.pos)}`}
               onClick={() => onPick(G)}
-              className={'absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-slate-950 ' + (G === G0 ? 'ring-2 ring-sky-400' : '')}
+              className={
+                'absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-slate-950 ' +
+                (G === G0 ? 'ring-2 ring-sky-400' : '')
+              }
               style={{
                 left: X(G.pos) / 10 + '%',
                 top: (Y(altAt(G.pos)) / 62) * 64 + 'px',

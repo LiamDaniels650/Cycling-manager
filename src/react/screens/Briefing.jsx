@@ -52,8 +52,8 @@ function Gear({ rc, spec }) {
       {spec.wx === 'chaleur' ? (
         <div className="mt-1 text-xs text-slate-300">
           🥵 Acclimatés à la chaleur (chambre chaude) :{' '}
-          {(rc.sel[0] || []).filter(id => S.riders[id].heatAcc > 0).length}/{(rc.sel[0] || []).length} — la chaleur les use
-          moitié moins.
+          {(rc.sel[0] || []).filter(id => S.riders[id].heatAcc > 0).length}/{(rc.sel[0] || []).length} — la chaleur les
+          use moitié moins.
         </div>
       ) : null}
       <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -181,7 +181,8 @@ function Orders({ rc, spec, ids }) {
                     />
                     <span className="mt-0.5 block text-xs text-slate-400">
                       {TT_PACE[TT_PACE[o.itt] ? o.itt : 'gerer'].d} Conseil de l'adjoint :{' '}
-                      {TT_PACE[ttAdvice(r, rc.specs[rc.si], buildProfile(rc.specs[rc.si]), 'leader')].lbl.toLowerCase()}.
+                      {TT_PACE[ttAdvice(r, rc.specs[rc.si], buildProfile(rc.specs[rc.si]), 'leader')].lbl.toLowerCase()}
+                      .
                     </span>
                   </span>
                 ) : (
@@ -436,7 +437,10 @@ export function Briefing() {
           <div className="text-sm text-slate-400">{spec.name}</div>
         </div>
         <div className="flex gap-2">
-          <Btn onClick={() => briefAuto()} title="L'adjoint règle consignes, plan de course, matériel et ravitaillement">
+          <Btn
+            onClick={() => briefAuto()}
+            title="L'adjoint règle consignes, plan de course, matériel et ravitaillement"
+          >
             🧑‍💼 Tout régler en auto
           </Btn>
           <Btn primary className="hidden lg:inline-flex" onClick={() => startStage()}>

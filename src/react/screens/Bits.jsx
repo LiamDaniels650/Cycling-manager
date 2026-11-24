@@ -155,8 +155,9 @@ export function WorldsCard({ i }) {
       <Info>
         {oly
           ? `Les Jeux olympiques se courent par sélections nationales (${S.cal[i].per} coureurs par pays au plus) : médailles d'or, d'argent et de bronze, primes du sponsor pour vos médaillés.`
-          : 'Les Mondiaux se courent par sélections nationales : chaque sélectionneur retient ses meilleurs coureurs pour ce parcours.'} Vous pouvez demander un rôle pour vos coureurs retenus ; le rôle de leader n'est accordé qu'aux deux
-        meilleurs de leur sélection.
+          : 'Les Mondiaux se courent par sélections nationales : chaque sélectionneur retient ses meilleurs coureurs pour ce parcours.'}{' '}
+        Vous pouvez demander un rôle pour vos coureurs retenus ; le rôle de leader n'est accordé qu'aux deux meilleurs
+        de leur sélection.
       </Info>
       {pv.length ? (
         <div className="mt-1 space-y-2">

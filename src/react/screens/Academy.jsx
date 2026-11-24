@@ -377,11 +377,14 @@ function DevTeam() {
             <b>{devName()}</b> · créée en {S.dev.s} · entretien {fmtMoney(DEV.upk)} par saison.
           </p>
           <ul className="mt-2 list-disc pl-5 text-sm text-slate-300">
-            <li>{DEV.places} places de plus à l'académie ({acaMax()} au total)</li>
+            <li>
+              {DEV.places} places de plus à l'académie ({acaMax()} au total)
+            </li>
             <li>espoirs gardés jusqu'à {acaAgeOut() - 1} ans révolus</li>
             <li>
-              deux espoirs de 19 ans et plus peuvent courir avec les pros sur les courses de deuxième catégorie, toute la
-              saison ({elig.length} éligible{elig.length > 1 ? 's' : ''} : {elig.map(r => riderName(r)).join(', ') || 'aucun'})
+              deux espoirs de 19 ans et plus peuvent courir avec les pros sur les courses de deuxième catégorie, toute
+              la saison ({elig.length} éligible{elig.length > 1 ? 's' : ''} :{' '}
+              {elig.map(r => riderName(r)).join(', ') || 'aucun'})
             </li>
             <li>progression des espoirs +10 %</li>
           </ul>

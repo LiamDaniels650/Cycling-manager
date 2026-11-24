@@ -170,6 +170,14 @@ function toEnd() {
 function finishStageUI() {
   const rc = S.rc;
   UI.lastStage = { idx: rc.si - 1, sim: UI.sim };
+  // journal de partie, et de quoi rejouer l'étape qui vient de finir (signalement depuis le bilan d'étape)
+  if (UI.rec) {
+    UI.lastRec = { ...UI.rec, inputs: (UI.sim && UI.sim.rec) || [], t: UI.sim ? UI.sim.t : null, res: stageCheck(rc) };
+    journalStage(rc, rc.stageRes[rc.stageRes.length - 1], UI.rec.gc0);
+    const n = UI.lastRec.inputs.length;
+    if (n) journalAdd('ordres', `${rc.name}, étape ${rc.si} : ${n} ordre(s) donné(s) en course`);
+    UI.rec = null;
+  }
   UI.sim = null;
   save();
   render();
@@ -185,126 +193,13 @@ function grpLabel(sim, G, i) {
 function posLbl(p) {
   return p > 75 ? 'devant' : p > 45 ? 'milieu' : 'arrière';
 }
-function askUI(k) {
-  inSim(() => {
-    askAnswer(UI.sim, k, 'me');
-    UI.dirty = true;
-    renderLive();
-  });
-}
-function negoUI(k, id) {
-  inSim(() => {
-    const sim = UI.sim;
-    if (k === 'break') pactBreak(sim);
-    else UI.flashRace = '🤝 ' + negoAsk(sim, k, id);
-    UI.dirty = true;
-    renderLive();
-  });
-}
-function allyUI(k) {
-  inSim(() => allyUI0(k));
-}
-function allyUI0(k) {
-  const sim = UI.sim;
-  if (k === 'ask') UI.flashRace = '🤝 ' + allyRequest(sim);
-  else if (k === 'break') allyBreak(sim);
-  else allyDecide(sim, k);
-  UI.dirty = true;
-  renderLive();
-}
 function openRadio(id) {
   UI.markPick = null;
   UI.modal = { type: 'radio', id };
   renderModal();
 }
-function setMark(id, tid) {
-  const sim = UI.sim;
-  const x = sim.runners.find(y => y.id === id);
-  const nm = riderName(x.r);
-  const tg = riderName(S.riders[tid]);
-  if (obeyCheck(x, 'mark', sim)) {
-    x.markId = tid;
-    log(sim, `📻 → ${nm} : marque ${tg} — « ${radioReply(x, 'ok')} »`, 'me');
-  } else {
-    log(sim, `📻 → ${nm} : marque ${tg} — « ${radioReply(x, 'no')} »`, 'bad');
-  }
-  UI.markPick = null;
-  closeModal();
-  UI.dirty = true;
-  renderLive();
-}
-// Ordres radio collectifs.
-// Les ordres donnés pendant la course puisent dans la série de hasard de l'étape (étape rejouable).
 function inSim(fn) {
   return UI.sim && UI.sim.sd != null ? withSeed(UI.sim, fn) : fn();
-}
-function teamRadio(k) {
-  inSim(() => teamRadio0(k));
-}
-function teamRadio0(k) {
-  const sim = UI.sim;
-  const mine = sim.runners.filter(x => x.player && !x.fin && !x.dnf);
-  if (k === 'echelon') {
-    const e = tryEchelon(sim);
-    if (e) log(sim, '📻 ' + e, 'bad');
-    UI.dirty = true;
-    renderLive();
-    return;
-  }
-  let ok = 0,
-    no = 0;
-  for (const x of mine) {
-    const eo = x.order;
-    if ((k === 'chase' || k === 'stop') && (eo === 'leader' || eo === 'sprint')) continue;
-    if (k === 'reset') {
-      x.radio = null;
-      x.frontUntil = 0;
-      x.markId = null;
-      x.manual = false;
-      ok++;
-      continue;
-    }
-    if (k === 'chase' && x.energy < 15) {
-      no++;
-      continue;
-    }
-    if (obeyCheck(x, k === 'front' ? 'tempo' : k, sim)) {
-      if (k === 'front') x.frontUntil = sim.t + 20;
-      else x.radio = k;
-      x.manual = true;
-      ok++;
-    } else {
-      no++;
-      x.r.stats.disob++;
-      (sim.refusals = sim.refusals || new Set()).add(x.id);
-    }
-  }
-  const L = {
-    chase: 'tout le monde roule',
-    stop: 'on arrête de rouler',
-    front: 'tout le monde se place devant',
-    reset: 'retour aux consignes',
-  };
-  log(sim, `📻 → Équipe : ${L[k]} — ${ok} ok${no ? `, ${no} refus` : ''}.`, no ? 'bad' : 'me');
-  UI.dirty = true;
-  renderLive();
-}
-function sendRadio(id, k) {
-  inSim(() => sendRadio0(id, k));
-}
-function sendRadio0(id, k) {
-  const sim = UI.sim;
-  const x = sim.runners.find(y => y.id === id);
-  if (!x || x.fin || x.dnf) return closeModal();
-  if (k === 'mark') {
-    UI.markPick = id;
-    renderModal();
-    return;
-  }
-  applyRadio(sim, x, k, 'user');
-  closeModal();
-  UI.dirty = true;
-  renderLive();
 }
 // W/kg de celui qui mène le groupe (le relayeur le plus sollicité).
 function groupWkg(G) {
@@ -335,4 +230,48 @@ function jersey(id) {
   }
   const e = UI.jer.j[id];
   return e ? ` <span title="maillot distinctif">${e}</span>` : '';
+}
+
+// Actions du joueur pendant l'étape : toutes passent par liveAct (79-journal.js), dans la série de hasard de l'étape
+// et notées avec l'instant de la course (étape rejouable à l'identique, rapport « Signaler »).
+function liveDo(a) {
+  const sim = UI.sim;
+  if (!sim) return;
+  const fl = liveAct(sim, a);
+  if (fl) UI.flashRace = fl;
+  UI.dirty = true;
+  renderLive();
+}
+function askUI(k) {
+  liveDo({ n: 'ask', k });
+}
+function negoUI(k, id) {
+  liveDo({ n: 'nego', k, y: id });
+}
+function allyUI(k) {
+  liveDo({ n: 'ally', k });
+}
+function setMark(id, tid) {
+  UI.markPick = null;
+  closeModal();
+  liveDo({ n: 'mark', id, tid });
+}
+function teamRadio(k) {
+  liveDo({ n: 'team', k });
+}
+function sendRadio(id, k) {
+  const sim = UI.sim;
+  const x = sim && sim.runners.find(y => y.id === id);
+  if (!x || x.fin || x.dnf) return closeModal();
+  if (k === 'mark') {
+    UI.markPick = id;
+    renderModal();
+    return;
+  }
+  closeModal();
+  liveDo({ n: 'radio', id, k });
+}
+// Ordres de final (sprint, côte) : auto, ou plan choisi.
+function finalUI(id, k, v) {
+  liveDo(k === 'auto' ? { n: 'final', id, k, mode: v } : { n: 'final', id, k, plan: v });
 }

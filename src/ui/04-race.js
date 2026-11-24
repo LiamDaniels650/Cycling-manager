@@ -65,7 +65,20 @@ function startStage() {
   const spec = rc.specs[rc.si];
   if (isITT(spec) || isTTT(spec)) {
     const before = rc.si;
+    const snap = JSON.stringify({ S, sd: _sd, rid: _rid });
+    const gc0 = { ...rc.gc };
     runStageAuto(rc); // contre-la-montre : même série de hasard que hors interface
+    UI.lastRec = {
+      snap,
+      autoDS: !!UI.autoDS,
+      gc0,
+      name: rc.name,
+      si: before,
+      inputs: [],
+      t: null,
+      res: stageCheck(rc),
+    };
+    journalStage(rc, rc.stageRes[rc.stageRes.length - 1], gc0);
     UI.lastStage = { idx: before, itt: true, ttt: isTTT(spec) };
     save();
     render();
@@ -84,6 +97,15 @@ function startStage() {
       rc.planStage = rc.si;
     }
   }
+  // état au départ de l'étape (en mémoire seulement) : avec les actions notées pendant l'étape, de quoi la rejouer
+  // à l'identique hors du jeu (rapport « Signaler », tools/replay.js)
+  UI.rec = {
+    snap: JSON.stringify({ S, sd: _sd, rid: _rid }),
+    autoDS: !!UI.autoDS,
+    gc0: { ...rc.gc },
+    name: rc.name,
+    si: rc.si,
+  };
   UI.sim = newStageSim(rc);
   UI.hlSeen = 0;
   UI.momSeen = 0;

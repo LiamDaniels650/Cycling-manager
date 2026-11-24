@@ -15,7 +15,9 @@ function Tabs() {
           onClick={() => ((UI.calTab = k), render())}
           className={
             'min-h-10 text-sm font-medium ' +
-            ((UI.calTab || 'cal') === k ? 'text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]' : 'text-slate-400 hover:text-slate-100')
+            ((UI.calTab || 'cal') === k
+              ? 'text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]'
+              : 'text-slate-400 hover:text-slate-100')
           }
         >
           {l}

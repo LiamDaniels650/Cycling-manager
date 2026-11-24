@@ -71,27 +71,26 @@ function RiderLive({ sim, x, front, compact }) {
         avg != null ? (
           <div className="mt-1 text-xs text-slate-400">⚡ moy. {avg} W</div>
         ) : null
-      ) : (
-        compact ? (
-          // téléphone : les trois jauges sur une seule ligne
-          <div className="mt-1.5 grid grid-cols-3 gap-2 text-[11px] text-slate-400">
-            {[
-              ['Fond', x.energy, 'bg-emerald-400'],
-              ['Jus', x.punch, 'bg-cyan-400'],
-              ['Alim.', x.food, 'bg-amber-400'],
-            ].map(([l, v, c]) => (
-              <span key={l}>
-                <span className="flex justify-between">
-                  {l}
-                  <b className={'tabular-nums ' + (v < 25 ? 'text-rose-300' : 'text-slate-200')}>{Math.round(v)}</b>
-                </span>
-                <span className="mt-0.5 block h-1.5 overflow-hidden rounded-full bg-slate-700">
-                  <span className={'block h-full ' + c} style={{ width: clamp(v, 0, 100) + '%' }} />
-                </span>
+      ) : compact ? (
+        // téléphone : les trois jauges sur une seule ligne
+        <div className="mt-1.5 grid grid-cols-3 gap-2 text-[11px] text-slate-400">
+          {[
+            ['Fond', x.energy, 'bg-emerald-400'],
+            ['Jus', x.punch, 'bg-cyan-400'],
+            ['Alim.', x.food, 'bg-amber-400'],
+          ].map(([l, v, c]) => (
+            <span key={l}>
+              <span className="flex justify-between">
+                {l}
+                <b className={'tabular-nums ' + (v < 25 ? 'text-rose-300' : 'text-slate-200')}>{Math.round(v)}</b>
               </span>
-            ))}
-          </div>
-        ) : (
+              <span className="mt-0.5 block h-1.5 overflow-hidden rounded-full bg-slate-700">
+                <span className={'block h-full ' + c} style={{ width: clamp(v, 0, 100) + '%' }} />
+              </span>
+            </span>
+          ))}
+        </div>
+      ) : (
         <>
           <div className="mt-2 space-y-1">
             <Meter icon="battery" label="Fond" v={x.energy} color="bg-emerald-400" />
@@ -109,7 +108,6 @@ function RiderLive({ sim, x, front, compact }) {
             {x.pocket ? ` · 🍫 ${x.pocket} barre${x.pocket > 1 ? 's' : ''}` : ''}
           </div>
         </>
-        )
       )}
     </div>
   );
@@ -171,7 +169,8 @@ function AllyOffer({ sim }) {
         </div>
         <div className="mt-1 text-xs text-slate-400">
           Accepter améliore vos relations avec eux ; refuser les froisse. Sans réponse dans{' '}
-          {Math.max(0, Math.round((sim.allyOffer.exp - sim.t) * 60))} s, {adjName()} tranchera selon l'intérêt de l'équipe.
+          {Math.max(0, Math.round((sim.allyOffer.exp - sim.t) * 60))} s, {adjName()} tranchera selon l'intérêt de
+          l'équipe.
         </div>
       </div>
     );

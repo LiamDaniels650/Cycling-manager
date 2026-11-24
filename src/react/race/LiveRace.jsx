@@ -127,7 +127,10 @@ function LiveMobile({ sim, rc, frac }) {
   const alertTeam = sim.runners.some(x => x.player && !x.fin && !x.dnf && (x.hungry || x.bonk));
   const nLog = sim.log.length;
   if (tab === 'radio') UI.liveLogSeen = nLog;
-  const newRadio = tab !== 'radio' && nLog > (UI.liveLogSeen || 0) && sim.log.slice(UI.liveLogSeen || 0).some(l => l.cls === 'me' || l.cls === 'bad');
+  const newRadio =
+    tab !== 'radio' &&
+    nLog > (UI.liveLogSeen || 0) &&
+    sim.log.slice(UI.liveLogSeen || 0).some(l => l.cls === 'me' || l.cls === 'bad');
   const go = k => ((UI.liveTab = k), renderLive());
   return (
     <div className="space-y-2 pb-36">
@@ -149,7 +152,9 @@ function LiveMobile({ sim, rc, frac }) {
               onClick={() => go(k)}
               className={
                 'relative min-h-10 rounded-md px-1 text-[12px] font-semibold leading-tight ' +
-                (tab === k ? 'bg-slate-800 text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]' : 'bg-slate-900 text-slate-400')
+                (tab === k
+                  ? 'bg-slate-800 text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]'
+                  : 'bg-slate-900 text-slate-400')
               }
             >
               {l}

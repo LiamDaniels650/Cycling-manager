@@ -1,9 +1,11 @@
 // Briques d'interface partagées : cartes, boutons tactiles, jauges, pastilles d'équipe, liens vers les fiches.
+import { useState } from 'react';
 import { Icon } from './icons.jsx';
 
 // Émoji de tête d'un titre ou d'un bouton : retiré (la navigation et les titres n'ont plus d'émojis ; ils restent
 // dans les textes de la radio et des commentaires, où ils racontent quelque chose).
-const LEAD_EMOJI = /^(?:[\u{1F1E6}-\u{1F1FF}]{2}|\p{Extended_Pictographic}[\u{FE0F}\u{200D}\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}]*)\s+/u;
+const LEAD_EMOJI =
+  /^(?:[\u{1F1E6}-\u{1F1FF}]{2}|\p{Extended_Pictographic}[\u{FE0F}\u{200D}\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}]*)\s+/u;
 export function noLead(c) {
   if (typeof c === 'string') return c.replace(LEAD_EMOJI, '');
   if (Array.isArray(c) && c.length > 1 && typeof c[0] === 'string') {
@@ -40,7 +42,12 @@ export function Btn({ children, onClick, primary, active, danger, disabled, titl
         ? 'bg-slate-800 text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]'
         : 'bg-slate-800 text-slate-100 ring-1 ring-slate-700 hover:bg-slate-700';
   // bouton de l'adjoint (🧑‍💼 en tête) : son icône, et un repère pour les tests
-  const first = typeof children === 'string' ? children : Array.isArray(children) && typeof children[0] === 'string' ? children[0] : '';
+  const first =
+    typeof children === 'string'
+      ? children
+      : Array.isArray(children) && typeof children[0] === 'string'
+        ? children[0]
+        : '';
   const asst = first.startsWith('🧑');
   return (
     <button
@@ -335,5 +342,58 @@ export function Pills({ items }) {
         </span>
       ))}
     </span>
+  );
+}
+
+// « Signaler » : décrire ce qui semble faux ; le rapport (moment, étape rejouable, journal) est proposé au
+// téléchargement (05-office.js : reportExport), à envoyer pour que la situation soit rejouée et corrigée.
+export function SignalButton({ compact = false, label = 'Signaler' }) {
+  const [open, setOpen] = useState(false);
+  const [txt, setTxt] = useState('');
+  if (!open)
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          // en course : pause, pour que le moment signalé soit celui-ci (et pas celui de la fin de la saisie)
+          if (UI.sim && UI.speed) setSpeed(0);
+          setOpen(true);
+        }}
+        title="Quelque chose vous semble faux ? Signalez-le : la situation pourra être rejouée à l'identique et corrigée."
+        className={
+          'inline-flex min-h-9 items-center gap-1 rounded-lg border border-slate-700 bg-slate-900 px-2.5 text-xs font-semibold text-slate-300 hover:border-rose-400/60 hover:text-rose-200 ' +
+          (compact ? '' : 'sm:text-sm')
+        }
+      >
+        🚩 {label}
+      </button>
+    );
+  return (
+    <div className="w-full space-y-1.5 rounded-xl border border-rose-400/40 bg-slate-900 p-2.5">
+      <div className="text-xs text-slate-300">
+        Qu'est-ce qui vous semble faux ? (le moment, l'étape et vos ordres sont joints au rapport)
+      </div>
+      <textarea
+        autoFocus
+        rows={2}
+        value={txt}
+        onChange={e => setTxt(e.target.value)}
+        placeholder="Ex. : mon leader a perdu une minute alors que le peloton était groupé…"
+        className="w-full min-w-0 rounded-lg border border-slate-700 bg-slate-800 p-2 text-sm text-slate-100"
+      />
+      <div className="flex gap-2">
+        <Btn
+          primary
+          onClick={() => {
+            setOpen(false);
+            setTxt('');
+            reportExport(txt);
+          }}
+        >
+          🚩 Enregistrer le signalement
+        </Btn>
+        <Btn onClick={() => setOpen(false)}>Annuler</Btn>
+      </div>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 // Options et écran de démarrage (portage fidèle de viewOpt, showBackups, copySave, startScreen, newGameUI,
 // doImport, guideCard et tipCard) : sauvegardes, mode essentiel, nom de l'équipe, nouvelle partie, guide.
 import { useEffect, useRef, useState } from 'react';
-import { Card, Btn, Html } from '../ui.jsx';
+import { Card, Btn, Html, SignalButton } from '../ui.jsx';
 
 const INPUT = 'min-h-11 w-full min-w-0 rounded-xl border border-slate-700 bg-slate-800 px-3 text-base text-slate-100';
 const AREA = 'w-full min-w-0 rounded-xl border border-slate-700 bg-slate-800 p-2 text-sm text-slate-100';
@@ -363,6 +363,42 @@ function Import({ txt, setTxt, rows = 3, placeholder }) {
     </>
   );
 }
+// Journal de partie (départs et bilans d'étape, ordres, signalements) et bouton de signalement hors course.
+function Journal() {
+  const [all, setAll] = useState(false);
+  const J = (S.journal || []).slice().reverse();
+  const show = all ? J : J.slice(0, 12);
+  return (
+    <Card title="Journal de partie">
+      <p className="text-xs text-slate-400">
+        Le fil de vos étapes et de vos ordres. Si quelque chose vous semble faux, signalez-le : le rapport contient de
+        quoi rejouer l’étape à l’identique pour comprendre ce qui s’est passé.
+      </p>
+      <div className="my-2">
+        <SignalButton label="Signaler un problème" />
+      </div>
+      {show.length ? (
+        <ul className="space-y-1 text-xs text-slate-300">
+          {show.map((e, i) => (
+            <li key={i}>
+              <span className="text-slate-500">
+                S{e.s} · sem. {e.w}
+              </span>{' '}
+              {e.txt}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-slate-500">Rien encore : le journal se remplit au fil des courses.</p>
+      )}
+      {J.length > 12 && (
+        <Btn className="mt-2" onClick={() => setAll(!all)}>
+          {all ? 'Réduire' : `Tout afficher (${J.length})`}
+        </Btn>
+      )}
+    </Card>
+  );
+}
 export function Options() {
   const [txt, setTxt] = useState('');
   const [copyLbl, setCopyLbl] = useState('📋 Copier la sauvegarde');
@@ -426,6 +462,7 @@ export function Options() {
         </label>
         <Import txt={txt} setTxt={setTxt} placeholder="…ou collez une sauvegarde ici pour l'importer" />
       </Card>
+      <Journal />
       <Card title="Jeu">
         <label className="flex min-h-11 items-center gap-2 text-sm text-slate-100">
           <input

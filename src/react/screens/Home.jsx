@@ -149,11 +149,26 @@ export function RaceSilhouette({ spec, h = 70 }) {
   });
   const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
   return (
-    <svg viewBox={`0 0 ${W} ${h}`} preserveAspectRatio="none" className="block w-full" style={{ height: h }} aria-hidden="true">
+    <svg
+      viewBox={`0 0 ${W} ${h}`}
+      preserveAspectRatio="none"
+      className="block w-full"
+      style={{ height: h }}
+      aria-hidden="true"
+    >
       <path d={`${d} L${W} ${h} L0 ${h} Z`} fill="#2f3847" />
       <path d={d} fill="none" stroke="#f2c94c" strokeWidth="2" vectorEffect="non-scaling-stroke" />
       {spec.slice(1).map((_, i) => (
-        <line key={i} x1={((i + 1) / n) * W} x2={((i + 1) / n) * W} y1="0" y2={h} stroke="#171b22" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+        <line
+          key={i}
+          x1={((i + 1) / n) * W}
+          x2={((i + 1) / n) * W}
+          y1="0"
+          y2={h}
+          stroke="#171b22"
+          strokeWidth="2"
+          vectorEffect="non-scaling-stroke"
+        />
       ))}
     </svg>
   );
@@ -222,7 +237,11 @@ export function RivalsTable({ rows }) {
 }
 function Kv({ k, v, onClick, neg }) {
   return (
-    <button type="button" onClick={onClick} className="flex w-full items-baseline justify-between gap-2 py-1 text-left text-sm">
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-baseline justify-between gap-2 py-1 text-left text-sm"
+    >
       <span className="text-slate-400">{k}</span>
       <b className={'font-display text-lg ' + (neg ? 'text-rose-400' : 'text-slate-50')}>{v}</b>
     </button>
@@ -260,7 +279,9 @@ export function Home() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-display text-sm font-semibold text-sky-400">
-                    {c.w > S.week ? `Dans ${c.w - S.week} semaine${c.w - S.week > 1 ? 's' : ''} · semaine ${c.w}` : `Cette semaine · semaine ${c.w}`}
+                    {c.w > S.week
+                      ? `Dans ${c.w - S.week} semaine${c.w - S.week > 1 ? 's' : ''} · semaine ${c.w}`
+                      : `Cette semaine · semaine ${c.w}`}
                   </div>
                   <h2 className="font-display text-2xl font-bold leading-tight text-slate-50 md:text-3xl">{c.name}</h2>
                   <div className="text-sm text-slate-400">
@@ -273,7 +294,10 @@ export function Home() {
               <div className="my-3">
                 <RaceSilhouette spec={c.stagesSpec} />
                 {nStages > 1 && nStages <= 10 ? (
-                  <div className="mt-1 hidden text-center text-[11px] text-slate-400 md:grid" style={{ gridTemplateColumns: `repeat(${nStages}, minmax(0, 1fr))` }}>
+                  <div
+                    className="mt-1 hidden text-center text-[11px] text-slate-400 md:grid"
+                    style={{ gridTemplateColumns: `repeat(${nStages}, minmax(0, 1fr))` }}
+                  >
                     {c.stagesSpec.map(([t], k) => (
                       <span key={k} className={['montagne', 'sommet'].includes(t) ? 'text-rose-300' : ''}>
                         {typeLbl(t).toLowerCase()}
@@ -298,14 +322,28 @@ export function Home() {
       <aside className="min-w-0 space-y-6 lg:border-l lg:border-slate-800 lg:pl-5">
         <section>
           <h3 className="mb-1 font-display text-lg font-semibold text-slate-300">Situation</h3>
-          <Kv k="Classement UCI" v={S.teams.some(t => t.uci) ? rk + 'e' : '—'} onClick={() => ((UI.stats = 'rivals'), go('stats'))} />
+          <Kv
+            k="Classement UCI"
+            v={S.teams.some(t => t.uci) ? rk + 'e' : '—'}
+            onClick={() => ((UI.stats = 'rivals'), go('stats'))}
+          />
           <Kv k="Victoires" v={seasonWins(0)} onClick={() => ((UI.stats = 'season'), go('stats'))} />
           <Kv k="Objectifs du sponsor" v={`${objOk} / ${(S.obj || []).length}`} onClick={() => go('mgmt')} />
           <Kv k="Budget" v={fmtMoney(S.budget)} neg={S.budget < 0} onClick={() => go('fin')} />
           <Gauge k="Confiance du sponsor" v={S.conf} tone="bg-sky-500" />
-          {S.board && !S.car ? <Gauge k={`Confiance du président${S.board.v ? ` (${VISIONS[S.board.v].lbl.toLowerCase()})` : ''}`} v={S.board.t} tone="bg-amber-300" /> : null}
+          {S.board && !S.car ? (
+            <Gauge
+              k={`Confiance du président${S.board.v ? ` (${VISIONS[S.board.v].lbl.toLowerCase()})` : ''}`}
+              v={S.board.t}
+              tone="bg-amber-300"
+            />
+          ) : null}
           <Gauge k={`Notoriété (${repLabel(repOf()).toLowerCase()})`} v={repOf()} tone="bg-slate-300" />
-          <Gauge k="Ambiance du vestiaire" v={mood} tone={mood >= 55 ? 'bg-emerald-400' : mood >= 40 ? 'bg-sky-500' : 'bg-rose-500'} />
+          <Gauge
+            k="Ambiance du vestiaire"
+            v={mood}
+            tone={mood >= 55 ? 'bg-emerald-400' : mood >= 40 ? 'bg-sky-500' : 'bg-rose-500'}
+          />
           <div className="mt-3 text-sm text-slate-300">
             Image :{' '}
             <button type="button" className="underline decoration-dotted" onClick={() => go('mgmt')}>
@@ -317,7 +355,11 @@ export function Home() {
         <section>
           <div className="mb-1 flex items-baseline justify-between">
             <h3 className="font-display text-lg font-semibold text-slate-300">Rivaux</h3>
-            <button type="button" className="text-sm text-slate-400 underline" onClick={() => ((UI.stats = 'rivals'), go('stats'))}>
+            <button
+              type="button"
+              className="text-sm text-slate-400 underline"
+              onClick={() => ((UI.stats = 'rivals'), go('stats'))}
+            >
               Détail
             </button>
           </div>
@@ -352,14 +394,23 @@ export function Home() {
             </button>
           </div>
           <p className="text-sm text-slate-300">
-            {Object.keys(AUTO_LBL).filter(k => (S.auto || {})[k]).length} domaines sur {Object.keys(AUTO_LBL).length} délégués
-            (entraînement, contrats, recrutement, académie…).
+            {Object.keys(AUTO_LBL).filter(k => (S.auto || {})[k]).length} domaines sur {Object.keys(AUTO_LBL).length}{' '}
+            délégués (entraînement, contrats, recrutement, académie…).
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
-            <Btn onClick={() => (Object.keys(AUTO_LBL).forEach(k => setAuto(k, true)), save(), (UI.flash = "L'adjoint gère désormais tous les domaines. Vous gardez les courses en main."), render())}>
+            <Btn
+              onClick={() => (
+                Object.keys(AUTO_LBL).forEach(k => setAuto(k, true)),
+                save(),
+                (UI.flash = "L'adjoint gère désormais tous les domaines. Vous gardez les courses en main."),
+                render()
+              )}
+            >
               Tout déléguer
             </Btn>
-            <Btn onClick={() => (Object.keys(AUTO_LBL).forEach(k => setAuto(k, false)), save(), render())}>Tout reprendre</Btn>
+            <Btn onClick={() => (Object.keys(AUTO_LBL).forEach(k => setAuto(k, false)), save(), render())}>
+              Tout reprendre
+            </Btn>
           </div>
         </section>
         {news.length ? (
@@ -371,7 +422,10 @@ export function Home() {
               </button>
             </div>
             {news.map(m => (
-              <div key={m.id} className={'border-b border-slate-800 py-2 text-sm ' + (m.read ? 'text-slate-400' : 'text-slate-100')}>
+              <div
+                key={m.id}
+                className={'border-b border-slate-800 py-2 text-sm ' + (m.read ? 'text-slate-400' : 'text-slate-100')}
+              >
                 {m.title}
                 <span className="block text-xs text-slate-500">Semaine {m.w}</span>
               </div>

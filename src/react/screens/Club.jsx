@@ -32,22 +32,39 @@ export function Scouting() {
     <div className="space-y-3">
       <Card title="Envoyer un recruteur">
         <p className="mb-3 text-sm text-slate-300">
-          Décrivez le coureur cherché : vos recruteurs parcourent la zone pendant {scmWeeks()} semaines et reviennent avec
-          les cinq meilleurs profils, une recommandation pour chacun et des estimations plus justes. {scmMax()} mission
-          {scmMax() > 1 ? 's' : ''} à la fois avec votre chef recruteur (niveau {S.staff.scout}) ; frais {fmtMoney(SCM_COST)}.
+          Décrivez le coureur cherché : vos recruteurs parcourent la zone pendant {scmWeeks()} semaines et reviennent
+          avec les cinq meilleurs profils, une recommandation pour chacun et des estimations plus justes. {scmMax()}{' '}
+          mission
+          {scmMax() > 1 ? 's' : ''} à la fois avec votre chef recruteur (niveau {S.staff.scout}) ; frais{' '}
+          {fmtMoney(SCM_COST)}.
         </p>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           <label className="text-xs text-slate-400">
             Zone
-            <Select className="mt-1 w-full" value={F.zone} onChange={v => set('zone', v)} options={Object.entries(SCM_ZONES).map(([k, z]) => [k, z.lbl])} />
+            <Select
+              className="mt-1 w-full"
+              value={F.zone}
+              onChange={v => set('zone', v)}
+              options={Object.entries(SCM_ZONES).map(([k, z]) => [k, z.lbl])}
+            />
           </label>
           <label className="text-xs text-slate-400">
             Profil
-            <Select className="mt-1 w-full" value={F.arch} onChange={v => set('arch', v)} options={[['', 'Tous profils'], ...Object.entries(ARCH).map(([k, a]) => [k, a.lbl])]} />
+            <Select
+              className="mt-1 w-full"
+              value={F.arch}
+              onChange={v => set('arch', v)}
+              options={[['', 'Tous profils'], ...Object.entries(ARCH).map(([k, a]) => [k, a.lbl])]}
+            />
           </label>
           <label className="text-xs text-slate-400">
             Âge
-            <Select className="mt-1 w-full" value={F.age} onChange={v => set('age', v)} options={Object.entries(SCM_AGES).map(([k, a]) => [k, a.lbl])} />
+            <Select
+              className="mt-1 w-full"
+              value={F.age}
+              onChange={v => set('age', v)}
+              options={Object.entries(SCM_AGES).map(([k, a]) => [k, a.lbl])}
+            />
           </label>
           <label className="text-xs text-slate-400">
             Salaire maximal
@@ -60,11 +77,18 @@ export function Scouting() {
           </label>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <Btn primary disabled={C.m.length >= scmMax() || S.budget < SCM_COST} onClick={() => act(() => scmStart(F.zone, F.arch, F.age, +F.sal))}>
+          <Btn
+            primary
+            disabled={C.m.length >= scmMax() || S.budget < SCM_COST}
+            onClick={() => act(() => scmStart(F.zone, F.arch, F.age, +F.sal))}
+          >
             Lancer la mission
           </Btn>
           {C.m.map(m => (
-            <span key={m.id} className="inline-flex items-center gap-2 rounded-md bg-slate-800 px-2.5 py-1.5 text-xs text-slate-300">
+            <span
+              key={m.id}
+              className="inline-flex items-center gap-2 rounded-md bg-slate-800 px-2.5 py-1.5 text-xs text-slate-300"
+            >
               🔭 {scmLabel(m)} · encore {m.left} sem.
               <button type="button" className="text-slate-500 underline" onClick={() => act(() => scmCancel(m.id))}>
                 annuler
@@ -83,7 +107,9 @@ export function Scouting() {
                 onClick={() => ((UI.scmOpen = r.id), render())}
                 className={
                   'min-h-9 rounded-md px-2.5 text-left text-xs ring-1 ' +
-                  (r.id === open ? 'bg-slate-700 text-slate-50 ring-sky-400' : 'bg-slate-800 text-slate-300 ring-slate-700')
+                  (r.id === open
+                    ? 'bg-slate-700 text-slate-50 ring-sky-400'
+                    : 'bg-slate-800 text-slate-300 ring-slate-700')
                 }
               >
                 {!r.read ? <span className="mr-1 inline-block h-2 w-2 rounded-full bg-sky-400" /> : null}
@@ -106,7 +132,9 @@ function Report({ R0 }) {
         </div>
         <Btn onClick={() => act(() => scmWatchAll(R0.id))}>👁 Suivre les recommandés</Btn>
       </div>
-      {R0.items.length ? null : <p className="text-sm text-slate-400">Personne ne correspond à la demande : élargissez la recherche.</p>}
+      {R0.items.length ? null : (
+        <p className="text-sm text-slate-400">Personne ne correspond à la demande : élargissez la recherche.</p>
+      )}
       <div className="space-y-2">
         {R0.items.map(x => {
           const r = S.riders[x.id];
@@ -117,8 +145,11 @@ function Report({ R0 }) {
             <div key={x.id} className="rounded-md bg-slate-800/60 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <span className={'mr-2 rounded px-1.5 py-0.5 text-xs font-semibold ring-1 ' + REC_CLS[x.rec]}>{SCM_REC[x.rec].lbl}</span>
-                  <RiderLink r={r} /> <span className="text-xs text-slate-400">
+                  <span className={'mr-2 rounded px-1.5 py-0.5 text-xs font-semibold ring-1 ' + REC_CLS[x.rec]}>
+                    {SCM_REC[x.rec].lbl}
+                  </span>
+                  <RiderLink r={r} />{' '}
+                  <span className="text-xs text-slate-400">
                     {r.age} ans · {ARCH[r.arch].lbl} · {T ? T.short : 'libre'}
                   </span>
                 </div>
@@ -129,18 +160,31 @@ function Report({ R0 }) {
               </div>
               <div className="mt-1 text-xs text-slate-300">
                 Points forts : {x.fort.join(', ')} · point faible : {x.faible}
-                {x.mental ? <> · <b className="text-sky-200">{x.mental}</b></> : null}
+                {x.mental ? (
+                  <>
+                    {' '}
+                    · <b className="text-sky-200">{x.mental}</b>
+                  </>
+                ) : null}
               </div>
               <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
                 <span>
-                  {KIND_LBL[x.kind] || x.kind} · demande ≈ {fmtMoney(x.dem)}/an{x.fee ? ` · indemnité ≈ ${fmtMoney(x.fee)}` : ''}
+                  {KIND_LBL[x.kind] || x.kind} · demande ≈ {fmtMoney(x.dem)}/an
+                  {x.fee ? ` · indemnité ≈ ${fmtMoney(x.fee)}` : ''}
                   {x.cher ? <span className="text-amber-300"> · cher pour votre budget</span> : null}
                 </span>
                 <span className="flex gap-1.5">
-                  <Btn className="!min-h-8 !px-2.5 !text-xs" active={w} onClick={() => act(() => toggleWatch(r.id) || (w ? 'Retiré du suivi.' : 'Ajouté au suivi.'))}>
+                  <Btn
+                    className="!min-h-8 !px-2.5 !text-xs"
+                    active={w}
+                    onClick={() => act(() => toggleWatch(r.id) || (w ? 'Retiré du suivi.' : 'Ajouté au suivi.'))}
+                  >
                     {w ? '👁 Suivi' : '👁 Suivre'}
                   </Btn>
-                  <Btn className="!min-h-8 !px-2.5 !text-xs" onClick={() => ((UI.modal = { type: 'rider', id: r.id }), renderModal())}>
+                  <Btn
+                    className="!min-h-8 !px-2.5 !text-xs"
+                    onClick={() => ((UI.modal = { type: 'rider', id: r.id }), renderModal())}
+                  >
                     Fiche
                   </Btn>
                 </span>
@@ -158,14 +202,19 @@ export function Facilities() {
   facInit();
   const b = S.fac.b;
   return (
-    <Card title="Installations" right={<span className="text-sm text-slate-400">entretien {fmtMoney(facUpkeep())}/saison</span>}>
+    <Card
+      title="Installations"
+      right={<span className="text-sm text-slate-400">entretien {fmtMoney(facUpkeep())}/saison</span>}
+    >
       <p className="mb-2 text-sm text-slate-300">
-        Des chantiers qui coûtent cher et prennent des mois, pour un avantage durable. Un seul à la fois ; chaque niveau se
-        paie ensuite en entretien à la fin de chaque saison. La direction peut en financer la moitié (Gestion › Direction).
+        Des chantiers qui coûtent cher et prennent des mois, pour un avantage durable. Un seul à la fois ; chaque niveau
+        se paie ensuite en entretien à la fin de chaque saison. La direction peut en financer la moitié (Gestion ›
+        Direction).
       </p>
       {b ? (
         <div className="mb-3 rounded-md bg-slate-800/60 p-3 text-sm">
-          🏗️ En travaux : <b>{FAC[b.k].lbl}</b> ({FAC_LVL[b.l].toLowerCase()}) · encore {b.wk - b.n} semaine{b.wk - b.n > 1 ? 's' : ''}
+          🏗️ En travaux : <b>{FAC[b.k].lbl}</b> ({FAC_LVL[b.l].toLowerCase()}) · encore {b.wk - b.n} semaine
+          {b.wk - b.n > 1 ? 's' : ''}
           <div className="mt-2">
             <Gauge v={facProgress() * 100} tone="bg-amber-400" />
           </div>
@@ -228,7 +277,10 @@ export function Board() {
         </div>
       </Card>
       {B.v ? (
-        <Card title={`Projet : ${VISIONS[B.v].lbl}`} right={<span className="text-sm text-slate-400">saison {B.cyc.res.length + 1}/3</span>}>
+        <Card
+          title={`Projet : ${VISIONS[B.v].lbl}`}
+          right={<span className="text-sm text-slate-400">saison {B.cyc.res.length + 1}/3</span>}
+        >
           <p className="text-sm text-slate-300">{VISIONS[B.v].d}</p>
           {st ? (
             <div className="mt-3">
@@ -245,15 +297,25 @@ export function Board() {
             {[0, 1, 2].map(i => {
               const r = B.cyc.res[i];
               return (
-                <span key={i} className={'rounded px-2 py-1 ring-1 ' + (r === true ? 'bg-emerald-500/15 text-emerald-200 ring-emerald-500/40' : r === false ? 'bg-rose-500/15 text-rose-200 ring-rose-500/40' : 'bg-slate-800 text-slate-400 ring-slate-700')}>
+                <span
+                  key={i}
+                  className={
+                    'rounded px-2 py-1 ring-1 ' +
+                    (r === true
+                      ? 'bg-emerald-500/15 text-emerald-200 ring-emerald-500/40'
+                      : r === false
+                        ? 'bg-rose-500/15 text-rose-200 ring-rose-500/40'
+                        : 'bg-slate-800 text-slate-400 ring-slate-700')
+                  }
+                >
                   {B.cyc.s0 + i} {r === true ? '✓' : r === false ? '✗' : '…'}
                 </span>
               );
             })}
           </div>
           <p className="mt-2 text-xs text-slate-400">
-            Projet réussi : la confiance du président monte. Fin de cycle avec deux saisons réussies ou plus : une prime de
-            150 à 300 k€. Une confiance très basse inquiète le sponsor.
+            Projet réussi : la confiance du président monte. Fin de cycle avec deux saisons réussies ou plus : une prime
+            de 150 à 300 k€. Une confiance très basse inquiète le sponsor.
           </p>
         </Card>
       ) : (
@@ -274,7 +336,11 @@ export function Board() {
         </Card>
       )}
       <Card title="Demander une réunion">
-        {can ? null : <p className="mb-2 text-sm text-amber-300">Le président vous a reçu il y a peu : une réunion toutes les {BOARD_ASK_GAP} semaines.</p>}
+        {can ? null : (
+          <p className="mb-2 text-sm text-amber-300">
+            Le président vous a reçu il y a peu : une réunion toutes les {BOARD_ASK_GAP} semaines.
+          </p>
+        )}
         {Object.entries(BOARD_ASKS).map(([k, A]) => {
           const p = boardChance(k);
           return (
@@ -283,14 +349,24 @@ export function Board() {
                 <b className="text-slate-50">{A.lbl}</b>
                 <div className="text-xs text-slate-400">
                   {A.d}
-                  {k === 'mercato' ? ` Environ ${fmtMoney(boardAmount())}.` : ''} {k !== 'vision' ? `Chance d'accord : ${Math.round(p * 100)} %. ` : ''}Coût en
-                  confiance si accord : {A.cost}.
+                  {k === 'mercato' ? ` Environ ${fmtMoney(boardAmount())}.` : ''}{' '}
+                  {k !== 'vision' ? `Chance d'accord : ${Math.round(p * 100)} %. ` : ''}Coût en confiance si accord :{' '}
+                  {A.cost}.
                 </div>
                 {k === 'fac' ? (
-                  <Select className="mt-1" value={fk} onChange={setFk} options={Object.entries(FAC).filter(([kk]) => facL(kk) < 3).map(([kk, F]) => [kk, F.lbl])} />
+                  <Select
+                    className="mt-1"
+                    value={fk}
+                    onChange={setFk}
+                    options={Object.entries(FAC)
+                      .filter(([kk]) => facL(kk) < 3)
+                      .map(([kk, F]) => [kk, F.lbl])}
+                  />
                 ) : null}
                 {k === 'fac' && B.fund && B.fund.s === S.season ? (
-                  <div className="mt-1 text-xs text-emerald-300">Accord en cours : la moitié de « {FAC[B.fund.k].lbl} » si le chantier est lancé cette saison.</div>
+                  <div className="mt-1 text-xs text-emerald-300">
+                    Accord en cours : la moitié de « {FAC[B.fund.k].lbl} » si le chantier est lancé cette saison.
+                  </div>
                 ) : null}
               </div>
               <Btn disabled={!can || (k === 'vision' && !B.v)} onClick={() => act(() => boardAsk(k, fk))}>
@@ -326,7 +402,10 @@ export function World() {
               key={l}
               type="button"
               onClick={() => ((UI.newsCat = k), render())}
-              className={'min-h-8 rounded-full px-3 text-xs font-semibold ring-1 ' + (cat === k ? 'bg-sky-500 text-slate-950 ring-sky-400' : 'bg-slate-800 text-slate-300 ring-slate-700')}
+              className={
+                'min-h-8 rounded-full px-3 text-xs font-semibold ring-1 ' +
+                (cat === k ? 'bg-sky-500 text-slate-950 ring-sky-400' : 'bg-slate-800 text-slate-300 ring-slate-700')
+              }
             >
               {l}
             </button>
@@ -334,7 +413,10 @@ export function World() {
         </div>
         {L.length ? (
           L.map((e, i) => (
-            <div key={i} className={'flex gap-3 border-t border-slate-800 py-2 text-sm ' + (e.my ? 'bg-pink-500/10' : '')}>
+            <div
+              key={i}
+              className={'flex gap-3 border-t border-slate-800 py-2 text-sm ' + (e.my ? 'bg-pink-500/10' : '')}
+            >
               <span className="w-14 shrink-0 text-xs text-slate-500">
                 {e.s}
                 <br />S{e.w}
@@ -365,7 +447,8 @@ export function RivalCard({ compact }) {
     <Card title="Rivalité de la saison">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 text-sm">
-          <b className="text-slate-50">{P.name}</b> <span className="text-slate-500">contre</span> <b className="text-slate-50">{T.name}</b>
+          <b className="text-slate-50">{P.name}</b> <span className="text-slate-500">contre</span>{' '}
+          <b className="text-slate-50">{T.name}</b>
           {dsName(T) ? <div className="text-xs text-slate-400">dirigée par {dsName(T)}</div> : null}
         </div>
         <span className="font-display text-3xl font-bold tabular-nums text-slate-50">
@@ -381,9 +464,14 @@ export function RivalCard({ compact }) {
       ) : null}
       {compact ? null : (
         <p className="mt-2 text-xs text-slate-400">
-          Un duel chaque fois que vos deux équipes ont un coureur dans les dix premiers. Les duels gagnés soudent le groupe ; le
-          bilan de la saison compte pour votre notoriété.
-          {(S.rivalHist || []).length ? ` Saisons passées : ${S.rivalHist.slice(0, 4).map(h => `${h.s} ${h.me}-${h.them} (${h.t})`).join(' · ')}.` : ''}
+          Un duel chaque fois que vos deux équipes ont un coureur dans les dix premiers. Les duels gagnés soudent le
+          groupe ; le bilan de la saison compte pour votre notoriété.
+          {(S.rivalHist || []).length
+            ? ` Saisons passées : ${S.rivalHist
+                .slice(0, 4)
+                .map(h => `${h.s} ${h.me}-${h.them} (${h.t})`)
+                .join(' · ')}.`
+            : ''}
         </p>
       )}
     </Card>
@@ -396,18 +484,29 @@ function DsRanking() {
       {L.length ? (
         <>
           <p className="mb-2 text-xs text-slate-400">
-            Ce que chacun tire de son équipe par rapport à ce qu'on en attendait, ses victoires, sa constance. Mis à jour à chaque
-            fin de saison.
+            Ce que chacun tire de son équipe par rapport à ce qu'on en attendait, ses victoires, sa constance. Mis à
+            jour à chaque fin de saison.
           </p>
           {L.slice(0, 20).map((x, i) => {
             const d = x.prev ? x.prev - (i + 1) : 0;
             return (
-              <div key={x.k} className={'flex items-center gap-2 border-t border-slate-800 py-1.5 text-sm ' + (x.me ? 'bg-pink-500/10 font-semibold' : '')}>
+              <div
+                key={x.k}
+                className={
+                  'flex items-center gap-2 border-t border-slate-800 py-1.5 text-sm ' +
+                  (x.me ? 'bg-pink-500/10 font-semibold' : '')
+                }
+              >
                 <span className="w-6 text-right tabular-nums text-slate-400">{i + 1}</span>
                 <span className="min-w-0 flex-1 truncate text-slate-100">
                   {x.me ? 'Vous' : x.k} <span className="text-xs font-normal text-slate-400">· {x.T.short}</span>
                 </span>
-                <span className={'w-8 text-right text-xs ' + (d > 0 ? 'text-emerald-300' : d < 0 ? 'text-rose-300' : 'text-slate-500')}>
+                <span
+                  className={
+                    'w-8 text-right text-xs ' +
+                    (d > 0 ? 'text-emerald-300' : d < 0 ? 'text-rose-300' : 'text-slate-500')
+                  }
+                >
                   {d > 0 ? '▲' + d : d < 0 ? '▼' + -d : '='}
                 </span>
                 <span className="w-12 text-right tabular-nums text-slate-300">{fmtDec(x.sc, 1)}</span>
@@ -429,9 +528,15 @@ export function MentalRider({ r }) {
       <div className="mb-1 text-xs text-slate-400">Mental</div>
       {t ? (
         <div className="space-y-0.5 text-slate-200">
-          <div>🎯 Grands rendez-vous : <b>{t.pres}</b></div>
-          <div>📋 Professionnalisme : <b>{t.prof}</b></div>
-          {mentalKnown(r) < 2 ? <div className="text-xs text-slate-400">Une première idée seulement : il faudra le voir de plus près.</div> : null}
+          <div>
+            🎯 Grands rendez-vous : <b>{t.pres}</b>
+          </div>
+          <div>
+            📋 Professionnalisme : <b>{t.prof}</b>
+          </div>
+          {mentalKnown(r) < 2 ? (
+            <div className="text-xs text-slate-400">Une première idée seulement : il faudra le voir de plus près.</div>
+          ) : null}
         </div>
       ) : (
         <div className="text-slate-400">
@@ -467,8 +572,8 @@ function FreshRider({ r }) {
         <Gauge v={m} tone={tone} />
       </div>
       <p className="mt-1 text-xs text-slate-400">
-        Les jours de course l'usent, plus encore les grands rendez-vous et le rôle de leader ; une victoire le libère. Usé,
-        il perd un peu de forme le jour J et devient irrégulier.
+        Les jours de course l'usent, plus encore les grands rendez-vous et le rôle de leader ; une victoire le libère.
+        Usé, il perd un peu de forme le jour J et devient irrégulier.
       </p>
     </div>
   );

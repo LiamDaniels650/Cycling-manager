@@ -22,7 +22,9 @@ function Tabs() {
           onClick={() => ((UI.riderTab = k), renderModal())}
           className={
             'min-h-10 text-sm font-medium ' +
-            (UI.riderTab === k ? 'text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]' : 'text-slate-400 hover:text-slate-100')
+            (UI.riderTab === k
+              ? 'text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]'
+              : 'text-slate-400 hover:text-slate-100')
           }
         >
           {l}
@@ -95,7 +97,10 @@ function Nego({ r }) {
         <div className="mt-1 text-xs text-slate-300">Néo-professionnel : deux ans de contrat au moins.</div>
       ) : null}
       <label className="mt-3 block text-sm text-slate-200">
-        Salaire <span className="text-xs text-slate-400">(minimum UCI {fmtMoney(neoPro(r) ? neoMinSalary(0) : minSalary(0))})</span>
+        Salaire{' '}
+        <span className="text-xs text-slate-400">
+          (minimum UCI {fmtMoney(neoPro(r) ? neoMinSalary(0) : minSalary(0))})
+        </span>
         <b className="float-right">{fmtMoney(n.sal)}</b>
         <input
           type="range"

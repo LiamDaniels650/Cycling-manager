@@ -49,6 +49,7 @@ case "$1" in
     node tests/bias.js | tail -1
     node tests/audit.js | tail -1
     python3 tests/ui_rng_react.py 2>&1 | tail -1
+    python3 tests/ui_replay.py 2>&1 | tail -1
     for t in ui_smoke_react ui_auto_react ui_worker; do python3 tests/$t.py 2>&1 | grep -i 'ERREURS JS\|errs \[' | head -1; done ;;
   carriere) build; node tests/career.js "${2:-8}" ;;
   economie) build; node tests/economy.js 4 3 ;;

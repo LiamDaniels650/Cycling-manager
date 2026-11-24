@@ -196,7 +196,9 @@ export function DopeCard() {
           {D.tests} contrôle{D.tests > 1 ? 's' : ''} inopiné{D.tests > 1 ? 's' : ''} cette saison, tous négatifs.
         </span>
         <Btn onClick={() => doLocker(setWhOfficer, !S.whOff)}>
-          {S.whOff ? 'Supprimer la cellule antidopage' : `Créer une cellule antidopage (${fmtMoney(WH_COST)} par saison)`}
+          {S.whOff
+            ? 'Supprimer la cellule antidopage'
+            : `Créer une cellule antidopage (${fmtMoney(WH_COST)} par saison)`}
         </Btn>
       </div>
       <p className="mt-1 text-xs text-slate-400">
@@ -269,7 +271,11 @@ export function PrepCard() {
               {r.inj && r.inj.early ? ' (reprise avancée)' : ''}
             </span>
             {r.inj && !r.inj.early && r.injury >= 2 ? (
-              <button type="button" className="rounded bg-slate-800 px-2 py-1" onClick={() => doLocker(earlyReturn, r.id)}>
+              <button
+                type="button"
+                className="rounded bg-slate-800 px-2 py-1"
+                onClick={() => doLocker(earlyReturn, r.id)}
+              >
                 ⏩ Reprise anticipée
               </button>
             ) : null}
@@ -325,13 +331,23 @@ export function PeriStrip({ r, h = 14 }) {
           key={i}
           title={`${PERI[b.k].lbl} · semaines ${b.w0} à ${b.w1}`}
           className="absolute top-0 h-full"
-          style={{ left: x(b.w0) + '%', width: ((b.w1 - b.w0 + 1) / W) * 100 + '%', background: PERI[b.k].col, opacity: 0.85 }}
+          style={{
+            left: x(b.w0) + '%',
+            width: ((b.w1 - b.w0 + 1) / W) * 100 + '%',
+            background: PERI[b.k].col,
+            opacity: 0.85,
+          }}
         />
       ))}
       {(P ? P.targets : []).map(k => {
         const c = S.cal.find(c => c.key === k);
         return c ? (
-          <div key={k} title={c.name} className="absolute top-0 h-full w-0.5 bg-yellow-300" style={{ left: x(c.w) + '%' }} />
+          <div
+            key={k}
+            title={c.name}
+            className="absolute top-0 h-full w-0.5 bg-yellow-300"
+            style={{ left: x(c.w) + '%' }}
+          />
         ) : null;
       })}
       <div className="absolute top-0 h-full w-0.5 bg-white" style={{ left: x(S.week) + '%' }} title="cette semaine" />
@@ -402,7 +418,13 @@ export function Team() {
           rs={rs}
           state
           cols={[
-            ['Vestiaire', r => (CHARS[charOf(r)].ic + (S.captain === r.id ? ' 🧭' : '') + (promsOn().some(p => p.id === r.id) ? ' 🤞' : ''))],
+            [
+              'Vestiaire',
+              r =>
+                CHARS[charOf(r)].ic +
+                (S.captain === r.id ? ' 🧭' : '') +
+                (promsOn().some(p => p.id === r.id) ? ' 🤞' : ''),
+            ],
             ['Liens', links],
             ['Objectif', r => goalTag(r)],
             ['Contrat', r => r.contract + ' an'],

@@ -3,7 +3,7 @@
 // résumé à copier, puissances.
 import { RaceSteps } from '../race/RaceBar.jsx';
 import { useState } from 'react';
-import { Card, Btn, RiderLink, Tabs } from '../ui.jsx';
+import { Card, Btn, RiderLink, Tabs, SignalButton } from '../ui.jsx';
 import { GapChart } from '../race/Broadcast.jsx';
 import { SprintReplay } from '../race/Finale.jsx';
 
@@ -236,7 +236,9 @@ function Debrief({ rc, L, st, mine }) {
             ? ` Temps perdu surtout : ${gs.loss.map(l => `étape ${l.k} (${fmtGap(l.d)})`).join(', ')}.`
             : ''}
           {gs.gain.length ? ` Repris : étape ${gs.gain[0].k} (${fmtGap(-gs.gain[0].d)}).` : ''}
-          {gs.made && !gs.isLead ? ` Le leader a fait la différence à l'étape ${gs.made.k} (${fmtGap(gs.made.d)} sur son dauphin).` : ''}
+          {gs.made && !gs.isLead
+            ? ` Le leader a fait la différence à l'étape ${gs.made.k} (${fmtGap(gs.made.d)} sur son dauphin).`
+            : ''}
         </div>
       </>
     );
@@ -560,8 +562,8 @@ function TacticalBox({ rc }) {
         🏠 Abandon tactique{sug.length ? ` · le staff suggère : ${sug.map(r => riderName(r)).join(', ')}` : ''}
       </summary>
       <p className="mt-1 text-xs text-slate-400">
-        Un coureur qui n'a plus rien à jouer peut rentrer préparer ses objectifs : fatigue épargnée, mais
-        l'organisateur n'aime pas ça (un peu de réputation en moins sur un grand tour).
+        Un coureur qui n'a plus rien à jouer peut rentrer préparer ses objectifs : fatigue épargnée, mais l'organisateur
+        n'aime pas ça (un peu de réputation en moins sur un grand tour).
       </p>
       <div className="mt-1 flex flex-wrap gap-1">
         {mine.map(r => (
@@ -589,8 +591,8 @@ function TTSplits({ st }) {
   return (
     <Card title="Le chrono de mes coureurs">
       <p className="mb-2 text-xs text-slate-400">
-        Allure choisie, rang et retard au tiers et aux deux tiers du parcours, puis à l'arrivée. Un coureur parti trop vite
-        pour sa limite du jour « explose » et finit loin de son allure.
+        Allure choisie, rang et retard au tiers et aux deux tiers du parcours, puis à l'arrivée. Un coureur parti trop
+        vite pour sa limite du jour « explose » et finit loin de son allure.
       </p>
       {ids.map(id => {
         const e = st.tt[id];
@@ -604,9 +606,7 @@ function TTSplits({ st }) {
                 <b className="text-pink-300">{riderName(S.riders[id])}</b>{' '}
                 <span className="text-xs text-slate-400">{(TT_PACE[e.pace] || {}).lbl || e.pace}</span>
               </span>
-              <span className="tabular-nums text-slate-100">
-                {f[0] ? `${f[0]}e · ${g(f[1])}` : '—'}
-              </span>
+              <span className="tabular-nums text-slate-100">{f[0] ? `${f[0]}e · ${g(f[1])}` : '—'}</span>
             </div>
             <div className="mt-0.5 flex flex-wrap gap-x-4 text-xs text-slate-300">
               {sp.map((p, j) => (
@@ -646,7 +646,8 @@ function RiderNotes({ st, rc }) {
                 {v.n == null ? '—' : String(v.n).replace('.', ',')}
               </b>
               <span className="min-w-0 flex-1">
-                <RiderLink r={S.riders[id]} /> <span className="text-xs text-slate-400">{NOTE_ROLE[v.role] || v.role}</span>
+                <RiderLink r={S.riders[id]} />{' '}
+                <span className="text-xs text-slate-400">{NOTE_ROLE[v.role] || v.role}</span>
                 <span className="block text-xs text-slate-300">
                   <span className={noteTone(v.n)}>{noteVerdict(v.n)}</span> · {v.why}
                 </span>
@@ -657,19 +658,22 @@ function RiderNotes({ st, rc }) {
       </div>
       <p className="mt-2 text-xs text-slate-400">
         Note sur 10 (6 : conforme). Pour un coureur qui joue sa carte : sa place comparée à celle qu'on pouvait attendre
-        selon le terrain, sa forme et sa fatigue. Pour un équipier : le travail fourni et le résultat de son leader ou de
-        son sprinteur.
+        selon le terrain, sa forme et sa fatigue. Pour un équipier : le travail fourni et le résultat de son leader ou
+        de son sprinteur.
       </p>
       {R && R.length ? (
         <div className="mt-3">
           <h4 className="font-display text-base font-semibold text-slate-200">Sur toute la course</h4>
           {R.map(x => (
             <div key={x.id} className="flex items-baseline gap-3 border-b border-slate-800 py-1.5 text-sm">
-              <b className={'w-10 shrink-0 text-right font-display text-lg ' + noteTone(x.avg)}>{String(x.avg).replace('.', ',')}</b>
+              <b className={'w-10 shrink-0 text-right font-display text-lg ' + noteTone(x.avg)}>
+                {String(x.avg).replace('.', ',')}
+              </b>
               <span className="min-w-0 flex-1">
                 <RiderLink r={S.riders[x.id]} />{' '}
                 <span className="text-xs text-slate-400">
-                  {x.k} étape{x.k > 1 ? 's' : ''} · meilleure : {x.best.st.split(' — ')[0]} ({String(x.best.n).replace('.', ',')})
+                  {x.k} étape{x.k > 1 ? 's' : ''} · meilleure : {x.best.st.split(' — ')[0]} (
+                  {String(x.best.n).replace('.', ',')})
                 </span>
               </span>
             </div>
@@ -721,8 +725,9 @@ export function StageResult() {
             ) : null}
           </div>
         </div>
-        <div className="w-full sm:w-72">
+        <div className="flex w-full flex-col items-stretch gap-2 sm:w-72">
           <NextBtn rc={rc} />
+          <SignalButton label="Signaler un problème sur cette étape" />
         </div>
       </div>
       <div className="sticky top-[3.6rem] z-10 -mx-1 bg-slate-950/95 px-1 py-1 backdrop-blur md:top-0">
@@ -821,7 +826,9 @@ export function StageResult() {
           {st.cutInfo ? (
             <p className="mt-1 text-xs text-slate-400">
               ⏱ Délai : {fmtGap(st.cutInfo.lim)} ({fmtDec(st.cutInfo.pct, 1)} % du temps du vainqueur)
-              {st.cutInfo.graced ? ` · ${st.cutInfo.n} coureurs hors délais repêchés par le jury (−20 points au classement par points)` : ''}
+              {st.cutInfo.graced
+                ? ` · ${st.cutInfo.n} coureurs hors délais repêchés par le jury (−20 points au classement par points)`
+                : ''}
             </p>
           ) : null}
           {(rc.tacOut || []).filter(t => t.si === L.idx).length ? (

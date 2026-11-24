@@ -205,11 +205,11 @@ export function FinalActions({ sim }) {
                         type="button"
                         onClick={() =>
                           au
-                            ? (finalAuto(sim, x.id, a[0].slice(3)), render())
+                            ? (finalUI(x.id, 'auto', a[0].slice(3)), render())
                             : cl
-                              ? (climbOrder(sim, x.id, a[0].slice(3)), render())
+                              ? (finalUI(x.id, 'climb', a[0].slice(3)), render())
                               : sp
-                                ? (sprintOrder(sim, x.id, a[0].slice(3)), render())
+                                ? (finalUI(x.id, 'sprint', a[0].slice(3)), render())
                                 : sendRadio(x.id, a[0])
                         }
                         className={

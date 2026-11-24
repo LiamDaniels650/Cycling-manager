@@ -59,9 +59,9 @@ function TvBox() {
         </div>
       ))}
       <p className="mt-1 text-xs text-slate-400">
-        Le sponsor paie {Math.round(TV_RATE * 1000)} € par minute d'antenne pondérée (×3 sur un grand tour, ×1,5 en WorldTour) :
-        échappées, tempo en tête du peloton, victoires et podiums. Les trois équipes les plus vues gagnent de la
-        confiance en fin de saison, les quatre moins vues en perdent.
+        Le sponsor paie {Math.round(TV_RATE * 1000)} € par minute d'antenne pondérée (×3 sur un grand tour, ×1,5 en
+        WorldTour) : échappées, tempo en tête du peloton, victoires et podiums. Les trois équipes les plus vues gagnent
+        de la confiance en fin de saison, les quatre moins vues en perdent.
       </p>
     </div>
   );
@@ -124,8 +124,8 @@ function CrewAsk() {
   const go = k => ((UI.flash = crewAnswer(k)), save(), render());
   return (
     <div className="mb-3 rounded-lg bg-slate-900 p-3 text-sm shadow-[inset_3px_0_0_#f2c94c]">
-      <b>{T ? T.name : 'Une équipe'}</b> veut débaucher {crewName(p)}, votre {CREW_ROLES[A.role].lbl.toLowerCase()} (niveau{' '}
-      {crewLvl(p)}).
+      <b>{T ? T.name : 'Une équipe'}</b> veut débaucher {crewName(p)}, votre {CREW_ROLES[A.role].lbl.toLowerCase()}{' '}
+      (niveau {crewLvl(p)}).
       <div className="mt-2 flex flex-wrap gap-2">
         <Btn primary onClick={() => go('garder')}>
           Le retenir (prime {fmtMoney(A.prime)})
@@ -180,7 +180,10 @@ export function Staff() {
                   const cl = crewLvl(c);
                   const fee = cl > l ? (crewCost(k, cl) - crewCost(k, l)) * 0.5 : 0;
                   return (
-                    <div key={i} className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-slate-800/60 px-3 py-2 text-sm">
+                    <div
+                      key={i}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-slate-800/60 px-3 py-2 text-sm"
+                    >
                       <span>
                         <b>{crewName(c)}</b>{' '}
                         <span className="text-slate-400">
@@ -197,7 +200,9 @@ export function Staff() {
                     </div>
                   );
                 })}
-                <p className="text-xs text-slate-400">Nouveaux candidats toutes les quatre semaines. Prime d'embauche : la moitié de la hausse de salaire.</p>
+                <p className="text-xs text-slate-400">
+                  Nouveaux candidats toutes les quatre semaines. Prime d'embauche : la moitié de la hausse de salaire.
+                </p>
               </div>
             ) : null}
           </div>
@@ -368,7 +373,8 @@ export function Equipment() {
                   <div
                     key={k}
                     className={
-                      'mt-1 rounded-xl p-2.5 text-sm ' + (on ? 'bg-slate-800/70 ring-1 ring-sky-400' : 'bg-slate-800/60')
+                      'mt-1 rounded-xl p-2.5 text-sm ' +
+                      (on ? 'bg-slate-800/70 ring-1 ring-sky-400' : 'bg-slate-800/60')
                     }
                   >
                     <div className="flex flex-wrap justify-between gap-2">
@@ -673,14 +679,18 @@ export function ClubFinances() {
   );
 }
 export function ClubStaff() {
-  return (
-    <div className="space-y-3">
-      {discoOpen('staff') ? <Staff /> : null}
-    </div>
-  );
+  return <div className="space-y-3">{discoOpen('staff') ? <Staff /> : null}</div>;
 }
 export function ClubEquip() {
-  return <div className="space-y-3">{discoOpen('equip') ? <Equipment /> : <p className="text-sm text-slate-400">Les équipementiers se débloquent au fil de la première saison.</p>}</div>;
+  return (
+    <div className="space-y-3">
+      {discoOpen('equip') ? (
+        <Equipment />
+      ) : (
+        <p className="text-sm text-slate-400">Les équipementiers se débloquent au fil de la première saison.</p>
+      )}
+    </div>
+  );
 }
 export function ClubCareer() {
   return (
