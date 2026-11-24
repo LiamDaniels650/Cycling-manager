@@ -795,7 +795,9 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
   ) {
     // (final vallonné : plus dur à contrôler pour une équipe de sprinteur, l'échappée a plus de marge)
     const allowed =
-      Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK * (t === 'vallonne' ? R.hillyChaseK : 1);
+      Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) *
+      R.flatChaseK *
+      (t === 'vallonne' ? R.hillyChaseK : t === 'punch' ? R.punchChaseK : 1);
     if (gap > allowed * 1.5 + 40) {
       level = 0.97;
       nw = 4;
