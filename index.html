@@ -3604,15 +3604,20 @@ const R = {
   chaseBehind: 0.85, // … en retard (< 0,7 × nécessaire), elle accélère et engage un rouleur de plus
   pavFinalPace: 0.9, // 30 derniers km d'une classique pavée : allure d'un groupe de tête où personne ne relaie
   noWorkAhead: 0.7,
+  favChaseK: 1.2, // côte et vallonné : marge laissée à l'échappée par les favoris qui visent l'étape
   hillyChaseK: 1.35, // vallonné : marge laissée à l'échappée par une équipe de sprinteur (× la marge du plat)
   hillyControlK: 1.9, // vallonné : marge laissée par une équipe qui contrôle la course (× celle du plat)
   sprintHillCol: 72, // vallonné : une équipe ne roule pour son sprinteur que s'il passe les côtes (collines ≥ 72)
   brkSprintKm: 12, // un échappé dont le sprinteur est derrière relaie au ralenti dans les 12 derniers km
   tttK: 0.98, // contre-la-montre par équipes : réglage de vitesse de l'exercice (51-57 km/h dans la réalité)
-  komPassK: 2,
+  komPassK: 2, // grands tours : multiplicateur des points des cols de passage
   // alimentation : consommation (part de réserve par heure) = foodDrain × (4 + 14 × intensité²) : abrité dans le
   // peloton on dépense peu et on mange, en tête ou en échappée on brûle beaucoup sans avoir le temps de manger
-  foodDrain: 1.6, // réglé pour 1 à 6 fringales par grand tour sur tout le peloton (calibration : GT_fringales) // grands tours : les cols de passage rapportent deux fois les points du barème // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
+  foodDrain: 1.6, // réglé pour 1 à 6 fringales par grand tour sur tout le peloton (calibration : GT_fringales)
+  yelCtrlGap: 360, // l'équipe du maillot contrôle une échappée au-delà de cet écart (s), quel que soit son porteur
+  windRider: 0.75, // part du vent annoncé ressentie à hauteur de cycliste
+  maxBreakGap: 600, // course par étapes : au-delà, les équipes de leaders et de sprinteurs roulent toutes
+  cutChaseKm: 15, // groupe coupé dans les derniers km : il chasse à bloc pour revenir sur le peloton
 };
 
 // ---- src/engine/01-util.js ----
@@ -4769,7 +4774,23 @@ function pruneWorld(hard) {
     // retraité notable gardé pour les palmarès : il n'a plus besoin de son état de course ni de sa progression
     else if (r.retired && r.slim !== 2) {
       // (estimations, santé et déplacements ne servent plus : seule la fiche et le palmarès restent)
-      for (const k of ['sx', 'load', 'wkDays', 'training', 'fh', 'fs', 'peakW', 'postPeak', 'altBoost', 'goal', 'nz', 'nzc', 'injHist', 'lastReg', 'mtD'])
+      for (const k of [
+        'sx',
+        'load',
+        'wkDays',
+        'training',
+        'fh',
+        'fs',
+        'peakW',
+        'postPeak',
+        'altBoost',
+        'goal',
+        'nz',
+        'nzc',
+        'injHist',
+        'lastReg',
+        'mtD',
+      ])
         delete r[k];
       if (r.pb) {
         const best = Object.entries(r.pb).sort((a, b) => (b[1] ? b[1].wkg : 0) - (a[1] ? a[1].wkg : 0))[0];
@@ -5129,25 +5150,45 @@ const RACE_DEFS = [
   { key: 'feuilles', w: 38, name: 'Course des Feuilles', cat: 2, stages: [['plat', 213]] },
   { key: 'mondiaux', w: 36, name: 'Championnats du monde', cat: 1, worlds: true, stages: [['vallonne', 262, 'dur']] },
   // Jeux olympiques (années bissextiles seulement) : sélections nationales de deux (chrono) et quatre coureurs
-  { key: 'jochr', w: 30, name: 'Jeux olympiques — contre-la-montre', cat: 1, worlds: true, olympic: true, per: 2, stages: [['clm', 32]] },
-  { key: 'jo', w: 31, name: 'Jeux olympiques — course en ligne', cat: 1, worlds: true, olympic: true, per: 4, stages: [['vallonne', 248, 'dur']] },
+  {
+    key: 'jochr',
+    w: 30,
+    name: 'Jeux olympiques — contre-la-montre',
+    cat: 1,
+    worlds: true,
+    olympic: true,
+    per: 2,
+    stages: [['clm', 32]],
+  },
+  {
+    key: 'jo',
+    w: 31,
+    name: 'Jeux olympiques — course en ligne',
+    cat: 1,
+    worlds: true,
+    olympic: true,
+    per: 4,
+    stages: [['vallonne', 248, 'dur']],
+  },
 ];
 const LAST_WEEK = 42;
 // Calendrier de la saison et invitations aux Grands Tours.
 function buildCalendar() {
   worldApply(); // courses de la partie (créées, disparues, promues : 66-monde.js)
   genClimate();
-  S.cal = RACE_DEFS.filter(d => !d.olympic || isOlympicYear(S.season)).map(d => ({
-    key: d.key,
-    w: d.w,
-    name: raceNameOf(d.key), // nom personnalisé s'il y en a un (39-names.js)
-    cat: d.cat,
-    done: false,
-    winner: null,
-    stagesSpec: customStages(d.key, d.stages), // parcours importés (51-database.js)
-    ...(d.worlds ? { worlds: true } : {}),
-    ...(d.olympic ? { olympic: true, per: d.per } : {}),
-  })).sort((a, b) => a.w - b.w);
+  S.cal = RACE_DEFS.filter(d => !d.olympic || isOlympicYear(S.season))
+    .map(d => ({
+      key: d.key,
+      w: d.w,
+      name: raceNameOf(d.key), // nom personnalisé s'il y en a un (39-names.js)
+      cat: d.cat,
+      done: false,
+      winner: null,
+      stagesSpec: customStages(d.key, d.stages), // parcours importés (51-database.js)
+      ...(d.worlds ? { worlds: true } : {}),
+      ...(d.olympic ? { olympic: true, per: d.per } : {}),
+    }))
+    .sort((a, b) => a.w - b.w);
   // invitations : licences WorldTour (cycle de trois saisons) et invitations des ProTeams (35-officials)
   wtInit();
   for (const c of S.cal) c.inv = c.worlds ? [] : wtInvites(c);
@@ -5641,7 +5682,9 @@ function headwindAt(sim, km) {
 }
 // Orientation de la route par tronçons de 10 km et vent du jour (force 0-3 → 0 à 6 m/s).
 function genWindAxis(sim, dist, force, finWind) {
-  const ms = [0, 2, 3.8, 6][force || 0];
+  // (vent annoncé à 10 m de haut ; à hauteur de cycliste, haies et bâtiments compris, il en reste environ les trois
+  // quarts : sans cela, un peloton roulait à 73 km/h vent dans le dos et à 26 km/h vent de face sur le plat)
+  const ms = [0, 2, 3.8, 6][force || 0] * R.windRider;
   const n = Math.ceil(dist / 10) + 1;
   const a = [];
   let ang = rnd() * Math.PI * 2;
@@ -6044,6 +6087,13 @@ function autoOrders(teamId, spec, rc) {
       : null;
   if (!leader && !hunter) leader = t === 'plat' && sprinter ? null : bestCourse;
   if (leader === sprinter) leader = null;
+  // un équipier sur le podium du général (le maillot, souvent) court pour lui : il ne se sacrifie pas pour le leader
+  // désigné (sinon le maillot jaune perdait sept minutes à protéger un coéquipier moins bien classé)
+  if (stageRace && rc.si > 0)
+    for (const r of rs) {
+      const k = leaderGcRank(rc, r.id);
+      if (k > 0 && k <= 3 && r !== leader && r !== sprinter && !coLeads.includes(r)) coLeads.push(r);
+    }
   coLeads = coLeads.filter(r => r !== leader && r !== sprinter);
   let rest = rs.filter(r => r !== leader && r !== sprinter && r !== hunter && !coLeads.includes(r));
   // les coureurs envoyés dans l'échappée dépendent du terrain : grimpeurs en montagne, puncheurs sur les étapes accidentées
@@ -6115,7 +6165,8 @@ function autoOrders(teamId, spec, rc) {
     const gcLeader = leader && rc.si > 0 ? gcSituation(rc, leader.id) : null;
     if ((t === 'plat' || t === 'vallonne') && leader && (rc.si === 0 || gcLeader.alive) && sim0Key(rc))
       others
-        .filter(r => r.s.mon >= 74 && !saves.includes(r))
+        // (pas un homme du général : le dixième du classement ne se relève pas sur une étape de plaine)
+        .filter(r => r.s.mon >= 74 && !saves.includes(r) && !(rc.si > 0 && gcList(rc).slice(0, 10).includes(r.id)))
         .sort((a, b) => b.s.mon - a.s.mon)
         .slice(0, 2)
         .forEach(r => saves.push(r));
@@ -6273,7 +6324,10 @@ function styleMul(T, k) {
       (COAL && COAL.has(T.id) ? 1.25 : 1) // coalition : ils durcissent la course pour user le leader
     );
   if (k === 'break')
-    return (s === 'agressif' ? 1.6 : s === 'opportuniste' ? 1.4 : s === 'defensif' ? 0.6 : s === 'gc' ? 0.8 : 1) * identBreakMul(T);
+    return (
+      (s === 'agressif' ? 1.6 : s === 'opportuniste' ? 1.4 : s === 'defensif' ? 0.6 : s === 'gc' ? 0.8 : 1) *
+      identBreakMul(T)
+    );
   return 1;
 }
 
@@ -6282,8 +6336,14 @@ function styleMul(T, k) {
 function obeyCheck(x, ord, sim) {
   if (sim && sim.carId === x.id) return true; // mode carrière : le joueur est le coureur
   const r = x.r;
+  // (base relevée : un coureur refusait un ordre radio sur cinq, d'où trois refus ou plus dans une étape sur cinq)
   let p =
-    0.42 + (r.dis / 100) * 0.52 + (r.moral - 55) / 350 + (x.player && campOn('cohesion') ? 0.05 : 0) + captainObey(x, sim) + adjObey(x, sim);
+    0.52 +
+    (r.dis / 100) * 0.52 +
+    (r.moral - 55) / 350 +
+    (x.player && campOn('cohesion') ? 0.05 : 0) +
+    captainObey(x, sim) +
+    adjObey(x, sim);
   if (r.trait === 'modele') p += 0.22;
   if (r.trait === 'fragile') p += (r.moral - 55) / 160;
   if (SUBORD.includes(ord)) {
@@ -6389,6 +6449,18 @@ function dsSitUp(sim, mine, ldr, once) {
     } else if (!G.ahead && x.radio === 'stop' && x.order !== 'save' && once('rs' + x.id, 10)) x.radio = null;
   }
 }
+// Homme du général (course par étapes, quinze premiers) : il ne redescend pas aux voitures chercher les bidons.
+function gcMan(sim, x) {
+  if (!sim.stageRace || !sim.rc || !sim.rc.si) return false;
+  if (!sim._gcTop) sim._gcTop = new Set(gcList(sim.rc).slice(0, 15));
+  return sim._gcTop.has(x.id);
+}
+// Leader du général : consigne de leader dans les quinze premiers, ou sur le podium quelle que soit sa consigne.
+function gcLead(sim, x) {
+  if (!gcMan(sim, x)) return false;
+  if (!sim._gcTop3) sim._gcTop3 = new Set(gcList(sim.rc).slice(0, 3));
+  return x.order === 'leader' || sim._gcTop3.has(x.id);
+}
 // Un équipier redescend aux voitures chercher des bidons pour ses leaders.
 function fetchBottles(sim, x) {
   const G = x.g;
@@ -6407,7 +6479,7 @@ function obeyCheckPre(x, sim) {
   if (sim && sim.carId === x.id) return true;
   const r = x.r;
   let p =
-    0.62 +
+    0.68 +
     (r.dis / 100) * 0.4 +
     (r.moral - 55) / 300 -
     (r.amb / 100) * 0.18 +
@@ -6530,7 +6602,11 @@ function dsBrain(sim, T) {
       if (cands.length && once('waitldr', 1)) {
         const pri = o => ({ protect: 0, control: 1, free: 2, leadout: 3, save: 4, break: 5 })[o] ?? 6;
         const pick = cands.sort((a, b) => pri(a.order) - pri(b.order) || b.energy - a.energy).slice(0, need);
-        log(sim, `🤖 DS : ${pick.map(x => riderName(x.r)).join(' et ')}, relevez-vous et attendez ${riderName(ldr.r)} !`, 'me');
+        log(
+          sim,
+          `🤖 DS : ${pick.map(x => riderName(x.r)).join(' et ')}, relevez-vous et attendez ${riderName(ldr.r)} !`,
+          'me'
+        );
         for (const x of pick) {
           x.waitFor = null; // (le leader)
           if (!applyRadio(sim, x, 'wait', 'auto')) x.waitRef = sim.t;
@@ -6647,7 +6723,15 @@ function dsBrain(sim, T) {
     const withS = spr.g.riders.filter(y => y.team === T && y !== spr && !y.fin && !y.dnf).length;
     if (!withS) {
       const cands = mine.filter(x => {
-        if (x === spr || x === ldr || x.g === spr.g || x.g.pos <= spr.g.pos || x.manual || x.radio === 'wait' || x.energy < 30)
+        if (
+          x === spr ||
+          x === ldr ||
+          x.g === spr.g ||
+          x.g.pos <= spr.g.pos ||
+          x.manual ||
+          x.radio === 'wait' ||
+          x.energy < 30
+        )
           return false;
         if (x.waitRef != null && sim.t - x.waitRef < 5) return false;
         const gp = gapSec(x.g, spr.g);
@@ -6667,7 +6751,15 @@ function dsBrain(sim, T) {
   }
   // 4 bis. étape pour sprinteurs : l'échappée a trop d'avance pour le kilométrage restant, personne de l'équipe devant
   // → deux équipiers roulent ; ils se relèvent quand l'écart est sous contrôle
-  if (PL && spr && !spr.fin && !spr.dnf && ['plat', 'vallonne'].includes(sim.spec.type) && sim.pel && spr.g === sim.pel) {
+  if (
+    PL &&
+    spr &&
+    !spr.fin &&
+    !spr.dnf &&
+    ['plat', 'vallonne'].includes(sim.spec.type) &&
+    sim.pel &&
+    spr.g === sim.pel
+  ) {
     const H = sim.groups.find(G => G.ahead && G.pos > sim.pel.pos && G.riders.some(x => !x.fin));
     const kmL = sim.dist - sim.pel.pos;
     const ours = H && H.riders.some(x => x.team === T);
@@ -6677,15 +6769,29 @@ function dsBrain(sim, T) {
       if (gap > kmL * 4.5 && rolling < 2 && once('chasebrk', 6)) {
         const pri = o => ({ control: 0, protect: 1, free: 2, leadout: 3 })[o] ?? 9;
         const pick = mine
-          .filter(x => x.g === sim.pel && x !== spr && x !== ldr && !x.manual && x.energy > 35 && x.radio !== 'chase' && pri(x.order) < 9)
+          .filter(
+            x =>
+              x.g === sim.pel &&
+              x !== spr &&
+              x !== ldr &&
+              !x.manual &&
+              x.energy > 35 &&
+              x.radio !== 'chase' &&
+              pri(x.order) < 9
+          )
           .sort((a, b) => pri(a.order) - pri(b.order) || b.energy - a.energy)
           .slice(0, 2 - rolling);
         if (pick.length) {
-          log(sim, `🤖 DS : l'échappée a ${fmtGap(gap)} à ${Math.round(kmL)} km, trop pour ${riderName(spr.r)} : ${pick.map(x => riderName(x.r)).join(' et ')}, on roule !`, 'me');
+          log(
+            sim,
+            `🤖 DS : l'échappée a ${fmtGap(gap)} à ${Math.round(kmL)} km, trop pour ${riderName(spr.r)} : ${pick.map(x => riderName(x.r)).join(' et ')}, on roule !`,
+            'me'
+          );
           for (const x of pick) applyRadio(sim, x, 'chase', 'auto');
         }
       } else if (gap < kmL * 2)
-        for (const x of mine) if (x.radio === 'chase' && x.g === sim.pel && !x.manual && once('stopbrk' + x.id, 6)) x.radio = null;
+        for (const x of mine)
+          if (x.radio === 'chase' && x.g === sim.pel && !x.manual && once('stopbrk' + x.id, 6)) x.radio = null;
     }
   }
   // 5. équipiers dans le rouge en montée : à leur rythme
@@ -6711,7 +6817,8 @@ function dsBrain(sim, T) {
   // fringale : la voiture (ou un équipier) apporte vite un bidon et des gels, sauf dans les 20 derniers km
   for (const x of mine)
     if (x.bonk && x.g && sim.dist - x.g.pos > R.feedKm && once('resc' + x.id, 6)) {
-      x.food = Math.min(100, x.food + 22);
+      // (bidon et gels à volonté : avec un simple bidon, un échappé retombait en fringale trois quarts d'heure après)
+      x.food = Math.min(100, x.food + 40);
       if (T.player) log(sim, `🥤 La voiture apporte un bidon et des gels à ${riderName(x.r)}.`, 'me');
     }
   // bidons : un équipier redescend à la voiture quand l'équipe a faim (toutes les équipes, comme en course)
@@ -6726,7 +6833,8 @@ function dsBrain(sim, T) {
         x.work === 0 &&
         x.g === sim.pel &&
         x.energy > 40 &&
-        ['protect', 'control', 'free'].includes(x.order)
+        ['protect', 'control', 'free'].includes(x.order) &&
+        !gcMan(sim, x)
     )[0];
     if (d) applyRadio(sim, d, 'bottles', 'auto');
   }
@@ -6777,7 +6885,8 @@ function doAttack(sim, x, opts = {}) {
   if (!opts.noFollow) {
     for (const y of G.riders.slice()) {
       if (y.fin || y.team === x.team) continue;
-      const eo = effOrder(y);
+      // (un homme du podium en carte libre suit comme un leader : il ne part pas dans les échappées)
+      const eo = effOrder(y) === 'free' && gcLead(sim, y) ? 'leader' : effOrder(y);
       let want = 0;
       if (eo === 'leader') {
         // un leader ne suit que les coups qui comptent : un favori, un rival au général, ou tout ce qui bouge dans
@@ -6793,11 +6902,26 @@ function doAttack(sim, x, opts = {}) {
         // sprinteurs, et une attaque dans le final ne change rien au classement : on reste dans le peloton, même
         // temps) ; le jour de la parade, un leader ne suit rien
         const flatSR = sim.stageRace && sim.spec.type === 'plat' && sim.P.finishGrad < 3;
-        const counts = flatSR ? rival : sim.favs.has(x.id) || rival || phaseOf(sim, G) === 'final';
-        want = sim.parade ? 0 : counts ? (y.att === 'defensif' ? R.leaderFollowDef : R.leaderFollow) : R.leaderFollowIdle;
+        // bagarre pour l'échappée (début d'étape, loin de l'arrivée) : un leader laisse ses équipiers s'occuper des
+        // attaques, même celles des favoris du jour ; seul un rival direct au général est suivi (sinon tous les
+        // leaders partaient dans l'échappée du km 8 et le peloton, resté aux équipes de sprinteurs, ne roulait plus)
+        const early = (sim.brkState === 'fight' || phaseOf(sim, G) === 'debut') && sim.dist - G.pos > 60;
+        const counts = flatSR || early ? rival : sim.favs.has(x.id) || rival || phaseOf(sim, G) === 'final';
+        // dans les 10 derniers km d'une étape plate, même un rival qui attaque est laissé aux trains des sprinteurs :
+        // le leader reste dans les roues de ses équipiers
+        const sprintRunIn = flatSR && sim.dist - G.pos < 10;
+        want =
+          sim.parade || sprintRunIn
+            ? 0
+            : counts
+              ? y.att === 'defensif'
+                ? R.leaderFollowDef
+                : R.leaderFollow
+              : R.leaderFollowIdle;
       } else if (eo === 'free') want = (y.r.amb / 100) * 0.55 + (sim.favs.has(y.id) ? 0.2 : 0);
       else if (eo === 'break' && G.pos < sim.dist * 0.5) want = 0.5;
-      if (sim.favs.has(x.id) && eo === 'leader' && !(sim.stageRace && sim.spec.type === 'plat') && !sim.parade) want += 0.15;
+      if (sim.favs.has(x.id) && eo === 'leader' && !(sim.stageRace && sim.spec.type === 'plat') && !sim.parade)
+        want += 0.15;
       if (y.markId === x.id) want = 0.98;
       if (y.energy < 20) want *= 0.3;
       if (rnd() < want) {
@@ -6962,7 +7086,29 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
     G.riders.some(x => x.team === T && effOrder(x) === 'break')
   )
     return [0.8, 1];
-  if (!ldr && !spr) return [0, 0];
+  // l'équipe du maillot de leader contrôle l'échappée, même si son porteur n'est pas le leader désigné (un sprinteur
+  // en jaune la première semaine) : au-delà de six minutes, elle met des hommes en tête (sinon un échappé sans
+  // danger au général prenait vingt minutes)
+  let yc = null;
+  const mtn = sim.spec.type === 'montagne' || sim.spec.type === 'sommet';
+  // (en montagne, une échappée sans danger pour le général a droit à dix minutes)
+  const ycGap = mtn ? R.maxBreakGap : R.yelCtrlGap;
+  if (sim.stageRace && sim.rc.si > 0 && gap > ycGap && !teamHasAhead(sim, T, G)) {
+    const yid = gcCached(sim.rc).arr[0];
+    if (G.riders.some(x => x.id === yid && x.team === T)) yc = gap > ycGap * 1.5 ? [0.88, 3] : [0.82, 2];
+  }
+  // plafond : au-delà de dix minutes (le maillot ne roule pas, il a un homme devant par exemple), les équipes qui ont
+  // un leader ou un sprinteur dans le peloton se partagent la poursuite (sinon un échappé prenait un quart d'heure)
+  if (
+    !yc &&
+    sim.stageRace &&
+    G === sim.pel &&
+    gap > R.maxBreakGap * (mtn ? 1.5 : 1) &&
+    (ldr || spr) &&
+    !teamHasAhead(sim, T, G)
+  )
+    yc = [0.86, 2];
+  if (!ldr && !spr) return yc || [0, 0];
   const favAhead = ahead.some(H => H.riders.some(y => y.team !== T && sim.favs.has(y.id)));
   const aheadMate = teamHasAhead(sim, T, G) && !favAhead && !(gap > Math.max(150, (kmLeft - 25) * 3.5));
   const t = sim.spec.type;
@@ -6970,11 +7116,14 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
     nw = 0;
   if (
     spr &&
-    (t === 'plat' || (t === 'punch' && kmLeft < 95) || (t === 'vallonne' && kmLeft < 80 && spr.r.s.col >= R.sprintHillCol)) &&
+    (t === 'plat' ||
+      (t === 'punch' && kmLeft < 95) ||
+      (t === 'vallonne' && kmLeft < 80 && spr.r.s.col >= R.sprintHillCol)) &&
     !aheadMate
   ) {
     // (final vallonné : plus dur à contrôler pour une équipe de sprinteur, l'échappée a plus de marge)
-    const allowed = Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK * (t === 'vallonne' ? R.hillyChaseK : 1);
+    const allowed =
+      Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK * (t === 'vallonne' ? R.hillyChaseK : 1);
     if (gap > allowed * 1.5 + 40) {
       level = 0.97;
       nw = 4;
@@ -7074,7 +7223,7 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
               45,
               climbLeft * (t === 'sommet' ? 52 : 24) + Math.max(0, kmLeft - climbLeft) * (t === 'sommet' ? 6 : 1.4)
             )
-          : Math.max(45, (kmLeft - 5) * 5.2)) * (t === 'sommet' ? R.summitChaseK : 1);
+          : Math.max(45, (kmLeft - 5) * 5.2)) * (t === 'sommet' ? R.summitChaseK : R.favChaseK);
       if (gap > allowed) {
         const l3 = gap > allowed * 1.5 ? 0.9 : 0.85;
         if (l3 > level) {
@@ -7098,6 +7247,7 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
       }
     }
   }
+  if (yc && yc[0] > level) [level, nw] = yc;
   return [level ? Math.min(0.98, level * (level > 0.8 ? styleMul(T, 'chase') : 1)) : 0, nw];
 }
 // Ordre radio du joueur : provoquer une bordure (vent de côté).
@@ -7226,7 +7376,14 @@ function buildStageSim(rc) {
         team: T,
         energy: rc.energy[id],
         dayForm: clamp(
-          r.forme + gauss() * fv - (sansJour ? rf(7, 13) : 0) - (r.sick > 0 ? 6 : 0) + dsGoalBoost(rc, T) + homeBoost(rc, r) + mentalBig(rc, r) + mfForm(r),
+          r.forme +
+            gauss() * fv -
+            (sansJour ? rf(7, 13) : 0) -
+            (r.sick > 0 ? 6 : 0) +
+            dsGoalBoost(rc, T) +
+            homeBoost(rc, r) +
+            mentalBig(rc, r) +
+            mfForm(r),
           25,
           100
         ),
@@ -7772,7 +7929,8 @@ function tickRoadEvents(sim) {
   echelonAsk(sim);
   dangerTick(sim);
   for (const G of sim.groups.slice()) {
-    if (sim.parade || !G.expo || !sim.P.wind || G !== pel || G.riders.length < 30 || G.pos < 15 || sim.dist - G.pos < 3) continue;
+    if (sim.parade || !G.expo || !sim.P.wind || G !== pel || G.riders.length < 30 || G.pos < 15 || sim.dist - G.pos < 3)
+      continue;
     if (sim.echelonT && sim.t - sim.echelonT < 70) continue;
     const teams = [...new Set(G.riders.map(x => x.team))];
     for (const T of teams) {
@@ -8008,7 +8166,8 @@ function decideRider(sim, x, ctx) {
       log(sim, `📻 ${riderName(x.r)} : « ${radioReply(x, 'legs')} »`, 'bad');
     return;
   }
-  const eo = effOrder(x);
+  // (un homme du podium en carte libre court comme un leader : ni échappée, ni attaques d'équipier)
+  const eo = effOrder(x) === 'free' && gcLead(sim, x) ? 'leader' : effOrder(x);
   // (attendre : le leader, ou le coureur désigné par le directeur sportif, le sprinteur par exemple)
   const wt = eo === 'wait' && x.waitFor != null ? sim.runners.find(y => y.id === x.waitFor && !y.fin && !y.dnf) : null;
   const ldr = wt || sim.teamLeader[x.team.id];
@@ -8163,7 +8322,8 @@ function decideRider(sim, x, ctx) {
     const spB = sim.teamSprinter[x.team.id];
     // (dans les derniers km seulement (R.brkSprintKm), et il relaie au ralenti : à 60 km, toute l'échappée s'arrêtait de rouler,
     // presque chaque équipe ayant un sprinteur derrière, et elle était reprise bien avant le final)
-    if (spB && spB !== x && spB.g !== G && !spB.fin && sim.P.finishGrad < 3 && kmLeft < R.brkSprintKm) w = Math.min(w, 0.3);
+    if (spB && spB !== x && spB.g !== G && !spB.fin && sim.P.finishGrad < 3 && kmLeft < R.brkSprintKm)
+      w = Math.min(w, 0.3);
     if (G.riders.length >= 3 && sim.P.finishGrad < 3 && kmLeft < 15) {
       const bs = G.riders.reduce((a, b) => (b.r.s.spr > a.r.s.spr ? b : a));
       if (bs === x && x.r.s.bar < 75) w = Math.min(w, 0.35);
@@ -8268,7 +8428,8 @@ function decideRider(sim, x, ctx) {
       if (surf && kmLeft < 70) window = g >= 3 && !sim.stageRace ? R.murAttack : 0.6; // mur pavé : le moment de partir
       if (kmLeft < 15) window = Math.max(window, 0.5);
     } else if (t === 'plat') {
-      if (kmLeft < 8 && kmLeft > 1.5 && !(sim.parade && eo === 'leader')) window = 0.15;
+      // (un leader du général n'attaque pas dans le final d'une étape de sprint : rien à gagner, tout à perdre)
+      if (kmLeft < 8 && kmLeft > 1.5 && !(sim.stageRace && eo === 'leader')) window = 0.15;
     }
     if (window > 0) {
       const capX = cap(x, g, surf);
@@ -8312,7 +8473,7 @@ function decideRider(sim, x, ctx) {
       // filer et il se griller ; il le fait dans le final (ou s'il n'a plus rien à perdre au général)
       (eo === 'leader' &&
         x.att !== 'defensif' &&
-        (phaseOf(sim, G) === 'final' ||
+        ((phaseOf(sim, G) === 'final' && !(sim.stageRace && sim.spec.type === 'plat')) ||
           (sim.stageRace ? leaderGcRank(sim.rc, x.id) > 10 : phaseOf(sim, G) !== 'debut')))) &&
     x.r.s.bar >= 68 &&
     x.punch > 45 &&
@@ -8604,6 +8765,31 @@ function tickPhysics(sim) {
         G.cutRush = true;
       }
     } else G.cutRush = false;
+    // groupe coupé (accordéon, chute, route étroite) juste derrière le peloton dans le final : tout le monde roule à
+    // bloc pour limiter la perte (sinon, faute d'équipier désigné, il temporisait et perdait 15 s au km)
+    // (idem, sur le plat, pour un groupe où roule un leader du général d'une course par étapes : son équipe et lui
+    // chassent pour revenir, à n'importe quel moment de l'étape)
+    const pG = sim.pel;
+    if (G.burst <= 0 && g < 3 && G.riders.filter(y => y.energy > 30 && !y.sitUp).length * 2 >= n) {
+      const gp = pG && G !== pG && G.pos < pG.pos ? ((pG.pos - G.pos) / Math.max(20, pG.speed || 40)) * 3600 : null;
+      // (le groupe des leaders du général devant : pas l'échappée du jour, mais un groupe où roulent des leaders,
+      // après une bordure par exemple ; ceux qui y ont perdu le contact chassent, même si leur groupe est « le peloton »)
+      const gcAhead =
+        sim.stageRace &&
+        (sim.spec.type === 'plat' || sim.spec.type === 'paves') &&
+        G.riders.some(y => gcLead(sim, y)) &&
+        gcGroups(sim).some(H => H !== G && H.pos > G.pos && gapSec(H, G) < 600);
+      // (et, sur le plat abrité, un groupe coupé de moins de deux minutes à n'importe quel moment : il revient)
+      const cutFlat = gp != null && gp < 120 && g < 2 && !G.expo && !G.dropped;
+      if ((gp != null && gp < 45 && sim.dist - G.pos < R.cutChaseKm) || gcAhead || cutFlat) {
+        L0 = L;
+        // (les plus forts relaient, les autres s'accrochent dans les roues : allure du tiers le plus fort)
+        // (à trois ou plus, les relais courts permettent de tenir l'allure du seuil des plus forts)
+        L = Math.max(L, capsDesc()[Math.floor(n * 0.3)] * (n >= 3 ? 1 : 0.95));
+        if (gp != null && pG.L && !gcAhead) L = Math.min(L, Math.max(L0, pG.L * 1.04));
+        if (L > L0) paceSrc = 'tempo';
+      }
+    }
     if (G.noMerge > 0) G.noMerge--;
     G.L = L;
     // vitesse de référence (calibrée), puis conditions du jour par la physique (air, vent, revêtement, pluie)
@@ -8718,13 +8904,20 @@ function tickPhysics(sim) {
           // (72 de pavés : usure normale ; 86 : -35 % ; 60 : +30 %)
           (surf ? clamp(1 + (72 - (x.r.s.pav || 60)) / 40, 0.55, 1.5) : 1) *
           // chaleur : les gabarits lourds évacuent mal la chaleur (≈ +1 % d'usure par kilo au-dessus de 66 kg)
-          (sim.wx === 'chaleur' ? 1 + (1.15 * clamp(1 + ((x.r.kg || 68) - 66) * 0.01, 0.95, 1.15) - 1) * (x.r.heatAcc > 0 ? 0.5 : 1) : 1) *
+          (sim.wx === 'chaleur'
+            ? 1 + (1.15 * clamp(1 + ((x.r.kg || 68) - 66) * 0.01, 0.95, 1.15) - 1) * (x.r.heatAcc > 0 ? 0.5 : 1)
+            : 1) *
           (x.food < 25 ? 1.35 : 1) *
           (coldHigh ? 1.12 : 1);
       x.food = Math.max(
         0,
         x.food -
-          R.foodDrain * foodMet(x.r) * (4 + 14 * Math.min(1.2, I) ** 2) * dtH * (sim.wx === 'chaleur' ? (x.r.heatAcc > 0 ? 1.1 : 1.2) : coldHigh ? 1.2 : 1) * (x.eqf.food || 1)
+          R.foodDrain *
+            foodMet(x.r) *
+            (4 + 14 * Math.min(1.2, I) ** 2) *
+            dtH *
+            (sim.wx === 'chaleur' ? (x.r.heatAcc > 0 ? 1.1 : 1.2) : coldHigh ? 1.2 : 1) *
+            (x.eqf.food || 1)
       );
       if (x.food < 6 && !x.bonk) {
         x.bonk = true;
@@ -8894,6 +9087,16 @@ function incident(sim, x, type) {
       if (behind.length >= 3) {
         const BG = newGroupFrom(sim, behind, Math.max(0, G.pos - (G.speed * rf(5, 20)) / 3600));
         BG.noMerge = 2;
+        // fair-play : des leaders du général piégés derrière la chute loin de l'arrivée, le peloton se relève
+        const gcBack = behind.filter(y => gcLead(sim, y));
+        if (sim.stageRace && !sim.neutral && G.riders.length >= 20 && gcBack.length && sim.dist - G.pos > 25) {
+          sim.neutral = { G, until: sim.t + 4, who: gcBack[0] };
+          log(
+            sim,
+            `🤝 Des favoris piégés derrière la chute (${gcBack.map(y => riderName(y.r)).join(', ')}) : le peloton se relève.`,
+            gcBack.some(y => y.player) ? 'me' : 'info'
+          );
+        }
         if (behind.some(y => y.player || sim.favs.has(y.id)))
           log(
             sim,
@@ -8937,9 +9140,53 @@ function incident(sim, x, type) {
   }
 }
 // Jonctions entre groupes.
+// Groupes où roulent des leaders du général (hors échappée du jour), une fois par pas de course.
+function gcGroups(sim) {
+  if (sim._gcgT === sim.t) return sim._gcg;
+  sim._gcgT = sim.t;
+  sim._gcg = sim.groups.filter(
+    H =>
+      H.riders.length >= 3 &&
+      !(sim.brkIds && H.riders.filter(z => sim.brkIds.has(z.id)).length * 2 > H.riders.length) &&
+      H.riders.some(z => gcLead(sim, z))
+  );
+  return sim._gcg;
+}
 function tickMerges(sim) {
   sim.groups = sim.groups.filter(G => G.riders.length);
   sim.groups.sort((a, b) => b.pos - a.pos);
+  // groupe dépassé par le peloton (des attaquants repris, souvent pendant leur effort) : ses coureurs se calent dans
+  // les roues au passage, comme en vrai, au lieu d'être lâchés d'office faute de rouler aussi vite que lui.
+  // S'ils n'ont plus les jambes, la sélection habituelle les lâchera ensuite.
+  const pel = sim.pel;
+  // (étapes plates et pavées : ailleurs, être dépassé dans une bosse c'est être lâché, et les échappées des étapes
+  // accidentées se faisaient avaler à tort)
+  if (pel && pel.riders.length && (sim.spec.type === 'plat' || sim.spec.type === 'paves')) {
+    const reach = ((pel.speed || 40) * 10) / 3600; // à portée : moins de 10 s environ
+    for (const G of sim.groups.slice()) {
+      if (G === pel || !G.riders.length) continue;
+      if (G.pos >= pel.pos)
+        G.passedBy = null; // (de nouveau devant : plus « dépassé »)
+      else if (G.aheadPel && G.riders.length < pel.riders.length) G.passedBy = pel;
+      // (la jonction passe par la fusion habituelle ci-dessous : reprise annoncée, échappée du jour relevée, nouvelle
+      // bagarre si elle est reprise tôt ; le groupe repris est remis juste devant le peloton qui l'avale)
+      // (sur le plat seulement : en côte, l'abri ne compte plus, être dépassé c'est être lâché)
+      if (
+        G.passedBy === pel &&
+        (G.g || 0) < 3 &&
+        G.pos < pel.pos &&
+        G.pos >= pel.pos - reach &&
+        G.riders.some(x => x.energy > 12)
+      ) {
+        G.pos = pel.pos + 1e-6;
+        G.noMerge = 0;
+        // (seule l'échappée du jour compte comme une reprise : un groupe d'attaquants avalé ne relance pas les contres)
+        G.ahead = !!(sim.brkIds && G.riders.filter(x => sim.brkIds.has(x.id)).length * 2 > G.riders.length);
+      }
+    }
+    sim.groups.sort((a, b) => b.pos - a.pos);
+    for (const G of sim.groups) G.aheadPel = G !== pel && G.pos > pel.pos;
+  }
   for (let i = 0; i < sim.groups.length - 1; i++) {
     const A = sim.groups[i],
       B = sim.groups[i + 1];
@@ -8950,7 +9197,8 @@ function tickMerges(sim) {
         A.riders.length &&
         (A.riders.some(x => x.player || sim.favs.has(x.id)) || A.riders.length >= 3 || A.pos > sim.dist * 0.5)
       )
-        log(sim, `🔁 Le groupe de ${A.riders.length} coureur(s) est repris par le peloton.`, ''), skyEvent(sim, 'reprise', A.riders[0], A);
+        (log(sim, `🔁 Le groupe de ${A.riders.length} coureur(s) est repris par le peloton.`, ''),
+          skyEvent(sim, 'reprise', A.riders[0], A));
       // reprise de l'échappée du jour (pas des attaques de la bagarre du départ) : relevée pour le bilan d'étape
       if (
         wasBreak &&
@@ -9882,6 +10130,11 @@ function endStageSim(sim) {
         bunch = k;
       }
   }
+  if (sim.parade && bunch === null && res.length) {
+    const cnt = new Map();
+    for (const x of res) cnt.set(Math.round(ct.get(x.id)), (cnt.get(Math.round(ct.get(x.id))) || 0) + 1);
+    bunch = [...cnt].sort((a, b) => b[1] - a[1])[0][0];
+  }
   applyStageResult(
     rc,
     sim.spec,
@@ -9889,7 +10142,8 @@ function endStageSim(sim) {
       id: x.id,
       time: ct.get(x.id),
       energy: x.energy,
-      gcTime: bunch !== null && sim.pel3.has(x.id) && ct.get(x.id) > bunch ? bunch : undefined,
+      // (parade : temps du général neutralisés, chacun prend le temps du peloton, comme le veut l'usage)
+      gcTime: bunch !== null && (sim.parade || sim.pel3.has(x.id)) && ct.get(x.id) > bunch ? bunch : undefined,
     })),
     sim.runners.filter(x => x.dnf).map(x => x.id)
   );
@@ -9980,7 +10234,16 @@ function runITT(rc) {
       const x = {
         r,
         energy: rc.energy[id],
-        dayForm: clamp(r.forme + gauss() * (r.trait === 'regulier' ? 2.5 : 6) + homeBoost(rc, r) + mentalBig(rc, r) + mfForm(r) + (r.team === 0 ? facTT() : 0), 25, 100),
+        dayForm: clamp(
+          r.forme +
+            gauss() * (r.trait === 'regulier' ? 2.5 : 6) +
+            homeBoost(rc, r) +
+            mentalBig(rc, r) +
+            mfForm(r) +
+            (r.team === 0 ? facTT() : 0),
+          25,
+          100
+        ),
       };
       // allure choisie, limite du jour, réserve (76-ttpacing.js)
       const mode = TT_PACE[o.itt] ? o.itt : 'gerer';
@@ -10071,7 +10334,16 @@ function runTTT(rc) {
         id,
         r,
         energy: rc.energy[id],
-        dayForm: clamp(r.forme + gauss() * (r.trait === 'regulier' ? 2.5 : 6) + homeBoost(rc, r) + mentalBig(rc, r) + mfForm(r) + (r.team === 0 ? facTT() : 0), 25, 100),
+        dayForm: clamp(
+          r.forme +
+            gauss() * (r.trait === 'regulier' ? 2.5 : 6) +
+            homeBoost(rc, r) +
+            mentalBig(rc, r) +
+            mfForm(r) +
+            (r.team === 0 ? facTT() : 0),
+          25,
+          100
+        ),
         with: true,
         t: 0,
         di: -1,
@@ -10243,7 +10515,9 @@ function applyStageResult(rc, spec, res, dnfIds) {
     type: spec.type,
     res: res.map(e => ({ id: e.id, gap: e.gap, time: e.time })),
     cut: cutIds,
-    cutInfo: rc.cutInfo ? { pct: rc.cutInfo.pct, lim: Math.round(rc.cutInfo.lim), n: rc.cutInfo.n, graced: rc.cutInfo.graced } : null,
+    cutInfo: rc.cutInfo
+      ? { pct: rc.cutInfo.pct, lim: Math.round(rc.cutInfo.lim), n: rc.cutInfo.n, graced: rc.cutInfo.graced }
+      : null,
     stats: rc._stats || null,
     brk: rc._brk || null,
     tac: rc._tac || null,
@@ -12593,7 +12867,12 @@ function asstRecruit() {
       .sort((a, b) => shownOv(b) - contractDemand(b) / 60 - (shownOv(a) - contractDemand(a) / 60));
     if (!pool.length) break;
     const r = pool[0];
-    const res = negotiate(r.id, Math.max(minSalary(0), Math.round((contractDemand(r) * 1.05) / 5) * 5), r.age <= 27 || neoPro(r) ? 2 : 1, false);
+    const res = negotiate(
+      r.id,
+      Math.max(minSalary(0), Math.round((contractDemand(r) * 1.05) / 5) * 5),
+      r.age <= 27 || neoPro(r) ? 2 : 1,
+      false
+    );
     if (res.ok)
       done.push(
         `${riderName(r)} (≈${shownOv(r)}, ${fmtMoney(r.salary)}/an : meilleur rapport niveau/salaire du marché libre)`
@@ -14872,7 +15151,11 @@ function radioTick(sim) {
       const x = a.xid != null ? sim.runners.find(y => y.id === a.xid) : null;
       const k = !x || ['tete', 'modele'].includes(x.r.trait) ? a.def : a.auto();
       const o = a.opts.find(o => o[0] === k);
-      log(sim, `📻 Pas de réponse de la voiture : ${k === a.def ? a.self : `il choisit seul : « ${o ? o[1] : k} ».`}`, 'info');
+      log(
+        sim,
+        `📻 Pas de réponse de la voiture : ${k === a.def ? a.self : `il choisit seul : « ${o ? o[1] : k} ».`}`,
+        'info'
+      );
       askAnswer(sim, k, 'self');
     } else {
       const k = a.auto();
@@ -16153,9 +16436,7 @@ function jerseyOrder(G, kind, sim, c) {
       ? x =>
           cap(x, 6, 0) +
           // (les hommes du général, leaders ou non, laissent les points des cols de passage aux chasseurs)
-          (!summitFinish && x.aim !== 'kom' && (effOrder(x) === 'leader' || (sim.stageRace && gcTop(x)))
-            ? -12
-            : 0) +
+          (!summitFinish && x.aim !== 'kom' && (effOrder(x) === 'leader' || (sim.stageRace && gcTop(x))) ? -12 : 0) +
           (x.work > 0.5 ? 3 : 0)
       : x => x.r.s.spr + x.pos * 0.1;
   const sc = new Map(G.riders.map(x => [x, base(x) + (x.aim === kind ? 9 : 0) + gauss() * (kind === 'kom' ? 1.5 : 3)]));
@@ -22909,10 +23190,16 @@ function legacyBackfill() {
     if (!c || c.key === 'natio' || c.worlds) continue;
     const r = S.riders[p.rid];
     if (p.e === 'Classement général')
-      add(p.s, c.cat === 0 ? LEG_PTS.gt : c.cat === 1 ? LEG_PTS.cat1Gc : LEG_PTS.cat2, `${p.r} : victoire au général (${riderName(r)})`);
-    else if (p.e === 'Course') add(p.s, c.cat === 1 ? LEG_PTS.cat1One : LEG_PTS.cat2, `${p.r} : victoire (${riderName(r)})`);
+      add(
+        p.s,
+        c.cat === 0 ? LEG_PTS.gt : c.cat === 1 ? LEG_PTS.cat1Gc : LEG_PTS.cat2,
+        `${p.r} : victoire au général (${riderName(r)})`
+      );
+    else if (p.e === 'Course')
+      add(p.s, c.cat === 1 ? LEG_PTS.cat1One : LEG_PTS.cat2, `${p.r} : victoire (${riderName(r)})`);
     else if (/^Étape/.test(p.e)) add(p.s, c.cat === 0 ? LEG_PTS.gtStage : LEG_PTS.stage, '');
-    else if (c.cat === 0 && (p.e === 'Maillot des points' || p.e === 'Meilleur grimpeur')) add(p.s, LEG_PTS.gtJersey, '');
+    else if (c.cat === 0 && (p.e === 'Maillot des points' || p.e === 'Meilleur grimpeur'))
+      add(p.s, LEG_PTS.gtJersey, '');
   }
   for (const h of S.teamHist || []) if (h.rank <= 3) add(h.s, LEG_PTS.uci[h.rank - 1], '');
   for (const h of S.teamHist || []) {
@@ -22966,7 +23253,15 @@ function legacyAfterRace(rc) {
 // Fin de saison : podium UCI des équipes, saison en WorldTour, point d'étape de la courbe de dynastie.
 function legacyEndSeason(rankArr) {
   if (S.car) return;
-  rankArr.slice(0, 3).forEach((T, i) => legCredit(T.id, LEG_PTS.uci[i], i === 0 && T.player ? `Saison ${S.season} : première équipe au classement UCI` : ''));
+  rankArr
+    .slice(0, 3)
+    .forEach((T, i) =>
+      legCredit(
+        T.id,
+        LEG_PTS.uci[i],
+        i === 0 && T.player ? `Saison ${S.season} : première équipe au classement UCI` : ''
+      )
+    );
   for (const T of S.teams) if (typeof isWT === 'function' && isWT(T.id)) legCredit(T.id, LEG_PTS.wt, '');
   const L = legacyInit();
   L.hist.push({ s: S.season, score: L.score, club: S.teams[0].name });
@@ -22975,7 +23270,13 @@ function legacyEndSeason(rankArr) {
 // Un directeur de l'ordinateur quitte son poste : il entre au panthéon.
 function legacyRetireDs(T, d) {
   if (!d || !(d.score > 0)) return;
-  (S.dsHall = S.dsHall || []).push({ n: `${d.fn} ${d.ln}`, team: T.name, score: Math.round(d.score), from: d.since || null, to: S.season });
+  (S.dsHall = S.dsHall || []).push({
+    n: `${d.fn} ${d.ln}`,
+    team: T.name,
+    score: Math.round(d.score),
+    from: d.since || null,
+    to: S.season,
+  });
   S.dsHall.sort((a, b) => b.score - a.score);
   if (S.dsHall.length > 30) S.dsHall.length = 30;
 }
@@ -23008,7 +23309,9 @@ function legacyBadges() {
   const gt = wins.filter(p => p.e === 'Classement général' && cat(p.r) === 0);
   const classics = wins.filter(p => p.e === 'Course' && cat(p.r) === 1);
   const gtStages = wins.filter(p => /^Étape/.test(p.e) && cat(p.r) === 0);
-  const alumniWins = (S.acaAlumni || []).filter(a => (S.riders[a.id] && S.riders[a.id].palm || []).some(p => p.k === 1 && p.my)).length;
+  const alumniWins = (S.acaAlumni || []).filter(a =>
+    ((S.riders[a.id] && S.riders[a.id].palm) || []).some(p => p.k === 1 && p.my)
+  ).length;
   const hist = S.teamHist || [];
   const top3 = hist.filter(h => h.rank <= 3).length;
   const B = [
@@ -23020,7 +23323,12 @@ function legacyBadges() {
     ['🥇', 'Numéro un', 'Terminer une saison première équipe au classement UCI', hist.some(h => h.rank === 1)],
     ['🏛️', 'Dynastie', 'Trois saisons sur le podium UCI des équipes', top3 >= 3],
     ['🔁', 'Bâtisseur', 'Dix saisons à la tête d’équipes', hist.length >= 10],
-    ['🚀', 'De rien au sommet', 'Une saison dans le top 3 UCI après une saison hors du top 12', hist.some((h, i) => i > 0 && h.rank <= 3 && hist.slice(0, i).some(p => p.rank > 12))],
+    [
+      '🚀',
+      'De rien au sommet',
+      'Une saison dans le top 3 UCI après une saison hors du top 12',
+      hist.some((h, i) => i > 0 && h.rank <= 3 && hist.slice(0, i).some(p => p.rank > 12)),
+    ],
   ];
   return B.map(([ic, n, d, ok]) => ({ ic, n, d, ok }));
 }
@@ -23061,7 +23369,11 @@ const LOCK = {
 // --- Caractère et leadership ---
 function leadOf(r) {
   const tb = { modele: 20, leaderne: 10, tete: -15, fragile: -10, regulier: 4 }[r.trait] || 0;
-  return clamp(Math.round(30 + (r.age - 22) * 3 + (r.dis - 50) * 0.4 + tb + ((dsHash('lead' + r.id) % 21) - 10)), 5, 99);
+  return clamp(
+    Math.round(30 + (r.age - 22) * 3 + (r.dis - 50) * 0.4 + tb + ((dsHash('lead' + r.id) % 21) - 10)),
+    5,
+    99
+  );
 }
 const CHARS = {
   capitaine: { lbl: 'Capitaine né', ic: '🧭', d: 'Écouté du groupe ; calme les tensions.' },
@@ -23304,7 +23616,10 @@ function lockerAskRivals() {
     if (S.lockDone.includes(k) || !c || c.done || c.w - S.week > 10) continue;
     S.lockDone.push(k);
     S.lockAsk = { k: 'rivals', a: a.id, b: b.id, key: c.key, exp: S.week + 2, id: k };
-    msg('⚔️ Deux leaders pour une course', `${riderName(a)} et ${riderName(b)} veulent tous deux être leader à ${c.name}. À vous de trancher (onglet Équipe).`);
+    msg(
+      '⚔️ Deux leaders pour une course',
+      `${riderName(a)} et ${riderName(b)} veulent tous deux être leader à ${c.name}. À vous de trancher (onglet Équipe).`
+    );
     return;
   }
 }
@@ -23338,9 +23653,15 @@ function lockerAnswer(opt, auto) {
 
 // --- Réunions d'équipe ---
 const MEETS = {
-  remobiliser: { lbl: 'Remobiliser le groupe', d: 'Moral en hausse pour tous (plus avec un bon capitaine et un groupe confiant).' },
+  remobiliser: {
+    lbl: 'Remobiliser le groupe',
+    d: 'Moral en hausse pour tous (plus avec un bon capitaine et un groupe confiant).',
+  },
   recadrer: { lbl: 'Recadrer', d: 'Discipline en hausse ; les égoïstes et les têtes brûlées le prennent mal.' },
-  ecouter: { lbl: 'Écouter chacun', d: 'Les frustrés se sentent entendus (gros gain de moral) ; vous apprenez ce qu’ils veulent.' },
+  ecouter: {
+    lbl: 'Écouter chacun',
+    d: 'Les frustrés se sentent entendus (gros gain de moral) ; vous apprenez ce qu’ils veulent.',
+  },
 };
 function meetReady() {
   const wk = S.season * 100 + S.week;
@@ -23379,7 +23700,8 @@ function lockerWhy(r) {
   if (r.wantsOut) return 'veut partir';
   const bp = (S.proms || []).find(p => p.id === r.id && p.s === S.season && p.ok === false);
   if (bp) return 'promesse rompue';
-  if (r.goal && r.goal.s === S.season && r.goal.lead && r.goal.race) return `veut être leader à ${goalRaceTag(r).replace('leader à ', '')}`;
+  if (r.goal && r.goal.s === S.season && r.goal.lead && r.goal.race)
+    return `veut être leader à ${goalRaceTag(r).replace('leader à ', '')}`;
   if (r.stats && r.stats.days < 10 && S.week > 12) return 'court trop peu';
   if (relationsOf(r.id).some(a => a[1] <= -40)) return 'en froid avec un équipier';
   return '';
@@ -23397,7 +23719,8 @@ function lockerWeekly() {
     const r = S.riders[id];
     const ch = charOf(r);
     if (r.moral < 30 && r.amb >= 65 && (ch === 'egoiste' || ch === 'tete' || ch === 'ambitieux'))
-      if (dsHash('plainte' + id + S.season + ':' + S.week) % 100 < 12) lockerComplain(r, lockerWhy(r) || 'son rôle dans l’équipe');
+      if (dsHash('plainte' + id + S.season + ':' + S.week) % 100 < 12)
+        lockerComplain(r, lockerWhy(r) || 'son rôle dans l’équipe');
   }
   // la confiance revient doucement vers la normale
   S.trust = trustOf() + (LOCK.trust0 - trustOf()) * 0.02;
@@ -23491,7 +23814,8 @@ function releaseAmount(r, salary) {
 function negoExtras(r, cl, add) {
   const ag = agentOf(r);
   const dem = contractDemand(r);
-  if (cl.bonus > 0) add('Prime de victoire', Math.min(0.12, ((cl.bonus * expWins(r)) / dem) * 2.5) * (ag === 'requin' ? 1.3 : 1));
+  if (cl.bonus > 0)
+    add('Prime de victoire', Math.min(0.12, ((cl.bonus * expWins(r)) / dem) * 2.5) * (ag === 'requin' ? 1.3 : 1));
   if (cl.role && r.amb > 45) add('Rôle garanti', 0.12 + (ag === 'carriere' ? 0.06 : 0));
   if (cl.release) add('Clause libératoire', ag === 'requin' ? 0.12 : 0.06);
   const su = suitorsOf(r).length;
@@ -23508,7 +23832,8 @@ function negoCounter(r, salary, years, promise, cl, p) {
   const pf = 1.08 - teamRank() * 0.02;
   const dem = contractDemand(r) * agentDemMul(r);
   const su = suitorsOf(r).length;
-  const ask = Math.round((dem * (ag === 'requin' ? 1.12 : ag === 'conciliant' ? 1.0 : 1.05) * (1 + 0.03 * su)) / pf / 5) * 5;
+  const ask =
+    Math.round((dem * (ag === 'requin' ? 1.12 : ag === 'conciliant' ? 1.0 : 1.05) * (1 + 0.03 * su)) / pf / 5) * 5;
   const nextRace = r.goal && r.goal.race && !S.cal.find(c => c.key === r.goal.race).done ? r.goal.race : null;
   const want = {
     bonus: ag === 'requin' ? Math.max(cl.bonus || 0, 10) : cl.bonus || 0,
@@ -23602,7 +23927,12 @@ function releaseClausesEndSeason() {
     const amt = r.cl.release;
     r.cl = null;
     if (S.captain === id) S.captain = null;
-    press(`${T.name} lève la clause de ${riderName(r)}`, `${T.name} paie la clause libératoire (${fmtMoney(amt)}) : ${riderName(r)} quitte ${P.name}.`, 0, [id]);
+    press(
+      `${T.name} lève la clause de ${riderName(r)}`,
+      `${T.name} paie la clause libératoire (${fmtMoney(amt)}) : ${riderName(r)} quitte ${P.name}.`,
+      0,
+      [id]
+    );
     msg('🔓 Clause libératoire levée', `${T.name} a payé ${fmtMoney(amt)} pour ${riderName(r)}, qui s'en va.`);
   }
 }
@@ -23678,7 +24008,9 @@ function periAutoAll() {
       n++;
     }
   }
-  return n ? `📅 ${n} plan${n > 1 ? 's' : ''} de saison construit${n > 1 ? 's' : ''} vers les objectifs des coureurs.` : 'Aucun coureur sans plan avec un objectif à venir.';
+  return n
+    ? `📅 ${n} plan${n > 1 ? 's' : ''} de saison construit${n > 1 ? 's' : ''} vers les objectifs des coureurs.`
+    : 'Aucun coureur sans plan avec un objectif à venir.';
 }
 function periBlockNow(r, w = S.week) {
   const P = periOf(r);
@@ -23720,7 +24052,7 @@ function labMeasure(r) {
   const kg = r.kg || 68;
   const cp = riderCP(r);
   const W = wPrime(r) * 1000;
-  const nz = k => 1 + (((dsHash('lab' + r.id + k + S.season + ':' + S.week) % 41) - 20) / 1000); // ±2 %
+  const nz = k => 1 + ((dsHash('lab' + r.id + k + S.season + ':' + S.week) % 41) - 20) / 1000; // ±2 %
   const p20 = Math.round((cp + W / 1200) * nz('20'));
   const p5 = Math.round((cp + W / 300) * nz('5'));
   const p1 = Math.round((cp + W / 60) * nz('1'));
@@ -23774,7 +24106,12 @@ function doctorCandidates() {
   const out = [];
   for (let i = 0; i < 3; i++) {
     const h = dsHash('doc' + S.season + i);
-    out.push({ k: ks[(h + i) % ks.length], fn: N.fn[(h >>> 3) % N.fn.length], ln: N.ln[(h >>> 9) % N.ln.length], fee: 30 + ((h >>> 5) % 4) * 10 });
+    out.push({
+      k: ks[(h + i) % ks.length],
+      fn: N.fn[(h >>> 3) % N.fn.length],
+      ln: N.ln[(h >>> 9) % N.ln.length],
+      fee: 30 + ((h >>> 5) % 4) * 10,
+    });
   }
   return out;
 }
@@ -23806,7 +24143,8 @@ function crashInjKind(weeks) {
 // Reprise anticipée : 40 % de temps d'arrêt en moins, mais un risque de rechute au retour.
 function earlyReturn(id) {
   const r = S.riders[id];
-  if (!r || r.team !== 0 || r.injury < 2 || !r.inj || r.inj.k === 'suspension') return 'Pas de reprise anticipée possible.';
+  if (!r || r.team !== 0 || r.injury < 2 || !r.inj || r.inj.k === 'suspension')
+    return 'Pas de reprise anticipée possible.';
   if (r.inj.early) return 'Reprise déjà avancée.';
   r.injury = Math.max(1, Math.ceil(r.injury * 0.6));
   r.inj.early = true;
@@ -23829,13 +24167,27 @@ function healthWeekly(r, mine) {
         r.injury = w;
         r.forme = Math.max(30, r.forme - 5);
         r.inj = { k: r.inj.k, w0: w, s: S.season, wk: S.week, relapse: true };
-        if (mine) msg('🚑 Rechute', `${riderName(r)} a repris trop tôt : rechute, encore ${w} semaine${w > 1 ? 's' : ''} d'arrêt.`);
+        if (mine)
+          msg(
+            '🚑 Rechute',
+            `${riderName(r)} a repris trop tôt : rechute, encore ${w} semaine${w > 1 ? 's' : ''} d'arrêt.`
+          );
         return;
       }
     }
-    (r.injHist = r.injHist || []).unshift({ k: r.inj.k, s: r.inj.s, wk: r.inj.wk, w: r.inj.w0, relapse: !!r.inj.relapse });
+    (r.injHist = r.injHist || []).unshift({
+      k: r.inj.k,
+      s: r.inj.s,
+      wk: r.inj.wk,
+      w: r.inj.w0,
+      relapse: !!r.inj.relapse,
+    });
     if (r.injHist.length > 8) r.injHist.length = 8;
-    if (mine) msg('✅ Retour', `${riderName(r)} est de nouveau disponible (${(INJ[r.inj.k] || INJ.plaies).lbl.toLowerCase()}).`);
+    if (mine)
+      msg(
+        '✅ Retour',
+        `${riderName(r)} est de nouveau disponible (${(INJ[r.inj.k] || INJ.plaies).lbl.toLowerCase()}).`
+      );
     r.inj = null;
     return;
   }
@@ -23850,22 +24202,67 @@ function healthWeekly(r, mine) {
     const k = h % 5 === 0 ? 'covid' : 'virus';
     injSet(r, k, k === 'covid' ? 2 : 1);
     r.forme = Math.max(30, r.forme - 6);
-    if (mine) msg(`${INJ[k].ic} ${riderName(r)} malade`, `${riderName(r)} : ${INJ[k].lbl.toLowerCase()}, ${r.injury} semaine${r.injury > 1 ? 's' : ''} d'arrêt.`);
+    if (mine)
+      msg(
+        `${INJ[k].ic} ${riderName(r)} malade`,
+        `${riderName(r)} : ${INJ[k].lbl.toLowerCase()}, ${r.injury} semaine${r.injury > 1 ? 's' : ''} d'arrêt.`
+      );
   } else if (h < pIll + pTen) {
     injSet(r, 'tendinite', 2 + (h % 3));
-    if (mine) msg('🦵 Tendinite', `${riderName(r)} souffre d'une tendinite (charge trop lourde) : ${r.injury} semaines d'arrêt.`);
+    if (mine)
+      msg(
+        '🦵 Tendinite',
+        `${riderName(r)} souffre d'une tendinite (charge trop lourde) : ${r.injury} semaines d'arrêt.`
+      );
   }
 }
 
 // --- Déplacements et acclimatation ---
 const RACE_REG = {
-  gpo: 'FRA', omloop: 'NORD', cote: 'IBE', soleil: 'FRA', mers: 'ITA', msr: 'ITA', flandres: 'NORD', pav: 'NORD',
-  basque: 'IBE', amstel: 'NORD', col: 'NORD', liege: 'NORD', giro: 'ITA', alpes: 'ALP', cantons: 'ALP', gb: 'FRA',
-  clasica: 'IBE', fin: 'ITA', vuelta: 'IBE', chr: 'FRA', auto: 'ITA', gpf: 'FRA', levant: 'LEV', briques: 'NORD',
-  blancs: 'ITA', catalan: 'IBE', digues: 'NORD', harel: 'NORD', romand: 'ALP', polders: 'NORD', occit: 'FRA',
-  basquec: 'IBE', cyclass: 'NORD', lacs: 'ALP', feuilles: 'FRA',
+  gpo: 'FRA',
+  omloop: 'NORD',
+  cote: 'IBE',
+  soleil: 'FRA',
+  mers: 'ITA',
+  msr: 'ITA',
+  flandres: 'NORD',
+  pav: 'NORD',
+  basque: 'IBE',
+  amstel: 'NORD',
+  col: 'NORD',
+  liege: 'NORD',
+  giro: 'ITA',
+  alpes: 'ALP',
+  cantons: 'ALP',
+  gb: 'FRA',
+  clasica: 'IBE',
+  fin: 'ITA',
+  vuelta: 'IBE',
+  chr: 'FRA',
+  auto: 'ITA',
+  gpf: 'FRA',
+  levant: 'LEV',
+  briques: 'NORD',
+  blancs: 'ITA',
+  catalan: 'IBE',
+  digues: 'NORD',
+  harel: 'NORD',
+  romand: 'ALP',
+  polders: 'NORD',
+  occit: 'FRA',
+  basquec: 'IBE',
+  cyclass: 'NORD',
+  lacs: 'ALP',
+  feuilles: 'FRA',
 };
-const REG_LBL = { FRA: 'France', NORD: 'Nord (Belgique, Pays-Bas)', ITA: 'Italie', IBE: 'Espagne, Portugal', ALP: 'Suisse, Alpes', LEV: 'Levant' };
+const REG_LBL = {
+  FRA: 'France',
+  NORD: 'Nord (Belgique, Pays-Bas)',
+  ITA: 'Italie',
+  IBE: 'Espagne, Portugal',
+  ALP: 'Suisse, Alpes',
+  LEV: 'Levant',
+};
 function regDist(a, b) {
   if (!a || !b || a === b) return 0;
   if (a === 'LEV' || b === 'LEV') return 3;
@@ -23961,7 +24358,13 @@ function cutApply(rc, spec, res) {
       rc.out[e.id] = true;
       out.push(e.id);
     }
-  rc.cutInfo = { n: late.length, lim: lim - res[0].time, pct: +pct.toFixed(1), graced, mine: late.filter(e => S.riders[e.id].team === 0).map(e => e.id) };
+  rc.cutInfo = {
+    n: late.length,
+    lim: lim - res[0].time,
+    pct: +pct.toFixed(1),
+    graced,
+    mine: late.filter(e => S.riders[e.id].team === 0).map(e => e.id),
+  };
   if (rc.cutInfo.mine.length)
     msg(
       graced ? '⏱️ Repêchés' : '⏱️ Hors délais',
@@ -24085,7 +24488,8 @@ function aiTacticalAbandons(rc) {
       else if (later && restNext && r.age <= 32 && overall(r.s) >= 76) {
         const k = gcl.indexOf(id);
         const gap = k > 0 ? rc.gc[id] - rc.gc[gcl[0]] : 0;
-        if (k >= 15 && gap > 1200 && ['complet', 'grimpeur'].includes(r.arch) && h < 150) why = 'vise le prochain grand tour';
+        if (k >= 15 && gap > 1200 && ['complet', 'grimpeur'].includes(r.arch) && h < 150)
+          why = 'vise le prochain grand tour';
       }
       if (why) tacticalOut(rc, id, why);
     }
@@ -24099,7 +24503,12 @@ function tacticalOut(rc, id, why) {
   (rc.tacOut = rc.tacOut || []).push({ id, si: rc.si, why });
   const T = teamOf(r);
   if (overall(r.s) >= 76 || (T && T.player))
-    press(`${riderName(r)} quitte ${rc.name}`, `${riderName(r)} (${T ? T.name : ''}) ne prendra pas le départ de l'étape ${rc.si + 2} : ${why}.`, 0, [id]);
+    press(
+      `${riderName(r)} quitte ${rc.name}`,
+      `${riderName(r)} (${T ? T.name : ''}) ne prendra pas le départ de l'étape ${rc.si + 2} : ${why}.`,
+      0,
+      [id]
+    );
 }
 // Votre abandon tactique (entre deux étapes) : le coureur rentre préparer la suite ; l'organisateur n'aime pas ça.
 function myTacticalAbandon(id) {
@@ -24110,7 +24519,10 @@ function myTacticalAbandon(id) {
   const left = (rc.sel[0] || []).filter(x => !rc.out[x]).length;
   if (left <= 2) return 'Il faut garder au moins deux coureurs en course.';
   const r = S.riders[id];
-  const why = r.arch === 'sprinteur' && flatLeft(rc) === 0 ? 'plus d’étape pour lui' : 'il rentre préparer ses prochains objectifs';
+  const why =
+    r.arch === 'sprinteur' && flatLeft(rc) === 0
+      ? 'plus d’étape pour lui'
+      : 'il rentre préparer ses prochains objectifs';
   tacticalOut(rc, id, why);
   if (rc.cat === 0) addRep(-0.5);
   return `🏠 ${riderName(r)} quitte ${rc.name} (${why}). Fatigue épargnée pour la suite ; l'organisateur fait la grimace.`;
@@ -24207,7 +24619,12 @@ function tvRaceEnd(rc) {
 function tvRank() {
   if (!S.tvs || S.tvs.s !== S.season) return null;
   const arr = S.teams.map(T => [T.id, S.tvs.by[T.id] || 0]).sort((a, b) => b[1] - a[1]);
-  return { rank: arr.findIndex(a => a[0] === 0) + 1, n: arr.length, min: Math.round(S.tvs.by[0] || 0), top: arr.slice(0, 5) };
+  return {
+    rank: arr.findIndex(a => a[0] === 0) + 1,
+    n: arr.length,
+    min: Math.round(S.tvs.by[0] || 0),
+    top: arr.slice(0, 5),
+  };
 }
 // Fin de saison : le sponsor juge aussi la visibilité (confiance).
 function tvEndSeason() {
@@ -24251,7 +24668,15 @@ function olympicAfter(rc) {
   });
   const mine = gcl.filter(id => S.riders[id].team === 0);
   const best = mine[0];
-  S.hist.push({ season: S.season, key: rc.key, name: rc.name, winner: gcl[0], podium: gcl.slice(0, 3), my: best ? gcl.indexOf(best) + 1 : null, myId: best || null });
+  S.hist.push({
+    season: S.season,
+    key: rc.key,
+    name: rc.name,
+    winner: gcl[0],
+    podium: gcl.slice(0, 3),
+    my: best ? gcl.indexOf(best) + 1 : null,
+    myId: best || null,
+  });
   const myMed = gcl.slice(0, 3).filter(id => S.riders[id].team === 0);
   for (const id of myMed) {
     const k = gcl.indexOf(id);
@@ -24280,7 +24705,14 @@ function olympicAfter(rc) {
 
 // --- À domicile ---
 const HOME_REG = { FRA: ['FRA'], NORD: ['BEL', 'NED'], ITA: ['ITA'], IBE: ['ESP'], ALP: ['SUI'] };
-const HOME_RACE = { cyclass: ['GER'], polders: ['NED'], flandres: ['BEL'], pav: ['FRA', 'BEL'], romand: ['SUI'], cantons: ['SUI'] };
+const HOME_RACE = {
+  cyclass: ['GER'],
+  polders: ['NED'],
+  flandres: ['BEL'],
+  pav: ['FRA', 'BEL'],
+  romand: ['SUI'],
+  cantons: ['SUI'],
+};
 function homeNats(key) {
   if (HOME_RACE[key]) return HOME_RACE[key];
   const reg = RACE_REG[key];
@@ -24394,8 +24826,13 @@ function dopeWeekly() {
           r.injury = 9;
           r.inj.w0 = 13;
           r.inj.why = 'contamination reconnue, faute légère';
-          if (r.team === 0) msg('⛔ Verdict', `${riderName(r)} : contamination reconnue, faute légère. Trois mois de suspension au total.`);
-        } else if (r.team === 0) msg('✅ Relaxé', `${riderName(r)} est relaxé : la contamination est prouvée. Il peut reprendre.`);
+          if (r.team === 0)
+            msg(
+              '⛔ Verdict',
+              `${riderName(r)} : contamination reconnue, faute légère. Trois mois de suspension au total.`
+            );
+        } else if (r.team === 0)
+          msg('✅ Relaxé', `${riderName(r)} est relaxé : la contamination est prouvée. Il peut reprendre.`);
         continue;
       }
       if (r.injury > 0) continue;
@@ -24430,7 +24867,10 @@ function dopeState() {
   const rs = S.teams[0].riders.map(id => S.riders[id]).filter(Boolean);
   return {
     tests: S.dopeTests && S.dopeTests.s === S.season ? S.dopeTests.n : 0,
-    watch: rs.filter(r => whMisses(r).length).map(r => ({ r, n: whMisses(r).length })).sort((a, b) => b.n - a.n),
+    watch: rs
+      .filter(r => whMisses(r).length)
+      .map(r => ({ r, n: whMisses(r).length }))
+      .sort((a, b) => b.n - a.n),
     susp: rs.filter(r => r.injury > 0 && r.inj && r.inj.k === 'suspension'),
   };
 }
@@ -24480,7 +24920,13 @@ function wtN() {
 
 // --- Nouvelles courses ---
 const NEW_RACES = {
-  FRA: ['Grand Prix des Volcans', 'Tour des Gorges', 'Classique des Vignobles', 'Boucles de la Loire', 'Ronde des Causses'],
+  FRA: [
+    'Grand Prix des Volcans',
+    'Tour des Gorges',
+    'Classique des Vignobles',
+    'Boucles de la Loire',
+    'Ronde des Causses',
+  ],
   NORD: ['Grand Prix des Moulins', 'Ronde des Canaux', 'Classique des Dunes', 'Omloop des Briqueteries'],
   ITA: ['Giro delle Colline', 'Coppa dei Laghi', 'Trofeo del Sole', 'Gran Premio delle Valli'],
   IBE: ['Vuelta a la Sierra', 'Clásica del Ebro', 'Volta das Rías', 'Gran Premio de la Meseta'],
@@ -24492,8 +24938,14 @@ function newRaceDef(w, h) {
   const used = new Set(RACE_DEFS.map(d => d.name).concat(worldInit().added.map(d => d.name)));
   const names = NEW_RACES[reg].filter(n => !used.has(n));
   const name = names.length ? names[(h >>> 4) % names.length] : `Grand Prix ${S.season + 1}`;
-  const stageRace = name.startsWith('Tour') || name.startsWith('Vuelta') || name.startsWith('Volta') || name.startsWith('Giro');
-  const T = reg === 'NORD' ? ['paves', 'plat', 'vallonne'] : reg === 'ALP' ? ['montagne', 'vallonne', 'sommet'] : ['vallonne', 'punch', 'plat'];
+  const stageRace =
+    name.startsWith('Tour') || name.startsWith('Vuelta') || name.startsWith('Volta') || name.startsWith('Giro');
+  const T =
+    reg === 'NORD'
+      ? ['paves', 'plat', 'vallonne']
+      : reg === 'ALP'
+        ? ['montagne', 'vallonne', 'sommet']
+        : ['vallonne', 'punch', 'plat'];
   const stages = stageRace
     ? [0, 1, 2, 3, 4].map(i => [T[(h >>> (i + 6)) % T.length], 150 + ((h >>> (i + 2)) % 50)])
     : [[T[(h >>> 7) % T.length], 185 + ((h >>> 3) % 40)]];
@@ -24518,11 +24970,16 @@ const NEW_SPONSORS = [
 // Équipe dont le nom vient du jeu (et non d'un renommage par le joueur) : son sponsor peut changer.
 function gameNamedTeam(T) {
   return (
-    TEAM_NAMES.some(t => t[0] === T.name) || RESERVE_TEAMS.some(t => t[0] === T.name) || worldInit().teamNames.includes(T.name)
+    TEAM_NAMES.some(t => t[0] === T.name) ||
+    RESERVE_TEAMS.some(t => t[0] === T.name) ||
+    worldInit().teamNames.includes(T.name)
   );
 }
 function shortOf(name) {
-  const w = name.replace(/[^A-Za-zÀ-ÿ ]/g, '').split(' ').filter(Boolean);
+  const w = name
+    .replace(/[^A-Za-zÀ-ÿ ]/g, '')
+    .split(' ')
+    .filter(Boolean);
   const base = (w.length >= 2 ? w[0].slice(0, 2) + w[1][0] : w[0].slice(0, 3)).toUpperCase();
   let s = base,
     k = 1;
@@ -24629,13 +25086,19 @@ function worldEndSeason(rankArr) {
       W.gone.push(d.key);
       W.added = W.added.filter(x => x.key !== d.key);
       W.added.push(nd);
-      news.push(`${raceNameOf(d.key)} disparaît faute d'organisateur ; une nouvelle course naît la même semaine : ${nd.name} (${REG_LBL[nd.reg]}).`);
+      news.push(
+        `${raceNameOf(d.key)} disparaît faute d'organisateur ; une nouvelle course naît la même semaine : ${nd.name} (${REG_LBL[nd.reg]}).`
+      );
     }
   }
   // une course monte en WorldTour, une autre redescend
   if (h('p') % 100 < 20) {
-    const up = RACE_DEFS.filter(d => d.cat === 2 && !d.worlds && !d.olympic && !WORLD_KEEP.includes(d.key) && !(d.born > S.season - 2));
-    const down = RACE_DEFS.filter(d => d.cat === 1 && !d.worlds && !d.olympic && !MONUMENTS.includes(d.key) && !WORLD_KEEP.includes(d.key));
+    const up = RACE_DEFS.filter(
+      d => d.cat === 2 && !d.worlds && !d.olympic && !WORLD_KEEP.includes(d.key) && !(d.born > S.season - 2)
+    );
+    const down = RACE_DEFS.filter(
+      d => d.cat === 1 && !d.worlds && !d.olympic && !MONUMENTS.includes(d.key) && !WORLD_KEEP.includes(d.key)
+    );
     if (up.length && down.length) {
       const a = up[h('pu') % up.length],
         b = down[h('pd') % down.length];
@@ -24653,7 +25116,10 @@ function worldEndSeason(rankArr) {
     const T = weak[h('fw') % weak.length];
     const ch = bankruptcy(T, h('fn'));
     if (ch) W.born[ch.name] = S.season;
-    if (ch) news.push(`Faillite de ${ch.old} : son sponsor se retire. Une nouvelle structure, ${ch.name}, reprend sa place avec une partie des coureurs.`);
+    if (ch)
+      news.push(
+        `Faillite de ${ch.old} : son sponsor se retire. Une nouvelle structure, ${ch.name}, reprend sa place avec une partie des coureurs.`
+      );
   } else if (ai.length && h('s') % 100 < 45) {
     const T = ai[h('sw') % ai.length];
     const ch = newSponsorFor(T, h('sn'), false);
@@ -24681,11 +25147,27 @@ function worldEndSeason(rankArr) {
    part. Rien ici ne tire au hasard du jeu. */
 
 const CREW_ROLES = {
-  coach: { lbl: 'Entraîneur principal', grp: 'Entraîneurs', d: 'Progression des coureurs et des jeunes, gestion de la forme.' },
-  doctor: { lbl: 'Responsable médical', grp: 'Médecins et kinés', d: 'Récupération entre les étapes, blessures moins longues.' },
-  scout: { lbl: 'Chef recruteur', grp: 'Recruteurs', d: 'Précision des estimations des coureurs adverses et des jeunes.' },
+  coach: {
+    lbl: 'Entraîneur principal',
+    grp: 'Entraîneurs',
+    d: 'Progression des coureurs et des jeunes, gestion de la forme.',
+  },
+  doctor: {
+    lbl: 'Responsable médical',
+    grp: 'Médecins et kinés',
+    d: 'Récupération entre les étapes, blessures moins longues.',
+  },
+  scout: {
+    lbl: 'Chef recruteur',
+    grp: 'Recruteurs',
+    d: 'Précision des estimations des coureurs adverses et des jeunes.',
+  },
   meca: { lbl: 'Chef mécanicien', grp: 'Mécaniciens', d: 'Moins d’ennuis mécaniques, dépannages plus rapides.' },
-  adjoint: { lbl: 'Directeur adjoint', grp: 'Direction sportive', d: 'Dirige les courses que vous lui confiez : ses coureurs appliquent mieux ses consignes.' },
+  adjoint: {
+    lbl: 'Directeur adjoint',
+    grp: 'Direction sportive',
+    d: 'Dirige les courses que vous lui confiez : ses coureurs appliquent mieux ses consignes.',
+  },
 };
 const CREW_TRAITS = {
   pedagogue: { lbl: 'Pédagogue', d: 'Apprend vite et transmet bien : progresse plus chaque saison.' },
@@ -24721,7 +25203,13 @@ function crewPerson(role, sk, salt) {
 function crewInit() {
   if (S.crew) return S.crew;
   S.crew = {};
-  const lv = { coach: S.staff.coach, doctor: S.staff.doctor, scout: S.staff.scout, meca: S.meca || 1, adjoint: S.adj || 2 };
+  const lv = {
+    coach: S.staff.coach,
+    doctor: S.staff.doctor,
+    scout: S.staff.scout,
+    meca: S.meca || 1,
+    adjoint: S.adj || 2,
+  };
   for (const k of Object.keys(CREW_ROLES)) S.crew[k] = crewPerson(k, lv[k] + 0.3, S.seed0 + ':init');
   crewSync();
   return S.crew;
@@ -24782,7 +25270,8 @@ function crewWeekly() {
   finAdd('staff', -c);
   // une proposition de débauchage sans réponse : l'adjoint tranche (il retient si le budget le permet)
   const A = S.crewAsk;
-  if (A && S.week > A.exp && S.season === A.s) msg('💼 Staff', crewAnswer(S.budget >= A.prime ? 'garder' : 'laisser', true));
+  if (A && S.week > A.exp && S.season === A.s)
+    msg('💼 Staff', crewAnswer(S.budget >= A.prime ? 'garder' : 'laisser', true));
 }
 // Bonus d'obéissance dans une course confiée au directeur adjoint.
 function adjObey(x, sim) {
@@ -24805,8 +25294,13 @@ function crewEndSeason() {
     p.age++;
     const base = p.age < 35 ? 0.25 : p.age < 50 ? 0.12 : p.age < 60 ? 0 : p.trait === 'rigoureux' ? 0 : -0.15;
     const l0 = crewLvl(p);
-    p.sk = +clamp(p.sk + base + (['pedagogue', 'ambitieux'].includes(p.trait) ? 0.15 : 0) + ((h % 21) - 10) / 100, 1, 5.9).toFixed(2);
-    if (crewLvl(p) > l0) out.push(`${crewName(p)} (${CREW_ROLES[role].lbl.toLowerCase()}) passe au niveau ${crewLvl(p)}.`);
+    p.sk = +clamp(
+      p.sk + base + (['pedagogue', 'ambitieux'].includes(p.trait) ? 0.15 : 0) + ((h % 21) - 10) / 100,
+      1,
+      5.9
+    ).toFixed(2);
+    if (crewLvl(p) > l0)
+      out.push(`${crewName(p)} (${CREW_ROLES[role].lbl.toLowerCase()}) passe au niveau ${crewLvl(p)}.`);
     if (p.age >= 64) {
       const n = crewPerson(role, Math.max(1, crewLvl(p) - 1) + 0.3, S.season + ':ret');
       out.push(`${crewName(p)} prend sa retraite ; ${crewName(n)} lui succède (niveau ${crewLvl(n)}).`);
@@ -24823,8 +25317,16 @@ function crewEndSeason() {
       if (dsHash('poach' + p.id + S.season) % 100 < pr) {
         const ai = S.teams.filter(T => !T.player);
         const T = ai[dsHash('poachT' + p.id + S.season) % ai.length];
-        S.crewAsk = { role, t: T.id, s: S.season + 1, exp: 4, prime: Math.round((crewCost(role, crewLvl(p)) * 0.25) / 5) * 5 };
-        out.push(`${T.name} veut débaucher ${crewName(p)}, votre ${CREW_ROLES[role].lbl.toLowerCase()} : décision à prendre (Gestion › Staff).`);
+        S.crewAsk = {
+          role,
+          t: T.id,
+          s: S.season + 1,
+          exp: 4,
+          prime: Math.round((crewCost(role, crewLvl(p)) * 0.25) / 5) * 5,
+        };
+        out.push(
+          `${T.name} veut débaucher ${crewName(p)}, votre ${CREW_ROLES[role].lbl.toLowerCase()} : décision à prendre (Gestion › Staff).`
+        );
         break;
       }
     }
@@ -24974,7 +25476,13 @@ function stageReview(rc, spec, res, dnfIds) {
 }
 // Verdict d'une note.
 function noteVerdict(n) {
-  return n == null ? '—' : n >= 7.5 ? 'au-dessus des attentes' : n <= 4.5 ? 'en dessous des attentes' : 'conforme aux attentes';
+  return n == null
+    ? '—'
+    : n >= 7.5
+      ? 'au-dessus des attentes'
+      : n <= 4.5
+        ? 'en dessous des attentes'
+        : 'conforme aux attentes';
 }
 // Moyenne des notes de chaque coureur sur toute la course (étapes notées).
 function raceReview(rc) {
@@ -25084,7 +25592,19 @@ function scmValue(r) {
 // Points forts et faibles (selon les valeurs affichées, donc l'estimation du recruteur).
 function scmTraits(r) {
   const st = shownStats(r);
-  const lbl = { pla: 'plat', mon: 'montagne', col: 'collines', spr: 'sprint', clm: 'chrono', pav: 'pavés', des: 'descente', plc: 'placement', end: 'endurance', rec: 'récupération', bar: 'baroud' };
+  const lbl = {
+    pla: 'plat',
+    mon: 'montagne',
+    col: 'collines',
+    spr: 'sprint',
+    clm: 'chrono',
+    pav: 'pavés',
+    des: 'descente',
+    plc: 'placement',
+    end: 'endurance',
+    rec: 'récupération',
+    bar: 'baroud',
+  };
   const ks = Object.keys(lbl).sort((a, b) => st[b] - st[a]);
   return { fort: ks.slice(0, 2).map(k => lbl[k]), faible: lbl[ks[ks.length - 1]] };
 }
@@ -25169,7 +25689,9 @@ function scmWatchAll(repId) {
       S.watch.push(x.id);
       n++;
     }
-  return n ? `${n} coureur${n > 1 ? 's' : ''} ajouté${n > 1 ? 's' : ''} à la liste de suivi.` : 'Rien à ajouter (déjà suivis, ou liste pleine).';
+  return n
+    ? `${n} coureur${n > 1 ? 's' : ''} ajouté${n > 1 ? 's' : ''} à la liste de suivi.`
+    : 'Rien à ajouter (déjà suivis, ou liste pleine).';
 }
 const WATCH_MAX = 20;
 const SCM_REC = {
@@ -25190,11 +25712,46 @@ const SCM_REC = {
    l'académie reste à part (57-academy-plus.js). Rien ici ne tire au hasard. */
 
 const FAC = {
-  perf: { lbl: 'Centre de performance', ic: '🏋️', d: 'Progression de vos coureurs : +4 % par niveau.', cost: [0, 220, 420, 700], wk: [0, 10, 16, 24], upk: [0, 25, 50, 85] },
-  med: { lbl: 'Service médical', ic: '🩺', d: 'Blessures et maladies plus courtes : -8 % par niveau.', cost: [0, 150, 300, 500], wk: [0, 8, 12, 18], upk: [0, 20, 40, 65] },
-  bus: { lbl: 'Logistique et bus', ic: '🚌', d: 'Récupération entre les étapes : +1 point de réserve par niveau, chaque soir.', cost: [0, 180, 340, 560], wk: [0, 6, 10, 14], upk: [0, 25, 45, 70] },
-  wind: { lbl: 'Soufflerie', ic: '🌬️', d: 'Contre-la-montre : forme du jour +0,5 par niveau.', cost: [0, 200, 380, 620], wk: [0, 12, 18, 26], upk: [0, 20, 35, 55] },
-  data: { lbl: "Cellule d'analyse", ic: '📊', d: 'Estimations des coureurs adverses plus justes : -10 % d’erreur par niveau.', cost: [0, 120, 240, 400], wk: [0, 6, 10, 14], upk: [0, 15, 30, 50] },
+  perf: {
+    lbl: 'Centre de performance',
+    ic: '🏋️',
+    d: 'Progression de vos coureurs : +4 % par niveau.',
+    cost: [0, 220, 420, 700],
+    wk: [0, 10, 16, 24],
+    upk: [0, 25, 50, 85],
+  },
+  med: {
+    lbl: 'Service médical',
+    ic: '🩺',
+    d: 'Blessures et maladies plus courtes : -8 % par niveau.',
+    cost: [0, 150, 300, 500],
+    wk: [0, 8, 12, 18],
+    upk: [0, 20, 40, 65],
+  },
+  bus: {
+    lbl: 'Logistique et bus',
+    ic: '🚌',
+    d: 'Récupération entre les étapes : +1 point de réserve par niveau, chaque soir.',
+    cost: [0, 180, 340, 560],
+    wk: [0, 6, 10, 14],
+    upk: [0, 25, 45, 70],
+  },
+  wind: {
+    lbl: 'Soufflerie',
+    ic: '🌬️',
+    d: 'Contre-la-montre : forme du jour +0,5 par niveau.',
+    cost: [0, 200, 380, 620],
+    wk: [0, 12, 18, 26],
+    upk: [0, 20, 35, 55],
+  },
+  data: {
+    lbl: "Cellule d'analyse",
+    ic: '📊',
+    d: 'Estimations des coureurs adverses plus justes : -10 % d’erreur par niveau.',
+    cost: [0, 120, 240, 400],
+    wk: [0, 6, 10, 14],
+    upk: [0, 15, 30, 50],
+  },
 };
 const FAC_LVL = ['Aucun', 'Niveau 1', 'Niveau 2', 'Niveau 3'];
 function facInit() {
@@ -25277,9 +25834,18 @@ const BOARD_CHAR = {
   genereux: { lbl: 'Généreux', d: 'Accepte plus volontiers de mettre la main à la poche.' },
 };
 const VISIONS = {
-  jeunes: { lbl: 'Miser sur la jeunesse', d: 'Au moins 35 % des jours de course disputés par des coureurs de 24 ans ou moins.' },
-  gt: { lbl: 'Briller sur les grands tours', d: "Une victoire d'étape ou un podium final sur un grand tour dans la saison." },
-  classiques: { lbl: 'Régner sur les classiques', d: "Un podium sur un monument ou une victoire sur une grande classique d'un jour." },
+  jeunes: {
+    lbl: 'Miser sur la jeunesse',
+    d: 'Au moins 35 % des jours de course disputés par des coureurs de 24 ans ou moins.',
+  },
+  gt: {
+    lbl: 'Briller sur les grands tours',
+    d: "Une victoire d'étape ou un podium final sur un grand tour dans la saison.",
+  },
+  classiques: {
+    lbl: 'Régner sur les classiques',
+    d: "Un podium sur un monument ou une victoire sur une grande classique d'un jour.",
+  },
   victoires: { lbl: 'Gagner souvent', d: 'Un nombre de victoires fixé selon le rang de l’équipe.' },
   rang: { lbl: 'Monter au classement', d: 'Finir au classement UCI au moins au rang fixé.' },
   comptes: { lbl: 'Tenir les comptes', d: 'Finir la saison avec un budget au moins égal à celui du départ.' },
@@ -25384,15 +25950,29 @@ function boardStatus() {
       const all = rs.reduce((a, r) => a + r.stats.days, 0);
       const y = rs.filter(r => r.age <= 24).reduce((a, r) => a + r.stats.days, 0);
       const p = all ? y / all : 0;
-      return { ok: p >= 0.35, pct: clamp(p / 0.35, 0, 1), txt: `${Math.round(p * 100)} % des jours de course (objectif 35 %)` };
+      return {
+        ok: p >= 0.35,
+        pct: clamp(p / 0.35, 0, 1),
+        txt: `${Math.round(p * 100)} % des jours de course (objectif 35 %)`,
+      };
     }
     case 'gt': {
       const n = boardBigResults().gt;
-      return { ok: n >= 1, pct: n ? 1 : 0, txt: n ? `${n} grand${n > 1 ? 's' : ''} tour${n > 1 ? 's' : ''} réussi${n > 1 ? 's' : ''}` : 'pas encore de résultat' };
+      return {
+        ok: n >= 1,
+        pct: n ? 1 : 0,
+        txt: n
+          ? `${n} grand${n > 1 ? 's' : ''} tour${n > 1 ? 's' : ''} réussi${n > 1 ? 's' : ''}`
+          : 'pas encore de résultat',
+      };
     }
     case 'classiques': {
       const n = boardBigResults().cl;
-      return { ok: n >= 1, pct: n ? 1 : 0, txt: n ? `${n} grand résultat${n > 1 ? 's' : ''}` : 'pas encore de résultat' };
+      return {
+        ok: n >= 1,
+        pct: n ? 1 : 0,
+        txt: n ? `${n} grand résultat${n > 1 ? 's' : ''}` : 'pas encore de résultat',
+      };
     }
     case 'victoires': {
       const w = seasonWins(0);
@@ -25400,16 +25980,28 @@ function boardStatus() {
     }
     case 'rang': {
       const rk = uciRanking().indexOf(T) + 1;
-      return { ok: rk <= B.tgt.rank, pct: clamp(1 - (rk - B.tgt.rank) / 10, 0, 1), txt: `actuellement ${rk}e (objectif ${B.tgt.rank}e)` };
+      return {
+        ok: rk <= B.tgt.rank,
+        pct: clamp(1 - (rk - B.tgt.rank) / 10, 0, 1),
+        txt: `actuellement ${rk}e (objectif ${B.tgt.rank}e)`,
+      };
     }
     case 'comptes': {
       const d = S.budget - B.b0;
-      return { ok: d >= 0, pct: d >= 0 ? 1 : clamp(1 + d / 500, 0, 1), txt: `${d >= 0 ? '+' : ''}${fmtMoney(d)} depuis le début de saison` };
+      return {
+        ok: d >= 0,
+        pct: d >= 0 ? 1 : clamp(1 + d / 500, 0, 1),
+        txt: `${d >= 0 ? '+' : ''}${fmtMoney(d)} depuis le début de saison`,
+      };
     }
     case 'terroir': {
       const n = rs.filter(r => r.nat === B.tgt.nat).length;
       const p = rs.length ? n / rs.length : 0;
-      return { ok: p >= 0.4, pct: clamp(p / 0.4, 0, 1), txt: `${n} coureurs ${B.tgt.nat} sur ${rs.length} (objectif 40 %)` };
+      return {
+        ok: p >= 0.4,
+        pct: clamp(p / 0.4, 0, 1),
+        txt: `${n} coureurs ${B.tgt.nat} sur ${rs.length} (objectif 40 %)`,
+      };
     }
   }
   return null;
@@ -25422,7 +26014,10 @@ function boardWeekly() {
   const B = boardInit();
   if (!B.v && B.prop && S.week === 3 && !B.nag) {
     B.nag = S.season;
-    msg('🏛️ La direction', `${boardName()} attend votre projet pour les trois prochaines saisons (Gestion › Direction). Sans choix, il retiendra « ${VISIONS[B.prop[0]].lbl} ».`);
+    msg(
+      '🏛️ La direction',
+      `${boardName()} attend votre projet pour les trois prochaines saisons (Gestion › Direction). Sans choix, il retiendra « ${VISIONS[B.prop[0]].lbl} ».`
+    );
   }
   if (!B.v && B.prop && S.week >= 8) boardChoose(B.prop[0]);
   if (B.v && (!B.tgt || B.tgt.s !== S.season)) boardTargets();
@@ -25450,7 +26045,9 @@ function boardEndSeason(myRank) {
       S.budget += prime;
       finAdd('spons', prime);
       addBoardT(8);
-      lines.push(`Fin du cycle : ${n}/3 saisons réussies. Le président vous félicite et vous accorde ${fmtMoney(prime)} pour la suite.`);
+      lines.push(
+        `Fin du cycle : ${n}/3 saisons réussies. Le président vous félicite et vous accorde ${fmtMoney(prime)} pour la suite.`
+      );
     } else {
       addBoardT(-10);
       S.conf = clamp(S.conf - 5, 0, 100);
@@ -25467,9 +26064,24 @@ function boardEndSeason(myRank) {
 }
 // Demandes au président.
 const BOARD_ASKS = {
-  mercato: { lbl: 'Une rallonge pour le mercato', d: 'Un apport exceptionnel au budget, pour recruter.', min: 55, cost: 8 },
-  fac: { lbl: 'Financer une installation', d: 'La direction paie la moitié du prochain chantier choisi (cette saison).', min: 50, cost: 6 },
-  vision: { lbl: 'Changer de projet', d: 'Abandonner le projet en cours et en choisir un autre. Il n’aime pas ça.', min: 0, cost: 15 },
+  mercato: {
+    lbl: 'Une rallonge pour le mercato',
+    d: 'Un apport exceptionnel au budget, pour recruter.',
+    min: 55,
+    cost: 8,
+  },
+  fac: {
+    lbl: 'Financer une installation',
+    d: 'La direction paie la moitié du prochain chantier choisi (cette saison).',
+    min: 50,
+    cost: 6,
+  },
+  vision: {
+    lbl: 'Changer de projet',
+    d: 'Abandonner le projet en cours et en choisir un autre. Il n’aime pas ça.',
+    min: 0,
+    cost: 15,
+  },
 };
 function boardCanAsk() {
   const B = boardInit();
@@ -25494,7 +26106,7 @@ function boardAsk(k, fk) {
   if (!boardCanAsk()) return `Le président vous a reçu il y a peu : revenez dans quelques semaines.`;
   B.ask = S.season * 100 + S.week;
   if (k === 'vision') {
-    if (!B.v) return "Aucun projet en cours : choisissez-en un.";
+    if (!B.v) return 'Aucun projet en cours : choisissez-en un.';
     addBoardT(-A.cost);
     B.v = null;
     B.cyc = null;
@@ -25543,12 +26155,19 @@ function mentalOf(r) {
 }
 // Connaît-on son caractère ? 0 : non ; 1 : une idée (rapport de recruteur) ; 2 : précisément.
 function mentalKnown(r) {
-  if (r.team === 0) return (r.mtD || 0) >= 6 || (r.career || []).some(c => c.t === S.teams[0].short) ? 2 : (r.mtD || 0) >= 2 ? 1 : 0;
+  if (r.team === 0)
+    return (r.mtD || 0) >= 6 || (r.career || []).some(c => c.t === S.teams[0].short) ? 2 : (r.mtD || 0) >= 2 ? 1 : 0;
   const k = knowOf(r);
   return k >= 80 ? 2 : k >= 55 ? 1 : 0;
 }
 const MENTAL_LBL = {
-  pres: ['Craque sous la pression', 'Tendu dans les grands rendez-vous', 'Ni plus ni moins', 'Aime les grands rendez-vous', 'Se sublime dans les grands rendez-vous'],
+  pres: [
+    'Craque sous la pression',
+    'Tendu dans les grands rendez-vous',
+    'Ni plus ni moins',
+    'Aime les grands rendez-vous',
+    'Se sublime dans les grands rendez-vous',
+  ],
   prof: ['Manque de sérieux', 'Inégal à l’entraînement', 'Sérieux', 'Très professionnel', 'Professionnel exemplaire'],
 };
 function mentalBand(v) {
@@ -25579,7 +26198,13 @@ function mentalHint(r) {
 // Grand rendez-vous : grand tour, monument, Mondiaux, Jeux.
 function bigRace(rc) {
   const c = rc && S.cal[rc.calIdx];
-  return !!rc && (rc.worlds || (c && (c.worlds || c.olympic)) || MONUMENTS.includes(rc.key) || (rc.cat === 0 && rc.specs.length >= 15));
+  return (
+    !!rc &&
+    (rc.worlds ||
+      (c && (c.worlds || c.olympic)) ||
+      MONUMENTS.includes(rc.key) ||
+      (rc.cat === 0 && rc.specs.length >= 15))
+  );
 }
 // Effet sur la forme du jour (centré sur zéro sur l'ensemble du peloton).
 function mentalBig(rc, r) {
@@ -25634,7 +26259,13 @@ function newsFeed(n = 60, cat = null) {
   const a = (S.news || []).map(e => ({ ...e }));
   for (const m of S.merc || [])
     if (m.imp && m.k !== 'rumeur')
-      a.push({ s: m.s, w: m.w, c: 'mercato', txt: `${MERC_KIND[m.k] ? MERC_KIND[m.k].replace(/^\S+\s/, '') : m.k} : ${m.n} (${m.f} → ${m.t})`, my: m.my });
+      a.push({
+        s: m.s,
+        w: m.w,
+        c: 'mercato',
+        txt: `${MERC_KIND[m.k] ? MERC_KIND[m.k].replace(/^\S+\s/, '') : m.k} : ${m.n} (${m.f} → ${m.t})`,
+        my: m.my,
+      });
   return a
     .filter(e => !cat || e.c === cat)
     .sort((x, y) => y.s - x.s || y.w - x.w)
@@ -25647,7 +26278,10 @@ function newsAfterRace(rc, gcl) {
   if (w) {
     const T = teamOf(w);
     const gt = rc.cat === 0 && rc.specs.length >= 15;
-    newsAdd('course', `${gt ? '🟡 ' : ''}${riderName(w)} (${T ? T.short : '—'}) remporte ${rc.name}${rc.specs.length > 1 ? ' au classement général' : ''}.`);
+    newsAdd(
+      'course',
+      `${gt ? '🟡 ' : ''}${riderName(w)} (${T ? T.short : '—'}) remporte ${rc.name}${rc.specs.length > 1 ? ' au classement général' : ''}.`
+    );
   }
   rivalDuel(rc, gcl);
 }
@@ -25667,7 +26301,10 @@ function newsWeekly() {
       .sort((a, b) => b.stats.pts - a.stats.pts)[0];
     const T0 = uciRanking()[0];
     if (top && T0)
-      newsAdd('saison', `Le point : ${riderName(top)} (${teamOf(top) ? teamOf(top).short : '—'}) mène le classement individuel avec ${top.stats.pts} points ; ${T0.name} est en tête chez les équipes.`);
+      newsAdd(
+        'saison',
+        `Le point : ${riderName(top)} (${teamOf(top) ? teamOf(top).short : '—'}) mène le classement individuel avec ${top.stats.pts} points ; ${T0.name} est en tête chez les équipes.`
+      );
   }
 }
 
@@ -25685,8 +26322,18 @@ function rivalInit() {
   if (!c) return null;
   const T = c[0];
   const same = S.rival && S.rival.id === T.id;
-  S.rival = { id: T.id, s: S.season, me: 0, them: 0, heat: same ? Math.round((S.rival.heat || 0) * 0.6) : 10, last: null };
-  newsAdd('rival', `${same ? 'La rivalité continue' : 'Nouvelle rivalité'} : ${P.name} contre ${T.name}${dsName(T) ? ` de ${dsName(T)}` : ''}.`);
+  S.rival = {
+    id: T.id,
+    s: S.season,
+    me: 0,
+    them: 0,
+    heat: same ? Math.round((S.rival.heat || 0) * 0.6) : 10,
+    last: null,
+  };
+  newsAdd(
+    'rival',
+    `${same ? 'La rivalité continue' : 'Nouvelle rivalité'} : ${P.name} contre ${T.name}${dsName(T) ? ` de ${dsName(T)}` : ''}.`
+  );
   return S.rival;
 }
 function rivalTeam() {
@@ -25736,7 +26383,10 @@ function dsRankUpdate(rankArr) {
   S.dsSc = S.dsSc || {};
   const exp = S.teams
     .slice()
-    .sort((a, b) => ((S.lastRanks && S.lastRanks[b.id]) || b.tier * 100) - ((S.lastRanks && S.lastRanks[a.id]) || a.tier * 100));
+    .sort(
+      (a, b) =>
+        ((S.lastRanks && S.lastRanks[b.id]) || b.tier * 100) - ((S.lastRanks && S.lastRanks[a.id]) || a.tier * 100)
+    );
   const seen = new Set();
   for (const T of S.teams) {
     const k = dsKey(T);
@@ -25763,7 +26413,11 @@ function newsEndSeason(rankArr) {
   rivalEndSeason();
   dsRankUpdate(rankArr);
   const rk = dsRankOf('__me');
-  if (rk) newsAdd('saison', `Classement des directeurs sportifs : vous êtes ${rk === 1 ? '1er' : rk + 'e'} sur ${dsRanking().length}.`);
+  if (rk)
+    newsAdd(
+      'saison',
+      `Classement des directeurs sportifs : vous êtes ${rk === 1 ? '1er' : rk + 'e'} sur ${dsRanking().length}.`
+    );
 }
 
 // ---- src/engine/75-identity.js ----
@@ -25860,11 +26514,20 @@ function identBreakMul(T) {
    Les temps intermédiaires (au tiers et aux deux tiers) sont gardés pour le bilan. */
 
 const TT_PACE = {
-  prudent: { lbl: 'Prudent (économiser)', d: 'Bien sous sa limite : du temps perdu, des forces gardées pour la suite.' },
+  prudent: {
+    lbl: 'Prudent (économiser)',
+    d: 'Bien sous sa limite : du temps perdu, des forces gardées pour la suite.',
+  },
   gerer: { lbl: 'Régulier', d: 'Un effort constant, un peu sous la limite : sans risque.' },
   fond: { lbl: 'À bloc', d: 'Tout donner dès le départ : le plus rapide… si la limite tient jusqu’au bout.' },
-  negatif: { lbl: 'Départ prudent, fin à bloc', d: 'Se garder sur la première moitié, tout donner ensuite : sûr sur un long chrono.' },
-  montee: { lbl: 'Tout pour la montée', d: 'Récupérer sur le plat, tout donner dans la montée : pour un chrono qui finit en côte.' },
+  negatif: {
+    lbl: 'Départ prudent, fin à bloc',
+    d: 'Se garder sur la première moitié, tout donner ensuite : sûr sur un long chrono.',
+  },
+  montee: {
+    lbl: 'Tout pour la montée',
+    d: 'Récupérer sur le plat, tout donner dans la montée : pour un chrono qui finit en côte.',
+  },
 };
 // Intensité visée (part de la capacité) selon l'allure, l'avancement (0-1) et la pente.
 function ttIntensity(mode, frac, g) {
@@ -25966,9 +26629,7 @@ function mfInBreak(r) {
 }
 // Mes coureurs les plus usés (pour l'accueil).
 function mfTired() {
-  return S.teams[0].riders
-    .map(id => S.riders[id])
-    .filter(r => r && mfOf(r) < 35 && !mfInBreak(r));
+  return S.teams[0].riders.map(id => S.riders[id]).filter(r => r && mfOf(r) < 35 && !mfInBreak(r));
 }
 
 // ---- src/engine/78-tactics-review.js ----
@@ -25985,7 +26646,9 @@ const TAC_AI = /^(🗡️|🤝 Alliance de poursuite|⚔️ Coalition|🎯)/;
 function tacticalNotes(sim) {
   const myTeam = S.teams[0];
   const ai = (sim.log || [])
-    .filter(l => TAC_AI.test(l.txt) || (l.cls === 'bad' && /votre|vos /.test(l.txt) && /roule|chasse|marque/.test(l.txt)))
+    .filter(
+      l => TAC_AI.test(l.txt) || (l.cls === 'bad' && /votre|vos /.test(l.txt) && /roule|chasse|marque/.test(l.txt))
+    )
     .filter(l => !/vos équipiers prennent/.test(l.txt))
     .slice(-4)
     .map(l => ({ km: Math.round(l.km), txt: l.txt.replace(/<[^>]+>/g, '') }));
@@ -26017,8 +26680,14 @@ function gcStory(rc) {
       return a == null || b == null ? null : { k: k + 1, name: st.name, d: Math.round(a - b), type: st.type };
     })
     .filter(Boolean);
-  const loss = rows.filter(r => r.d > 5).sort((a, b) => b.d - a.d).slice(0, 2);
-  const gain = rows.filter(r => r.d < -5).sort((a, b) => a.d - b.d).slice(0, 1);
+  const loss = rows
+    .filter(r => r.d > 5)
+    .sort((a, b) => b.d - a.d)
+    .slice(0, 2);
+  const gain = rows
+    .filter(r => r.d < -5)
+    .sort((a, b) => a.d - b.d)
+    .slice(0, 1);
   // l'étape qui a fait le leader : celle où il a pris le plus de temps à son dauphin
   let made = null;
   if (g[1] != null) {
@@ -26202,7 +26871,12 @@ function migrate() {
   // staff en personnages (postes tenus par quelqu'un, du niveau actuel)
   if (!S.car) crewInit();
   // vestiaire : course visée par l'objectif de saison (objectifs fixés avant cette version)
-  if (!S.car && S.teams[0].riders.some(id => S.riders[id].goal && S.riders[id].goal.s === S.season && !('race' in S.riders[id].goal)))
+  if (
+    !S.car &&
+    S.teams[0].riders.some(
+      id => S.riders[id].goal && S.riders[id].goal.s === S.season && !('race' in S.riders[id].goal)
+    )
+  )
     ambitionsAssign();
 }
 </script>

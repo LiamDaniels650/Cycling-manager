@@ -551,7 +551,27 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
       désigné (un sprinteur en jaune la première semaine) : un échappé sans danger prenait vingt minutes ;
     - la dernière étape d'un grand tour (parade) : temps du général neutralisés, chacun prend le temps du peloton ;
     - un grimpeur équipier dans les dix premiers du général n'a plus la consigne de s'économiser sur le plat.
-    Sur 12 saisons (graines 500-511) : RESULTATS_ANOMALIES
+    - un leader ne suit plus les attaques de la bagarre du départ, même celles des favoris du jour (seul un rival
+      direct au général compte) : avant, tous les leaders pouvaient partir dans l'échappée du km 8 et le peloton,
+      resté aux équipes de sprinteurs, laissait 45 minutes ;
+    - plafond d'écart d'une course par étapes : au-delà de 10 min (15 en montagne), toutes les équipes qui ont un
+      leader ou un sprinteur dans le peloton roulent (un échappé seul gagnait l'étape pavée avec un quart d'heure) ;
+      le maillot contrôle à 6 min, à 10 en montagne ;
+    - vent ressenti à hauteur de cycliste : 75 % du vent annoncé (un peloton roulait à 73 km/h vent dans le dos) ;
+    - un coureur du podium court pour lui (carte libre, et il suit les attaques comme un leader) : le maillot jaune
+      ne se sacrifie plus pour un coéquipier moins bien classé ;
+    - un groupe de chasse de trois coureurs ou plus roule à l'allure du seuil de ses meilleurs relayeurs ;
+    - après une fringale, la voiture apporte bidon et gels à volonté (+40 de réserves au lieu de +22) ;
+    - obéissance de base relevée (un équipier refusait un ordre radio sur cinq) ;
+    - la jonction d'un groupe dépassé ne vaut que sur le plat et les pavés : en côte, être dépassé c'est être lâché
+      (première version : les échappées des étapes accidentées se faisaient avaler à tort).
+    Sur 12 saisons (graines 500-511), part des étapes concernées, au début du chantier puis à la fin : maillot qui
+    perd plus de 10 s sur le plat 33 % → 2,5 % ; leader du top 10 qui perd plus de 20 s sur le plat ≈ 25 % → 10 %
+    (surtout des chutes et des cassures du final) ; podium changé le jour de la parade 22 % → 0 ; trois de mes
+    coureurs ou plus qui désobéissent dans l'étape 20 % → 11 %. Restent au-dessus des seuils du détecteur : un top 3
+    qui perd plus de 2 min sur le plat (2 %, groupes de grimpeurs coupés d'un peloton lancé par les rouleurs), un
+    vainqueur avec plus de 8 min d'avance et une étape plate à plus de 52 km/h (un cas chacun sur 1 632 étapes).
+    Calibrage 45/45 sur deux séries de 60 saisons (échappées au sommet 0,37, vallonné 0,38, côte 0,25-0,27).
   - Moteur, quatre chantiers :
     - Identité des équipes de l'ordinateur (75-identity.js) : grands tours, classiques, sprint, échappées, et une
       super-équipe (le plus haut standing, de vraies vedettes) ; vedettes de départ, recrutement (marché, transferts,
