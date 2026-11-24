@@ -2646,6 +2646,7 @@ const R = {
   pavFinalPace: 0.9, // 30 derniers km d'une classique pavée : allure d'un groupe de tête où personne ne relaie
   noWorkAhead: 0.7,
   favChaseK: 1.6, // côte et vallonné : marge laissée à l'échappée par les favoris qui visent l'étape
+  punchChaseK: 1.5, // arrivée en côte : marge laissée à l'échappée par une équipe de sprinteur-puncheur
   hillyChaseK: 1.6, // vallonné : marge laissée à l'échappée par une équipe de sprinteur (× la marge du plat)
   hillyControlK: 1.9, // vallonné : marge laissée par une équipe qui contrôle la course (× celle du plat)
   sprintHillCol: 72, // vallonné : une équipe ne roule pour son sprinteur que s'il passe les côtes (collines ≥ 72)
@@ -6175,7 +6176,9 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
   ) {
     // (final vallonné : plus dur à contrôler pour une équipe de sprinteur, l'échappée a plus de marge)
     const allowed =
-      Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK * (t === 'vallonne' ? R.hillyChaseK : 1);
+      Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) *
+      R.flatChaseK *
+      (t === 'vallonne' ? R.hillyChaseK : t === 'punch' ? R.punchChaseK : 1);
     if (gap > allowed * 1.5 + 40) {
       level = 0.97;
       nw = 4;
