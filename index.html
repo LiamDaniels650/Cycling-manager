@@ -6355,7 +6355,9 @@ function obeyCheck(x, ord, sim) {
     let selfChance = false;
     const ld = sim ? sim.teamLeader[x.team.id] : null;
     if (sim) {
-      if (x.g && x.g.ahead && x.g.riders.length <= 12) selfChance = true;
+      // (une échappée à quelques secondes d'un peloton lancé n'a plus de chance : se relever va de soi)
+      const doomed = ord === 'stop' && sim.pel && x.g && gapSec(x.g, sim.pel) < 15;
+      if (x.g && x.g.ahead && x.g.riders.length <= 12 && !doomed) selfChance = true;
       if (ld && ld !== x && cap(x, x.gr || 0, 0) > cap(ld, x.gr || 0, 0) * 1.04) selfChance = true;
     }
     p -= (r.amb / 100) * (selfChance ? 0.5 : 0.12);
@@ -6415,6 +6417,9 @@ function applyRadio(sim, x, k, src) {
     return false;
   }
   if (!obeyCheck(x, k === 'front' ? 'tempo' : k, sim)) {
+    // (décision du coureur lui-même, sans directeur sportif automatique : s'il n'en a pas envie, il ne le fait
+    // pas, sans « refuser » sa propre idée ni compter comme une désobéissance)
+    if (src === 'auto' && x.player && !sim.autoDS) return false;
     x.r.stats.disob++;
     (sim.refusals = sim.refusals || new Set()).add(x.id);
     if (x.player) x.st.disobWhy = disobRecord(sim, x, k);
@@ -8789,13 +8794,26 @@ function tickPhysics(sim) {
         G.riders.some(y => gcLead(sim, y)) &&
         gcGroups(sim).some(H => H !== G && H.pos > G.pos && gapSec(H, G) < 600);
       // (et, sur le plat abrité, un groupe coupé de moins de deux minutes à n'importe quel moment : il revient)
-      const cutFlat = gp != null && gp < 120 && g < 2 && !G.expo && !G.dropped;
+      const cutFlat =
+        gp != null &&
+        gp < 120 &&
+        g < 2 &&
+        !G.expo &&
+        !G.dropped &&
+        sim.spec.type !== 'montagne' &&
+        sim.spec.type !== 'sommet';
       if ((gp != null && gp < 45 && sim.dist - G.pos < R.cutChaseKm) || gcAhead || cutFlat) {
         L0 = L;
         // (les plus forts relaient, les autres s'accrochent dans les roues : allure du tiers le plus fort)
         // (à trois ou plus, les relais courts permettent de tenir l'allure du seuil des plus forts)
         L = Math.max(L, capsDesc()[Math.floor(n * 0.3)] * (n >= 3 ? 1 : 0.95));
         if (gp != null && pG.L && !gcAhead) L = Math.min(L, Math.max(L0, pG.L * 1.04));
+        // (chasse pour un leader : à un rythme qu'il tient dans les roues, sinon elle le vidait lui-même)
+        if (gcAhead) {
+          let lc = Infinity;
+          for (const y of G.riders) if (gcLead(sim, y)) lc = Math.min(lc, capM.get(y));
+          if (lc < Infinity) L = Math.max(L0, Math.min(L, lc * 1.2)); // (abrité dans les roues)
+        }
         if (L > L0) paceSrc = 'tempo';
       }
     }
@@ -8950,7 +8968,9 @@ function tickPhysics(sim) {
       const smart =
         eoX === 'pace' ||
         (eoX === 'leader'
-          ? x.att === 'defensif' || x.punch < 30
+          ? // (loin de l'arrivée, hors de la montée finale, un leader ne se met pas dans le rouge pour suivre :
+            // il laisse filer et monte à son rythme ; sinon il vidait ses réserves dans le premier col)
+            x.att === 'defensif' || x.punch < 30 || (sim.dist - G.pos > 30 && !inFinalClimb(sim, G))
           : eoX === 'protect' || eoX === 'control' || eoX === 'leadout' || eoX === 'save');
       if (
         (komSitUp(sim, x, G) && g >= 3 && n > 1 && G.riders.some(y => !y.sitUp)) ||
@@ -22143,7 +22163,8 @@ function dangerTick(sim) {
     if (G.riders.length < 50) continue;
     sim.dangerT = sim.t;
     if (rnd() >= 0.45) continue;
-    const live = G.riders.filter(x => !x.fin && !x.dnf).sort((a, b) => a.pos - b.pos);
+    // (les leaders du général roulent devant, entourés de leurs équipiers : la queue du peloton, c'est les autres)
+    const live = G.riders.filter(x => !x.fin && !x.dnf && !gcLead(sim, x)).sort((a, b) => a.pos - b.pos);
     const tail = live.slice(0, Math.max(4, Math.round(live.length * rf(0.06, 0.14))));
     const gap = rf(2, 6);
     const NG = newGroupFrom(sim, tail, Math.max(0, G.pos - (G.speed * gap) / 3600));
