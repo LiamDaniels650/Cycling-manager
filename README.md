@@ -603,6 +603,15 @@ node tools/replay.js signalement.json # rejoue l'étape d'un signalement du joue
     Les échappées, mieux suivies par des poursuivants qui voient le vrai écart, réussissaient un peu moins : marges
     réajustées (favChaseK 1,2 → 1,6 pour les favoris qui visent l'étape en côte et en vallonné, hillyChaseK 1,35 →
     1,6, nouveau punchChaseK 1,7 pour les équipes de sprinteur-puncheur sur une arrivée en côte, hillyFavK 1,15 pour les favoris en vallonné).
+  - Deux défauts révélés par le détecteur après la correction des écarts :
+    - un groupe coupé où roule un leader du général, sur le plat, chassait à l'allure de son tiers le plus fort :
+      dans le final, face à un peloton lancé par les trains, il perdait 7 s au km (maillot à plus d'une minute) ;
+      ce sont désormais les plus forts (le sixième sur sept) qui roulent pour ramener le leader (maillot qui perd
+      plus de 10 s sur le plat : 2,5 % → 0,6 % des étapes) ;
+    - le « temps du peloton » donné au général (règle des 3 km, parade) était le temps arrondi le plus fréquent,
+      pris avant la règle du même temps : il tombait quelques secondes après la tête du peloton, et le dernier jour
+      un 4e pouvait passer 3e de quelques secondes. Il est pris après la règle du même temps, et le jour de la
+      parade tout le monde reçoit exactement ce temps.
   - Le final sur téléphone (15 derniers km), réorganisé comme le reste de la course :
     - en haut, toujours visibles : le décompte et la route jusqu'à la ligne (groupes, écarts, flamme rouge), puis
       une vue du ciel réduite, aux caméras sur une seule ligne ;

@@ -180,7 +180,10 @@ function tickPhysics(sim) {
         L0 = L;
         // (les plus forts relaient, les autres s'accrochent dans les roues : allure du tiers le plus fort)
         // (à trois ou plus, les relais courts permettent de tenir l'allure du seuil des plus forts)
-        L = Math.max(L, capsDesc()[Math.floor(n * 0.3)] * (n >= 3 ? 1 : 0.95));
+        // (pour ramener un leader du général, ce sont ses équipiers et les plus forts qui roulent : allure du
+        // sixième le plus fort sur sept, au lieu du tiers ; sinon un groupe coupé dans le final d'une étape plate
+        // perdait 7 s au km sur un peloton lancé par les trains et le maillot une minute ou plus)
+        L = Math.max(L, capsDesc()[Math.floor(n * (gcAhead ? 0.15 : 0.3))] * (n >= 3 ? 1 : 0.95));
         if (gp != null && pG.L && !gcAhead) L = Math.min(L, Math.max(L0, pG.L * 1.04));
         // (chasse pour un leader : à un rythme qu'il tient dans les roues, sinon elle le vidait lui-même)
         if (gcAhead) {

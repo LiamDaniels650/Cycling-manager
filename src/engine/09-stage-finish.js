@@ -884,7 +884,8 @@ function endStageSim(sim) {
     const cnt = new Map();
     for (const x of res)
       if (sim.pel3.has(x.id)) {
-        const k = Math.round(x.time);
+        // (temps après la règle du même temps : tout le peloton a le même, celui de sa tête)
+        const k = ct.get(x.id);
         cnt.set(k, (cnt.get(k) || 0) + 1);
       }
     let best = 0;
@@ -896,7 +897,7 @@ function endStageSim(sim) {
   }
   if (sim.parade && bunch === null && res.length) {
     const cnt = new Map();
-    for (const x of res) cnt.set(Math.round(ct.get(x.id)), (cnt.get(Math.round(ct.get(x.id))) || 0) + 1);
+    for (const x of res) cnt.set(ct.get(x.id), (cnt.get(ct.get(x.id)) || 0) + 1);
     bunch = [...cnt].sort((a, b) => b[1] - a[1])[0][0];
   }
   applyStageResult(
@@ -907,7 +908,11 @@ function endStageSim(sim) {
       time: ct.get(x.id),
       energy: x.energy,
       // (parade : temps du général neutralisés, chacun prend le temps du peloton, comme le veut l'usage)
-      gcTime: bunch !== null && (sim.parade || sim.pel3.has(x.id)) && ct.get(x.id) > bunch ? bunch : undefined,
+      // (parade : tout le monde, devant comme derrière, pour que le général ne bouge pas d'une seconde)
+      gcTime:
+        bunch !== null && ((sim.parade && ct.get(x.id) !== bunch) || (sim.pel3.has(x.id) && ct.get(x.id) > bunch))
+          ? bunch
+          : undefined,
     })),
     sim.runners.filter(x => x.dnf).map(x => x.id)
   );
