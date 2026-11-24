@@ -2,8 +2,9 @@
 function obeyCheck(x, ord, sim) {
   if (sim && sim.carId === x.id) return true; // mode carrière : le joueur est le coureur
   const r = x.r;
+  // (base relevée : un coureur refusait un ordre radio sur cinq, d'où trois refus ou plus dans une étape sur cinq)
   let p =
-    0.42 +
+    0.52 +
     (r.dis / 100) * 0.52 +
     (r.moral - 55) / 350 +
     (x.player && campOn('cohesion') ? 0.05 : 0) +
@@ -144,7 +145,7 @@ function obeyCheckPre(x, sim) {
   if (sim && sim.carId === x.id) return true;
   const r = x.r;
   let p =
-    0.62 +
+    0.68 +
     (r.dis / 100) * 0.4 +
     (r.moral - 55) / 300 -
     (r.amb / 100) * 0.18 +
@@ -888,7 +889,7 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
               45,
               climbLeft * (t === 'sommet' ? 52 : 24) + Math.max(0, kmLeft - climbLeft) * (t === 'sommet' ? 6 : 1.4)
             )
-          : Math.max(45, (kmLeft - 5) * 5.2)) * (t === 'sommet' ? R.summitChaseK : 1);
+          : Math.max(45, (kmLeft - 5) * 5.2)) * (t === 'sommet' ? R.summitChaseK : R.favChaseK);
       if (gap > allowed) {
         const l3 = gap > allowed * 1.5 ? 0.9 : 0.85;
         if (l3 > level) {

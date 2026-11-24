@@ -547,7 +547,9 @@ function tickMerges(sim) {
   // les roues au passage, comme en vrai, au lieu d'être lâchés d'office faute de rouler aussi vite que lui.
   // S'ils n'ont plus les jambes, la sélection habituelle les lâchera ensuite.
   const pel = sim.pel;
-  if (pel && pel.riders.length) {
+  // (étapes plates et pavées : ailleurs, être dépassé dans une bosse c'est être lâché, et les échappées des étapes
+  // accidentées se faisaient avaler à tort)
+  if (pel && pel.riders.length && (sim.spec.type === 'plat' || sim.spec.type === 'paves')) {
     const reach = ((pel.speed || 40) * 10) / 3600; // à portée : moins de 10 s environ
     for (const G of sim.groups.slice()) {
       if (G === pel || !G.riders.length) continue;
