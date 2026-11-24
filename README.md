@@ -592,6 +592,14 @@ node tools/replay.js signalement.json # rejoue l'étape d'un signalement du joue
     qui perd plus de 2 min sur le plat (2 %, groupes de grimpeurs coupés d'un peloton lancé par les rouleurs), un
     vainqueur avec plus de 8 min d'avance et une étape plate à plus de 52 km/h (un cas chacun sur 1 632 étapes).
     Calibrage 45/45 sur deux séries de 60 saisons (échappées au sommet 0,37, vallonné 0,38, côte 0,25-0,27).
+  - Écarts en temps (premier signalement d'un joueur, rejoué à l'identique avec tools/replay.js : « peloton à
+    12 min » à un endroit, 2'45" dans l'onglet Groupes) : les écarts se calculent avec les temps de passage de la
+    tête, mais le dernier tronçon de la tête n'était jamais relevé ; l'écart retombait alors sur distance ÷ vitesse
+    instantanée du groupe de derrière, faux d'un facteur 3 quand la tête descend et que le peloton monte (écart qui
+    sautait de 3'30" à 12'45" et retour en une minute). Le dernier tronçon est interpolé (passAt, 08-stage-sim.js).
+    Les équipes de l'ordinateur décident de rouler d'après ces écarts : leurs poursuites sont désormais fondées sur
+    le vrai temps. Test : écart affiché comparé à l'écart réel à chaque instant de trois étapes de montagne (11 521
+    incohérences avant, aucune après).
   - Le final sur téléphone (15 derniers km), réorganisé comme le reste de la course :
     - en haut, toujours visibles : le décompte et la route jusqu'à la ligne (groupes, écarts, flamme rouge), puis
       une vue du ciel réduite, aux caméras sur une seule ligne ;

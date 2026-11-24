@@ -295,8 +295,16 @@ function passAt(sim, x) {
   if (!T || x < 0) return null;
   const f = x / STEP,
     i = Math.floor(f);
-  if (i + 1 > sim.passN) return null;
-  return T[i] + (T[i + 1] - T[i]) * (f - i);
+  if (i + 1 <= sim.passN) return T[i] + (T[i + 1] - T[i]) * (f - i);
+  // entre la dernière borne relevée et la position actuelle de la tête : interpolation sur le dernier pas (sans
+  // elle, l'écart retombait sur distance ÷ vitesse instantanée du groupe de derrière, faux d'un facteur 3 quand
+  // la tête descend et que le peloton monte)
+  const x0 = sim.passN * STEP;
+  if (x >= x0 && x <= sim.passPos + 1e-9) {
+    const t0 = T[sim.passN];
+    return sim.passPos > x0 ? t0 + ((sim.passTime - t0) * (x - x0)) / (sim.passPos - x0) : sim.passTime;
+  }
+  return null;
 }
 // Relève les temps de passage de la tête de la course pendant le pas qui vient de s'écouler.
 function recordPassage(sim) {

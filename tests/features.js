@@ -1677,5 +1677,61 @@ check(
     "carrière : l'écran de préparation n'appelle pas autoOrders (hasard) pendant l'affichage"
   );
 }
+// Écarts en temps cohérents avec la distance entre les groupes, à chaque instant d'étapes de montagne (cols et
+// descentes) : l'écart de la tête à chaque groupe correspond à une vitesse moyenne réaliste (signalement du joueur :
+// « peloton à 12 min » alors qu'il était à 3 min, quand la tête descendait et que le peloton montait).
+{
+  newGame('T', 77);
+  let bad = 0,
+    n = 0,
+    worst = '';
+  const idx = S.cal
+    .map((c, i) => i)
+    .filter(i => S.cal[i].stagesSpec.length > 1 && S.cal[i].stagesSpec.some(sp => sp[0] === 'montagne'));
+  for (const i of idx.slice(0, 3)) {
+    const cal = S.cal[i];
+    const si = cal.stagesSpec.findIndex(sp => sp[0] === 'montagne');
+    S.week = cal.w;
+    const rc = startRace(i, aiSelect(S.teams[0], cal, prepareRaceSpecs(cal)));
+    while (rc.si < si) {
+      Object.assign(rc.orders, autoOrders(0, rc.specs[rc.si], rc));
+      runStageAuto(rc);
+    }
+    Object.assign(rc.orders, autoOrders(0, rc.specs[rc.si], rc));
+    const sim = newStageSim(rc);
+    sim.autoDS = true;
+    n++;
+    // écart réel : depuis combien de temps la tête de la course est passée là où se trouve le groupe (relevé ici,
+    // à chaque pas, indépendamment du moteur)
+    const hist = [];
+    while (!sim.done) {
+      simTick(sim);
+      const L = sim.groups.filter(G => G.riders.some(x => !x.fin && !x.dnf));
+      // (jusqu'à l'arrivée du premier : ensuite, la tête de la course n'est plus sur la route)
+      if (!L.length || sim.runners.some(x => x.fin)) continue;
+      const H = L.reduce((a, b) => (b.pos > a.pos ? b : a));
+      if (!hist.length || H.pos > hist[hist.length - 1][1]) hist.push([sim.t + DT_MIN, H.pos]);
+      for (const G of L) {
+        if (H.pos - G.pos < 0.3) continue;
+        const k = hist.findIndex(h => h[1] >= G.pos);
+        if (k < 1) continue;
+        const [t0, p0] = hist[k - 1],
+          [t1, p1] = hist[k];
+        const real = (sim.t + DT_MIN - (t0 + ((t1 - t0) * (G.pos - p0)) / (p1 - p0))) * 60;
+        const g = gapSec(H, G);
+        if (Math.abs(g - real) > 30 + 0.15 * real) {
+          bad++;
+          if (!worst)
+            worst = `${rc.name} km ${H.pos.toFixed(1)} : affiché ${Math.round(g)} s, réel ${Math.round(real)} s`;
+        }
+      }
+    }
+    S.rc = null;
+  }
+  check(
+    n >= 2 && bad === 0,
+    `écarts en temps cohérents avec les distances (${n} étapes, ${bad} incohérences${worst ? ' ; ' + worst : ''})`
+  );
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);
