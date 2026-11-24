@@ -894,6 +894,11 @@ function endStageSim(sim) {
         bunch = k;
       }
   }
+  if (sim.parade && bunch === null && res.length) {
+    const cnt = new Map();
+    for (const x of res) cnt.set(Math.round(ct.get(x.id)), (cnt.get(Math.round(ct.get(x.id))) || 0) + 1);
+    bunch = [...cnt].sort((a, b) => b[1] - a[1])[0][0];
+  }
   applyStageResult(
     rc,
     sim.spec,
@@ -901,7 +906,8 @@ function endStageSim(sim) {
       id: x.id,
       time: ct.get(x.id),
       energy: x.energy,
-      gcTime: bunch !== null && sim.pel3.has(x.id) && ct.get(x.id) > bunch ? bunch : undefined,
+      // (parade : temps du général neutralisés, chacun prend le temps du peloton, comme le veut l'usage)
+      gcTime: bunch !== null && (sim.parade || sim.pel3.has(x.id)) && ct.get(x.id) > bunch ? bunch : undefined,
     })),
     sim.runners.filter(x => x.dnf).map(x => x.id)
   );

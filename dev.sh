@@ -6,6 +6,7 @@
 #   calib [n=30]   calibrage sur deux séries de n saisons en parallèle (graines 200 et 300), écarts au réel
 #   rapide         calibrage rapide (2 × 20 saisons, ≈ 5 min) pour vérifier en cours de route
 #   auto           calibrage avec arrêt anticipé : 20 saisons, puis 60 seulement si une mesure reste douteuse
+#   anomalies [n=12] cas invraisemblables sur n saisons (pertes au général sur le plat, échappées folles…) (≈ 4 min)
 #   impact         poids de chaque caractéristique et de chaque choix (≈ 4 min)
 #   prodiges       jeunes talents sur 9 saisons (≈ 2 min 30)
 #   play           une saison jouée comme un joueur dans le navigateur
@@ -61,6 +62,7 @@ case "$1" in
     wait
     for s in 200 300; do echo "graine $s : $(grep -c '✔' /tmp/calib$s.txt) mesures dans le réel"; grep '✖\|arrêt anticipé\|on poursuit' /tmp/calib$s.txt || true; done
     echo "(détail : /tmp/calib200.txt, /tmp/calib300.txt)" ;;
+  anomalies) build; node tests/anomalies.js "${2:-12}" 500 ;;
   impact) build; node tests/impact.js 20 ;;
   prodiges) build; node tests/prodigies.js 3 9 ;;
   play) build; python3 tests/play_react.py ;;
@@ -72,5 +74,5 @@ case "$1" in
   reglages) python3 tools/reglages.py ;;
   adjoint) Q=1 node tests/adjoint.js "${2:-8}" "${3:-11}" ;;
   react) node tools/build_react.mjs ;;
-  *) sed -n '2,12p' "$0" ;;
+  *) sed -n '2,13p' "$0" ;;
 esac

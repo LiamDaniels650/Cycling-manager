@@ -153,6 +153,30 @@ function tickPhysics(sim) {
         G.cutRush = true;
       }
     } else G.cutRush = false;
+    // groupe coupé (accordéon, chute, route étroite) juste derrière le peloton dans le final : tout le monde roule à
+    // bloc pour limiter la perte (sinon, faute d'équipier désigné, il temporisait et perdait 15 s au km)
+    // (idem, sur le plat, pour un groupe où roule un leader du général d'une course par étapes : son équipe et lui
+    // chassent pour revenir, à n'importe quel moment de l'étape)
+    const pG = sim.pel;
+    if (G.burst <= 0 && g < 3 && G.riders.filter(y => y.energy > 30 && !y.sitUp).length * 2 >= n) {
+      const gp = pG && G !== pG && G.pos < pG.pos ? ((pG.pos - G.pos) / Math.max(20, pG.speed || 40)) * 3600 : null;
+      // (le groupe des leaders du général devant : pas l'échappée du jour, mais un groupe où roulent des leaders,
+      // après une bordure par exemple ; ceux qui y ont perdu le contact chassent, même si leur groupe est « le peloton »)
+      const gcAhead =
+        sim.stageRace &&
+        sim.spec.type !== 'montagne' &&
+        G.riders.some(y => y.order === 'leader' && gcMan(sim, y)) &&
+        gcGroups(sim).some(H => H !== G && H.pos > G.pos && gapSec(H, G) < 600);
+      // (et, sur le plat abrité, un groupe coupé de moins de deux minutes à n'importe quel moment : il revient)
+      const cutFlat = gp != null && gp < 120 && g < 2 && !G.expo && !G.dropped;
+      if ((gp != null && gp < 45 && sim.dist - G.pos < R.cutChaseKm) || gcAhead || cutFlat) {
+        L0 = L;
+        // (les plus forts relaient, les autres s'accrochent dans les roues : allure du tiers le plus fort)
+        L = Math.max(L, capsDesc()[Math.floor(n * 0.3)] * 0.95);
+        if (gp != null && pG.L && !gcAhead) L = Math.min(L, Math.max(L0, pG.L * 1.04));
+        if (L > L0) paceSrc = 'tempo';
+      }
+    }
     if (G.noMerge > 0) G.noMerge--;
     G.L = L;
     // vitesse de référence (calibrée), puis conditions du jour par la physique (air, vent, revêtement, pluie)
@@ -267,13 +291,20 @@ function tickPhysics(sim) {
           // (72 de pavés : usure normale ; 86 : -35 % ; 60 : +30 %)
           (surf ? clamp(1 + (72 - (x.r.s.pav || 60)) / 40, 0.55, 1.5) : 1) *
           // chaleur : les gabarits lourds évacuent mal la chaleur (≈ +1 % d'usure par kilo au-dessus de 66 kg)
-          (sim.wx === 'chaleur' ? 1 + (1.15 * clamp(1 + ((x.r.kg || 68) - 66) * 0.01, 0.95, 1.15) - 1) * (x.r.heatAcc > 0 ? 0.5 : 1) : 1) *
+          (sim.wx === 'chaleur'
+            ? 1 + (1.15 * clamp(1 + ((x.r.kg || 68) - 66) * 0.01, 0.95, 1.15) - 1) * (x.r.heatAcc > 0 ? 0.5 : 1)
+            : 1) *
           (x.food < 25 ? 1.35 : 1) *
           (coldHigh ? 1.12 : 1);
       x.food = Math.max(
         0,
         x.food -
-          R.foodDrain * foodMet(x.r) * (4 + 14 * Math.min(1.2, I) ** 2) * dtH * (sim.wx === 'chaleur' ? (x.r.heatAcc > 0 ? 1.1 : 1.2) : coldHigh ? 1.2 : 1) * (x.eqf.food || 1)
+          R.foodDrain *
+            foodMet(x.r) *
+            (4 + 14 * Math.min(1.2, I) ** 2) *
+            dtH *
+            (sim.wx === 'chaleur' ? (x.r.heatAcc > 0 ? 1.1 : 1.2) : coldHigh ? 1.2 : 1) *
+            (x.eqf.food || 1)
       );
       if (x.food < 6 && !x.bonk) {
         x.bonk = true;
@@ -443,6 +474,16 @@ function incident(sim, x, type) {
       if (behind.length >= 3) {
         const BG = newGroupFrom(sim, behind, Math.max(0, G.pos - (G.speed * rf(5, 20)) / 3600));
         BG.noMerge = 2;
+        // fair-play : des leaders du général piégés derrière la chute loin de l'arrivée, le peloton se relève
+        const gcBack = behind.filter(y => y.order === 'leader' && gcMan(sim, y));
+        if (sim.stageRace && !sim.neutral && G === sim.pel && gcBack.length && sim.dist - G.pos > 25) {
+          sim.neutral = { G, until: sim.t + 4, who: gcBack[0] };
+          log(
+            sim,
+            `🤝 Des favoris piégés derrière la chute (${gcBack.map(y => riderName(y.r)).join(', ')}) : le peloton se relève.`,
+            gcBack.some(y => y.player) ? 'me' : 'info'
+          );
+        }
         if (behind.some(y => y.player || sim.favs.has(y.id)))
           log(
             sim,
@@ -486,9 +527,42 @@ function incident(sim, x, type) {
   }
 }
 // Jonctions entre groupes.
+// Groupes où roulent des leaders du général (hors échappée du jour), une fois par pas de course.
+function gcGroups(sim) {
+  if (sim._gcgT === sim.t) return sim._gcg;
+  sim._gcgT = sim.t;
+  sim._gcg = sim.groups.filter(
+    H =>
+      H.riders.length >= 3 &&
+      !(sim.brkIds && H.riders.filter(z => sim.brkIds.has(z.id)).length * 2 > H.riders.length) &&
+      H.riders.some(z => z.order === 'leader' && gcMan(sim, z))
+  );
+  return sim._gcg;
+}
 function tickMerges(sim) {
   sim.groups = sim.groups.filter(G => G.riders.length);
   sim.groups.sort((a, b) => b.pos - a.pos);
+  // groupe dépassé par le peloton (des attaquants repris, souvent pendant leur effort) : ses coureurs se calent dans
+  // les roues au passage, comme en vrai, au lieu d'être lâchés d'office faute de rouler aussi vite que lui.
+  // S'ils n'ont plus les jambes, la sélection habituelle les lâchera ensuite.
+  const pel = sim.pel;
+  if (pel && pel.riders.length) {
+    const reach = ((pel.speed || 40) * 10) / 3600; // à portée : moins de 10 s environ
+    for (const G of sim.groups.slice()) {
+      if (G === pel || !G.riders.length) continue;
+      if (G.aheadPel && G.pos < pel.pos && G.riders.length < pel.riders.length) G.passedBy = pel;
+      // (la jonction passe par la fusion habituelle ci-dessous : reprise annoncée, échappée du jour relevée, nouvelle
+      // bagarre si elle est reprise tôt ; le groupe repris est remis juste devant le peloton qui l'avale)
+      if (G.passedBy === pel && G.pos >= pel.pos - reach && G.riders.some(x => x.energy > 12)) {
+        G.pos = pel.pos + 1e-6;
+        G.noMerge = 0;
+        // (seule l'échappée du jour compte comme une reprise : un groupe d'attaquants avalé ne relance pas les contres)
+        G.ahead = !!(sim.brkIds && G.riders.filter(x => sim.brkIds.has(x.id)).length * 2 > G.riders.length);
+      }
+    }
+    sim.groups.sort((a, b) => b.pos - a.pos);
+    for (const G of sim.groups) G.aheadPel = G !== pel && G.pos > pel.pos;
+  }
   for (let i = 0; i < sim.groups.length - 1; i++) {
     const A = sim.groups[i],
       B = sim.groups[i + 1];
@@ -499,7 +573,8 @@ function tickMerges(sim) {
         A.riders.length &&
         (A.riders.some(x => x.player || sim.favs.has(x.id)) || A.riders.length >= 3 || A.pos > sim.dist * 0.5)
       )
-        log(sim, `🔁 Le groupe de ${A.riders.length} coureur(s) est repris par le peloton.`, ''), skyEvent(sim, 'reprise', A.riders[0], A);
+        (log(sim, `🔁 Le groupe de ${A.riders.length} coureur(s) est repris par le peloton.`, ''),
+          skyEvent(sim, 'reprise', A.riders[0], A));
       // reprise de l'échappée du jour (pas des attaques de la bagarre du départ) : relevée pour le bilan d'étape
       if (
         wasBreak &&

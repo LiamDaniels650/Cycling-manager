@@ -527,6 +527,31 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     - la dernière étape plate d'un grand tour est une parade : pas de bordure, les leaders ne suivent rien ;
     - règle des 3 km étendue aux morceaux de peloton à moins de 15 s ; règle des 3 s des grands tours (même temps
       pour qui suit le précédent à moins de 3 s sur une arrivée plate d'une course par étapes, 1 s ailleurs).
+  - Détecteur d'anomalies (`./dev.sh anomalies [saisons]`, tests/anomalies.js) : simule des saisons complètes et
+    signale, étape par étape, ce qui choquerait un connaisseur (un leader du général qui perd du temps sur le plat, le
+    podium qui change le jour de la parade, une échappée sans danger qui prend vingt minutes, un sprinteur vainqueur
+    en montagne, des vitesses ou des écarts hors du réel, des fringales en série dans une équipe…), avec le taux pour
+    100 étapes, des exemples et le journal de la course autour du moment en cause ; les pertes au général sont classées
+    par cause (chute, bordure, attaque, sans raison) ; TRACE=graine:course:étape déroule une étape km par km. Ce qu'il
+    a trouvé, et qui est corrigé :
+    - un homme du général envoyé chercher les bidons à la voiture ne revenait jamais (le 3e d'un grand tour perdait
+      6 min sur la parade) : les quinze premiers ne font plus le porteur d'eau ;
+    - des attaquants repris pendant leur effort ne pouvaient plus se mettre dans les roues du peloton qui les doublait
+      (il fallait rouler aussi vite que lui) : ils s'y calent désormais, à moins de 10 s ;
+    - un leader du général n'attaque plus, et ne suit plus, dans les 10 derniers km d'une étape de sprint d'une
+      course par étapes : les trains des sprinteurs s'en chargent ;
+    - un groupe coupé (accordéon, chute, route étroite) juste derrière le peloton dans le final temporisait faute
+      d'équipier désigné et perdait 15 s au km : tout le monde y roule, au rythme des plus forts ; sur le plat abrité,
+      un groupe coupé de moins de deux minutes revient ;
+    - un leader piégé (bordure, chute) dans un groupe que le moteur prenait pour « le peloton » le laissait temporiser
+      pendant que les autres leaders filaient devant (10 min perdues) : un groupe où roule un leader du général
+      chasse dès qu'un groupe de leaders est devant ; quand une chute loin de l'arrivée piège des leaders, le peloton
+      se relève (fair-play), comme pour un leader tombé ;
+    - l'équipe du maillot contrôle l'échappée au-delà de six minutes même quand le porteur n'est pas son leader
+      désigné (un sprinteur en jaune la première semaine) : un échappé sans danger prenait vingt minutes ;
+    - la dernière étape d'un grand tour (parade) : temps du général neutralisés, chacun prend le temps du peloton ;
+    - un grimpeur équipier dans les dix premiers du général n'a plus la consigne de s'économiser sur le plat.
+    Sur 12 saisons (graines 500-511) : RESULTATS_ANOMALIES
   - Moteur, quatre chantiers :
     - Identité des équipes de l'ordinateur (75-identity.js) : grands tours, classiques, sprint, échappées, et une
       super-équipe (le plus haut standing, de vraies vedettes) ; vedettes de départ, recrutement (marché, transferts,

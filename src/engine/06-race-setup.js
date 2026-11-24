@@ -295,7 +295,8 @@ function autoOrders(teamId, spec, rc) {
     const gcLeader = leader && rc.si > 0 ? gcSituation(rc, leader.id) : null;
     if ((t === 'plat' || t === 'vallonne') && leader && (rc.si === 0 || gcLeader.alive) && sim0Key(rc))
       others
-        .filter(r => r.s.mon >= 74 && !saves.includes(r))
+        // (pas un homme du général : le dixième du classement ne se relève pas sur une étape de plaine)
+        .filter(r => r.s.mon >= 74 && !saves.includes(r) && !(rc.si > 0 && gcList(rc).slice(0, 10).includes(r.id)))
         .sort((a, b) => b.s.mon - a.s.mon)
         .slice(0, 2)
         .forEach(r => saves.push(r));
@@ -453,6 +454,9 @@ function styleMul(T, k) {
       (COAL && COAL.has(T.id) ? 1.25 : 1) // coalition : ils durcissent la course pour user le leader
     );
   if (k === 'break')
-    return (s === 'agressif' ? 1.6 : s === 'opportuniste' ? 1.4 : s === 'defensif' ? 0.6 : s === 'gc' ? 0.8 : 1) * identBreakMul(T);
+    return (
+      (s === 'agressif' ? 1.6 : s === 'opportuniste' ? 1.4 : s === 'defensif' ? 0.6 : s === 'gc' ? 0.8 : 1) *
+      identBreakMul(T)
+    );
   return 1;
 }

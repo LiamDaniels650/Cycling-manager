@@ -3,7 +3,12 @@ function obeyCheck(x, ord, sim) {
   if (sim && sim.carId === x.id) return true; // mode carrière : le joueur est le coureur
   const r = x.r;
   let p =
-    0.42 + (r.dis / 100) * 0.52 + (r.moral - 55) / 350 + (x.player && campOn('cohesion') ? 0.05 : 0) + captainObey(x, sim) + adjObey(x, sim);
+    0.42 +
+    (r.dis / 100) * 0.52 +
+    (r.moral - 55) / 350 +
+    (x.player && campOn('cohesion') ? 0.05 : 0) +
+    captainObey(x, sim) +
+    adjObey(x, sim);
   if (r.trait === 'modele') p += 0.22;
   if (r.trait === 'fragile') p += (r.moral - 55) / 160;
   if (SUBORD.includes(ord)) {
@@ -108,6 +113,12 @@ function dsSitUp(sim, mine, ldr, once) {
       else x.radio = 'stop';
     } else if (!G.ahead && x.radio === 'stop' && x.order !== 'save' && once('rs' + x.id, 10)) x.radio = null;
   }
+}
+// Homme du général (course par étapes, quinze premiers) : il ne redescend pas aux voitures chercher les bidons.
+function gcMan(sim, x) {
+  if (!sim.stageRace || !sim.rc || !sim.rc.si) return false;
+  if (!sim._gcTop) sim._gcTop = new Set(gcList(sim.rc).slice(0, 15));
+  return sim._gcTop.has(x.id);
 }
 // Un équipier redescend aux voitures chercher des bidons pour ses leaders.
 function fetchBottles(sim, x) {
@@ -250,7 +261,11 @@ function dsBrain(sim, T) {
       if (cands.length && once('waitldr', 1)) {
         const pri = o => ({ protect: 0, control: 1, free: 2, leadout: 3, save: 4, break: 5 })[o] ?? 6;
         const pick = cands.sort((a, b) => pri(a.order) - pri(b.order) || b.energy - a.energy).slice(0, need);
-        log(sim, `🤖 DS : ${pick.map(x => riderName(x.r)).join(' et ')}, relevez-vous et attendez ${riderName(ldr.r)} !`, 'me');
+        log(
+          sim,
+          `🤖 DS : ${pick.map(x => riderName(x.r)).join(' et ')}, relevez-vous et attendez ${riderName(ldr.r)} !`,
+          'me'
+        );
         for (const x of pick) {
           x.waitFor = null; // (le leader)
           if (!applyRadio(sim, x, 'wait', 'auto')) x.waitRef = sim.t;
@@ -367,7 +382,15 @@ function dsBrain(sim, T) {
     const withS = spr.g.riders.filter(y => y.team === T && y !== spr && !y.fin && !y.dnf).length;
     if (!withS) {
       const cands = mine.filter(x => {
-        if (x === spr || x === ldr || x.g === spr.g || x.g.pos <= spr.g.pos || x.manual || x.radio === 'wait' || x.energy < 30)
+        if (
+          x === spr ||
+          x === ldr ||
+          x.g === spr.g ||
+          x.g.pos <= spr.g.pos ||
+          x.manual ||
+          x.radio === 'wait' ||
+          x.energy < 30
+        )
           return false;
         if (x.waitRef != null && sim.t - x.waitRef < 5) return false;
         const gp = gapSec(x.g, spr.g);
@@ -387,7 +410,15 @@ function dsBrain(sim, T) {
   }
   // 4 bis. étape pour sprinteurs : l'échappée a trop d'avance pour le kilométrage restant, personne de l'équipe devant
   // → deux équipiers roulent ; ils se relèvent quand l'écart est sous contrôle
-  if (PL && spr && !spr.fin && !spr.dnf && ['plat', 'vallonne'].includes(sim.spec.type) && sim.pel && spr.g === sim.pel) {
+  if (
+    PL &&
+    spr &&
+    !spr.fin &&
+    !spr.dnf &&
+    ['plat', 'vallonne'].includes(sim.spec.type) &&
+    sim.pel &&
+    spr.g === sim.pel
+  ) {
     const H = sim.groups.find(G => G.ahead && G.pos > sim.pel.pos && G.riders.some(x => !x.fin));
     const kmL = sim.dist - sim.pel.pos;
     const ours = H && H.riders.some(x => x.team === T);
@@ -397,15 +428,29 @@ function dsBrain(sim, T) {
       if (gap > kmL * 4.5 && rolling < 2 && once('chasebrk', 6)) {
         const pri = o => ({ control: 0, protect: 1, free: 2, leadout: 3 })[o] ?? 9;
         const pick = mine
-          .filter(x => x.g === sim.pel && x !== spr && x !== ldr && !x.manual && x.energy > 35 && x.radio !== 'chase' && pri(x.order) < 9)
+          .filter(
+            x =>
+              x.g === sim.pel &&
+              x !== spr &&
+              x !== ldr &&
+              !x.manual &&
+              x.energy > 35 &&
+              x.radio !== 'chase' &&
+              pri(x.order) < 9
+          )
           .sort((a, b) => pri(a.order) - pri(b.order) || b.energy - a.energy)
           .slice(0, 2 - rolling);
         if (pick.length) {
-          log(sim, `🤖 DS : l'échappée a ${fmtGap(gap)} à ${Math.round(kmL)} km, trop pour ${riderName(spr.r)} : ${pick.map(x => riderName(x.r)).join(' et ')}, on roule !`, 'me');
+          log(
+            sim,
+            `🤖 DS : l'échappée a ${fmtGap(gap)} à ${Math.round(kmL)} km, trop pour ${riderName(spr.r)} : ${pick.map(x => riderName(x.r)).join(' et ')}, on roule !`,
+            'me'
+          );
           for (const x of pick) applyRadio(sim, x, 'chase', 'auto');
         }
       } else if (gap < kmL * 2)
-        for (const x of mine) if (x.radio === 'chase' && x.g === sim.pel && !x.manual && once('stopbrk' + x.id, 6)) x.radio = null;
+        for (const x of mine)
+          if (x.radio === 'chase' && x.g === sim.pel && !x.manual && once('stopbrk' + x.id, 6)) x.radio = null;
     }
   }
   // 5. équipiers dans le rouge en montée : à leur rythme
@@ -446,7 +491,8 @@ function dsBrain(sim, T) {
         x.work === 0 &&
         x.g === sim.pel &&
         x.energy > 40 &&
-        ['protect', 'control', 'free'].includes(x.order)
+        ['protect', 'control', 'free'].includes(x.order) &&
+        !gcMan(sim, x)
     )[0];
     if (d) applyRadio(sim, d, 'bottles', 'auto');
   }
@@ -514,10 +560,21 @@ function doAttack(sim, x, opts = {}) {
         // temps) ; le jour de la parade, un leader ne suit rien
         const flatSR = sim.stageRace && sim.spec.type === 'plat' && sim.P.finishGrad < 3;
         const counts = flatSR ? rival : sim.favs.has(x.id) || rival || phaseOf(sim, G) === 'final';
-        want = sim.parade ? 0 : counts ? (y.att === 'defensif' ? R.leaderFollowDef : R.leaderFollow) : R.leaderFollowIdle;
+        // dans les 10 derniers km d'une étape plate, même un rival qui attaque est laissé aux trains des sprinteurs :
+        // le leader reste dans les roues de ses équipiers
+        const sprintRunIn = flatSR && sim.dist - G.pos < 10;
+        want =
+          sim.parade || sprintRunIn
+            ? 0
+            : counts
+              ? y.att === 'defensif'
+                ? R.leaderFollowDef
+                : R.leaderFollow
+              : R.leaderFollowIdle;
       } else if (eo === 'free') want = (y.r.amb / 100) * 0.55 + (sim.favs.has(y.id) ? 0.2 : 0);
       else if (eo === 'break' && G.pos < sim.dist * 0.5) want = 0.5;
-      if (sim.favs.has(x.id) && eo === 'leader' && !(sim.stageRace && sim.spec.type === 'plat') && !sim.parade) want += 0.15;
+      if (sim.favs.has(x.id) && eo === 'leader' && !(sim.stageRace && sim.spec.type === 'plat') && !sim.parade)
+        want += 0.15;
       if (y.markId === x.id) want = 0.98;
       if (y.energy < 20) want *= 0.3;
       if (rnd() < want) {
@@ -682,7 +739,15 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
     G.riders.some(x => x.team === T && effOrder(x) === 'break')
   )
     return [0.8, 1];
-  if (!ldr && !spr) return [0, 0];
+  // l'équipe du maillot de leader contrôle l'échappée, même si son porteur n'est pas le leader désigné (un sprinteur
+  // en jaune la première semaine) : au-delà de six minutes, elle met des hommes en tête (sinon un échappé sans
+  // danger au général prenait vingt minutes)
+  let yc = null;
+  if (sim.stageRace && sim.rc.si > 0 && gap > R.yelCtrlGap && !teamHasAhead(sim, T, G)) {
+    const yid = gcCached(sim.rc).arr[0];
+    if (G.riders.some(x => x.id === yid && x.team === T)) yc = gap > R.yelCtrlGap * 1.5 ? [0.88, 3] : [0.82, 2];
+  }
+  if (!ldr && !spr) return yc || [0, 0];
   const favAhead = ahead.some(H => H.riders.some(y => y.team !== T && sim.favs.has(y.id)));
   const aheadMate = teamHasAhead(sim, T, G) && !favAhead && !(gap > Math.max(150, (kmLeft - 25) * 3.5));
   const t = sim.spec.type;
@@ -690,11 +755,14 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
     nw = 0;
   if (
     spr &&
-    (t === 'plat' || (t === 'punch' && kmLeft < 95) || (t === 'vallonne' && kmLeft < 80 && spr.r.s.col >= R.sprintHillCol)) &&
+    (t === 'plat' ||
+      (t === 'punch' && kmLeft < 95) ||
+      (t === 'vallonne' && kmLeft < 80 && spr.r.s.col >= R.sprintHillCol)) &&
     !aheadMate
   ) {
     // (final vallonné : plus dur à contrôler pour une équipe de sprinteur, l'échappée a plus de marge)
-    const allowed = Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK * (t === 'vallonne' ? R.hillyChaseK : 1);
+    const allowed =
+      Math.min(300, Math.max(0, (kmLeft - 7) * 4.2)) * R.flatChaseK * (t === 'vallonne' ? R.hillyChaseK : 1);
     if (gap > allowed * 1.5 + 40) {
       level = 0.97;
       nw = 4;
@@ -818,6 +886,7 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
       }
     }
   }
+  if (yc && yc[0] > level) [level, nw] = yc;
   return [level ? Math.min(0.98, level * (level > 0.8 ? styleMul(T, 'chase') : 1)) : 0, nw];
 }
 // Ordre radio du joueur : provoquer une bordure (vent de côté).

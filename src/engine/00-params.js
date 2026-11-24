@@ -119,8 +119,10 @@ const R = {
   sprintHillCol: 72, // vallonné : une équipe ne roule pour son sprinteur que s'il passe les côtes (collines ≥ 72)
   brkSprintKm: 12, // un échappé dont le sprinteur est derrière relaie au ralenti dans les 12 derniers km
   tttK: 0.98, // contre-la-montre par équipes : réglage de vitesse de l'exercice (51-57 km/h dans la réalité)
-  komPassK: 2,
+  komPassK: 2, // grands tours : multiplicateur des points des cols de passage
   // alimentation : consommation (part de réserve par heure) = foodDrain × (4 + 14 × intensité²) : abrité dans le
   // peloton on dépense peu et on mange, en tête ou en échappée on brûle beaucoup sans avoir le temps de manger
-  foodDrain: 1.6, // réglé pour 1 à 6 fringales par grand tour sur tout le peloton (calibration : GT_fringales) // grands tours : les cols de passage rapportent deux fois les points du barème // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
+  foodDrain: 1.6, // réglé pour 1 à 6 fringales par grand tour sur tout le peloton (calibration : GT_fringales)
+  yelCtrlGap: 360, // l'équipe du maillot contrôle une échappée au-delà de cet écart (s), quel que soit son porteur
+  cutChaseKm: 15, // groupe coupé dans les derniers km : il chasse à bloc pour revenir sur le peloton
 };

@@ -178,7 +178,8 @@ function decideRider(sim, x, ctx) {
     const spB = sim.teamSprinter[x.team.id];
     // (dans les derniers km seulement (R.brkSprintKm), et il relaie au ralenti : à 60 km, toute l'échappée s'arrêtait de rouler,
     // presque chaque équipe ayant un sprinteur derrière, et elle était reprise bien avant le final)
-    if (spB && spB !== x && spB.g !== G && !spB.fin && sim.P.finishGrad < 3 && kmLeft < R.brkSprintKm) w = Math.min(w, 0.3);
+    if (spB && spB !== x && spB.g !== G && !spB.fin && sim.P.finishGrad < 3 && kmLeft < R.brkSprintKm)
+      w = Math.min(w, 0.3);
     if (G.riders.length >= 3 && sim.P.finishGrad < 3 && kmLeft < 15) {
       const bs = G.riders.reduce((a, b) => (b.r.s.spr > a.r.s.spr ? b : a));
       if (bs === x && x.r.s.bar < 75) w = Math.min(w, 0.35);
@@ -283,7 +284,8 @@ function decideRider(sim, x, ctx) {
       if (surf && kmLeft < 70) window = g >= 3 && !sim.stageRace ? R.murAttack : 0.6; // mur pavé : le moment de partir
       if (kmLeft < 15) window = Math.max(window, 0.5);
     } else if (t === 'plat') {
-      if (kmLeft < 8 && kmLeft > 1.5 && !(sim.parade && eo === 'leader')) window = 0.15;
+      // (un leader du général n'attaque pas dans le final d'une étape de sprint : rien à gagner, tout à perdre)
+      if (kmLeft < 8 && kmLeft > 1.5 && !(sim.stageRace && eo === 'leader')) window = 0.15;
     }
     if (window > 0) {
       const capX = cap(x, g, surf);
@@ -327,7 +329,7 @@ function decideRider(sim, x, ctx) {
       // filer et il se griller ; il le fait dans le final (ou s'il n'a plus rien à perdre au général)
       (eo === 'leader' &&
         x.att !== 'defensif' &&
-        (phaseOf(sim, G) === 'final' ||
+        ((phaseOf(sim, G) === 'final' && !(sim.stageRace && sim.spec.type === 'plat')) ||
           (sim.stageRace ? leaderGcRank(sim.rc, x.id) > 10 : phaseOf(sim, G) !== 'debut')))) &&
     x.r.s.bar >= 68 &&
     x.punch > 45 &&
