@@ -3,6 +3,11 @@
 function ttConds(spec, P) {
   const w = { windAx: null };
   genWindAxis(w, spec.dist, spec.wind || 0, 'neutre');
+  // un parcours de chrono fait souvent une boucle ou un aller-retour : le vent s'y compense en partie (sinon un
+  // chrono court, tout entier vent dans le dos, se gagnait à 60 km/h)
+  const n = Math.ceil(spec.dist / 10) + 1;
+  const mean = w.windAx.slice(0, n).reduce((a, b) => a + b, 0) / n;
+  w.windAx = w.windAx.map(v => v - R.ttWindLoop * mean);
   const temp = spec.wx === 'chaleur' ? 32 : spec.wx === 'froid' ? 6 : 18;
   const out = [];
   for (let i = 0; i < P.n; i++)
@@ -12,6 +17,16 @@ function ttConds(spec, P) {
       vw: headwindAt(w, i * STEP),
     });
   return out;
+}
+// Vitesse en chrono : seul contre l'air, la vitesse suit la racine cubique de la puissance sur le plat (14 % de
+// puissance en moins, environ 5 % de vitesse en moins), et à peu près la puissance dans une vraie montée. Autour
+// d'un niveau de référence, pour garder la vitesse moyenne calibrée (avant : écarts presque proportionnels à la
+// capacité, un équipier qui s'économisait concédait 8 % au lieu d'environ 5 %).
+function ttSpeed(L, g, surf) {
+  const ex = g > 0 ? clamp(1 / 3 + g * 0.11, 1 / 3, 1) : 1 / 3;
+  // (la puissance suit la capacité plus une constante : entre le meilleur rouleur et le moins bon du peloton,
+  // environ 25 % de puissance d'écart, pas 40 % ou plus)
+  return speedOf(R.ttRefL, g, surf, true, true) * Math.pow((Math.max(1, L) + R.ttOff) / (R.ttRefL + R.ttOff), ex);
 }
 function runITT(rc) {
   const spec = rc.specs[rc.si];
@@ -62,7 +77,7 @@ function runITT(rc) {
           (0.86 + (0.14 * x.dayForm) / 100) *
           (0.7 + 0.3 * Math.min(1, x.energy / 55)) *
           (1 - r.fatigue / 650);
-        const v = physSpeed(speedOf(c * tgt * 1.03, g, surf, true, true) * eqTT * (1 + fitK(r)), g, CO[i], 0.22);
+        const v = physSpeed(ttSpeed(c * tgt * 1.03, g, surf) * eqTT * (1 + fitK(r)), g, CO[i], 0.22);
         const dt = STEP / v;
         t += dt * 3600;
         acc.add(riderWatts(r.kg || 68, v, g, 1, 0.2, CO[i]), dt * 3600);

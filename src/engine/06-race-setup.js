@@ -229,7 +229,9 @@ function autoOrders(teamId, spec, rc) {
   if (stageRace && rc.si > 0)
     for (const r of rs) {
       const k = leaderGcRank(rc, r.id);
-      if (k > 0 && k <= 3 && r !== leader && r !== sprinter && !coLeads.includes(r)) coLeads.push(r);
+      // (et un grimpeur dans les cinq premiers : l'équipe garde ses deux cartes pour le général)
+      if (k > 0 && (k <= 3 || (k <= 5 && r.s.mon >= 74)) && r !== leader && r !== sprinter && !coLeads.includes(r))
+        coLeads.push(r);
     }
   coLeads = coLeads.filter(r => r !== leader && r !== sprinter);
   let rest = rs.filter(r => r !== leader && r !== sprinter && r !== hunter && !coLeads.includes(r));

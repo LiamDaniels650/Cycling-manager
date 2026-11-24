@@ -124,7 +124,8 @@ function gcMan(sim, x) {
 // Leader du général : consigne de leader dans les quinze premiers, ou sur le podium quelle que soit sa consigne.
 function gcLead(sim, x) {
   if (!gcMan(sim, x)) return false;
-  if (!sim._gcTop3) sim._gcTop3 = new Set(gcList(sim.rc).slice(0, 3));
+  if (!sim._gcTop3)
+    sim._gcTop3 = new Set(gcList(sim.rc).filter((id, k) => k < 3 || (k < 5 && S.riders[id].s.mon >= 74)));
   return x.order === 'leader' || sim._gcTop3.has(x.id);
 }
 // Un équipier redescend aux voitures chercher des bidons pour ses leaders.
@@ -826,7 +827,10 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
           // échappée sans danger, comme en course ; avant, toutes roulaient dès 80 s d'avance dans le final)
           // (en montagne, les équipes des favoris veulent aussi l'étape : elles roulent comme avant)
           const loose = t !== 'montagne' && t !== 'sommet';
-          if (rival || ((yel || !loose) && gh > tol) || (yel && d < gh - tol * 0.4)) {
+          // (au-delà du plafond d'écart, une échappée qui ferait passer ses coureurs devant mon leader au général est
+          // une menace, rivaux désignés ou non : en début de grand tour, le classement ne dit pas encore qui compte)
+          const big = gh > R.maxBreakGap * (loose ? 1 : 1.5) && d < gh - 120;
+          if (rival || big || ((yel || !loose) && gh > tol) || (yel && d < gh - tol * 0.4)) {
             threat = true;
             break;
           }

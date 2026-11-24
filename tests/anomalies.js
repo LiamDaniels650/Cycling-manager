@@ -32,6 +32,16 @@ const RULES = {
   ecart_vainqueur: ['le vainqueur d’une étape en ligne a plus de 8 min d’avance sur le 2e', 0],
   desobeissances: ['au moins 3 de mes coureurs désobéissent ou refusent un ordre dans une étape', 2],
   peloton_entier: ['étape de montagne finie avec plus de 60 % des coureurs dans le groupe du vainqueur', 2],
+  mont_effondrement: ['un top 5 du général perd plus de 8 min en montagne (sans chute ni fringale)', 3],
+  clm_ecart: ['contre-la-montre de 40 km au plus gagné avec plus de 90 s d’avance', 2],
+  clm_vitesse: ['vitesse du vainqueur d’un contre-la-montre individuel hors de 40-57 km/h', 0],
+  abandons_massifs: ['plus de 8 coureurs quittent la course (abandons et délais) sur une étape', 1],
+  gt_marge: ['un grand tour gagné avec plus de 12 min d’avance', 10],
+  clm_dispersion: ['contre-la-montre : coureur médian à plus de 11 s/km du vainqueur (Tour : 6 à 9 s/km)', 5],
+  clm_leaders: [
+    'contre-la-montre de course par étapes : 5e des dix premiers à plus de 7 s/km du meilleur (Tour 2024 : ≈ 5)',
+    10,
+  ],
 };
 const N = {}, // étapes concernées par règle
   HIT = {}, // anomalies par règle
@@ -154,6 +164,89 @@ function runRoadStage(rc, spec, cal) {
   return { sim, caughtKm, brkMax, at20, lastWith };
 }
 
+// Montagne, contre-la-montre, abandons.
+function checkExtra(seed, rc, cal, spec, out, gcBefore, gc0, out0) {
+  const st = rc.stageRes[rc.stageRes.length - 1];
+  const sim = out.sim;
+  const ctx = `graine ${seed} · ${cal.name} · ét. ${rc.si} (${spec.type}, ${spec.dist} km)`;
+  if (rc.specs.length > 1 && gcBefore.length && (spec.type === 'montagne' || spec.type === 'sommet')) {
+    N.mont_effondrement++;
+    const d = id => (rc.out[id] || rc.gc[id] == null || gc0[id] == null ? null : rc.gc[id] - gc0[id]);
+    const top = gcBefore.slice(0, 5).filter(id => d(id) != null);
+    const best = Math.min(
+      ...gcBefore
+        .slice(0, 15)
+        .filter(id => d(id) != null)
+        .map(d)
+    );
+    const x = top.find(id => {
+      const ru = sim && sim.runners.find(y => y.id === id);
+      // (vrais hommes du général : consigne de leader ou grimpeur ; un sprinteur sur le podium après les premières
+      // étapes perd normalement sa place en montagne)
+      const okGc = ru && (ru.order === 'leader' || ru.r.s.mon >= 74);
+      return okGc && d(id) - best > 480 && !(ru && ru.bonks) && !(sim && crashed(sim, id));
+    });
+    if (x != null) {
+      const ru = sim.runners.find(y => y.id === x);
+      flag(
+        'mont_effondrement',
+        ctx,
+        `${nm(x)} (${gcBefore.indexOf(x) + 1}e, ${ru ? ru.order : ''}) +${fmtT(d(x) - best)}`,
+        sim,
+        null,
+        [x]
+      );
+    }
+  }
+  if (isITT(spec)) {
+    const w = st.res[0],
+      s2 = st.res[1];
+    const v = spec.dist / (w.time / 3600);
+    N.clm_vitesse++;
+    if (v < 40 || v > 57) {
+      const P = buildProfile(spec);
+      let up = 0,
+        dn = 0;
+      for (let i = 0; i < P.g.length; i++) P.g[i] > 0 ? (up += P.g[i]) : (dn -= P.g[i]);
+      const k = STEP / 100;
+      flag(
+        'clm_vitesse',
+        ctx,
+        `${nm(w.id)} à ${v.toFixed(1)} km/h (D+ ${Math.round(up * k * 1000)} m, D- ${Math.round(dn * k * 1000)} m, vent ${spec.wind || 0})`,
+        null
+      );
+    }
+    if (spec.dist <= 40 && s2) {
+      N.clm_ecart++;
+      const g = (s2.gap || 0) - (w.gap || 0);
+      if (g > 90) flag('clm_ecart', ctx, `${nm(w.id)} avec ${fmtT(g)} sur ${nm(s2.id)}`, null);
+    }
+  }
+  if (isITT(spec) && st.res.length > 20) {
+    N.clm_dispersion++;
+    const med = st.res[Math.floor(st.res.length / 2)].gap || 0;
+    (globalThis.TTMED = globalThis.TTMED || []).push(med / spec.dist);
+    if (med / spec.dist > 11) flag('clm_dispersion', ctx, `médian à ${(med / spec.dist).toFixed(1)} s/km`, null);
+    if (rc.specs.length > 1 && rc.si > 1) {
+      N.clm_leaders++;
+      const ld = st.res.filter(
+        e => rc.orders[e.id] && rc.orders[e.id].o === 'itt' && gcBefore.slice(0, 15).includes(e.id)
+      );
+      const lg = st.res.filter(e => gcBefore.slice(0, 10).includes(e.id)).map(e => e.gap || 0);
+      lg.sort((a, b) => a - b);
+      if (lg.length >= 5 && (lg[4] - lg[0]) / spec.dist > 7)
+        flag(
+          'clm_leaders',
+          ctx,
+          `5e des dix premiers du général à ${((lg[4] - lg[0]) / spec.dist).toFixed(1)} s/km du meilleur d’entre eux`,
+          null
+        );
+    }
+  }
+  N.abandons_massifs++;
+  const lost = Object.keys(rc.out).length - out0;
+  if (lost > 8) flag('abandons_massifs', ctx, `${lost} coureurs hors course`, sim);
+}
 function checkStage(seed, rc, cal, spec, out, gcBefore, ldrBefore, gc0) {
   const st = rc.stageRes[rc.stageRes.length - 1];
   const sim = out.sim;
@@ -337,7 +430,66 @@ function runSeed(seed) {
       const gc0 = { ...rc.gc };
       const tt = isITT(spec) || isTTT(spec);
       const out = tt ? (runStageAuto(rc), {}) : runRoadStage(rc, spec, cal);
+      const out0 = Object.keys(rc.out).length;
       checkStage(seed, rc, cal, spec, out, gcBefore, ldr, gc0);
+      checkExtra(seed, rc, cal, spec, out, gcBefore, gc0, out0);
+      // GTDBG=course : écart de chaque étape pour les cinq meilleurs grimpeurs au départ (et leur consigne)
+      if (process.env.GTDBG === cal.name) {
+        const st = rc.stageRes[rc.stageRes.length - 1];
+        const best = Object.keys(rc.sel)
+          .flatMap(t => rc.sel[t])
+          .map(id => S.riders[id])
+          .sort((a, b) => b.s.mon - a.s.mon)
+          .slice(0, 6);
+        console.error(
+          `ét. ${rc.si} ${spec.type} ${spec.dist} km : ` +
+            best
+              .map(r => {
+                const e = st.res.find(y => y.id === r.id);
+                const o = rc.orders[r.id];
+                return `${riderName(r)}(${o ? o.o : '?'}) ${rc.out[r.id] ? 'ABANDON' : e ? '+' + fmtT(e.gap || 0) : '-'} gc${gcList(rc).indexOf(r.id) + 1}`;
+              })
+              .join(' | ')
+        );
+      }
+    }
+    if (cal.cat === 0 && rc.specs.length > 15) {
+      N.gt_marge++;
+      const g = gcList(rc).filter(id => !rc.out[id]);
+      const m = g.length > 1 ? rc.gc[g[1]] - rc.gc[g[0]] : 0;
+      if (m > 720) {
+        const gain = rc.stageRes
+          .map((st, k) => {
+            const a = st.res.find(e => e.id === g[0]),
+              b = st.res.find(e => e.id === g[1]);
+            return a && b ? [k + 1, st.type, Math.round((b.gap || 0) - (a.gap || 0))] : null;
+          })
+          .filter(v => v && Math.abs(v[2]) > 120)
+          .map(v => `ét. ${v[0]} ${v[1]} ${v[2] > 0 ? '+' : ''}${fmtT(v[2])}${v[2] < 0 ? ' perdu' : ''}`);
+        flag(
+          'gt_marge',
+          `graine ${seed} · ${cal.name}`,
+          `${nm(g[0])} (mon ${S.riders[g[0]].s.mon}, forme ${Math.round(S.riders[g[0]].forme)}, âge ${S.riders[g[0]].age}) gagne avec ${fmtT(m)} sur ${nm(g[1])} (mon ${S.riders[g[1]].s.mon}, forme ${Math.round(S.riders[g[1]].forme)}) ; meilleurs grimpeurs au départ : ${Object.keys(
+            rc.sel
+          )
+            .flatMap(t => rc.sel[t])
+            .map(id => S.riders[id])
+            .sort((a, b) => b.s.mon - a.s.mon)
+            .slice(0, 5)
+            .map(r => r.s.mon)
+            .join('/')} : ${gain.join(', ')} ; top 10 : ${g
+            .slice(0, 10)
+            .map(id => `${nm(id)} ${S.riders[id].s.mon} +${fmtT(rc.gc[id] - rc.gc[g[0]])}`)
+            .join(', ')} ; meilleurs grimpeurs : ${Object.keys(rc.sel)
+            .flatMap(t => rc.sel[t])
+            .map(id => S.riders[id])
+            .sort((a, b) => b.s.mon - a.s.mon)
+            .slice(0, 5)
+            .map(r => `${riderName(r)} ${rc.out[r.id] ? 'abandon' : g.indexOf(r.id) + 1 + 'e'}`)
+            .join(', ')}`,
+          null
+        );
+      }
     }
   }
   endSeason();
@@ -346,7 +498,7 @@ function runSeed(seed) {
 const { spawn } = require('child_process');
 if (process.env.ANO_CHILD) {
   for (const sd of process.env.ANO_SEEDS.split(',').map(Number)) runSeed(sd);
-  process.stdout.write(JSON.stringify({ N, HIT, EXS, CAUSES }), () => process.exit(0));
+  process.stdout.write(JSON.stringify({ N, HIT, EXS, CAUSES, TTMED: globalThis.TTMED || [] }), () => process.exit(0));
 } else main();
 
 async function main() {
@@ -380,6 +532,11 @@ async function main() {
       HIT[k] += o.HIT[k];
       for (const e of o.EXS[k]) if (EXS[k].length < EX) EXS[k].push(e);
     }
+  const tm = outs.flatMap(o => o.TTMED || []).sort((a, b) => a - b);
+  if (tm.length)
+    console.log(
+      `Contre-la-montre : coureur médian à ${tm[Math.floor(tm.length / 2)].toFixed(1)} s/km du vainqueur (p10 ${tm[Math.floor(tm.length * 0.1)].toFixed(1)}, p90 ${tm[Math.floor(tm.length * 0.9)].toFixed(1)})`
+    );
   console.log(`Anomalies de course — ${NS} saisons (graines ${SEED0}-${SEED0 + NS - 1})\n`);
   let bad = 0;
   for (const k in RULES) {

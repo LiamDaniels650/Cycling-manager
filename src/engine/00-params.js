@@ -127,5 +127,8 @@ const R = {
   yelCtrlGap: 360, // l'équipe du maillot contrôle une échappée au-delà de cet écart (s), quel que soit son porteur
   windRider: 0.75, // part du vent annoncé ressentie à hauteur de cycliste
   maxBreakGap: 600, // course par étapes : au-delà, les équipes de leaders et de sprinteurs roulent toutes
+  ttWindLoop: 0.85, // contre-la-montre : part du vent moyen compensée par la forme du parcours (boucle, aller-retour)
+  ttRefL: 80, // contre-la-montre : capacité de référence autour de laquelle la vitesse suit la physique
+  ttOff: 45, // contre-la-montre : constante ajoutée à la capacité pour en faire une puissance
   cutChaseKm: 15, // groupe coupé dans les derniers km : il chasse à bloc pour revenir sur le peloton
 };

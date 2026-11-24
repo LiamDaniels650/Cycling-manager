@@ -572,6 +572,24 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     qui perd plus de 2 min sur le plat (2 %, groupes de grimpeurs coupés d'un peloton lancé par les rouleurs), un
     vainqueur avec plus de 8 min d'avance et une étape plate à plus de 52 km/h (un cas chacun sur 1 632 étapes).
     Calibrage 45/45 sur deux séries de 60 saisons (échappées au sommet 0,37, vallonné 0,38, côte 0,25-0,27).
+  - Détecteur d'anomalies, deuxième série (montagne, contre-la-montre, grands tours) : nouvelles règles
+    (effondrement d'un homme du top 5 en montagne, vitesse et écart des chronos, dispersion des chronos, écart
+    entre leaders du général en chrono, abandons en masse, grand tour gagné avec plus de 12 min ; GTDBG=course suit
+    les meilleurs grimpeurs étape par étape). Ce qu'il a trouvé, et qui est corrigé :
+    - un grand tour se gagnait avec 20 min d'avance : au-delà du plafond d'écart, une échappée qui ferait passer
+      ses coureurs devant mon leader au général est désormais une menace, même sans « rival » désigné (en début de
+      grand tour, le classement ne dit pas encore qui compte ; une échappée prenait 18 min et ruinait le général) ;
+    - vitesse en contre-la-montre : seul contre l'air, la vitesse suit la racine cubique de la puissance (exposant
+      qui monte vers 1 dans une vraie montée), et la puissance suit la capacité plus une constante (environ 25 %
+      d'écart entre le meilleur rouleur et le moins bon, pas 40 % et plus) : un grimpeur de premier plan concédait
+      3 à 5 min à un rouleur sur 16 à 34 km ; coureur médian désormais à 6,5 s/km du vainqueur (Tour : 6 à 9) ;
+    - un parcours de chrono fait souvent une boucle ou un aller-retour : 85 % du vent moyen y est compensé, et le
+      gain aérodynamique du vélo de chrono baisse de 3 % (des chronos plats se gagnaient à 58-62 km/h) ;
+    - un grimpeur dans les cinq premiers du général garde sa carte (co-leader) au lieu de se sacrifier.
+    Résultat sur 12 saisons : contre-la-montre anormaux 0 à 1 % (dispersion, écart entre leaders, vitesses), grands
+    tours gagnés avec plus de 12 min 0 sur 36 ; reste au-dessus du seuil : un homme du top 5 qui perd plus de 8 min
+    en montagne sans chute ni fringale (≈ 5 % des étapes de montagne, surtout un leader lâché dès le premier col qui
+    s'épuise à chasser dans les vallées : un jour sans, réaliste mais un peu trop fréquent).
   - Moteur, quatre chantiers :
     - Identité des équipes de l'ordinateur (75-identity.js) : grands tours, classiques, sprint, échappées, et une
       super-équipe (le plus haut standing, de vraies vedettes) ; vedettes de départ, recrutement (marché, transferts,
