@@ -3617,6 +3617,9 @@ const R = {
   yelCtrlGap: 360, // l'équipe du maillot contrôle une échappée au-delà de cet écart (s), quel que soit son porteur
   windRider: 0.75, // part du vent annoncé ressentie à hauteur de cycliste
   maxBreakGap: 600, // course par étapes : au-delà, les équipes de leaders et de sprinteurs roulent toutes
+  ttWindLoop: 0.85, // contre-la-montre : part du vent moyen compensée par la forme du parcours (boucle, aller-retour)
+  ttRefL: 80, // contre-la-montre : capacité de référence autour de laquelle la vitesse suit la physique
+  ttOff: 45, // contre-la-montre : constante ajoutée à la capacité pour en faire une puissance
   cutChaseKm: 15, // groupe coupé dans les derniers km : il chasse à bloc pour revenir sur le peloton
 };
 
@@ -5593,7 +5596,7 @@ function capRaw(x, g, surf) {
 }
 // Vitesse (km/h) d'un groupe roulant au niveau L sur une pente g.
 // Calibrage 2024-2025 : plat ~44 km/h, montagne ~35-38, chrono ~52, CLM par équipes ~55 (voir tests/calibrate.js).
-const SPEED_K = { plat: 1.08, colline: 1.05, montee: 1.05, aero: 1.06 };
+const SPEED_K = { plat: 1.08, colline: 1.05, montee: 1.05, aero: 1.03 };
 // En montée, la vitesse est un peu moins sensible au niveau (écarts plus réalistes).
 // noSurf : le ralentissement des pavés est laissé à la physique (roulement), qui l'applique ensuite.
 function speedOf(L, g, surf, aero, noSurf) {
@@ -6092,7 +6095,9 @@ function autoOrders(teamId, spec, rc) {
   if (stageRace && rc.si > 0)
     for (const r of rs) {
       const k = leaderGcRank(rc, r.id);
-      if (k > 0 && k <= 3 && r !== leader && r !== sprinter && !coLeads.includes(r)) coLeads.push(r);
+      // (et un grimpeur dans les cinq premiers : l'équipe garde ses deux cartes pour le général)
+      if (k > 0 && (k <= 3 || (k <= 5 && r.s.mon >= 74)) && r !== leader && r !== sprinter && !coLeads.includes(r))
+        coLeads.push(r);
     }
   coLeads = coLeads.filter(r => r !== leader && r !== sprinter);
   let rest = rs.filter(r => r !== leader && r !== sprinter && r !== hunter && !coLeads.includes(r));
@@ -6458,7 +6463,8 @@ function gcMan(sim, x) {
 // Leader du général : consigne de leader dans les quinze premiers, ou sur le podium quelle que soit sa consigne.
 function gcLead(sim, x) {
   if (!gcMan(sim, x)) return false;
-  if (!sim._gcTop3) sim._gcTop3 = new Set(gcList(sim.rc).slice(0, 3));
+  if (!sim._gcTop3)
+    sim._gcTop3 = new Set(gcList(sim.rc).filter((id, k) => k < 3 || (k < 5 && S.riders[id].s.mon >= 74)));
   return x.order === 'leader' || sim._gcTop3.has(x.id);
 }
 // Un équipier redescend aux voitures chercher des bidons pour ses leaders.
@@ -7160,7 +7166,10 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
           // échappée sans danger, comme en course ; avant, toutes roulaient dès 80 s d'avance dans le final)
           // (en montagne, les équipes des favoris veulent aussi l'étape : elles roulent comme avant)
           const loose = t !== 'montagne' && t !== 'sommet';
-          if (rival || ((yel || !loose) && gh > tol) || (yel && d < gh - tol * 0.4)) {
+          // (au-delà du plafond d'écart, une échappée qui ferait passer ses coureurs devant mon leader au général est
+          // une menace, rivaux désignés ou non : en début de grand tour, le classement ne dit pas encore qui compte)
+          const big = gh > R.maxBreakGap * (loose ? 1 : 1.5) && d < gh - 120;
+          if (rival || big || ((yel || !loose) && gh > tol) || (yel && d < gh - tol * 0.4)) {
             threat = true;
             break;
           }
@@ -10204,6 +10213,11 @@ function recordPower(e, c, sim) {
 function ttConds(spec, P) {
   const w = { windAx: null };
   genWindAxis(w, spec.dist, spec.wind || 0, 'neutre');
+  // un parcours de chrono fait souvent une boucle ou un aller-retour : le vent s'y compense en partie (sinon un
+  // chrono court, tout entier vent dans le dos, se gagnait à 60 km/h)
+  const n = Math.ceil(spec.dist / 10) + 1;
+  const mean = w.windAx.slice(0, n).reduce((a, b) => a + b, 0) / n;
+  w.windAx = w.windAx.map(v => v - R.ttWindLoop * mean);
   const temp = spec.wx === 'chaleur' ? 32 : spec.wx === 'froid' ? 6 : 18;
   const out = [];
   for (let i = 0; i < P.n; i++)
@@ -10213,6 +10227,16 @@ function ttConds(spec, P) {
       vw: headwindAt(w, i * STEP),
     });
   return out;
+}
+// Vitesse en chrono : seul contre l'air, la vitesse suit la racine cubique de la puissance sur le plat (14 % de
+// puissance en moins, environ 5 % de vitesse en moins), et à peu près la puissance dans une vraie montée. Autour
+// d'un niveau de référence, pour garder la vitesse moyenne calibrée (avant : écarts presque proportionnels à la
+// capacité, un équipier qui s'économisait concédait 8 % au lieu d'environ 5 %).
+function ttSpeed(L, g, surf) {
+  const ex = g > 0 ? clamp(1 / 3 + g * 0.11, 1 / 3, 1) : 1 / 3;
+  // (la puissance suit la capacité plus une constante : entre le meilleur rouleur et le moins bon du peloton,
+  // environ 25 % de puissance d'écart, pas 40 % ou plus)
+  return speedOf(R.ttRefL, g, surf, true, true) * Math.pow((Math.max(1, L) + R.ttOff) / (R.ttRefL + R.ttOff), ex);
 }
 function runITT(rc) {
   const spec = rc.specs[rc.si];
@@ -10263,7 +10287,7 @@ function runITT(rc) {
           (0.86 + (0.14 * x.dayForm) / 100) *
           (0.7 + 0.3 * Math.min(1, x.energy / 55)) *
           (1 - r.fatigue / 650);
-        const v = physSpeed(speedOf(c * tgt * 1.03, g, surf, true, true) * eqTT * (1 + fitK(r)), g, CO[i], 0.22);
+        const v = physSpeed(ttSpeed(c * tgt * 1.03, g, surf) * eqTT * (1 + fitK(r)), g, CO[i], 0.22);
         const dt = STEP / v;
         t += dt * 3600;
         acc.add(riderWatts(r.kg || 68, v, g, 1, 0.2, CO[i]), dt * 3600);

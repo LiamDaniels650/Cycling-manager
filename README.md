@@ -586,7 +586,7 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     - un parcours de chrono fait souvent une boucle ou un aller-retour : 85 % du vent moyen y est compensé, et le
       gain aérodynamique du vélo de chrono baisse de 3 % (des chronos plats se gagnaient à 58-62 km/h) ;
     - un grimpeur dans les cinq premiers du général garde sa carte (co-leader) au lieu de se sacrifier.
-    Résultat sur 12 saisons : contre-la-montre anormaux 0 à 1 % (dispersion, écart entre leaders, vitesses), grands
+    Calibrage 45/45 (60 saisons × 2 ; chronos à 49,8 km/h de moyenne). Résultat sur 12 saisons : contre-la-montre anormaux 0 à 1 % (dispersion, écart entre leaders, vitesses), grands
     tours gagnés avec plus de 12 min 0 sur 36 ; reste au-dessus du seuil : un homme du top 5 qui perd plus de 8 min
     en montagne sans chute ni fringale (≈ 5 % des étapes de montagne, surtout un leader lâché dès le premier col qui
     s'épuise à chasser dans les vallées : un jour sans, réaliste mais un peu trop fréquent).
