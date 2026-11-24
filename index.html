@@ -7860,7 +7860,10 @@ function tickPhysics(sim) {
         L0 = L;
         // (les plus forts relaient, les autres s'accrochent dans les roues : allure du tiers le plus fort)
         // (à trois ou plus, les relais courts permettent de tenir l'allure du seuil des plus forts)
-        L = Math.max(L, capsDesc()[Math.floor(n * 0.3)] * (n >= 3 ? 1 : 0.95));
+        // (pour ramener un leader du général, ce sont ses équipiers et les plus forts qui roulent : allure du
+        // sixième le plus fort sur sept, au lieu du tiers ; sinon un groupe coupé dans le final d'une étape plate
+        // perdait 7 s au km sur un peloton lancé par les trains et le maillot une minute ou plus)
+        L = Math.max(L, capsDesc()[Math.floor(n * (gcAhead ? 0.15 : 0.3))] * (n >= 3 ? 1 : 0.95));
         if (gp != null && pG.L && !gcAhead) L = Math.min(L, Math.max(L0, pG.L * 1.04));
         // (chasse pour un leader : à un rythme qu'il tient dans les roues, sinon elle le vidait lui-même)
         if (gcAhead) {
@@ -9203,7 +9206,8 @@ function endStageSim(sim) {
     const cnt = new Map();
     for (const x of res)
       if (sim.pel3.has(x.id)) {
-        const k = Math.round(x.time);
+        // (temps après la règle du même temps : tout le peloton a le même, celui de sa tête)
+        const k = ct.get(x.id);
         cnt.set(k, (cnt.get(k) || 0) + 1);
       }
     let best = 0;
@@ -9215,7 +9219,7 @@ function endStageSim(sim) {
   }
   if (sim.parade && bunch === null && res.length) {
     const cnt = new Map();
-    for (const x of res) cnt.set(Math.round(ct.get(x.id)), (cnt.get(Math.round(ct.get(x.id))) || 0) + 1);
+    for (const x of res) cnt.set(ct.get(x.id), (cnt.get(ct.get(x.id)) || 0) + 1);
     bunch = [...cnt].sort((a, b) => b[1] - a[1])[0][0];
   }
   applyStageResult(
@@ -9226,7 +9230,11 @@ function endStageSim(sim) {
       time: ct.get(x.id),
       energy: x.energy,
       // (parade : temps du général neutralisés, chacun prend le temps du peloton, comme le veut l'usage)
-      gcTime: bunch !== null && (sim.parade || sim.pel3.has(x.id)) && ct.get(x.id) > bunch ? bunch : undefined,
+      // (parade : tout le monde, devant comme derrière, pour que le général ne bouge pas d'une seconde)
+      gcTime:
+        bunch !== null && ((sim.parade && ct.get(x.id) !== bunch) || (sim.pel3.has(x.id) && ct.get(x.id) > bunch))
+          ? bunch
+          : undefined,
     })),
     sim.runners.filter(x => x.dnf).map(x => x.id)
   );
