@@ -900,7 +900,7 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
               45,
               climbLeft * (t === 'sommet' ? 52 : 24) + Math.max(0, kmLeft - climbLeft) * (t === 'sommet' ? 6 : 1.4)
             )
-          : Math.max(45, (kmLeft - 5) * 5.2)) * (t === 'sommet' ? R.summitChaseK : R.favChaseK);
+          : Math.max(45, (kmLeft - 5) * 5.2) * R.hillyFavK) * (t === 'sommet' ? R.summitChaseK : R.favChaseK);
       if (gap > allowed) {
         const l3 = gap > allowed * 1.5 ? 0.9 : 0.85;
         if (l3 > level) {

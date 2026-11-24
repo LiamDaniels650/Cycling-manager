@@ -602,7 +602,7 @@ node tools/replay.js signalement.json # rejoue l'étape d'un signalement du joue
     incohérences avant, aucune après).
     Les échappées, mieux suivies par des poursuivants qui voient le vrai écart, réussissaient un peu moins : marges
     réajustées (favChaseK 1,2 → 1,6 pour les favoris qui visent l'étape en côte et en vallonné, hillyChaseK 1,35 →
-    1,6, nouveau punchChaseK 1,5 pour les équipes de sprinteur-puncheur sur une arrivée en côte).
+    1,6, nouveau punchChaseK 1,7 pour les équipes de sprinteur-puncheur sur une arrivée en côte, hillyFavK 1,15 pour les favoris en vallonné).
   - Le final sur téléphone (15 derniers km), réorganisé comme le reste de la course :
     - en haut, toujours visibles : le décompte et la route jusqu'à la ligne (groupes, écarts, flamme rouge), puis
       une vue du ciel réduite, aux caméras sur une seule ligne ;
