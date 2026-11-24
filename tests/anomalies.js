@@ -32,7 +32,7 @@ const RULES = {
   ecart_vainqueur: ['le vainqueur d’une étape en ligne a plus de 8 min d’avance sur le 2e', 0],
   desobeissances: ['au moins 3 de mes coureurs désobéissent ou refusent un ordre dans une étape', 2],
   peloton_entier: ['étape de montagne finie avec plus de 60 % des coureurs dans le groupe du vainqueur', 2],
-  mont_effondrement: ['un top 5 du général perd plus de 8 min en montagne (sans chute ni fringale)', 3],
+  mont_effondrement: ['un leader du top 5 du général perd plus de 8 min en montagne (sans chute ni fringale)', 3],
   clm_ecart: ['contre-la-montre de 40 km au plus gagné avec plus de 90 s d’avance', 2],
   clm_vitesse: ['vitesse du vainqueur d’un contre-la-montre individuel hors de 40-57 km/h', 0],
   abandons_massifs: ['plus de 8 coureurs quittent la course (abandons et délais) sur une étape', 1],
@@ -183,7 +183,7 @@ function checkExtra(seed, rc, cal, spec, out, gcBefore, gc0, out0) {
       const ru = sim && sim.runners.find(y => y.id === id);
       // (vrais hommes du général : consigne de leader ou grimpeur ; un sprinteur sur le podium après les premières
       // étapes perd normalement sa place en montagne)
-      const okGc = ru && (ru.order === 'leader' || ru.r.s.mon >= 74);
+      const okGc = ru && ru.order === 'leader';
       return okGc && d(id) - best > 480 && !(ru && ru.bonks) && !(sim && crashed(sim, id));
     });
     if (x != null) {
@@ -407,7 +407,13 @@ function checkStage(seed, rc, cal, spec, out, gcBefore, ldrBefore, gc0) {
     if (x.rebel) (dt[k] = dt[k] || [0, 0])[0]++;
     if (sim.refusals && sim.refusals.has(x.id)) (dt[k] = dt[k] || [0, 0])[1]++;
   }
-  for (const k in dt) dt[k] = dt[k][0] + dt[k][1];
+  for (const k in dt) {
+    globalThis.DIS = globalThis.DIS || [0, 0, 0];
+    globalThis.DIS[0] += dt[k][0];
+    globalThis.DIS[1] += dt[k][1];
+    dt[k] = dt[k][0] + dt[k][1];
+  }
+  (globalThis.DIS = globalThis.DIS || [0, 0, 0])[2]++;
   const wd = Object.entries(dt).sort((a, b) => b[1] - a[1])[0];
   if (wd && wd[1] >= 3) flag('desobeissances', ctx, `${S.teams[wd[0]].name} : ${wd[1]} coureurs`, sim);
 }
@@ -498,7 +504,10 @@ function runSeed(seed) {
 const { spawn } = require('child_process');
 if (process.env.ANO_CHILD) {
   for (const sd of process.env.ANO_SEEDS.split(',').map(Number)) runSeed(sd);
-  process.stdout.write(JSON.stringify({ N, HIT, EXS, CAUSES, TTMED: globalThis.TTMED || [] }), () => process.exit(0));
+  process.stdout.write(
+    JSON.stringify({ N, HIT, EXS, CAUSES, TTMED: globalThis.TTMED || [], DIS: globalThis.DIS || [0, 0, 0] }),
+    () => process.exit(0)
+  );
 } else main();
 
 async function main() {
@@ -532,6 +541,11 @@ async function main() {
       HIT[k] += o.HIT[k];
       for (const e of o.EXS[k]) if (EXS[k].length < EX) EXS[k].push(e);
     }
+  const dis = outs.reduce((a, o) => a.map((v, i) => v + (o.DIS || [0, 0, 0])[i]), [0, 0, 0]);
+  if (dis[2])
+    console.log(
+      `Mes coureurs, par étape : ${(dis[0] / dis[2]).toFixed(2)} consigne d'avant-course ignorée, ${(dis[1] / dis[2]).toFixed(2)} ordre radio refusé`
+    );
   const tm = outs.flatMap(o => o.TTMED || []).sort((a, b) => a - b);
   if (tm.length)
     console.log(

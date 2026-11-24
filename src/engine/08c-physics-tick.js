@@ -168,13 +168,26 @@ function tickPhysics(sim) {
         G.riders.some(y => gcLead(sim, y)) &&
         gcGroups(sim).some(H => H !== G && H.pos > G.pos && gapSec(H, G) < 600);
       // (et, sur le plat abrité, un groupe coupé de moins de deux minutes à n'importe quel moment : il revient)
-      const cutFlat = gp != null && gp < 120 && g < 2 && !G.expo && !G.dropped;
+      const cutFlat =
+        gp != null &&
+        gp < 120 &&
+        g < 2 &&
+        !G.expo &&
+        !G.dropped &&
+        sim.spec.type !== 'montagne' &&
+        sim.spec.type !== 'sommet';
       if ((gp != null && gp < 45 && sim.dist - G.pos < R.cutChaseKm) || gcAhead || cutFlat) {
         L0 = L;
         // (les plus forts relaient, les autres s'accrochent dans les roues : allure du tiers le plus fort)
         // (à trois ou plus, les relais courts permettent de tenir l'allure du seuil des plus forts)
         L = Math.max(L, capsDesc()[Math.floor(n * 0.3)] * (n >= 3 ? 1 : 0.95));
         if (gp != null && pG.L && !gcAhead) L = Math.min(L, Math.max(L0, pG.L * 1.04));
+        // (chasse pour un leader : à un rythme qu'il tient dans les roues, sinon elle le vidait lui-même)
+        if (gcAhead) {
+          let lc = Infinity;
+          for (const y of G.riders) if (gcLead(sim, y)) lc = Math.min(lc, capM.get(y));
+          if (lc < Infinity) L = Math.max(L0, Math.min(L, lc * 1.2)); // (abrité dans les roues)
+        }
         if (L > L0) paceSrc = 'tempo';
       }
     }
@@ -329,7 +342,9 @@ function tickPhysics(sim) {
       const smart =
         eoX === 'pace' ||
         (eoX === 'leader'
-          ? x.att === 'defensif' || x.punch < 30
+          ? // (loin de l'arrivée, hors de la montée finale, un leader ne se met pas dans le rouge pour suivre :
+            // il laisse filer et monte à son rythme ; sinon il vidait ses réserves dans le premier col)
+            x.att === 'defensif' || x.punch < 30 || (sim.dist - G.pos > 30 && !inFinalClimb(sim, G))
           : eoX === 'protect' || eoX === 'control' || eoX === 'leadout' || eoX === 'save');
       if (
         (komSitUp(sim, x, G) && g >= 3 && n > 1 && G.riders.some(y => !y.sitUp)) ||

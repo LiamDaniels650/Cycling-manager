@@ -16,7 +16,9 @@ function obeyCheck(x, ord, sim) {
     let selfChance = false;
     const ld = sim ? sim.teamLeader[x.team.id] : null;
     if (sim) {
-      if (x.g && x.g.ahead && x.g.riders.length <= 12) selfChance = true;
+      // (une échappée à quelques secondes d'un peloton lancé n'a plus de chance : se relever va de soi)
+      const doomed = ord === 'stop' && sim.pel && x.g && gapSec(x.g, sim.pel) < 15;
+      if (x.g && x.g.ahead && x.g.riders.length <= 12 && !doomed) selfChance = true;
       if (ld && ld !== x && cap(x, x.gr || 0, 0) > cap(ld, x.gr || 0, 0) * 1.04) selfChance = true;
     }
     p -= (r.amb / 100) * (selfChance ? 0.5 : 0.12);
@@ -76,6 +78,9 @@ function applyRadio(sim, x, k, src) {
     return false;
   }
   if (!obeyCheck(x, k === 'front' ? 'tempo' : k, sim)) {
+    // (décision du coureur lui-même, sans directeur sportif automatique : s'il n'en a pas envie, il ne le fait
+    // pas, sans « refuser » sa propre idée ni compter comme une désobéissance)
+    if (src === 'auto' && x.player && !sim.autoDS) return false;
     x.r.stats.disob++;
     (sim.refusals = sim.refusals || new Set()).add(x.id);
     if (x.player) x.st.disobWhy = disobRecord(sim, x, k);

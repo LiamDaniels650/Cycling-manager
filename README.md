@@ -572,6 +572,22 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     qui perd plus de 2 min sur le plat (2 %, groupes de grimpeurs coupés d'un peloton lancé par les rouleurs), un
     vainqueur avec plus de 8 min d'avance et une étape plate à plus de 52 km/h (un cas chacun sur 1 632 étapes).
     Calibrage 45/45 sur deux séries de 60 saisons (échappées au sommet 0,37, vallonné 0,38, côte 0,25-0,27).
+  - Détecteur d'anomalies, troisième série :
+    - un groupe coupé ne revient plus d'office en montagne (un leader lâché dans un col s'épuisait à chasser) ; loin
+      de l'arrivée, hors de la montée finale, un leader ne se met plus dans le rouge pour suivre : il monte à son
+      rythme ;
+    - sans directeur sportif automatique, les « ordres » de l'adjoint sont des décisions du coureur lui-même : s'il
+      n'en a pas envie, il ne le fait pas, sans « refuser » sa propre idée ni compter une désobéissance (trois
+      désobéissances ou plus dans une étape sur neuf, presque toutes de ce faux type) ; une échappée à quelques
+      secondes d'un peloton lancé se relève sans discuter ;
+    - les leaders du général roulent devant dans le final d'une étape de plaine : l'accordéon d'un rond-point ou
+      d'un rétrécissement coupe la queue du peloton, pas eux ;
+    - la chasse organisée pour un leader (après une bordure ou une chute) roule à un rythme qu'il tient dans les
+      roues : elle ne le vide plus lui-même.
+    Sur 12 saisons : maillot qui perd plus de 10 s sur le plat 0,6 % des étapes (33 % au début du chantier) ; leader
+    du top 10 qui perd plus de 20 s 6 % ; top 3 qui perd plus de 2 min 0,3 % ; désobéissances 0,5 % ; effondrements de
+    leaders en montagne 2,6 % ; toutes les règles du détecteur dans leurs seuils sauf trois étapes plates en ligne à
+    52 km/h et deux chronos par vent fort à 58 km/h (sur plus de 1 800 étapes).
   - Détecteur d'anomalies, deuxième série (montagne, contre-la-montre, grands tours) : nouvelles règles
     (effondrement d'un homme du top 5 en montagne, vitesse et écart des chronos, dispersion des chronos, écart
     entre leaders du général en chrono, abandons en masse, grand tour gagné avec plus de 12 min ; GTDBG=course suit

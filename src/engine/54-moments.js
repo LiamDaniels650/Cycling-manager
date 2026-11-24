@@ -632,7 +632,8 @@ function dangerTick(sim) {
     if (G.riders.length < 50) continue;
     sim.dangerT = sim.t;
     if (rnd() >= 0.45) continue;
-    const live = G.riders.filter(x => !x.fin && !x.dnf).sort((a, b) => a.pos - b.pos);
+    // (les leaders du général roulent devant, entourés de leurs équipiers : la queue du peloton, c'est les autres)
+    const live = G.riders.filter(x => !x.fin && !x.dnf && !gcLead(sim, x)).sort((a, b) => a.pos - b.pos);
     const tail = live.slice(0, Math.max(4, Math.round(live.length * rf(0.06, 0.14))));
     const gap = rf(2, 6);
     const NG = newGroupFrom(sim, tail, Math.max(0, G.pos - (G.speed * gap) / 3600));
