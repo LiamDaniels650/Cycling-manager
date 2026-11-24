@@ -123,7 +123,8 @@ function finalPick(sim) {
     .sort((a, b) => all.indexOf(a) - all.indexOf(b));
   return sim._finalPick;
 }
-export function FinalActions({ sim }) {
+// compact (téléphone) : boutons plus bas, « tous les ordres » en icône à côté du nom, une seule ligne d'aide.
+export function FinalActions({ sim, compact }) {
   const live = sim.groups.filter(G => G.riders.some(y => !y.fin));
   const head = live[0];
   if (!head) return null;
@@ -168,9 +169,21 @@ export function FinalActions({ sim }) {
                     <Effort I={out ? null : x.I} />
                     <RiderLink r={x.r} /> <span className="text-xs text-slate-400">{orderInfo(x).lbl}</span>
                   </span>
-                  <b className={'shrink-0 tabular-nums ' + (x.g === head ? 'text-amber-200' : 'text-slate-100')}>
-                    {gap}
-                  </b>
+                  <span className="flex shrink-0 items-center gap-2">
+                    <b className={'tabular-nums ' + (x.g === head ? 'text-amber-200' : 'text-slate-100')}>{gap}</b>
+                    {compact ? (
+                      <button
+                        type="button"
+                        disabled={out}
+                        onClick={() => openRadio(x.id)}
+                        title="Tous les ordres, expliqués un par un"
+                        aria-label={'Tous les ordres pour ' + riderName(x.r)}
+                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-700 text-slate-100 disabled:opacity-40"
+                      >
+                        <Icon name="radio" size={16} />
+                      </button>
+                    ) : null}
+                  </span>
                 </div>
                 <div className="mt-0.5 truncate text-xs text-slate-300">
                   {out ? '\u00a0' : doingNow(sim, x)}
@@ -182,9 +195,19 @@ export function FinalActions({ sim }) {
                 </div>
                 {/* toujours quatre cases (2 × 2) : les boutons ne bougent pas quand la situation change */}
                 <div className="mt-2 grid grid-cols-2 gap-1.5">
-                  {(acts.length > 3 ? [0, 1, 2, 3] : [0, 1, 2]).map(j => {
+                  {(compact
+                    ? acts.length > 2
+                      ? [0, 1, 2, 3]
+                      : [0, 1]
+                    : acts.length > 3
+                      ? [0, 1, 2, 3]
+                      : [0, 1, 2]
+                  ).map(j => {
                     const a = acts[j];
-                    if (!a) return <div key={j} className="min-h-14 rounded-xl bg-slate-800/40" />;
+                    if (!a)
+                      return (
+                        <div key={j} className={(compact ? 'min-h-12' : 'min-h-14') + ' rounded-xl bg-slate-800/40'} />
+                      );
                     const cl = a[0].startsWith('cl:');
                     const au = a[0].startsWith('au:');
                     const sp = a[0].startsWith('sp:') || cl || au;
@@ -202,6 +225,7 @@ export function FinalActions({ sim }) {
                     return (
                       <button
                         key={j}
+                        data-final-act="1"
                         type="button"
                         onClick={() =>
                           au
@@ -213,7 +237,8 @@ export function FinalActions({ sim }) {
                                 : sendRadio(x.id, a[0])
                         }
                         className={
-                          'flex min-h-14 flex-col items-start justify-center rounded-xl px-2.5 py-1.5 text-left active:scale-[.97] ' +
+                          (compact ? 'min-h-12 ' : 'min-h-14 ') +
+                          'flex min-w-0 flex-col items-start justify-center rounded-xl px-2.5 py-1 text-left active:scale-[.97] ' +
                           (au
                             ? 'bg-emerald-400 text-slate-950'
                             : a[0] === 'attack' || a[0] === 'bridge' || sp
@@ -226,6 +251,7 @@ export function FinalActions({ sim }) {
                         </b>
                         <span
                           className={
+                            (compact ? 'block w-full truncate ' : '') +
                             'text-xs leading-tight ' +
                             (a[0] === 'attack' || a[0] === 'bridge' || sp ? 'text-slate-900' : 'text-slate-400')
                           }
@@ -235,20 +261,22 @@ export function FinalActions({ sim }) {
                       </button>
                     );
                   })}
-                  <button
-                    type="button"
-                    disabled={out}
-                    onClick={() => openRadio(x.id)}
-                    className={
-                      (acts.length > 3 ? 'col-span-2 min-h-10 ' : 'min-h-14 ') +
-                      'flex flex-col items-start justify-center rounded-xl bg-slate-800 px-2.5 py-1.5 text-left text-slate-100 ring-1 ring-slate-700 active:scale-[.97] disabled:opacity-40'
-                    }
-                  >
-                    <b className="flex items-center gap-1 text-[13px]">
-                      <Icon name="radio" size={15} /> Tous les ordres
-                    </b>
-                    <span className="text-xs leading-tight text-slate-400">expliqués un par un</span>
-                  </button>
+                  {compact ? null : (
+                    <button
+                      type="button"
+                      disabled={out}
+                      onClick={() => openRadio(x.id)}
+                      className={
+                        (acts.length > 3 ? 'col-span-2 min-h-10 ' : 'min-h-14 ') +
+                        'flex flex-col items-start justify-center rounded-xl bg-slate-800 px-2.5 py-1.5 text-left text-slate-100 ring-1 ring-slate-700 active:scale-[.97] disabled:opacity-40'
+                      }
+                    >
+                      <b className="flex items-center gap-1 text-[13px]">
+                        <Icon name="radio" size={15} /> Tous les ordres
+                      </b>
+                      <span className="text-xs leading-tight text-slate-400">expliqués un par un</span>
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -260,13 +288,13 @@ export function FinalActions({ sim }) {
       {S.car ? null : (
         <div className="mt-3 grid grid-cols-3 gap-1.5">
           <Btn className="px-1 text-[13px]" onClick={() => teamRadio('chase')}>
-            Équipe : rouler
+            {compact ? 'Tous : rouler' : 'Équipe : rouler'}
           </Btn>
           <Btn className="px-1 text-[13px]" onClick={() => teamRadio('front')}>
-            Équipe : devant
+            {compact ? 'Tous devant' : 'Équipe : devant'}
           </Btn>
           <Btn className="px-1 text-[13px]" onClick={() => teamRadio('stop')}>
-            Équipe : arrêter
+            {compact ? 'Tous : arrêter' : 'Équipe : arrêter'}
           </Btn>
         </div>
       )}

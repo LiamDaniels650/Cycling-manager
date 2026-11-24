@@ -592,6 +592,19 @@ node tools/replay.js signalement.json # rejoue l'étape d'un signalement du joue
     qui perd plus de 2 min sur le plat (2 %, groupes de grimpeurs coupés d'un peloton lancé par les rouleurs), un
     vainqueur avec plus de 8 min d'avance et une étape plate à plus de 52 km/h (un cas chacun sur 1 632 étapes).
     Calibrage 45/45 sur deux séries de 60 saisons (échappées au sommet 0,37, vallonné 0,38, côte 0,25-0,27).
+  - Le final sur téléphone (15 derniers km), réorganisé comme le reste de la course :
+    - en haut, toujours visibles : le décompte et la route jusqu'à la ligne (groupes, écarts, flamme rouge), puis
+      une vue du ciel réduite, aux caméras sur une seule ligne ;
+    - dessous, cinq onglets collés en haut au défilement : Mes ordres (ouvert d'office), Groupes (groupes, tendance
+      de l'écart, derniers faits), Équipe, Radio, Écarts ; pastille rose quand un coureur a faim ou qu'un message
+      radio me concerne ;
+    - cartes d'ordres plus compactes : « tous les ordres » en icône à côté du nom, deux ou quatre cases selon la
+      situation, une ligne d'aide par bouton ;
+    - écran d'environ 2 400 px de haut ramené à 1 500 px ; sur ordinateur, rien ne change ;
+    - le bouton 🚩 du bandeau de commandes tient sur la ligne des réglages, et son champ s'ouvre au-dessus du
+      bandeau ;
+    - caméra : dans les 3 derniers km, le réalisateur ne quitte plus la tête de course pour un incident loin
+      derrière (sauf s'il touche un de mes coureurs).
   - Journal de partie, signalement et rejeu exact :
     - toutes les actions du joueur en course (radio, marquage, ordres d'équipe, négociations, alliances, réponses
       aux moments décisifs, ordres de final) passent par liveAct (79-journal.js) : exécutées dans le hasard de

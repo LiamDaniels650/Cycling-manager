@@ -33,6 +33,8 @@ export function LiveRace() {
   const sim = UI.sim;
   const rc = S.rc;
   const frac = UI.acc || 0;
+  const phone = typeof window !== 'undefined' && window.innerWidth < 1280;
+  if (inFinale(sim) && phone && !sim.photo) return <FinaleMobile sim={sim} rc={rc} frac={frac} />;
   if (inFinale(sim))
     return (
       <div className="space-y-3 pb-36">
@@ -80,7 +82,7 @@ export function LiveRace() {
     );
   // téléphone et tablette : la retransmission reste en haut, le reste passe en onglets (un seul ouvert à la fois),
   // au lieu d'une colonne d'une dizaine de blocs à faire défiler
-  if (typeof window !== 'undefined' && window.innerWidth < 1280) return <LiveMobile sim={sim} rc={rc} frac={frac} />;
+  if (phone) return <LiveMobile sim={sim} rc={rc} frac={frac} />;
   return (
     <div className="space-y-3 pb-36 xl:grid xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:items-start xl:gap-3 xl:space-y-0">
       {/* sur grand écran : la retransmission et les groupes à gauche, mes coureurs et la radio à droite */}
@@ -113,6 +115,92 @@ export function LiveRace() {
     </div>
   );
 }
+// Barre d'onglets collée en haut pendant le défilement ; pastille rose : quelque chose de neuf dans l'onglet.
+function TabBar({ tabs, tab, go, dot }) {
+  return (
+    <div className="sticky top-[57px] z-10 -mx-1 bg-slate-950/95 px-1 py-1 backdrop-blur md:top-0" role="tablist">
+      <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
+        {tabs.map(([k, l]) => (
+          <button
+            key={k}
+            type="button"
+            role="tab"
+            aria-selected={tab === k}
+            onClick={() => go(k)}
+            className={
+              'relative min-h-10 rounded-md px-1 text-[12px] font-semibold leading-tight ' +
+              (tab === k ? 'bg-slate-800 text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]' : 'bg-slate-900 text-slate-400')
+            }
+          >
+            {l}
+            {dot(k) ? <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-rose-500" /> : null}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+// Pastilles communes : un de mes coureurs a faim ou une fringale ; un message radio nouveau qui me concerne.
+function alerts(sim, tab) {
+  const nLog = sim.log.length;
+  if (tab === 'radio') UI.liveLogSeen = nLog;
+  return {
+    team: sim.runners.some(x => x.player && !x.fin && !x.dnf && (x.hungry || x.bonk)),
+    radio:
+      tab !== 'radio' &&
+      nLog > (UI.liveLogSeen || 0) &&
+      sim.log.slice(UI.liveLogSeen || 0).some(l => l.cls === 'me' || l.cls === 'bad'),
+  };
+}
+const FIN_TABS = [
+  ['ordres', 'Mes ordres'],
+  ['groupes', 'Groupes'],
+  ['equipe', 'Équipe'],
+  ['radio', 'Radio'],
+  ['ecarts', 'Écarts'],
+];
+// Le final sur téléphone : en haut, le décompte et la route jusqu'à la ligne (toujours visibles), la vue du ciel
+// réduite ; dessous, un onglet à la fois. « Mes ordres » est ouvert d'office : c'est là qu'on joue le final.
+function FinaleMobile({ sim, rc, frac }) {
+  const tab = FIN_TABS.some(t => t[0] === UI.finTab) ? UI.finTab : 'ordres';
+  const al = alerts(sim, tab);
+  const go = k => ((UI.finTab = k), renderLive());
+  return (
+    <div className="space-y-2 pb-36">
+      <div className="flex items-baseline justify-between gap-2 px-1 text-sm text-slate-300">
+        <b className="truncate text-slate-100">
+          {rc.name} · {sim.spec.name}
+        </b>
+        <span className="shrink-0 tabular-nums">{fmtTime(Math.max(0, sim.t * 60 - 30 + frac * 30))}</span>
+      </div>
+      <MomentPanel sim={sim} />
+      <Finale sim={sim} part="head" />
+      <Sky sim={sim} compact short />
+      <TabBar tabs={FIN_TABS} tab={tab} go={go} dot={k => (k === 'equipe' && al.team) || (k === 'radio' && al.radio)} />
+      {tab === 'ordres' ? (
+        <>
+          <FinalActions sim={sim} compact />
+          <div className="space-y-2 empty:hidden">
+            <Nego sim={sim} />
+          </div>
+        </>
+      ) : null}
+      {tab === 'groupes' ? <Finale sim={sim} part="detail" /> : null}
+      {tab === 'equipe' ? <MyTeam sim={sim} compact /> : null}
+      {tab === 'radio' ? <RadioFeed sim={sim} /> : null}
+      {tab === 'ecarts' ? (
+        <Card>
+          <RaceHeader sim={sim} rc={rc} />
+          <Clock sim={sim} frac={frac} />
+          <StageProfile spec={sim.spec} Pf={UI.Pf} sim={sim} frac={frac} />
+          <GapChart sim={sim} />
+          <VirtualLeader sim={sim} />
+        </Card>
+      ) : null}
+      <Dock sim={sim} />
+    </div>
+  );
+}
 const LIVE_TABS = [
   ['course', 'Course'],
   ['equipe', 'Mon équipe'],
@@ -124,13 +212,7 @@ const LIVE_TABS = [
 // défilement ; un seul panneau ouvert. Pastille : un de mes coureurs a faim ou une fringale, un message radio nouveau.
 function LiveMobile({ sim, rc, frac }) {
   const tab = LIVE_TABS.some(t => t[0] === UI.liveTab) ? UI.liveTab : 'course';
-  const alertTeam = sim.runners.some(x => x.player && !x.fin && !x.dnf && (x.hungry || x.bonk));
-  const nLog = sim.log.length;
-  if (tab === 'radio') UI.liveLogSeen = nLog;
-  const newRadio =
-    tab !== 'radio' &&
-    nLog > (UI.liveLogSeen || 0) &&
-    sim.log.slice(UI.liveLogSeen || 0).some(l => l.cls === 'me' || l.cls === 'bad');
+  const { team: alertTeam, radio: newRadio } = alerts(sim, tab);
   const go = k => ((UI.liveTab = k), renderLive());
   return (
     <div className="space-y-2 pb-36">
@@ -141,30 +223,12 @@ function LiveMobile({ sim, rc, frac }) {
       <RaceBar sim={sim} flat />
       <MomentPanel sim={sim} />
       <Sky sim={sim} lite />
-      <div className="sticky top-[57px] z-10 -mx-1 bg-slate-950/95 px-1 py-1 backdrop-blur md:top-0" role="tablist">
-        <div className="grid grid-cols-5 gap-1">
-          {LIVE_TABS.map(([k, l]) => (
-            <button
-              key={k}
-              type="button"
-              role="tab"
-              aria-selected={tab === k}
-              onClick={() => go(k)}
-              className={
-                'relative min-h-10 rounded-md px-1 text-[12px] font-semibold leading-tight ' +
-                (tab === k
-                  ? 'bg-slate-800 text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]'
-                  : 'bg-slate-900 text-slate-400')
-              }
-            >
-              {l}
-              {(k === 'equipe' && alertTeam) || (k === 'radio' && newRadio) ? (
-                <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-rose-500" />
-              ) : null}
-            </button>
-          ))}
-        </div>
-      </div>
+      <TabBar
+        tabs={LIVE_TABS}
+        tab={tab}
+        go={go}
+        dot={k => (k === 'equipe' && alertTeam) || (k === 'radio' && newRadio)}
+      />
       {tab === 'course' ? <Situation sim={sim} /> : null}
       {tab === 'equipe' ? <MyTeam sim={sim} compact /> : null}
       {tab === 'groupes' ? <Peloton sim={sim} /> : null}

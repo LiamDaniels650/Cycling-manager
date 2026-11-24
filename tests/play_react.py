@@ -146,11 +146,11 @@ class Bot:
                 if self.shots < 40:
                     await self.shot(f'final_{st["season"]}_{st["week"]}')
                 b = await self.pg.evaluate(
-                    "()=>{const bs=[...document.querySelectorAll('button')].filter(b=>b.offsetParent&&b.classList.contains('min-h-14')&&!b.disabled&&!/Tous les ordres/.test(b.innerText));return bs.length}"
+                    "()=>{const bs=[...document.querySelectorAll('button')].filter(b=>b.offsetParent&&b.dataset.finalAct&&!b.disabled);return bs.length}"
                 )
                 if b:
                     await self.pg.evaluate(
-                        "()=>{const bs=[...document.querySelectorAll('button')].filter(b=>b.offsetParent&&b.classList.contains('min-h-14')&&!b.disabled&&!/Tous les ordres/.test(b.innerText));bs[0].click()}"
+                        "()=>{const bs=[...document.querySelectorAll('button')].filter(b=>b.offsetParent&&b.dataset.finalAct&&!b.disabled);bs[0].click()}"
                     )
                     self.clicks += 1
                 else:

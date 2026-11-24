@@ -360,16 +360,23 @@ export function SignalButton({ compact = false, label = 'Signaler' }) {
           setOpen(true);
         }}
         title="Quelque chose vous semble faux ? Signalez-le : la situation pourra être rejouée à l'identique et corrigée."
+        aria-label={label}
         className={
           'inline-flex min-h-9 items-center gap-1 rounded-lg border border-slate-700 bg-slate-900 px-2.5 text-xs font-semibold text-slate-300 hover:border-rose-400/60 hover:text-rose-200 ' +
           (compact ? '' : 'sm:text-sm')
         }
       >
-        🚩 {label}
+        🚩{compact ? <span className="sr-only"> {label}</span> : ' ' + label}
       </button>
     );
   return (
-    <div className="w-full space-y-1.5 rounded-xl border border-rose-400/40 bg-slate-900 p-2.5">
+    // compact (bandeau de course) : le champ s'ouvre au-dessus du bandeau, sur toute la largeur
+    <div
+      className={
+        'space-y-1.5 rounded-xl border border-rose-400/40 bg-slate-900 p-2.5 ' +
+        (compact ? 'fixed inset-x-2 bottom-36 z-50 mx-auto max-w-xl shadow-2xl' : 'w-full')
+      }
+    >
       <div className="text-xs text-slate-300">
         Qu'est-ce qui vous semble faux ? (le moment, l'étape et vos ordres sont joints au rapport)
       </div>

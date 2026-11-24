@@ -274,23 +274,25 @@ export function Dock({ sim }) {
               <span className="text-slate-400"> · {PACE_LBL[UI.paceState]}</span>
             ) : null}
           </span>
-          <button
-            type="button"
-            onClick={() => ((UI.dockOpts = !UI.dockOpts), renderLive())}
-            className={
-              'flex min-h-8 items-center gap-1 rounded-lg px-2 ' +
-              (UI.dockOpts ? 'bg-slate-600 text-slate-50' : 'bg-slate-800 text-slate-200')
-            }
-            title="Rythme auto, pauses automatiques, directeur sportif automatique"
-          >
-            ⚙ Réglages{' '}
-            <span className="text-slate-400">
-              {[UI.autoPace !== false ? 'rythme' : '', sim.autoPause ? 'pauses' : '', sim.autoDS ? 'DS auto' : '']
-                .filter(Boolean)
-                .join(' · ')}
-            </span>
-          </button>
-          <SignalButton compact />
+          <span className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => ((UI.dockOpts = !UI.dockOpts), renderLive())}
+              className={
+                'flex min-h-8 items-center gap-1 rounded-lg px-2 ' +
+                (UI.dockOpts ? 'bg-slate-600 text-slate-50' : 'bg-slate-800 text-slate-200')
+              }
+              title="Rythme auto, pauses automatiques, directeur sportif automatique"
+            >
+              ⚙ Réglages{' '}
+              <span className="text-slate-400">
+                {[UI.autoPace !== false ? 'rythme' : '', sim.autoPause ? 'pauses' : '', sim.autoDS ? 'DS auto' : '']
+                  .filter(Boolean)
+                  .join(' · ')}
+              </span>
+            </button>
+            <SignalButton compact />
+          </span>
           {/* réglages repliés : le bandeau du bas reste bas, l'écran de course garde la place */}
           {UI.dockOpts ? (
             <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-1">

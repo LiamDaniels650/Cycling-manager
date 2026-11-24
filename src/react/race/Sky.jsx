@@ -96,7 +96,8 @@ function focusGroup(sim, cam, st) {
     const x = ev.id != null && sim.runners.find(y => y.id === ev.id);
     const g =
       x && !x.fin && !x.dnf ? x.g : L.slice().sort((a, b) => Math.abs(a.pos - ev.km) - Math.abs(b.pos - ev.km))[0];
-    if (g) {
+    // dans les 3 derniers km, la caméra ne quitte la tête que pour un de mes coureurs
+    if (g && (ev.mine || g === head || sim.dist - head.pos > 3)) {
       st.hlUntil = now + 6000;
       st.hlG = g;
     }
@@ -1071,7 +1072,7 @@ function drawRider(c, x, px, py, h, sc, yel, t) {
   c.restore();
 }
 const ZOOMS = [0.5, 0.75, 1, 1.15, 1.6, 2.3, 3.5];
-export function Sky({ sim, compact, lite }) {
+export function Sky({ sim, compact, lite, short }) {
   const ref = useRef(null);
   const [cam, setCam] = useState(UI.skyCam || 'auto');
   const [snd, setSnd] = useState(!!UI.skySound);
@@ -1103,7 +1104,9 @@ export function Sky({ sim, compact, lite }) {
       <div className="relative">
         <canvas
           ref={ref}
-          className={'block w-full cursor-pointer ' + (compact ? 'h-56' : lite ? 'h-60' : 'h-80 xl:h-[26rem]')}
+          className={
+            'block w-full cursor-pointer ' + (short ? 'h-40' : compact ? 'h-56' : lite ? 'h-60' : 'h-80 xl:h-[26rem]')
+          }
           role="img"
           aria-label="Retransmission vue du ciel : touchez un coureur pour ouvrir sa fiche"
           onClick={e => {
@@ -1135,14 +1138,19 @@ export function Sky({ sim, compact, lite }) {
           <StageProfileLive sim={sim} G0={st.current.G0} onPick={pick} lite={lite} />
         </>
       )}
-      <div className="flex flex-wrap items-center gap-1.5 px-2 py-1.5">
+      <div
+        className={
+          'flex items-center gap-1.5 px-2 py-1.5 ' +
+          (short ? 'flex-nowrap overflow-x-auto [scrollbar-width:none]' : 'flex-wrap')
+        }
+      >
         {CAMS.concat(cam === 'grp' ? [['grp', 'Groupe choisi']] : []).map(([k, l]) => (
           <button
             key={k}
             type="button"
             onClick={() => ((UI.skyCam = k), setCam(k))}
             className={
-              'min-h-8 rounded-full px-2.5 text-xs font-semibold ring-1 ' +
+              'min-h-8 shrink-0 rounded-full px-2.5 text-xs font-semibold ring-1 ' +
               (cam === k ? 'bg-sky-500 text-slate-950 ring-sky-400' : 'bg-slate-800 text-slate-300 ring-slate-700')
             }
           >

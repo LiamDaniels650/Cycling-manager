@@ -95,9 +95,11 @@ function FinalTrack({ sim, frac }) {
   );
 }
 
-export function Finale({ sim, children }) {
+// part : tout (par défaut), 'head' (décompte et route jusqu'à la ligne, sur téléphone) ou 'detail' (groupes,
+// tendance de l'écart et derniers faits, dans l'onglet « Groupes » du téléphone).
+export function Finale({ sim, children, part }) {
   const A = sim.groups.find(G => G.riders.some(x => !x.fin));
-  if (sim.photo) return <Photo sim={sim} />;
+  if (sim.photo) return part === 'detail' ? null : <Photo sim={sim} />;
   if (!A) return null;
   const kmL = sim.dist - A.pos;
   if (kmL > FINALE_KM) return null;
@@ -130,17 +132,34 @@ export function Finale({ sim, children }) {
     .filter(l => l.km >= sim.dist - FINALE_KM && /^(🔥|⚔️|💥|⬇️|⚡|🚀|📍|🚩|🏁|🗡️|🤝|🔁)/.test(l.txt))
     .slice(-3)
     .reverse();
-  return (
-    <section className="rounded-2xl border border-amber-400/40 bg-gradient-to-b from-amber-500/10 to-slate-900 p-3.5">
+  const head = (
+    <>
       <div className="flex items-center justify-between gap-3">
-        <span className="shrink-0 text-3xl font-black tabular-nums text-amber-200">{big}</span>
+        <span
+          className={'shrink-0 font-black tabular-nums text-amber-200 ' + (part === 'head' ? 'text-2xl' : 'text-3xl')}
+        >
+          {big}
+        </span>
         <span className="line-clamp-2 min-h-8 text-right text-xs text-slate-300">{terr}</span>
       </div>
       <FinalTrack sim={sim} frac={UI.acc || 0} />
-      {/* mes actions juste sous la route : visibles sans faire défiler, au-dessus des commandes */}
-      {children ? <div className="mt-2">{children}</div> : null}
+    </>
+  );
+  if (part === 'head')
+    return (
+      <section className="rounded-2xl border border-amber-400/40 bg-gradient-to-b from-amber-500/10 to-slate-900 px-3 pb-1 pt-2">
+        {head}
+      </section>
+    );
+  const detail = (
+    <>
       {/* hauteurs fixes partout : les groupes qui se font et se défont ne font pas bouger l'écran */}
-      <div className="mt-2 h-[12rem] space-y-1.5 overflow-y-auto overscroll-contain pr-1">
+      <div
+        className={
+          'space-y-1.5 pr-1 ' +
+          (part === 'detail' ? 'min-h-[12rem]' : 'mt-2 h-[12rem] overflow-y-auto overscroll-contain')
+        }
+      >
         {gs.map((G, i) => {
           const n = G.riders.filter(x => !x.fin).length;
           const nMine = G.riders.filter(x => !x.fin && x.player).length;
@@ -233,6 +252,15 @@ export function Finale({ sim, children }) {
           <Html key={i} as="div" className="block truncate text-xs text-slate-300" html={l.txt} />
         ))}
       </div>
+    </>
+  );
+  if (part === 'detail') return <div className="rounded-lg bg-slate-900 p-2.5">{detail}</div>;
+  return (
+    <section className="rounded-2xl border border-amber-400/40 bg-gradient-to-b from-amber-500/10 to-slate-900 p-3.5">
+      {head}
+      {/* mes actions juste sous la route : visibles sans faire défiler, au-dessus des commandes */}
+      {children ? <div className="mt-2">{children}</div> : null}
+      {detail}
     </section>
   );
 }
