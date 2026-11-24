@@ -2,6 +2,10 @@
    incidents (chutes, crevaisons, ennuis mécaniques) et regroupements. Appelée par simStep (08-stage-sim.js). */
 
 // Physique : rythme de chaque groupe, vitesse, effort, énergie, lâchés.
+// Métabolisme d'un coureur (±15 %, tiré de son empreinte) : certains brûlent plus, mangent moins bien en course.
+function foodMet(r) {
+  return r._met || (r._met = 1 + ((dsHash('met' + r.id) % 31) - 15) / 100);
+}
 function tickPhysics(sim) {
   const dtH = DT_H;
   for (const G of sim.groups.slice()) {
@@ -269,10 +273,11 @@ function tickPhysics(sim) {
       x.food = Math.max(
         0,
         x.food -
-          (5 + 9 * Math.min(1.2, I)) * dtH * (sim.wx === 'chaleur' ? (x.r.heatAcc > 0 ? 1.2 : 1.4) : coldHigh ? 1.3 : 1) * (x.eqf.food || 1)
+          R.foodDrain * foodMet(x.r) * (4 + 14 * Math.min(1.2, I) ** 2) * dtH * (sim.wx === 'chaleur' ? (x.r.heatAcc > 0 ? 1.1 : 1.2) : coldHigh ? 1.2 : 1) * (x.eqf.food || 1)
       );
       if (x.food < 6 && !x.bonk) {
         x.bonk = true;
+        x.bonks = (x.bonks || 0) + 1; // (compté pour la calibration)
         x.energy = Math.max(0, x.energy - 12);
         if (x.player || sim.favs.has(x.id))
           log(sim, `🍌 Fringale pour ${riderName(x.r)} (${x.team.short}) !`, x.player ? 'bad' : '');

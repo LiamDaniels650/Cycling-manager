@@ -60,7 +60,10 @@ const REAL = {
   GT_porteurs_maillot: [2, 8], // Tour 2019-2024 : 3 à 5 porteurs du maillot jaune ; Giro et Vuelta jusqu'à 7
   GT_equipes_etapes: [7, 15], // Tour 2019-2024 : 10 à 14 équipes gagnent une étape (22 équipes ; ici 18)
   ecart_max_echap_plat_min: [1.5, 7], // étapes de plaine : l'échappée plafonne le plus souvent à 3-5 min
-  reprise_echap_plat_km: [2, 20], // reprise de l'échappée sur le plat : le plus souvent entre 5 et 15 km
+  reprise_echap_plat_km: [2, 20],
+  // fringales (réserves alimentaires vides) sur tout le peloton d'un grand tour : rares mais réelles, une à quelques-unes
+  // par tour, plus par forte chaleur (coureurs qui « explosent » faute d'avoir assez mangé ; estimation)
+  GT_fringales: [1, 6], // reprise de l'échappée sur le plat : le plus souvent entre 5 et 15 km
 };
 
 const M = {},
@@ -229,11 +232,13 @@ function runSeed(seed) {
       totD = 0;
     const leaders = new Set(),
       winTeams = new Set();
+    let bonks = 0;
     while (!rc.done) {
       const spec = rc.specs[rc.si];
       Object.assign(rc.orders, autoOrders(0, spec, rc));
       const out = isITT(spec) || isTTT(spec) ? (runStageAuto(rc), {}) : runRoadStage(rc, spec, cal);
       measureStage(rc, spec, cal, out);
+      if (out.sim) for (const x of out.sim.runners) bonks += x.bonks || 0;
       const st = rc.stageRes[rc.stageRes.length - 1];
       if (rc.specs.length > 1) {
         leaders.add(gcList(rc)[0]);
@@ -246,6 +251,7 @@ function runSeed(seed) {
     if (cal.cat === 0) {
       add('GT_porteurs_maillot', leaders.size);
       add('GT_equipes_etapes', winTeams.size);
+      add('GT_fringales', bonks);
     }
   }
   const wins = Object.values(S.riders)

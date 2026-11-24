@@ -1502,5 +1502,12 @@ check(
   check(sim.parade && !sim.log.some(l => /BORDURE/.test(l.txt)), 'parade : pas de bordure le dernier jour');
   check(lost < 10 && gcList(rc)[0] === y, `parade : le maillot ne perd pas de temps (${Math.round(lost)} s)`);
 }
+{
+  // alimentation : métabolisme individuel (±15 %), consommation selon l'effort
+  newGame('Ali', 8);
+  const ms = Object.values(S.riders).map(r => foodMet(r));
+  check(Math.min(...ms) >= 0.85 && Math.max(...ms) <= 1.15 && new Set(ms).size > 10, 'alimentation : métabolisme individuel');
+  check(R.foodDrain > 1, 'alimentation : consommation calibrée (fringales réalistes)');
+}
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

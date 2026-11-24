@@ -497,6 +497,14 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     entre deux groupes qui se suivent, et un écart affiché n'est jamais plus petit que celui d'un groupe qui roule
     devant. Vue du ciel : chaque coureur suit exactement son groupe mais glisse en douceur vers sa place (≈ 0,5 s),
     ordre stable dans le groupe ; une jonction se voit au lieu d'une téléportation.
+  - Alimentation calibrée sur la réalité (fringales rares mais réelles : 1 à 6 par grand tour sur tout le peloton,
+    nouvelle mesure GT_fringales ; avant : aucune, les réserves ne descendaient jamais sous 50 %) : consommation selon
+    l'effort (abrité, on mange ; en tête ou en échappée, on brûle sans avoir le temps), métabolisme propre à chaque
+    coureur (±15 %), chaleur moins écrasante (les équipes compensent par les bidons) ; toutes les équipes envoient
+    chercher des bidons (avant : seulement le DS automatique du joueur) ; un coureur en fringale reçoit vite un bidon
+    et des gels de la voiture (sauf dans les 20 derniers km). Correctif : la mémoire des ordres du directeur sportif
+    était partagée par toutes les équipes (un ordre donné par l'une empêchait les autres de le donner) ; elle est
+    propre à chaque équipe.
   - Course en direct sur téléphone sans longue page à faire défiler : bandeau, moment décisif et vue du ciel en
     haut, puis des onglets collés sous l'en-tête (Course, Mon équipe, Groupes, Radio, Écarts ; un seul ouvert, pastille
     rouge si un coureur a faim ou si la radio a du nouveau) ; fiches de mes coureurs compactes (trois jauges sur une

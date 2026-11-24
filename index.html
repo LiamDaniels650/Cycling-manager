@@ -3609,7 +3609,10 @@ const R = {
   sprintHillCol: 72, // vallonné : une équipe ne roule pour son sprinteur que s'il passe les côtes (collines ≥ 72)
   brkSprintKm: 12, // un échappé dont le sprinteur est derrière relaie au ralenti dans les 12 derniers km
   tttK: 0.98, // contre-la-montre par équipes : réglage de vitesse de l'exercice (51-57 km/h dans la réalité)
-  komPassK: 2, // grands tours : les cols de passage rapportent deux fois les points du barème // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
+  komPassK: 2,
+  // alimentation : consommation (part de réserve par heure) = foodDrain × (4 + 14 × intensité²) : abrité dans le
+  // peloton on dépense peu et on mange, en tête ou en échappée on brûle beaucoup sans avoir le temps de manger
+  foodDrain: 1.6, // réglé pour 1 à 6 fringales par grand tour sur tout le peloton (calibration : GT_fringales) // grands tours : les cols de passage rapportent deux fois les points du barème // classique : allure d'un groupe de tête où personne ne relaie (part de la capacité médiane)
 };
 
 // ---- src/engine/01-util.js ----
@@ -6485,7 +6488,9 @@ function dsBrain(sim, T) {
   const log = T.player
     ? (s, m, t) => globalThis.log(s, sim.autoDS ? m : m.replace(/^🤖 DS ?: ?/, '🚴 Entre coureurs : '), t)
     : () => {};
-  const once = (k, cd) => {
+  // (mémoire propre à chaque équipe : partagée, un ordre donné par une équipe empêchait les 17 autres de le donner)
+  const once = (k0, cd) => {
+    const k = T.id + ':' + k0;
     sim.dsMem = sim.dsMem || {};
     if (sim.t - (sim.dsMem[k] ?? -999) < cd) return false;
     sim.dsMem[k] = sim.t;
@@ -6703,11 +6708,13 @@ function dsBrain(sim, T) {
       if (PL) applyRadio(sim, x, 'eat', 'auto');
       else eatNow(sim, x, '');
     }
-  if (!PL) {
-    dsSitUp(sim, mine, ldr, once);
-    return;
-  }
-  allyAuto(sim, T, once);
+  // fringale : la voiture (ou un équipier) apporte vite un bidon et des gels, sauf dans les 20 derniers km
+  for (const x of mine)
+    if (x.bonk && x.g && sim.dist - x.g.pos > R.feedKm && once('resc' + x.id, 6)) {
+      x.food = Math.min(100, x.food + 22);
+      if (T.player) log(sim, `🥤 La voiture apporte un bidon et des gels à ${riderName(x.r)}.`, 'me');
+    }
+  // bidons : un équipier redescend à la voiture quand l'équipe a faim (toutes les équipes, comme en course)
   const avgFood = sum(mine.map(x => x.food)) / mine.length;
   // (jamais dans les 20 derniers kilomètres : le ravitaillement y est interdit)
   const feedOk = sim.pel && sim.dist - sim.pel.pos > 22;
@@ -6723,6 +6730,11 @@ function dsBrain(sim, T) {
     )[0];
     if (d) applyRadio(sim, d, 'bottles', 'auto');
   }
+  if (!PL) {
+    dsSitUp(sim, mine, ldr, once);
+    return;
+  }
+  allyAuto(sim, T, once);
   // 7. échappée : attaquer avant le sprint si des sprinteurs plus rapides sont là
   for (const x of mine) {
     const G = x.g;
@@ -8441,6 +8453,10 @@ function barK(sim, x, ref) {
    incidents (chutes, crevaisons, ennuis mécaniques) et regroupements. Appelée par simStep (08-stage-sim.js). */
 
 // Physique : rythme de chaque groupe, vitesse, effort, énergie, lâchés.
+// Métabolisme d'un coureur (±15 %, tiré de son empreinte) : certains brûlent plus, mangent moins bien en course.
+function foodMet(r) {
+  return r._met || (r._met = 1 + ((dsHash('met' + r.id) % 31) - 15) / 100);
+}
 function tickPhysics(sim) {
   const dtH = DT_H;
   for (const G of sim.groups.slice()) {
@@ -8708,10 +8724,11 @@ function tickPhysics(sim) {
       x.food = Math.max(
         0,
         x.food -
-          (5 + 9 * Math.min(1.2, I)) * dtH * (sim.wx === 'chaleur' ? (x.r.heatAcc > 0 ? 1.2 : 1.4) : coldHigh ? 1.3 : 1) * (x.eqf.food || 1)
+          R.foodDrain * foodMet(x.r) * (4 + 14 * Math.min(1.2, I) ** 2) * dtH * (sim.wx === 'chaleur' ? (x.r.heatAcc > 0 ? 1.1 : 1.2) : coldHigh ? 1.2 : 1) * (x.eqf.food || 1)
       );
       if (x.food < 6 && !x.bonk) {
         x.bonk = true;
+        x.bonks = (x.bonks || 0) + 1; // (compté pour la calibration)
         x.energy = Math.max(0, x.energy - 12);
         if (x.player || sim.favs.has(x.id))
           log(sim, `🍌 Fringale pour ${riderName(x.r)} (${x.team.short}) !`, x.player ? 'bad' : '');

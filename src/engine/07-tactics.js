@@ -208,7 +208,9 @@ function dsBrain(sim, T) {
   const log = T.player
     ? (s, m, t) => globalThis.log(s, sim.autoDS ? m : m.replace(/^🤖 DS ?: ?/, '🚴 Entre coureurs : '), t)
     : () => {};
-  const once = (k, cd) => {
+  // (mémoire propre à chaque équipe : partagée, un ordre donné par une équipe empêchait les 17 autres de le donner)
+  const once = (k0, cd) => {
+    const k = T.id + ':' + k0;
     sim.dsMem = sim.dsMem || {};
     if (sim.t - (sim.dsMem[k] ?? -999) < cd) return false;
     sim.dsMem[k] = sim.t;
@@ -426,11 +428,13 @@ function dsBrain(sim, T) {
       if (PL) applyRadio(sim, x, 'eat', 'auto');
       else eatNow(sim, x, '');
     }
-  if (!PL) {
-    dsSitUp(sim, mine, ldr, once);
-    return;
-  }
-  allyAuto(sim, T, once);
+  // fringale : la voiture (ou un équipier) apporte vite un bidon et des gels, sauf dans les 20 derniers km
+  for (const x of mine)
+    if (x.bonk && x.g && sim.dist - x.g.pos > R.feedKm && once('resc' + x.id, 6)) {
+      x.food = Math.min(100, x.food + 22);
+      if (T.player) log(sim, `🥤 La voiture apporte un bidon et des gels à ${riderName(x.r)}.`, 'me');
+    }
+  // bidons : un équipier redescend à la voiture quand l'équipe a faim (toutes les équipes, comme en course)
   const avgFood = sum(mine.map(x => x.food)) / mine.length;
   // (jamais dans les 20 derniers kilomètres : le ravitaillement y est interdit)
   const feedOk = sim.pel && sim.dist - sim.pel.pos > 22;
@@ -446,6 +450,11 @@ function dsBrain(sim, T) {
     )[0];
     if (d) applyRadio(sim, d, 'bottles', 'auto');
   }
+  if (!PL) {
+    dsSitUp(sim, mine, ldr, once);
+    return;
+  }
+  allyAuto(sim, T, once);
   // 7. échappée : attaquer avant le sprint si des sprinteurs plus rapides sont là
   for (const x of mine) {
     const G = x.g;
