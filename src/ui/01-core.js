@@ -374,11 +374,6 @@ function askPersist() {
 function esc(s) {
   return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 }
-function bar(v, max = 100, cls = '') {
-  const p = clamp((v / max) * 100, 0, 100);
-  const c = cls || (p > 66 ? 'g' : p > 33 ? 'y' : 'r');
-  return `<span class="bar"><span class="bf ${c}" style="width:${p}%"></span></span>`;
-}
 function P() {
   return S.teams[0];
 }
@@ -387,9 +382,6 @@ function myRiders() {
 }
 function acaRiders() {
   return S.academy.map(id => S.riders[id]);
-}
-function flag(n) {
-  return `<span class="nat">${n}</span>`;
 }
 function svOv(r) {
   return isEst(r) ? '~' + shownOv(r) : overall(r.s);

@@ -13,14 +13,25 @@ Jeu de gestion d'équipe cycliste joué dans le navigateur, en un seul fichier H
   L'intégration continue GitHub (`.github/workflows/verifications.yml`) lance check, tests fonctionnels et
   non-régression à chaque push.
 
-Le moteur est assemblé par `build.py` (tests) ; le jeu par `tools/build_react.mjs` (moteur + fonctions d'action de
-`src/ui` + application React de `src/react`). Il n'y a plus qu'une interface : React.
+Le moteur est assemblé par `build.py` (tests) ; le jeu par `tools/build_react.mjs` (moteur + couche d'application
+de `src/ui` + application React de `src/react`). Il n'y a plus qu'une interface : React. `src/ui` n'est plus une
+interface : c'est la couche qui relie l'écran au moteur (sauvegardes, Web Worker, boucle de la course en direct,
+actions du joueur) ; React s'en sert partout, elle ne se supprime pas.
+
+Trois règles d'architecture, vérifiées par des tests :
+- l'affichage ne touche jamais au hasard de la partie (garde dans App.jsx, qui rétablit la série et signale l'écran
+  fautif ; tests/ui_rng_react.py parcourt tous les écrans) ;
+- le Web Worker ne reçoit que l'état S, la série aléatoire et le compteur d'identifiants ; ce qui se déduit de l'état
+  est recalculé par stateRestored() (98-worker.js) au chargement, dans le Worker et au retour ; tests/worker_roundtrip.js
+  compare un calcul fait dans un contexte vierge à un calcul fait sur place, état et données dérivées compris ;
+- toute sauvegarde passe par saveText() (01-core.js) ;
+- le calibrage et le détecteur d'anomalies tournent chaque semaine dans GitHub Actions (workflow « Calibrage »,
+  lançable à la main) : échec si une mesure sort du réel ou si une règle du détecteur dépasse nettement son seuil.
 
 ## Organisation
 
 ```
 src/
-  shell.html              page HTML + CSS ; build.py y injecte le moteur et l'interface
   engine/                 moteur (exécutable aussi dans Node pour les tests)
     01-util.js            hasard reproductible (graine), formats de temps/argent
     02-data.js            données de référence : caractéristiques, nations, archétypes, ordres, barèmes
@@ -78,15 +89,18 @@ src/
     76-ttpacing.js        contre-la-montre : allures, limite du jour, réserve et défaillances, intermédiaires
     77-fresh.js           fraîcheur mentale sur la saison, coupure
     78-tactics-review.js  bilan tactique d'une étape et d'une course par étapes
+    98-worker.js          Web Worker : état dérivé recalculé à chaque reprise (stateRestored), traitement des demandes
     99-migration.js       mise à niveau des anciennes sauvegardes (champ S.v) — toujours en dernier
-  ui/                     interface
-    01-core.js            sauvegarde, rendu, navigation, modales, tableau de coureurs
-    02-team.js            effectif, fiche coureur, négociation, académie
-    03-calendar.js        calendrier et sélection
-    04-race.js            briefing, course en direct, radio, résultats
-    05-office.js          marché, gestion, statistiques, messages, options
+  ui/                     couche d'application (entre l'écran React et le moteur)
+    01-core.js            sauvegardes (saveText, IndexedDB, copies), navigation, modales
+    02-team.js            actions sur l'effectif, la fiche coureur, la négociation, l'académie
+    03-calendar.js        calendrier, sélection, simulation des courses dans le Web Worker (repli sur la page)
+    04-race.js            briefing et départ d'étape
+    04b-live.js           boucle de la course en direct (vitesse, ralentis, moments décisifs), radio
+    05-office.js          marché, gestion, messages, options, export de la sauvegarde
     06-help.js            premiers pas (bulles d'aide par écran) et guide du directeur sportif
-    07-home.js            tableau de bord (accueil), navigation mobile (barre du bas, menu), fiche d'équipe, rivaux
+    07-home.js            accueil : choses à traiter, rivaux, navigation
+  react/                  l'interface (React, Tailwind)
 tests/
   season_report.js        une saison complète simulée, résultats course par course
   multi_seasons.js        plusieurs saisons : stabilité, finances, progression des jeunes
@@ -95,6 +109,9 @@ tests/
   ui_smoke_react.py       interface dans Chrome sans écran (aucune erreur JS tolérée)
   ui_auto_react.py        chaque bouton « Auto » cliqué pour de vrai, appel radio, DS automatique
   ui_worker.py            simulation d'une course dans un Web Worker (même résultat qu'en direct)
+  ui_rng_react.py         l'affichage ne touche pas au hasard (tous les écrans, en saison, en course, en carrière)
+  worker_roundtrip.js     Web Worker : un calcul dans un contexte vierge donne exactement le même état qu'en direct
+  anomalies.js            détecteur d'anomalies de course (./dev.sh anomalies)
   finals.js               ordres de final : bancs d'essai du sprint et de la côte (chaque ordre garde son sens)
   calibrate.js            comparaison avec le cyclisme réel (vitesses, écarts, échappées, profils de vainqueurs)
   baseline/calibrage.txt  dernière mesure de calibration de référence
@@ -572,6 +589,21 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     qui perd plus de 2 min sur le plat (2 %, groupes de grimpeurs coupés d'un peloton lancé par les rouleurs), un
     vainqueur avec plus de 8 min d'avance et une étape plate à plus de 52 km/h (un cas chacun sur 1 632 étapes).
     Calibrage 45/45 sur deux séries de 60 saisons (échappées au sommet 0,37, vallonné 0,38, côte 0,25-0,27).
+  - Fragilités d'architecture traitées, et ancienne interface nettoyée :
+    - l'affichage ne touche plus au hasard, par construction : garde dans App.jsx (série rétablie, écran fautif
+      signalé) et test qui parcourt tous les écrans (tests/ui_rng_react.py, vérifié en y introduisant un tirage) ;
+    - Web Worker : aller-retour centralisé dans le moteur (98-worker.js : stateRestored, workerRun ; le Worker
+      exécute exactement ce code) ; un crochet STAGE_DONE remplace la réaffectation de runStageAuto ; test
+      d'aller-retour dans un contexte vierge (état, série, données dérivées) ;
+    - intégration continue : workflow hebdomadaire « Calibrage » (calibrage 2 × 30 saisons et détecteur sur 12
+      saisons, résultats en pièce jointe) ; ./dev.sh calib et le détecteur renvoient un échec (détecteur : seulement
+      sur une alerte, plus du double du seuil et au moins trois cas) ; à chaque envoi, en plus : aller-retour du
+      Worker, affichage sans hasard et parcours de l'interface ;
+    - ancienne interface : src/ui reste (c'est la couche d'application dont React se sert), mais son code d'affichage
+      mort est supprimé (ancienne retransmission tvHTML, profil, bande de route, graphique d'écart, maillot virtuel,
+      copies de sécurité en HTML, badges, barres et drapeaux en HTML : environ 170 lignes) ; src/shell.html (page et
+      feuille de styles de 1 275 lignes) disparaît : seules quatre règles s'appliquaient encore, reprises telles quelles
+      (styles calculés de la page vérifiés identiques, sur téléphone et sur ordinateur).
   - Revue d'architecture (failles logiques corrigées) :
     - mode carrière : l'écran de préparation d'étape tirait les consignes de l'équipe dans le hasard de la partie à
       chaque affichage (la course dépendait du nombre de rafraîchissements, et la consigne annoncée pouvait différer

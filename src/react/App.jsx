@@ -1,7 +1,7 @@
 // Application : en-tête, navigation (barre du bas sur téléphone, onglets sur grand écran), écran courant,
 // fenêtres. Les écrans pas encore convertis en composants React sont affichés par l'ancienne interface
 // (mêmes fonctions, mêmes boutons) : rien n'est perdu pendant la conversion.
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useLayoutEffect } from 'react';
 import { Compare } from './screens/Compare.jsx';
 import { setBump, beginRender, endRender, takeFlash, refresh } from './bridge.js';
 import { Icon } from './icons.jsx';
@@ -16,7 +16,15 @@ import { Briefing } from './screens/Briefing.jsx';
 import { StageResult } from './screens/StageResult.jsx';
 import { Market } from './screens/Market.jsx';
 import { Academy } from './screens/Academy.jsx';
-import { Office, ClubFinances, ClubStaff, ClubEquip, ClubCareer, Prep as CampsCoach, Assistant } from './screens/Office.jsx';
+import {
+  Office,
+  ClubFinances,
+  ClubStaff,
+  ClubEquip,
+  ClubCareer,
+  Prep as CampsCoach,
+  Assistant,
+} from './screens/Office.jsx';
 import { Inbox } from './screens/Inbox.jsx';
 import { Stats } from './screens/Stats.jsx';
 import { Press } from './screens/Press.jsx';
@@ -25,7 +33,16 @@ import { TeamCard } from './screens/Bits.jsx';
 import { Names } from './screens/Names.jsx';
 import { Stories } from './screens/Stories.jsx';
 import { Board, Facilities, World } from './screens/Club.jsx';
-import { CarCreate, CarHeader, CarBottomNav, CarNav, CarRiderSheet, CareerApp, CarRail, carTitle } from './career/Career.jsx';
+import {
+  CarCreate,
+  CarHeader,
+  CarBottomNav,
+  CarNav,
+  CarRiderSheet,
+  CareerApp,
+  CarRail,
+  carTitle,
+} from './career/Career.jsx';
 
 // écran de course hors direct : briefing avant l'étape ou résultats après (portage de viewRace)
 function RaceOff() {
@@ -193,7 +210,9 @@ function Rail() {
         onClick={() => go(tabsOf(sp)[0][0])}
         className={
           'flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-[15px] font-medium ' +
-          (on ? 'bg-slate-800 text-slate-50 shadow-[inset_3px_0_0_#f2c94c]' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100')
+          (on
+            ? 'bg-slate-800 text-slate-50 shadow-[inset_3px_0_0_#f2c94c]'
+            : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100')
         }
       >
         <Icon name={sp.icon} size={19} />
@@ -312,7 +331,9 @@ function SpaceHead({ tip }) {
               onClick={() => go(k)}
               className={
                 'relative flex min-h-10 shrink-0 items-center gap-1.5 text-sm font-medium ' +
-                (UI.view === k ? 'text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]' : 'text-slate-400 hover:text-slate-100')
+                (UI.view === k
+                  ? 'text-slate-50 shadow-[inset_0_-3px_0_#f2c94c]'
+                  : 'text-slate-400 hover:text-slate-100')
               }
             >
               {l}
@@ -421,7 +442,11 @@ function Modal() {
     <div
       className={
         'fixed inset-0 z-40 flex bg-black/60 ' +
-        (sheet ? 'items-end' : side ? 'items-center justify-center p-3 md:items-stretch md:justify-end md:bg-black/40 md:p-0' : 'items-center justify-center p-3')
+        (sheet
+          ? 'items-end'
+          : side
+            ? 'items-center justify-center p-3 md:items-stretch md:justify-end md:bg-black/40 md:p-0'
+            : 'items-center justify-center p-3')
       }
       onClick={() => closeModal()}
     >
@@ -443,13 +468,26 @@ function Modal() {
 }
 export function App() {
   const [, setV] = useState(0);
+  // Garde : l'affichage ne touche jamais au hasard de la partie (sinon le déroulement d'une course dépendrait du
+  // nombre de rafraîchissements de l'écran). Si un écran en consomme, la série est remise à son état d'avant le
+  // rendu et l'écran fautif est signalé (window.__rngLeaks, vérifié par tests/ui_rng_react.py).
+  const sd0 = globalThis._sd;
+  useLayoutEffect(() => {
+    if (globalThis._sd !== sd0) {
+      const v = typeof UI !== 'undefined' && UI.view ? UI.view : '?';
+      (globalThis.__rngLeaks = globalThis.__rngLeaks || []).push(v);
+      console.error(`Hasard consommé pendant l'affichage (écran « ${v} ») : série rétablie.`);
+      globalThis._sd = sd0;
+    }
+  });
   // préférences d'affichage et raccourcis clavier
   useEffect(() => {
     applyUiPrefs();
     const onKey = e => {
       if (e.ctrlKey || e.metaKey || e.altKey || !S) return;
       const t = e.target;
-      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable))
+        return;
       if (e.key === 'Escape') {
         if (UI.modal) closeModal();
         return;
@@ -499,7 +537,9 @@ export function App() {
           {live ? null : <CarHeader />}
           <main
             id="main"
-            className={'px-3 pt-4 md:px-6 ' + (live ? 'mx-auto xl:max-w-[1500px]' : 'pb-24 md:ml-56 md:pb-8 lg:max-w-[1180px]')}
+            className={
+              'px-3 pt-4 md:px-6 ' + (live ? 'mx-auto xl:max-w-[1500px]' : 'pb-24 md:ml-56 md:pb-8 lg:max-w-[1180px]')
+            }
           >
             {flash ? (
               <div
@@ -535,7 +575,8 @@ export function App() {
         <main
           id="main"
           className={
-            'px-3 pt-4 md:ml-56 md:px-6 md:pt-6 ' + (live ? 'mx-auto xl:max-w-[1500px]' : 'pb-24 md:pb-8 lg:max-w-[1180px]')
+            'px-3 pt-4 md:ml-56 md:px-6 md:pt-6 ' +
+            (live ? 'mx-auto xl:max-w-[1500px]' : 'pb-24 md:pb-8 lg:max-w-[1180px]')
           }
         >
           {bare ? null : <SpaceHead tip={tipKey} />}

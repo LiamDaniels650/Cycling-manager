@@ -1,0 +1,42 @@
+# Calibrage et détecteur d'anomalies : trop longs pour chaque envoi (≈ 30 à 60 min), ils tournent chaque semaine et à
+# la demande (onglet Actions › Calibrage › Run workflow). Échec si une mesure sort des fourchettes réelles
+# (./dev.sh calib) ou si une règle du détecteur dépasse nettement son seuil (tests/anomalies.js : alerte).
+name: Calibrage
+on:
+  schedule:
+    - cron: '17 3 * * 1' # chaque lundi, 3 h 17 UTC
+  workflow_dispatch:
+    inputs:
+      saisons:
+        description: 'Saisons par graine (calibrage)'
+        default: '30'
+jobs:
+  calibrage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Moteur assemblé
+        run: python3 build.py
+      - name: Web Worker (aller-retour de l'état)
+        run: node tests/worker_roundtrip.js
+      - name: Calibrage (deux graines)
+        run: ./dev.sh calib ${{ github.event.inputs.saisons || '30' }}
+      - name: Détecteur d'anomalies (12 saisons)
+        if: always()
+        run: node tests/anomalies.js 12 500 | tee anomalies.txt
+      - name: Résultats
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibrage
+          path: |
+            /tmp/calib200.txt
+            /tmp/calib300.txt
+            anomalies.txt

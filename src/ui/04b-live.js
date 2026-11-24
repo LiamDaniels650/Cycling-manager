@@ -149,10 +149,6 @@ function loop() {
   if (n > 0 || UI.dirty) {
     UI.dirty = false;
     renderLive();
-  } else if (UI.speed || (UI.banner && Date.now() < UI.banner.until + 400)) {
-    // entre deux pas : seule la retransmission est redessinée (mouvement fluide)
-    const el = $('#tv');
-    if (el) el.innerHTML = tvHTML(UI.acc);
   }
 }
 function setSpeed(k) {
@@ -339,80 +335,4 @@ function jersey(id) {
   }
   const e = UI.jer.j[id];
   return e ? ` <span title="maillot distinctif">${e}</span>` : '';
-}
-// Bloc « retransmission » : chrono, profil animé, écarts sur la route, graphique de l'écart, maillot virtuel, bandeau.
-function tvHTML(frac) {
-  const sim = UI.sim,
-    spec = sim.spec;
-  const G0 = sim.groups[0];
-  const km = G0 ? Math.min(ipos(G0, frac), spec.dist) : spec.dist;
-  const [g, surf, ex] = terrainAt(sim, km);
-  const t = Math.max(0, sim.t * 60 - 30 + frac * 30);
-  let h = `<div class="row sb small"><span>⏱ <b>${fmtTime(t)}</b> · km <b>${km.toFixed(1)}</b> / ${spec.dist} · reste <b>${(spec.dist - km).toFixed(1)}</b></span><span>${g.toFixed(1)} %${surf ? ' · <b>PAVÉS</b>' : ''}${ex && sim.P.wind ? ' · 🌬️' : ''} · ${G0 ? G0.speed.toFixed(1) : 0} km/h</span></div>`;
-  h += profileSVG(spec, UI.Pf, sim, frac);
-  h += roadStrip(sim, frac) + gapChart(sim) + virtualLeader(sim);
-  const B = UI.banner;
-  if (B && Date.now() < B.until) h += `<div class="banner ${B.mine ? 'bmine' : ''}">${B.txt}</div>`;
-  return h;
-}
-// Les groupes sur la route, à l'échelle, de la tête au dernier groupe affiché.
-function roadStrip(sim, frac) {
-  const gs = sim.groups.slice(0, 6);
-  if (gs.length < 2) return '';
-  const W = 640,
-    H = 64,
-    pad = 40;
-  const top = ipos(gs[0], frac),
-    last = ipos(gs[gs.length - 1], frac);
-  const span = Math.max(0.3, top - last);
-  const X = p => W - pad - ((top - p) / span) * (W - 2 * pad);
-  let s = `<svg viewBox="0 0 ${W} ${H}" class="strip"><line x1="${pad}" x2="${W - pad}" y1="32" y2="32" class="road"/>`;
-  // étiquettes en alternance haut / bas, sans chevauchement (on saute celles trop proches, sauf mes groupes)
-  const lastX = [1e9, 1e9];
-  gs.forEach((G, i) => {
-    const x = X(ipos(G, frac)),
-      mine = G.riders.some(y => y.player);
-    s += `<circle cx="${x.toFixed(1)}" cy="32" r="${Math.min(13, 5 + Math.sqrt(G.riders.length))}" class="${mine ? 'gm' : 'gg'}"/>`;
-    let row = lastX[0] - x >= 130 ? 0 : lastX[1] - x >= 130 ? 1 : -1;
-    if (row < 0 && !mine && i) return;
-    if (row < 0) row = 1;
-    lastX[row] = x;
-    const gap = i ? fmtGap(gapSec(gs[0], G)) : 'Tête';
-    s += `<text x="${clamp(x, 60, W - 60).toFixed(1)}" y="${row ? 62 : 15}" class="stx${mine ? ' stm' : ''}">${G.riders.length} · ${gap}</text>`;
-  });
-  return s + `</svg>`;
-}
-// Évolution de l'écart entre la tête de course et le peloton, kilomètre par kilomètre.
-function gapChart(sim) {
-  const Hh = sim.gapHist || [];
-  if (Hh.length < 3 || !Hh.some(p => p.gap > 5)) return '';
-  const W = 640,
-    H = 90,
-    pad = 22;
-  const mx = Math.max(60, ...Hh.map(p => p.gap));
-  const X = k => pad + (k / sim.dist) * (W - 2 * pad),
-    Y = v => H - 12 - (v / mx) * (H - 30);
-  const pts = Hh.map(p => `${X(p.km).toFixed(1)},${Y(p.gap).toFixed(1)}`).join(' ');
-  return `<svg viewBox="0 0 ${W} ${H}" class="gch"><line x1="${pad}" x2="${W - pad}" y1="${H - 12}" y2="${H - 12}" class="gl"/><polyline points="${pts}" class="gp"/><text x="${pad}" y="15" class="ck">Écart tête / peloton : ${fmtGap(Hh[Hh.length - 1].gap)} (max ${fmtGap(mx)})</text></svg>`;
-}
-// Maillot jaune virtuel : le mieux placé au général si l'on figeait les écarts maintenant.
-function virtualLeader(sim) {
-  const rc = sim.rc;
-  if (rc.specs.length < 2 || !rc.stageRes.length || sim.finish.length) return '';
-  const G0 = sim.groups[0];
-  let best = null,
-    bv = 1e12;
-  for (const x of sim.runners) {
-    if (x.fin || x.dnf || !x.g) continue;
-    const v = rc.gc[x.id] + gapSec(G0, x.g);
-    if (v < bv) {
-      bv = v;
-      best = x;
-    }
-  }
-  const ldr = gcList(rc)[0];
-  if (!best) return '';
-  return best.id === ldr
-    ? `<div class="small mut">🟡 ${riderName(best.r)} conserve virtuellement son maillot.</div>`
-    : `<div class="small"><b>🟡 Maillot jaune virtuel : ${riderName(best.r)}</b> (${best.team.short})</div>`;
 }

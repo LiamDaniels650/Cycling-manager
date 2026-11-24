@@ -117,18 +117,24 @@ function runITT(rc) {
   }
   return out;
 }
-// Simule une étape entière sans affichage (contre-la-montre compris).
+// Simule une étape entière sans affichage (contre-la-montre compris). STAGE_DONE(rc), s'il est posé, est appelé
+// après chaque étape (avancement d'une course confiée à l'adjoint dans le Web Worker : 98-worker.js).
+let STAGE_DONE = null;
 function runStageAuto(rc) {
   const spec = rc.specs[rc.si];
+  let out;
   if (isITT(spec) || isTTT(spec))
-    return withSeed({ sd: stageSeed(rc, rc.si) }, () => (isITT(spec) ? runITT(rc) : runTTT(rc)));
-  const sim = newStageSim(rc);
-  let k = 0;
-  while (!sim.done && k < 5000) {
-    simTick(sim);
-    k++;
+    out = withSeed({ sd: stageSeed(rc, rc.si) }, () => (isITT(spec) ? runITT(rc) : runTTT(rc)));
+  else {
+    out = newStageSim(rc);
+    let k = 0;
+    while (!out.done && k < 5000) {
+      simTick(out);
+      k++;
+    }
   }
-  return sim;
+  if (STAGE_DONE) STAGE_DONE(rc);
+  return out;
 }
 // Contre-la-montre par équipes : le rythme est celui du cœur de l'équipe ; les lâchés finissent seuls.
 function runTTT(rc) {

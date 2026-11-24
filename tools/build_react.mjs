@@ -1,7 +1,7 @@
 // Assemble la version React du jeu en une seule page : dist/react.html.
-//   moteur (src/engine, inchangé) + ancienne interface (src/ui, sauf le démarrage, pour les écrans pas encore
-//   convertis et ses fonctions d'action) + application React (src/react, assemblée par esbuild) + styles
-//   (Tailwind CSS v4 compilé à partir des classes utilisées, puis styles de l'ancienne interface).
+//   moteur (src/engine) + couche d'application (src/ui : sauvegardes, Web Worker, boucle de la course en direct,
+//   actions du joueur) + application React (src/react, assemblée par esbuild) + styles (Tailwind CSS v4 compilé
+//   à partir des classes utilisées, et quelques règles de base).
 // Usage : node tools/build_react.mjs     (React, esbuild et Tailwind viennent de /opt/npm-tools/node_modules)
 import fs from 'fs';
 import path from 'path';
@@ -52,7 +52,7 @@ const cat = (dir, skip = []) =>
     .map(f => `// ---- ${dir}/${f} ----\n` + fs.readFileSync(path.join(ROOT, dir, f), 'utf8'))
     .join('\n');
 const engine = "'use strict';\n" + cat('src/engine');
-const legacy = "'use strict';\n" + cat('src/ui', ['99-init.js']);
+const appLayer = "'use strict';\n" + cat('src/ui', []); // couche d'application (src/ui)
 
 const out = await esbuild.build({
   entryPoints: [path.join(ROOT, 'src/react/main.jsx')],
@@ -98,50 +98,12 @@ const tw = await compile(
 );
 const twCss = tw.build([...cands]);
 
-const shell = fs.readFileSync(path.join(ROOT, 'src/shell.html'), 'utf8');
-const legacyCss0 = (shell.match(/<style>([\s\S]*?)<\/style>/) || [, ''])[1];
-// Styles de l'ancienne interface : limités aux écrans qu'elle affiche encore (.legacy), placés dans une couche
-// au-dessus des remises à zéro de Tailwind mais sous ses classes utilitaires (les composants React gardent la main).
-function scopeCss(css) {
-  let out = '',
-    i = 0,
-    depth = 0;
-  const kf = []; // profondeurs des blocs @keyframes en cours
-  while (i < css.length) {
-    const j = css.indexOf('{', i),
-      k = css.indexOf('}', i);
-    if (k !== -1 && (j === -1 || k < j)) {
-      out += css.slice(i, k + 1);
-      depth--;
-      if (kf.length && kf[kf.length - 1] === depth) kf.pop();
-      i = k + 1;
-      continue;
-    }
-    if (j === -1) {
-      out += css.slice(i);
-      break;
-    }
-    const sel = css.slice(i, j);
-    const t = sel.trim();
-    if (t.startsWith('@')) {
-      if (/^@(-webkit-)?keyframes/.test(t)) kf.push(depth);
-      out += sel + '{';
-    } else if (kf.length) out += sel + '{';
-    else
-      out +=
-        sel
-          .split(',')
-          .map(x => {
-            const y = x.trim();
-            return /^(:root|html|body)\b/.test(y) ? y : '.legacy ' + y;
-          })
-          .join(', ') + '{';
-    depth++;
-    i = j + 1;
-  }
-  return out;
-}
-const legacyCss = scopeCss(legacyCss0.replace(/\/\*[\s\S]*?\*\//g, ''));
+// Styles de base hérités de la première interface, les seuls encore en vigueur (l'ancienne feuille de 1 275 lignes ne
+// s'appliquait plus qu'à ces règles) : texte de 15 px, interligne 1,5, marge basse sur téléphone sous la barre de
+// navigation fixe, et le texte atténué (.mut) des messages du moteur affichés tels quels (.legacy).
+const legacyCss = `body{margin:0;font-size:15px;line-height:1.5}
+@media (max-width:639px){body{padding-bottom:64px}}
+.legacy .mut{color:#8a909a}`;
 const html = `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -167,7 +129,7 @@ html.hc .border-slate-800,html.hc .divide-slate-800>*{border-color:#556070}html.
 <body>
 <div id="root"></div>
 <script id="engine">${engine}</script>
-<script>${legacy}</script>
+<script>${appLayer}</script>
 <script>${bundle}</script>
 </body>
 </html>

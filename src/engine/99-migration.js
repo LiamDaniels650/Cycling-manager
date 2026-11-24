@@ -164,8 +164,8 @@ function migrate() {
   if (!S.car) eqEnsure();
   // héritage du directeur (reconstruit à partir des résultats passés)
   if (!S.car) legacyInit();
-  // monde qui évolue : définitions de courses et réformes de la partie
-  worldApply();
+  // ce qui se déduit de l'état (définitions de courses de la partie…) : 98-worker.js
+  stateRestored();
   // staff en personnages (postes tenus par quelqu'un, du niveau actuel)
   if (!S.car) crewInit();
   // vestiaire : course visée par l'objectif de saison (objectifs fixés avant cette version)

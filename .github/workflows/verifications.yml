@@ -23,6 +23,8 @@ jobs:
         run: ./dev.sh check
       - name: Tests fonctionnels
         run: node tests/features.js
+      - name: Web Worker (aller-retour de l'état)
+        run: node tests/worker_roundtrip.js
       - name: Ordres de final (bancs d'essai du sprint et de la côte)
         run: node tests/finals.js
       - name: Non-régression
@@ -31,3 +33,8 @@ jobs:
         run: npx prettier --check src/engine/*.js src/ui/*.js tests/*.js tools/*.js tools/*.mjs
       - name: Interface React assemblée
         run: node tools/build_react.mjs
+      - name: Interface (affichage sans effet sur le hasard, parcours sans erreur)
+        run: |
+          pip install playwright
+          python3 tests/ui_rng_react.py
+          python3 tests/ui_smoke_react.py

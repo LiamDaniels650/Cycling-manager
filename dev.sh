@@ -43,10 +43,12 @@ case "$1" in
     build; bash tests/lint.sh | tail -1; bash tests/typecheck.sh | tail -1
     fp_check || true
     node tests/features.js | grep -v '^✔' | tail -3
+    node tests/worker_roundtrip.js | tail -1
     node tests/finals.js | tail -1
     bash tests/regress.sh | tail -1
     node tests/bias.js | tail -1
     node tests/audit.js | tail -1
+    python3 tests/ui_rng_react.py 2>&1 | tail -1
     for t in ui_smoke_react ui_auto_react ui_worker; do python3 tests/$t.py 2>&1 | grep -i 'ERREURS JS\|errs \[' | head -1; done ;;
   carriere) build; node tests/career.js "${2:-8}" ;;
   economie) build; node tests/economy.js 4 3 ;;
@@ -61,7 +63,8 @@ case "$1" in
     JOBS=$j node tests/calibrate.js "$n" 300 > /tmp/calib300.txt 2>&1
     wait
     for s in 200 300; do echo "graine $s : $(grep -c '✔' /tmp/calib$s.txt) mesures dans le réel"; grep '✖\|arrêt anticipé\|on poursuit' /tmp/calib$s.txt || true; done
-    echo "(détail : /tmp/calib200.txt, /tmp/calib300.txt)" ;;
+    echo "(détail : /tmp/calib200.txt, /tmp/calib300.txt)"
+    ! grep -q '✖' /tmp/calib200.txt /tmp/calib300.txt ;;
   anomalies) build; node tests/anomalies.js "${2:-12}" 500 ;;
   impact) build; node tests/impact.js 20 ;;
   prodiges) build; node tests/prodigies.js 3 9 ;;
@@ -70,7 +73,7 @@ case "$1" in
   accept)
     build; node tests/fingerprint.js 17 | tail -1 > tests/baseline/fingerprint.txt
     bash tests/regress.sh update; echo "Empreinte : $(cat tests/baseline/fingerprint.txt)" ;;
-  fmt) prettier --write src/engine/*.js src/ui/*.js src/react/*.js src/react/*.jsx src/react/*/*.js src/react/*/*.jsx tests/*.js tools/*.js tools/*.mjs src/shell.html >/dev/null; echo "Formaté." ;;
+  fmt) prettier --write src/engine/*.js src/ui/*.js src/react/*.js src/react/*.jsx src/react/*/*.js src/react/*/*.jsx tests/*.js tools/*.js tools/*.mjs >/dev/null; echo "Formaté." ;;
   reglages) python3 tools/reglages.py ;;
   adjoint) Q=1 node tests/adjoint.js "${2:-8}" "${3:-11}" ;;
   react) node tools/build_react.mjs ;;

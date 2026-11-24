@@ -40,7 +40,7 @@ RADIO = """
   openRadio(xs[0].id); sendRadio(xs[0].id,'mark'); setMark(xs[0].id,f.id);
   for(const k of ['front','pace','bottles','chase','reset']) sendRadio(xs[1].id,k);
   for(const k of ['chase','front','echelon','stop','reset']) teamRadio(k);
-  UI.sim.autoDS=true; UI.pauseHl=true; for(let i=0;i<300&&!UI.sim.done;i++){ simTick(UI.sim); if(i%25===0){ UI.speed=2; loop(); } } renderLive(); tvHTML(0.5); toEnd(); return 'radio ok'; }"""
+  UI.sim.autoDS=true; UI.pauseHl=true; for(let i=0;i<300&&!UI.sim.done;i++){ simTick(UI.sim); if(i%25===0){ UI.speed=2; loop(); } } renderLive(); toEnd(); return 'radio ok'; }"""
 async def main():
     async with async_playwright() as p:
         b=await p.chromium.launch(executable_path='/usr/bin/google-chrome',args=['--no-sandbox'])

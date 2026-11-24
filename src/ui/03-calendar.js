@@ -169,37 +169,11 @@ function simWorker() {
   try {
     const src = (document.getElementById('engine') || {}).textContent || '';
     if (!src || typeof Worker === 'undefined' || typeof Blob === 'undefined') throw new Error('indisponible');
+    // (tout le traitement est dans le moteur : workerRun, 98-worker.js)
     const glue = `
 onmessage = e => {
-  const d = e.data;
-  try {
-    S = d.state; _sd = d.sd; if (d.rid != null) _rid = d.rid;
-    // courses de la partie (disparues, créées, catégories, taille des effectifs) : dérivées de l'état, à
-    // recalculer ici comme au chargement, sinon le Worker simulait avec le calendrier d'origine
-    if (typeof worldApply === 'function') worldApply();
-    if (d.op === 'worlds') {
-      const rc = runWorlds(d.i);
-      postMessage({ done: true, state: S, sd: _sd, rid: _rid, win: rc.stageRes[0].res[0].id });
-      return;
-    }
-    if (d.op === 'advance') {
-      advanceToNextRace();
-      postMessage({ done: true, state: S, sd: _sd, rid: _rid });
-      return;
-    }
-    if (d.delegate) {
-      // course confiée à l'adjoint : même déroulé, avec la progression étape par étape
-      const rs = runStageAuto;
-      runStageAuto = r => { const o = rs(r); postMessage({ k: r.si, n: r.specs.length }); return o; };
-      runDelegatedRace(d.i);
-      runStageAuto = rs;
-    } else {
-      const rc = startRace(d.i, []);
-      while (!rc.done) { runStageAuto(rc); postMessage({ k: rc.si, n: rc.specs.length }); }
-    }
-    S.rc = null;
-    postMessage({ done: true, state: S, sd: _sd, rid: _rid });
-  } catch (err) { postMessage({ error: String(err && err.message || err) }); }
+  try { postMessage(workerRun(e.data, m => postMessage(m))); }
+  catch (err) { postMessage({ error: String(err && err.message || err) }); }
 };`;
     SIM_WORKER = new Worker(URL.createObjectURL(new Blob([src, glue], { type: 'text/javascript' })));
   } catch (e) {
@@ -234,7 +208,7 @@ function simulateRaceAsync(i, done, delegate) {
     S = d.state;
     _sd = d.sd;
     if (d.rid != null) _rid = d.rid;
-    worldApply(); // (définitions de courses dérivées de l'état repris)
+    stateRestored(); // (ce qui se déduit de l'état repris : 98-worker.js)
     UI.busy = null;
     renderBusy();
     done(null);
@@ -268,7 +242,7 @@ function workerOp(op, i, txt, local, done) {
     S = d.state;
     _sd = d.sd;
     if (d.rid != null) _rid = d.rid;
-    worldApply(); // (définitions de courses dérivées de l'état repris)
+    stateRestored(); // (ce qui se déduit de l'état repris : 98-worker.js)
     UI.busy = null;
     renderBusy();
     done(d);

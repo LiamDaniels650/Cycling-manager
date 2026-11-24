@@ -44,21 +44,6 @@ function importFile(inp) {
     } else alertBox('Ce fichier n’est pas une sauvegarde valide : la partie en cours est conservée.');
   });
 }
-// Copies de sécurité de début de saison, affichées dans les options.
-function showBackups() {
-  idbBackups().then(keys => {
-    const el = $('#bkp');
-    if (!el) return;
-    el.innerHTML = keys.length
-      ? `Copies de sécurité (avant chaque fin de saison) : ${keys
-          .map(
-            k =>
-              `<button onclick="confirmBox('Revenir à la copie ${k.replace('saison-', 'de fin de saison ')} ? La partie actuelle sera remplacée.',()=>idbRestore('${k}').then(ok=>{save();UI.flash=ok?'Copie restaurée.':'Copie illisible.';UI.view='home';render();}))">${k.replace('saison-', 'Fin ')}</button>`
-          )
-          .join(' ')}`
-      : '<span class="mut">Une copie de sécurité est faite automatiquement à chaque fin de saison.</span>';
-  });
-}
 
 function doAnswer(k) {
   const t = answerPress(k);

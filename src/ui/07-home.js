@@ -132,9 +132,6 @@ function navItems() {
     ['world', '', 'Le monde', 0],
   ];
 }
-function badge(n) {
-  return n ? `<i class="bdg">${n > 9 ? '9+' : n}</i>` : '';
-}
 function openNav() {
   UI.modal = { type: 'nav' };
   renderModal();

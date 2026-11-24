@@ -43,7 +43,6 @@ export function installBridge() {
   w.render = () => {
     document.body.classList.toggle('racing', UI.view === 'race' && !!UI.sim);
     refresh();
-    if (UI.view === 'opt') setTimeout(() => w.showBackups && w.showBackups(), 0);
   };
   w.renderLive = () => refresh();
   w.renderModal = () => refresh();
