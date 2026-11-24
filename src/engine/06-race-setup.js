@@ -224,6 +224,13 @@ function autoOrders(teamId, spec, rc) {
       : null;
   if (!leader && !hunter) leader = t === 'plat' && sprinter ? null : bestCourse;
   if (leader === sprinter) leader = null;
+  // un équipier sur le podium du général (le maillot, souvent) court pour lui : il ne se sacrifie pas pour le leader
+  // désigné (sinon le maillot jaune perdait sept minutes à protéger un coéquipier moins bien classé)
+  if (stageRace && rc.si > 0)
+    for (const r of rs) {
+      const k = leaderGcRank(rc, r.id);
+      if (k > 0 && k <= 3 && r !== leader && r !== sprinter && !coLeads.includes(r)) coLeads.push(r);
+    }
   coLeads = coLeads.filter(r => r !== leader && r !== sprinter);
   let rest = rs.filter(r => r !== leader && r !== sprinter && r !== hunter && !coLeads.includes(r));
   // les coureurs envoyés dans l'échappée dépendent du terrain : grimpeurs en montagne, puncheurs sur les étapes accidentées

@@ -165,14 +165,15 @@ function tickPhysics(sim) {
       const gcAhead =
         sim.stageRace &&
         sim.spec.type !== 'montagne' &&
-        G.riders.some(y => y.order === 'leader' && gcMan(sim, y)) &&
+        G.riders.some(y => gcLead(sim, y)) &&
         gcGroups(sim).some(H => H !== G && H.pos > G.pos && gapSec(H, G) < 600);
       // (et, sur le plat abrité, un groupe coupé de moins de deux minutes à n'importe quel moment : il revient)
       const cutFlat = gp != null && gp < 120 && g < 2 && !G.expo && !G.dropped;
       if ((gp != null && gp < 45 && sim.dist - G.pos < R.cutChaseKm) || gcAhead || cutFlat) {
         L0 = L;
         // (les plus forts relaient, les autres s'accrochent dans les roues : allure du tiers le plus fort)
-        L = Math.max(L, capsDesc()[Math.floor(n * 0.3)] * 0.95);
+        // (à trois ou plus, les relais courts permettent de tenir l'allure du seuil des plus forts)
+        L = Math.max(L, capsDesc()[Math.floor(n * 0.3)] * (n >= 3 ? 1 : 0.95));
         if (gp != null && pG.L && !gcAhead) L = Math.min(L, Math.max(L0, pG.L * 1.04));
         if (L > L0) paceSrc = 'tempo';
       }
@@ -475,8 +476,8 @@ function incident(sim, x, type) {
         const BG = newGroupFrom(sim, behind, Math.max(0, G.pos - (G.speed * rf(5, 20)) / 3600));
         BG.noMerge = 2;
         // fair-play : des leaders du général piégés derrière la chute loin de l'arrivée, le peloton se relève
-        const gcBack = behind.filter(y => y.order === 'leader' && gcMan(sim, y));
-        if (sim.stageRace && !sim.neutral && G === sim.pel && gcBack.length && sim.dist - G.pos > 25) {
+        const gcBack = behind.filter(y => gcLead(sim, y));
+        if (sim.stageRace && !sim.neutral && G.riders.length >= 20 && gcBack.length && sim.dist - G.pos > 25) {
           sim.neutral = { G, until: sim.t + 4, who: gcBack[0] };
           log(
             sim,
@@ -535,7 +536,7 @@ function gcGroups(sim) {
     H =>
       H.riders.length >= 3 &&
       !(sim.brkIds && H.riders.filter(z => sim.brkIds.has(z.id)).length * 2 > H.riders.length) &&
-      H.riders.some(z => z.order === 'leader' && gcMan(sim, z))
+      H.riders.some(z => gcLead(sim, z))
   );
   return sim._gcg;
 }

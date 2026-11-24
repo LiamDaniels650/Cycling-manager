@@ -124,5 +124,7 @@ const R = {
   // peloton on dépense peu et on mange, en tête ou en échappée on brûle beaucoup sans avoir le temps de manger
   foodDrain: 1.6, // réglé pour 1 à 6 fringales par grand tour sur tout le peloton (calibration : GT_fringales)
   yelCtrlGap: 360, // l'équipe du maillot contrôle une échappée au-delà de cet écart (s), quel que soit son porteur
+  windRider: 0.75, // part du vent annoncé ressentie à hauteur de cycliste
+  maxBreakGap: 600, // course par étapes : au-delà, les équipes de leaders et de sprinteurs roulent toutes
   cutChaseKm: 15, // groupe coupé dans les derniers km : il chasse à bloc pour revenir sur le peloton
 };

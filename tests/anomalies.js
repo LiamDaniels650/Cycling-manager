@@ -25,7 +25,8 @@ const RULES = {
   leader_abandon: ['le leader du général abandonne', 0.6],
   echap_reprise_tot: ['échappée (plus de 1 min d’avance) reprise à plus de 90 km de l’arrivée sur le plat', 5],
   explosion_plat: ['peloton éclaté sur le plat sans bordure ni chute (groupe des favoris < 40 % à 20 km)', 2],
-  fringales_equipe: ['au moins 3 fringales dans une même équipe sur une étape', 1],
+  fringales_equipe: ['au moins 3 coureurs d’une même équipe en fringale sur une étape', 1],
+  fringales_coureur: ['un même coureur en fringale 3 fois dans une étape', 0.3],
   sprinteur_montagne: ['un sprinteur gagne une étape de montagne ou une arrivée au sommet', 0.5],
   vitesse: ['vitesse moyenne du vainqueur hors de 30-52 km/h (ligne)', 0],
   ecart_vainqueur: ['le vainqueur d’une étape en ligne a plus de 8 min d’avance sur le 2e', 0],
@@ -258,13 +259,16 @@ function checkStage(seed, rc, cal, spec, out, gcBefore, ldrBefore, gc0) {
   // Fringales par équipe
   N.fringales_equipe++;
   const bt = {};
-  for (const x of sim.runners) if (x.bonks) bt[x.team.id] = (bt[x.team.id] || 0) + x.bonks;
+  for (const x of sim.runners) if (x.bonks) bt[x.team.id] = (bt[x.team.id] || 0) + 1; // (coureurs touchés)
+  N.fringales_coureur++;
+  const rb = sim.runners.filter(x => x.bonks >= 3);
+  if (rb.length) flag('fringales_coureur', ctx, rb.map(x => `${nm(x.id)} (${x.order}) : ${x.bonks} fringales`).join(', '), sim, null, rb.map(x => x.id));
   const worst = Object.entries(bt).sort((a, b) => b[1] - a[1])[0];
   if (worst && worst[1] >= 3)
     flag(
       'fringales_equipe',
       ctx,
-      `${S.teams[worst[0]].name} : ${worst[1]} fringales`,
+      `${S.teams[worst[0]].name} : ${worst[1]} coureurs en fringale (${sim.runners.filter(x => x.bonks && x.team.id == worst[0]).map(x => `${nm(x.id)} ${x.order} ${Math.round(x.st.kw)} km en tête, ${Math.round(x.st.kf)} km devant`).join(' ; ')})`,
       sim,
       null,
       sim.runners.filter(x => x.bonks && x.team.id == worst[0]).map(x => x.id)

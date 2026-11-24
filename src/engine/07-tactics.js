@@ -120,6 +120,12 @@ function gcMan(sim, x) {
   if (!sim._gcTop) sim._gcTop = new Set(gcList(sim.rc).slice(0, 15));
   return sim._gcTop.has(x.id);
 }
+// Leader du général : consigne de leader dans les quinze premiers, ou sur le podium quelle que soit sa consigne.
+function gcLead(sim, x) {
+  if (!gcMan(sim, x)) return false;
+  if (!sim._gcTop3) sim._gcTop3 = new Set(gcList(sim.rc).slice(0, 3));
+  return x.order === 'leader' || sim._gcTop3.has(x.id);
+}
 // Un équipier redescend aux voitures chercher des bidons pour ses leaders.
 function fetchBottles(sim, x) {
   const G = x.g;
@@ -476,7 +482,8 @@ function dsBrain(sim, T) {
   // fringale : la voiture (ou un équipier) apporte vite un bidon et des gels, sauf dans les 20 derniers km
   for (const x of mine)
     if (x.bonk && x.g && sim.dist - x.g.pos > R.feedKm && once('resc' + x.id, 6)) {
-      x.food = Math.min(100, x.food + 22);
+      // (bidon et gels à volonté : avec un simple bidon, un échappé retombait en fringale trois quarts d'heure après)
+      x.food = Math.min(100, x.food + 40);
       if (T.player) log(sim, `🥤 La voiture apporte un bidon et des gels à ${riderName(x.r)}.`, 'me');
     }
   // bidons : un équipier redescend à la voiture quand l'équipe a faim (toutes les équipes, comme en course)
@@ -559,7 +566,11 @@ function doAttack(sim, x, opts = {}) {
         // sprinteurs, et une attaque dans le final ne change rien au classement : on reste dans le peloton, même
         // temps) ; le jour de la parade, un leader ne suit rien
         const flatSR = sim.stageRace && sim.spec.type === 'plat' && sim.P.finishGrad < 3;
-        const counts = flatSR ? rival : sim.favs.has(x.id) || rival || phaseOf(sim, G) === 'final';
+        // bagarre pour l'échappée (début d'étape, loin de l'arrivée) : un leader laisse ses équipiers s'occuper des
+        // attaques, même celles des favoris du jour ; seul un rival direct au général est suivi (sinon tous les
+        // leaders partaient dans l'échappée du km 8 et le peloton, resté aux équipes de sprinteurs, ne roulait plus)
+        const early = (sim.brkState === 'fight' || phaseOf(sim, G) === 'debut') && sim.dist - G.pos > 60;
+        const counts = flatSR || early ? rival : sim.favs.has(x.id) || rival || phaseOf(sim, G) === 'final';
         // dans les 10 derniers km d'une étape plate, même un rival qui attaque est laissé aux trains des sprinteurs :
         // le leader reste dans les roues de ses équipiers
         const sprintRunIn = flatSR && sim.dist - G.pos < 10;
@@ -747,6 +758,10 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
     const yid = gcCached(sim.rc).arr[0];
     if (G.riders.some(x => x.id === yid && x.team === T)) yc = gap > R.yelCtrlGap * 1.5 ? [0.88, 3] : [0.82, 2];
   }
+  // plafond : au-delà de dix minutes (le maillot ne roule pas, il a un homme devant par exemple), les équipes qui ont
+  // un leader ou un sprinteur dans le peloton se partagent la poursuite (sinon un échappé prenait un quart d'heure)
+  if (!yc && sim.stageRace && G === sim.pel && gap > R.maxBreakGap && (ldr || spr) && !teamHasAhead(sim, T, G))
+    yc = [0.86, 2];
   if (!ldr && !spr) return yc || [0, 0];
   const favAhead = ahead.some(H => H.riders.some(y => y.team !== T && sim.favs.has(y.id)));
   const aheadMate = teamHasAhead(sim, T, G) && !favAhead && !(gap > Math.max(150, (kmLeft - 25) * 3.5));

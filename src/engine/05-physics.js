@@ -136,7 +136,9 @@ function headwindAt(sim, km) {
 }
 // Orientation de la route par tronçons de 10 km et vent du jour (force 0-3 → 0 à 6 m/s).
 function genWindAxis(sim, dist, force, finWind) {
-  const ms = [0, 2, 3.8, 6][force || 0];
+  // (vent annoncé à 10 m de haut ; à hauteur de cycliste, haies et bâtiments compris, il en reste environ les trois
+  // quarts : sans cela, un peloton roulait à 73 km/h vent dans le dos et à 26 km/h vent de face sur le plat)
+  const ms = [0, 2, 3.8, 6][force || 0] * R.windRider;
   const n = Math.ceil(dist / 10) + 1;
   const a = [];
   let ang = rnd() * Math.PI * 2;
