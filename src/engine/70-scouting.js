@@ -88,7 +88,19 @@ function scmValue(r) {
 // Points forts et faibles (selon les valeurs affichées, donc l'estimation du recruteur).
 function scmTraits(r) {
   const st = shownStats(r);
-  const lbl = { pla: 'plat', mon: 'montagne', col: 'collines', spr: 'sprint', clm: 'chrono', pav: 'pavés', des: 'descente', plc: 'placement', end: 'endurance', rec: 'récupération', bar: 'baroud' };
+  const lbl = {
+    pla: 'plat',
+    mon: 'montagne',
+    col: 'collines',
+    spr: 'sprint',
+    clm: 'chrono',
+    pav: 'pavés',
+    des: 'descente',
+    plc: 'placement',
+    end: 'endurance',
+    rec: 'récupération',
+    bar: 'baroud',
+  };
   const ks = Object.keys(lbl).sort((a, b) => st[b] - st[a]);
   return { fort: ks.slice(0, 2).map(k => lbl[k]), faible: lbl[ks[ks.length - 1]] };
 }
@@ -173,7 +185,9 @@ function scmWatchAll(repId) {
       S.watch.push(x.id);
       n++;
     }
-  return n ? `${n} coureur${n > 1 ? 's' : ''} ajouté${n > 1 ? 's' : ''} à la liste de suivi.` : 'Rien à ajouter (déjà suivis, ou liste pleine).';
+  return n
+    ? `${n} coureur${n > 1 ? 's' : ''} ajouté${n > 1 ? 's' : ''} à la liste de suivi.`
+    : 'Rien à ajouter (déjà suivis, ou liste pleine).';
 }
 const WATCH_MAX = 20;
 const SCM_REC = {

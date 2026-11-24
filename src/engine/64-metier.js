@@ -80,7 +80,12 @@ function tvRaceEnd(rc) {
 function tvRank() {
   if (!S.tvs || S.tvs.s !== S.season) return null;
   const arr = S.teams.map(T => [T.id, S.tvs.by[T.id] || 0]).sort((a, b) => b[1] - a[1]);
-  return { rank: arr.findIndex(a => a[0] === 0) + 1, n: arr.length, min: Math.round(S.tvs.by[0] || 0), top: arr.slice(0, 5) };
+  return {
+    rank: arr.findIndex(a => a[0] === 0) + 1,
+    n: arr.length,
+    min: Math.round(S.tvs.by[0] || 0),
+    top: arr.slice(0, 5),
+  };
 }
 // Fin de saison : le sponsor juge aussi la visibilité (confiance).
 function tvEndSeason() {
@@ -124,7 +129,15 @@ function olympicAfter(rc) {
   });
   const mine = gcl.filter(id => S.riders[id].team === 0);
   const best = mine[0];
-  S.hist.push({ season: S.season, key: rc.key, name: rc.name, winner: gcl[0], podium: gcl.slice(0, 3), my: best ? gcl.indexOf(best) + 1 : null, myId: best || null });
+  S.hist.push({
+    season: S.season,
+    key: rc.key,
+    name: rc.name,
+    winner: gcl[0],
+    podium: gcl.slice(0, 3),
+    my: best ? gcl.indexOf(best) + 1 : null,
+    myId: best || null,
+  });
   const myMed = gcl.slice(0, 3).filter(id => S.riders[id].team === 0);
   for (const id of myMed) {
     const k = gcl.indexOf(id);
@@ -153,7 +166,14 @@ function olympicAfter(rc) {
 
 // --- À domicile ---
 const HOME_REG = { FRA: ['FRA'], NORD: ['BEL', 'NED'], ITA: ['ITA'], IBE: ['ESP'], ALP: ['SUI'] };
-const HOME_RACE = { cyclass: ['GER'], polders: ['NED'], flandres: ['BEL'], pav: ['FRA', 'BEL'], romand: ['SUI'], cantons: ['SUI'] };
+const HOME_RACE = {
+  cyclass: ['GER'],
+  polders: ['NED'],
+  flandres: ['BEL'],
+  pav: ['FRA', 'BEL'],
+  romand: ['SUI'],
+  cantons: ['SUI'],
+};
 function homeNats(key) {
   if (HOME_RACE[key]) return HOME_RACE[key];
   const reg = RACE_REG[key];

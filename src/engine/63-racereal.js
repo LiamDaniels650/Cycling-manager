@@ -50,7 +50,13 @@ function cutApply(rc, spec, res) {
       rc.out[e.id] = true;
       out.push(e.id);
     }
-  rc.cutInfo = { n: late.length, lim: lim - res[0].time, pct: +pct.toFixed(1), graced, mine: late.filter(e => S.riders[e.id].team === 0).map(e => e.id) };
+  rc.cutInfo = {
+    n: late.length,
+    lim: lim - res[0].time,
+    pct: +pct.toFixed(1),
+    graced,
+    mine: late.filter(e => S.riders[e.id].team === 0).map(e => e.id),
+  };
   if (rc.cutInfo.mine.length)
     msg(
       graced ? '⏱️ Repêchés' : '⏱️ Hors délais',
@@ -174,7 +180,8 @@ function aiTacticalAbandons(rc) {
       else if (later && restNext && r.age <= 32 && overall(r.s) >= 76) {
         const k = gcl.indexOf(id);
         const gap = k > 0 ? rc.gc[id] - rc.gc[gcl[0]] : 0;
-        if (k >= 15 && gap > 1200 && ['complet', 'grimpeur'].includes(r.arch) && h < 150) why = 'vise le prochain grand tour';
+        if (k >= 15 && gap > 1200 && ['complet', 'grimpeur'].includes(r.arch) && h < 150)
+          why = 'vise le prochain grand tour';
       }
       if (why) tacticalOut(rc, id, why);
     }
@@ -188,7 +195,12 @@ function tacticalOut(rc, id, why) {
   (rc.tacOut = rc.tacOut || []).push({ id, si: rc.si, why });
   const T = teamOf(r);
   if (overall(r.s) >= 76 || (T && T.player))
-    press(`${riderName(r)} quitte ${rc.name}`, `${riderName(r)} (${T ? T.name : ''}) ne prendra pas le départ de l'étape ${rc.si + 2} : ${why}.`, 0, [id]);
+    press(
+      `${riderName(r)} quitte ${rc.name}`,
+      `${riderName(r)} (${T ? T.name : ''}) ne prendra pas le départ de l'étape ${rc.si + 2} : ${why}.`,
+      0,
+      [id]
+    );
 }
 // Votre abandon tactique (entre deux étapes) : le coureur rentre préparer la suite ; l'organisateur n'aime pas ça.
 function myTacticalAbandon(id) {
@@ -199,7 +211,10 @@ function myTacticalAbandon(id) {
   const left = (rc.sel[0] || []).filter(x => !rc.out[x]).length;
   if (left <= 2) return 'Il faut garder au moins deux coureurs en course.';
   const r = S.riders[id];
-  const why = r.arch === 'sprinteur' && flatLeft(rc) === 0 ? 'plus d’étape pour lui' : 'il rentre préparer ses prochains objectifs';
+  const why =
+    r.arch === 'sprinteur' && flatLeft(rc) === 0
+      ? 'plus d’étape pour lui'
+      : 'il rentre préparer ses prochains objectifs';
   tacticalOut(rc, id, why);
   if (rc.cat === 0) addRep(-0.5);
   return `🏠 ${riderName(r)} quitte ${rc.name} (${why}). Fatigue épargnée pour la suite ; l'organisateur fait la grimace.`;

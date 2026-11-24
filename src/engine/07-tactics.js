@@ -550,7 +550,8 @@ function doAttack(sim, x, opts = {}) {
   if (!opts.noFollow) {
     for (const y of G.riders.slice()) {
       if (y.fin || y.team === x.team) continue;
-      const eo = effOrder(y);
+      // (un homme du podium en carte libre suit comme un leader : il ne part pas dans les échappées)
+      const eo = effOrder(y) === 'free' && gcLead(sim, y) ? 'leader' : effOrder(y);
       let want = 0;
       if (eo === 'leader') {
         // un leader ne suit que les coups qui comptent : un favori, un rival au général, ou tout ce qui bouge dans
@@ -754,13 +755,23 @@ function teamChaseLevel0(sim, T, G, kmLeft) {
   // en jaune la première semaine) : au-delà de six minutes, elle met des hommes en tête (sinon un échappé sans
   // danger au général prenait vingt minutes)
   let yc = null;
-  if (sim.stageRace && sim.rc.si > 0 && gap > R.yelCtrlGap && !teamHasAhead(sim, T, G)) {
+  const mtn = sim.spec.type === 'montagne' || sim.spec.type === 'sommet';
+  // (en montagne, une échappée sans danger pour le général a droit à dix minutes)
+  const ycGap = mtn ? R.maxBreakGap : R.yelCtrlGap;
+  if (sim.stageRace && sim.rc.si > 0 && gap > ycGap && !teamHasAhead(sim, T, G)) {
     const yid = gcCached(sim.rc).arr[0];
-    if (G.riders.some(x => x.id === yid && x.team === T)) yc = gap > R.yelCtrlGap * 1.5 ? [0.88, 3] : [0.82, 2];
+    if (G.riders.some(x => x.id === yid && x.team === T)) yc = gap > ycGap * 1.5 ? [0.88, 3] : [0.82, 2];
   }
   // plafond : au-delà de dix minutes (le maillot ne roule pas, il a un homme devant par exemple), les équipes qui ont
   // un leader ou un sprinteur dans le peloton se partagent la poursuite (sinon un échappé prenait un quart d'heure)
-  if (!yc && sim.stageRace && G === sim.pel && gap > R.maxBreakGap && (ldr || spr) && !teamHasAhead(sim, T, G))
+  if (
+    !yc &&
+    sim.stageRace &&
+    G === sim.pel &&
+    gap > R.maxBreakGap * (mtn ? 1.5 : 1) &&
+    (ldr || spr) &&
+    !teamHasAhead(sim, T, G)
+  )
     yc = [0.86, 2];
   if (!ldr && !spr) return yc || [0, 0];
   const favAhead = ahead.some(H => H.riders.some(y => y.team !== T && sim.favs.has(y.id)));

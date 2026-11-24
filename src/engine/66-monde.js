@@ -42,7 +42,13 @@ function wtN() {
 
 // --- Nouvelles courses ---
 const NEW_RACES = {
-  FRA: ['Grand Prix des Volcans', 'Tour des Gorges', 'Classique des Vignobles', 'Boucles de la Loire', 'Ronde des Causses'],
+  FRA: [
+    'Grand Prix des Volcans',
+    'Tour des Gorges',
+    'Classique des Vignobles',
+    'Boucles de la Loire',
+    'Ronde des Causses',
+  ],
   NORD: ['Grand Prix des Moulins', 'Ronde des Canaux', 'Classique des Dunes', 'Omloop des Briqueteries'],
   ITA: ['Giro delle Colline', 'Coppa dei Laghi', 'Trofeo del Sole', 'Gran Premio delle Valli'],
   IBE: ['Vuelta a la Sierra', 'Clásica del Ebro', 'Volta das Rías', 'Gran Premio de la Meseta'],
@@ -54,8 +60,14 @@ function newRaceDef(w, h) {
   const used = new Set(RACE_DEFS.map(d => d.name).concat(worldInit().added.map(d => d.name)));
   const names = NEW_RACES[reg].filter(n => !used.has(n));
   const name = names.length ? names[(h >>> 4) % names.length] : `Grand Prix ${S.season + 1}`;
-  const stageRace = name.startsWith('Tour') || name.startsWith('Vuelta') || name.startsWith('Volta') || name.startsWith('Giro');
-  const T = reg === 'NORD' ? ['paves', 'plat', 'vallonne'] : reg === 'ALP' ? ['montagne', 'vallonne', 'sommet'] : ['vallonne', 'punch', 'plat'];
+  const stageRace =
+    name.startsWith('Tour') || name.startsWith('Vuelta') || name.startsWith('Volta') || name.startsWith('Giro');
+  const T =
+    reg === 'NORD'
+      ? ['paves', 'plat', 'vallonne']
+      : reg === 'ALP'
+        ? ['montagne', 'vallonne', 'sommet']
+        : ['vallonne', 'punch', 'plat'];
   const stages = stageRace
     ? [0, 1, 2, 3, 4].map(i => [T[(h >>> (i + 6)) % T.length], 150 + ((h >>> (i + 2)) % 50)])
     : [[T[(h >>> 7) % T.length], 185 + ((h >>> 3) % 40)]];
@@ -80,11 +92,16 @@ const NEW_SPONSORS = [
 // Équipe dont le nom vient du jeu (et non d'un renommage par le joueur) : son sponsor peut changer.
 function gameNamedTeam(T) {
   return (
-    TEAM_NAMES.some(t => t[0] === T.name) || RESERVE_TEAMS.some(t => t[0] === T.name) || worldInit().teamNames.includes(T.name)
+    TEAM_NAMES.some(t => t[0] === T.name) ||
+    RESERVE_TEAMS.some(t => t[0] === T.name) ||
+    worldInit().teamNames.includes(T.name)
   );
 }
 function shortOf(name) {
-  const w = name.replace(/[^A-Za-zÀ-ÿ ]/g, '').split(' ').filter(Boolean);
+  const w = name
+    .replace(/[^A-Za-zÀ-ÿ ]/g, '')
+    .split(' ')
+    .filter(Boolean);
   const base = (w.length >= 2 ? w[0].slice(0, 2) + w[1][0] : w[0].slice(0, 3)).toUpperCase();
   let s = base,
     k = 1;
@@ -191,13 +208,19 @@ function worldEndSeason(rankArr) {
       W.gone.push(d.key);
       W.added = W.added.filter(x => x.key !== d.key);
       W.added.push(nd);
-      news.push(`${raceNameOf(d.key)} disparaît faute d'organisateur ; une nouvelle course naît la même semaine : ${nd.name} (${REG_LBL[nd.reg]}).`);
+      news.push(
+        `${raceNameOf(d.key)} disparaît faute d'organisateur ; une nouvelle course naît la même semaine : ${nd.name} (${REG_LBL[nd.reg]}).`
+      );
     }
   }
   // une course monte en WorldTour, une autre redescend
   if (h('p') % 100 < 20) {
-    const up = RACE_DEFS.filter(d => d.cat === 2 && !d.worlds && !d.olympic && !WORLD_KEEP.includes(d.key) && !(d.born > S.season - 2));
-    const down = RACE_DEFS.filter(d => d.cat === 1 && !d.worlds && !d.olympic && !MONUMENTS.includes(d.key) && !WORLD_KEEP.includes(d.key));
+    const up = RACE_DEFS.filter(
+      d => d.cat === 2 && !d.worlds && !d.olympic && !WORLD_KEEP.includes(d.key) && !(d.born > S.season - 2)
+    );
+    const down = RACE_DEFS.filter(
+      d => d.cat === 1 && !d.worlds && !d.olympic && !MONUMENTS.includes(d.key) && !WORLD_KEEP.includes(d.key)
+    );
     if (up.length && down.length) {
       const a = up[h('pu') % up.length],
         b = down[h('pd') % down.length];
@@ -215,7 +238,10 @@ function worldEndSeason(rankArr) {
     const T = weak[h('fw') % weak.length];
     const ch = bankruptcy(T, h('fn'));
     if (ch) W.born[ch.name] = S.season;
-    if (ch) news.push(`Faillite de ${ch.old} : son sponsor se retire. Une nouvelle structure, ${ch.name}, reprend sa place avec une partie des coureurs.`);
+    if (ch)
+      news.push(
+        `Faillite de ${ch.old} : son sponsor se retire. Une nouvelle structure, ${ch.name}, reprend sa place avec une partie des coureurs.`
+      );
   } else if (ai.length && h('s') % 100 < 45) {
     const T = ai[h('sw') % ai.length];
     const ch = newSponsorFor(T, h('sn'), false);

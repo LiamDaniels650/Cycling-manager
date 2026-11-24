@@ -78,7 +78,9 @@ function applyStageResult(rc, spec, res, dnfIds) {
     type: spec.type,
     res: res.map(e => ({ id: e.id, gap: e.gap, time: e.time })),
     cut: cutIds,
-    cutInfo: rc.cutInfo ? { pct: rc.cutInfo.pct, lim: Math.round(rc.cutInfo.lim), n: rc.cutInfo.n, graced: rc.cutInfo.graced } : null,
+    cutInfo: rc.cutInfo
+      ? { pct: rc.cutInfo.pct, lim: Math.round(rc.cutInfo.lim), n: rc.cutInfo.n, graced: rc.cutInfo.graced }
+      : null,
     stats: rc._stats || null,
     brk: rc._brk || null,
     tac: rc._tac || null,

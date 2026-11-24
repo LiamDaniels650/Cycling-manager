@@ -68,7 +68,9 @@ function periAutoAll() {
       n++;
     }
   }
-  return n ? `📅 ${n} plan${n > 1 ? 's' : ''} de saison construit${n > 1 ? 's' : ''} vers les objectifs des coureurs.` : 'Aucun coureur sans plan avec un objectif à venir.';
+  return n
+    ? `📅 ${n} plan${n > 1 ? 's' : ''} de saison construit${n > 1 ? 's' : ''} vers les objectifs des coureurs.`
+    : 'Aucun coureur sans plan avec un objectif à venir.';
 }
 function periBlockNow(r, w = S.week) {
   const P = periOf(r);
@@ -110,7 +112,7 @@ function labMeasure(r) {
   const kg = r.kg || 68;
   const cp = riderCP(r);
   const W = wPrime(r) * 1000;
-  const nz = k => 1 + (((dsHash('lab' + r.id + k + S.season + ':' + S.week) % 41) - 20) / 1000); // ±2 %
+  const nz = k => 1 + ((dsHash('lab' + r.id + k + S.season + ':' + S.week) % 41) - 20) / 1000; // ±2 %
   const p20 = Math.round((cp + W / 1200) * nz('20'));
   const p5 = Math.round((cp + W / 300) * nz('5'));
   const p1 = Math.round((cp + W / 60) * nz('1'));
@@ -164,7 +166,12 @@ function doctorCandidates() {
   const out = [];
   for (let i = 0; i < 3; i++) {
     const h = dsHash('doc' + S.season + i);
-    out.push({ k: ks[(h + i) % ks.length], fn: N.fn[(h >>> 3) % N.fn.length], ln: N.ln[(h >>> 9) % N.ln.length], fee: 30 + ((h >>> 5) % 4) * 10 });
+    out.push({
+      k: ks[(h + i) % ks.length],
+      fn: N.fn[(h >>> 3) % N.fn.length],
+      ln: N.ln[(h >>> 9) % N.ln.length],
+      fee: 30 + ((h >>> 5) % 4) * 10,
+    });
   }
   return out;
 }
@@ -196,7 +203,8 @@ function crashInjKind(weeks) {
 // Reprise anticipée : 40 % de temps d'arrêt en moins, mais un risque de rechute au retour.
 function earlyReturn(id) {
   const r = S.riders[id];
-  if (!r || r.team !== 0 || r.injury < 2 || !r.inj || r.inj.k === 'suspension') return 'Pas de reprise anticipée possible.';
+  if (!r || r.team !== 0 || r.injury < 2 || !r.inj || r.inj.k === 'suspension')
+    return 'Pas de reprise anticipée possible.';
   if (r.inj.early) return 'Reprise déjà avancée.';
   r.injury = Math.max(1, Math.ceil(r.injury * 0.6));
   r.inj.early = true;
@@ -219,13 +227,27 @@ function healthWeekly(r, mine) {
         r.injury = w;
         r.forme = Math.max(30, r.forme - 5);
         r.inj = { k: r.inj.k, w0: w, s: S.season, wk: S.week, relapse: true };
-        if (mine) msg('🚑 Rechute', `${riderName(r)} a repris trop tôt : rechute, encore ${w} semaine${w > 1 ? 's' : ''} d'arrêt.`);
+        if (mine)
+          msg(
+            '🚑 Rechute',
+            `${riderName(r)} a repris trop tôt : rechute, encore ${w} semaine${w > 1 ? 's' : ''} d'arrêt.`
+          );
         return;
       }
     }
-    (r.injHist = r.injHist || []).unshift({ k: r.inj.k, s: r.inj.s, wk: r.inj.wk, w: r.inj.w0, relapse: !!r.inj.relapse });
+    (r.injHist = r.injHist || []).unshift({
+      k: r.inj.k,
+      s: r.inj.s,
+      wk: r.inj.wk,
+      w: r.inj.w0,
+      relapse: !!r.inj.relapse,
+    });
     if (r.injHist.length > 8) r.injHist.length = 8;
-    if (mine) msg('✅ Retour', `${riderName(r)} est de nouveau disponible (${(INJ[r.inj.k] || INJ.plaies).lbl.toLowerCase()}).`);
+    if (mine)
+      msg(
+        '✅ Retour',
+        `${riderName(r)} est de nouveau disponible (${(INJ[r.inj.k] || INJ.plaies).lbl.toLowerCase()}).`
+      );
     r.inj = null;
     return;
   }
@@ -240,22 +262,67 @@ function healthWeekly(r, mine) {
     const k = h % 5 === 0 ? 'covid' : 'virus';
     injSet(r, k, k === 'covid' ? 2 : 1);
     r.forme = Math.max(30, r.forme - 6);
-    if (mine) msg(`${INJ[k].ic} ${riderName(r)} malade`, `${riderName(r)} : ${INJ[k].lbl.toLowerCase()}, ${r.injury} semaine${r.injury > 1 ? 's' : ''} d'arrêt.`);
+    if (mine)
+      msg(
+        `${INJ[k].ic} ${riderName(r)} malade`,
+        `${riderName(r)} : ${INJ[k].lbl.toLowerCase()}, ${r.injury} semaine${r.injury > 1 ? 's' : ''} d'arrêt.`
+      );
   } else if (h < pIll + pTen) {
     injSet(r, 'tendinite', 2 + (h % 3));
-    if (mine) msg('🦵 Tendinite', `${riderName(r)} souffre d'une tendinite (charge trop lourde) : ${r.injury} semaines d'arrêt.`);
+    if (mine)
+      msg(
+        '🦵 Tendinite',
+        `${riderName(r)} souffre d'une tendinite (charge trop lourde) : ${r.injury} semaines d'arrêt.`
+      );
   }
 }
 
 // --- Déplacements et acclimatation ---
 const RACE_REG = {
-  gpo: 'FRA', omloop: 'NORD', cote: 'IBE', soleil: 'FRA', mers: 'ITA', msr: 'ITA', flandres: 'NORD', pav: 'NORD',
-  basque: 'IBE', amstel: 'NORD', col: 'NORD', liege: 'NORD', giro: 'ITA', alpes: 'ALP', cantons: 'ALP', gb: 'FRA',
-  clasica: 'IBE', fin: 'ITA', vuelta: 'IBE', chr: 'FRA', auto: 'ITA', gpf: 'FRA', levant: 'LEV', briques: 'NORD',
-  blancs: 'ITA', catalan: 'IBE', digues: 'NORD', harel: 'NORD', romand: 'ALP', polders: 'NORD', occit: 'FRA',
-  basquec: 'IBE', cyclass: 'NORD', lacs: 'ALP', feuilles: 'FRA',
+  gpo: 'FRA',
+  omloop: 'NORD',
+  cote: 'IBE',
+  soleil: 'FRA',
+  mers: 'ITA',
+  msr: 'ITA',
+  flandres: 'NORD',
+  pav: 'NORD',
+  basque: 'IBE',
+  amstel: 'NORD',
+  col: 'NORD',
+  liege: 'NORD',
+  giro: 'ITA',
+  alpes: 'ALP',
+  cantons: 'ALP',
+  gb: 'FRA',
+  clasica: 'IBE',
+  fin: 'ITA',
+  vuelta: 'IBE',
+  chr: 'FRA',
+  auto: 'ITA',
+  gpf: 'FRA',
+  levant: 'LEV',
+  briques: 'NORD',
+  blancs: 'ITA',
+  catalan: 'IBE',
+  digues: 'NORD',
+  harel: 'NORD',
+  romand: 'ALP',
+  polders: 'NORD',
+  occit: 'FRA',
+  basquec: 'IBE',
+  cyclass: 'NORD',
+  lacs: 'ALP',
+  feuilles: 'FRA',
 };
-const REG_LBL = { FRA: 'France', NORD: 'Nord (Belgique, Pays-Bas)', ITA: 'Italie', IBE: 'Espagne, Portugal', ALP: 'Suisse, Alpes', LEV: 'Levant' };
+const REG_LBL = {
+  FRA: 'France',
+  NORD: 'Nord (Belgique, Pays-Bas)',
+  ITA: 'Italie',
+  IBE: 'Espagne, Portugal',
+  ALP: 'Suisse, Alpes',
+  LEV: 'Levant',
+};
 function regDist(a, b) {
   if (!a || !b || a === b) return 0;
   if (a === 'LEV' || b === 'LEV') return 3;

@@ -11,7 +11,9 @@ const TAC_AI = /^(🗡️|🤝 Alliance de poursuite|⚔️ Coalition|🎯)/;
 function tacticalNotes(sim) {
   const myTeam = S.teams[0];
   const ai = (sim.log || [])
-    .filter(l => TAC_AI.test(l.txt) || (l.cls === 'bad' && /votre|vos /.test(l.txt) && /roule|chasse|marque/.test(l.txt)))
+    .filter(
+      l => TAC_AI.test(l.txt) || (l.cls === 'bad' && /votre|vos /.test(l.txt) && /roule|chasse|marque/.test(l.txt))
+    )
     .filter(l => !/vos équipiers prennent/.test(l.txt))
     .slice(-4)
     .map(l => ({ km: Math.round(l.km), txt: l.txt.replace(/<[^>]+>/g, '') }));
@@ -43,8 +45,14 @@ function gcStory(rc) {
       return a == null || b == null ? null : { k: k + 1, name: st.name, d: Math.round(a - b), type: st.type };
     })
     .filter(Boolean);
-  const loss = rows.filter(r => r.d > 5).sort((a, b) => b.d - a.d).slice(0, 2);
-  const gain = rows.filter(r => r.d < -5).sort((a, b) => a.d - b.d).slice(0, 1);
+  const loss = rows
+    .filter(r => r.d > 5)
+    .sort((a, b) => b.d - a.d)
+    .slice(0, 2);
+  const gain = rows
+    .filter(r => r.d < -5)
+    .sort((a, b) => a.d - b.d)
+    .slice(0, 1);
   // l'étape qui a fait le leader : celle où il a pris le plus de temps à son dauphin
   let made = null;
   if (g[1] != null) {

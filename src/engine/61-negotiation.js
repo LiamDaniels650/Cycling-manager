@@ -45,7 +45,8 @@ function releaseAmount(r, salary) {
 function negoExtras(r, cl, add) {
   const ag = agentOf(r);
   const dem = contractDemand(r);
-  if (cl.bonus > 0) add('Prime de victoire', Math.min(0.12, ((cl.bonus * expWins(r)) / dem) * 2.5) * (ag === 'requin' ? 1.3 : 1));
+  if (cl.bonus > 0)
+    add('Prime de victoire', Math.min(0.12, ((cl.bonus * expWins(r)) / dem) * 2.5) * (ag === 'requin' ? 1.3 : 1));
   if (cl.role && r.amb > 45) add('Rôle garanti', 0.12 + (ag === 'carriere' ? 0.06 : 0));
   if (cl.release) add('Clause libératoire', ag === 'requin' ? 0.12 : 0.06);
   const su = suitorsOf(r).length;
@@ -62,7 +63,8 @@ function negoCounter(r, salary, years, promise, cl, p) {
   const pf = 1.08 - teamRank() * 0.02;
   const dem = contractDemand(r) * agentDemMul(r);
   const su = suitorsOf(r).length;
-  const ask = Math.round((dem * (ag === 'requin' ? 1.12 : ag === 'conciliant' ? 1.0 : 1.05) * (1 + 0.03 * su)) / pf / 5) * 5;
+  const ask =
+    Math.round((dem * (ag === 'requin' ? 1.12 : ag === 'conciliant' ? 1.0 : 1.05) * (1 + 0.03 * su)) / pf / 5) * 5;
   const nextRace = r.goal && r.goal.race && !S.cal.find(c => c.key === r.goal.race).done ? r.goal.race : null;
   const want = {
     bonus: ag === 'requin' ? Math.max(cl.bonus || 0, 10) : cl.bonus || 0,
@@ -156,7 +158,12 @@ function releaseClausesEndSeason() {
     const amt = r.cl.release;
     r.cl = null;
     if (S.captain === id) S.captain = null;
-    press(`${T.name} lève la clause de ${riderName(r)}`, `${T.name} paie la clause libératoire (${fmtMoney(amt)}) : ${riderName(r)} quitte ${P.name}.`, 0, [id]);
+    press(
+      `${T.name} lève la clause de ${riderName(r)}`,
+      `${T.name} paie la clause libératoire (${fmtMoney(amt)}) : ${riderName(r)} quitte ${P.name}.`,
+      0,
+      [id]
+    );
     msg('🔓 Clause libératoire levée', `${T.name} a payé ${fmtMoney(amt)} pour ${riderName(r)}, qui s'en va.`);
   }
 }

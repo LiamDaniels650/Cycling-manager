@@ -56,7 +56,14 @@ function buildStageSim(rc) {
         team: T,
         energy: rc.energy[id],
         dayForm: clamp(
-          r.forme + gauss() * fv - (sansJour ? rf(7, 13) : 0) - (r.sick > 0 ? 6 : 0) + dsGoalBoost(rc, T) + homeBoost(rc, r) + mentalBig(rc, r) + mfForm(r),
+          r.forme +
+            gauss() * fv -
+            (sansJour ? rf(7, 13) : 0) -
+            (r.sick > 0 ? 6 : 0) +
+            dsGoalBoost(rc, T) +
+            homeBoost(rc, r) +
+            mentalBig(rc, r) +
+            mfForm(r),
           25,
           100
         ),
@@ -602,7 +609,8 @@ function tickRoadEvents(sim) {
   echelonAsk(sim);
   dangerTick(sim);
   for (const G of sim.groups.slice()) {
-    if (sim.parade || !G.expo || !sim.P.wind || G !== pel || G.riders.length < 30 || G.pos < 15 || sim.dist - G.pos < 3) continue;
+    if (sim.parade || !G.expo || !sim.P.wind || G !== pel || G.riders.length < 30 || G.pos < 15 || sim.dist - G.pos < 3)
+      continue;
     if (sim.echelonT && sim.t - sim.echelonT < 70) continue;
     const teams = [...new Set(G.riders.map(x => x.team))];
     for (const T of teams) {

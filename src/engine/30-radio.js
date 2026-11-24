@@ -95,7 +95,11 @@ function radioTick(sim) {
       const x = a.xid != null ? sim.runners.find(y => y.id === a.xid) : null;
       const k = !x || ['tete', 'modele'].includes(x.r.trait) ? a.def : a.auto();
       const o = a.opts.find(o => o[0] === k);
-      log(sim, `📻 Pas de réponse de la voiture : ${k === a.def ? a.self : `il choisit seul : « ${o ? o[1] : k} ».`}`, 'info');
+      log(
+        sim,
+        `📻 Pas de réponse de la voiture : ${k === a.def ? a.self : `il choisit seul : « ${o ? o[1] : k} ».`}`,
+        'info'
+      );
       askAnswer(sim, k, 'self');
     } else {
       const k = a.auto();

@@ -12,9 +12,18 @@ const BOARD_CHAR = {
   genereux: { lbl: 'Généreux', d: 'Accepte plus volontiers de mettre la main à la poche.' },
 };
 const VISIONS = {
-  jeunes: { lbl: 'Miser sur la jeunesse', d: 'Au moins 35 % des jours de course disputés par des coureurs de 24 ans ou moins.' },
-  gt: { lbl: 'Briller sur les grands tours', d: "Une victoire d'étape ou un podium final sur un grand tour dans la saison." },
-  classiques: { lbl: 'Régner sur les classiques', d: "Un podium sur un monument ou une victoire sur une grande classique d'un jour." },
+  jeunes: {
+    lbl: 'Miser sur la jeunesse',
+    d: 'Au moins 35 % des jours de course disputés par des coureurs de 24 ans ou moins.',
+  },
+  gt: {
+    lbl: 'Briller sur les grands tours',
+    d: "Une victoire d'étape ou un podium final sur un grand tour dans la saison.",
+  },
+  classiques: {
+    lbl: 'Régner sur les classiques',
+    d: "Un podium sur un monument ou une victoire sur une grande classique d'un jour.",
+  },
   victoires: { lbl: 'Gagner souvent', d: 'Un nombre de victoires fixé selon le rang de l’équipe.' },
   rang: { lbl: 'Monter au classement', d: 'Finir au classement UCI au moins au rang fixé.' },
   comptes: { lbl: 'Tenir les comptes', d: 'Finir la saison avec un budget au moins égal à celui du départ.' },
@@ -119,15 +128,29 @@ function boardStatus() {
       const all = rs.reduce((a, r) => a + r.stats.days, 0);
       const y = rs.filter(r => r.age <= 24).reduce((a, r) => a + r.stats.days, 0);
       const p = all ? y / all : 0;
-      return { ok: p >= 0.35, pct: clamp(p / 0.35, 0, 1), txt: `${Math.round(p * 100)} % des jours de course (objectif 35 %)` };
+      return {
+        ok: p >= 0.35,
+        pct: clamp(p / 0.35, 0, 1),
+        txt: `${Math.round(p * 100)} % des jours de course (objectif 35 %)`,
+      };
     }
     case 'gt': {
       const n = boardBigResults().gt;
-      return { ok: n >= 1, pct: n ? 1 : 0, txt: n ? `${n} grand${n > 1 ? 's' : ''} tour${n > 1 ? 's' : ''} réussi${n > 1 ? 's' : ''}` : 'pas encore de résultat' };
+      return {
+        ok: n >= 1,
+        pct: n ? 1 : 0,
+        txt: n
+          ? `${n} grand${n > 1 ? 's' : ''} tour${n > 1 ? 's' : ''} réussi${n > 1 ? 's' : ''}`
+          : 'pas encore de résultat',
+      };
     }
     case 'classiques': {
       const n = boardBigResults().cl;
-      return { ok: n >= 1, pct: n ? 1 : 0, txt: n ? `${n} grand résultat${n > 1 ? 's' : ''}` : 'pas encore de résultat' };
+      return {
+        ok: n >= 1,
+        pct: n ? 1 : 0,
+        txt: n ? `${n} grand résultat${n > 1 ? 's' : ''}` : 'pas encore de résultat',
+      };
     }
     case 'victoires': {
       const w = seasonWins(0);
@@ -135,16 +158,28 @@ function boardStatus() {
     }
     case 'rang': {
       const rk = uciRanking().indexOf(T) + 1;
-      return { ok: rk <= B.tgt.rank, pct: clamp(1 - (rk - B.tgt.rank) / 10, 0, 1), txt: `actuellement ${rk}e (objectif ${B.tgt.rank}e)` };
+      return {
+        ok: rk <= B.tgt.rank,
+        pct: clamp(1 - (rk - B.tgt.rank) / 10, 0, 1),
+        txt: `actuellement ${rk}e (objectif ${B.tgt.rank}e)`,
+      };
     }
     case 'comptes': {
       const d = S.budget - B.b0;
-      return { ok: d >= 0, pct: d >= 0 ? 1 : clamp(1 + d / 500, 0, 1), txt: `${d >= 0 ? '+' : ''}${fmtMoney(d)} depuis le début de saison` };
+      return {
+        ok: d >= 0,
+        pct: d >= 0 ? 1 : clamp(1 + d / 500, 0, 1),
+        txt: `${d >= 0 ? '+' : ''}${fmtMoney(d)} depuis le début de saison`,
+      };
     }
     case 'terroir': {
       const n = rs.filter(r => r.nat === B.tgt.nat).length;
       const p = rs.length ? n / rs.length : 0;
-      return { ok: p >= 0.4, pct: clamp(p / 0.4, 0, 1), txt: `${n} coureurs ${B.tgt.nat} sur ${rs.length} (objectif 40 %)` };
+      return {
+        ok: p >= 0.4,
+        pct: clamp(p / 0.4, 0, 1),
+        txt: `${n} coureurs ${B.tgt.nat} sur ${rs.length} (objectif 40 %)`,
+      };
     }
   }
   return null;
@@ -157,7 +192,10 @@ function boardWeekly() {
   const B = boardInit();
   if (!B.v && B.prop && S.week === 3 && !B.nag) {
     B.nag = S.season;
-    msg('🏛️ La direction', `${boardName()} attend votre projet pour les trois prochaines saisons (Gestion › Direction). Sans choix, il retiendra « ${VISIONS[B.prop[0]].lbl} ».`);
+    msg(
+      '🏛️ La direction',
+      `${boardName()} attend votre projet pour les trois prochaines saisons (Gestion › Direction). Sans choix, il retiendra « ${VISIONS[B.prop[0]].lbl} ».`
+    );
   }
   if (!B.v && B.prop && S.week >= 8) boardChoose(B.prop[0]);
   if (B.v && (!B.tgt || B.tgt.s !== S.season)) boardTargets();
@@ -185,7 +223,9 @@ function boardEndSeason(myRank) {
       S.budget += prime;
       finAdd('spons', prime);
       addBoardT(8);
-      lines.push(`Fin du cycle : ${n}/3 saisons réussies. Le président vous félicite et vous accorde ${fmtMoney(prime)} pour la suite.`);
+      lines.push(
+        `Fin du cycle : ${n}/3 saisons réussies. Le président vous félicite et vous accorde ${fmtMoney(prime)} pour la suite.`
+      );
     } else {
       addBoardT(-10);
       S.conf = clamp(S.conf - 5, 0, 100);
@@ -202,9 +242,24 @@ function boardEndSeason(myRank) {
 }
 // Demandes au président.
 const BOARD_ASKS = {
-  mercato: { lbl: 'Une rallonge pour le mercato', d: 'Un apport exceptionnel au budget, pour recruter.', min: 55, cost: 8 },
-  fac: { lbl: 'Financer une installation', d: 'La direction paie la moitié du prochain chantier choisi (cette saison).', min: 50, cost: 6 },
-  vision: { lbl: 'Changer de projet', d: 'Abandonner le projet en cours et en choisir un autre. Il n’aime pas ça.', min: 0, cost: 15 },
+  mercato: {
+    lbl: 'Une rallonge pour le mercato',
+    d: 'Un apport exceptionnel au budget, pour recruter.',
+    min: 55,
+    cost: 8,
+  },
+  fac: {
+    lbl: 'Financer une installation',
+    d: 'La direction paie la moitié du prochain chantier choisi (cette saison).',
+    min: 50,
+    cost: 6,
+  },
+  vision: {
+    lbl: 'Changer de projet',
+    d: 'Abandonner le projet en cours et en choisir un autre. Il n’aime pas ça.',
+    min: 0,
+    cost: 15,
+  },
 };
 function boardCanAsk() {
   const B = boardInit();
@@ -229,7 +284,7 @@ function boardAsk(k, fk) {
   if (!boardCanAsk()) return `Le président vous a reçu il y a peu : revenez dans quelques semaines.`;
   B.ask = S.season * 100 + S.week;
   if (k === 'vision') {
-    if (!B.v) return "Aucun projet en cours : choisissez-en un.";
+    if (!B.v) return 'Aucun projet en cours : choisissez-en un.';
     addBoardT(-A.cost);
     B.v = null;
     B.cyc = null;

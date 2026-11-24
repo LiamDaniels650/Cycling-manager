@@ -263,25 +263,45 @@ const RACE_DEFS = [
   { key: 'feuilles', w: 38, name: 'Course des Feuilles', cat: 2, stages: [['plat', 213]] },
   { key: 'mondiaux', w: 36, name: 'Championnats du monde', cat: 1, worlds: true, stages: [['vallonne', 262, 'dur']] },
   // Jeux olympiques (années bissextiles seulement) : sélections nationales de deux (chrono) et quatre coureurs
-  { key: 'jochr', w: 30, name: 'Jeux olympiques — contre-la-montre', cat: 1, worlds: true, olympic: true, per: 2, stages: [['clm', 32]] },
-  { key: 'jo', w: 31, name: 'Jeux olympiques — course en ligne', cat: 1, worlds: true, olympic: true, per: 4, stages: [['vallonne', 248, 'dur']] },
+  {
+    key: 'jochr',
+    w: 30,
+    name: 'Jeux olympiques — contre-la-montre',
+    cat: 1,
+    worlds: true,
+    olympic: true,
+    per: 2,
+    stages: [['clm', 32]],
+  },
+  {
+    key: 'jo',
+    w: 31,
+    name: 'Jeux olympiques — course en ligne',
+    cat: 1,
+    worlds: true,
+    olympic: true,
+    per: 4,
+    stages: [['vallonne', 248, 'dur']],
+  },
 ];
 const LAST_WEEK = 42;
 // Calendrier de la saison et invitations aux Grands Tours.
 function buildCalendar() {
   worldApply(); // courses de la partie (créées, disparues, promues : 66-monde.js)
   genClimate();
-  S.cal = RACE_DEFS.filter(d => !d.olympic || isOlympicYear(S.season)).map(d => ({
-    key: d.key,
-    w: d.w,
-    name: raceNameOf(d.key), // nom personnalisé s'il y en a un (39-names.js)
-    cat: d.cat,
-    done: false,
-    winner: null,
-    stagesSpec: customStages(d.key, d.stages), // parcours importés (51-database.js)
-    ...(d.worlds ? { worlds: true } : {}),
-    ...(d.olympic ? { olympic: true, per: d.per } : {}),
-  })).sort((a, b) => a.w - b.w);
+  S.cal = RACE_DEFS.filter(d => !d.olympic || isOlympicYear(S.season))
+    .map(d => ({
+      key: d.key,
+      w: d.w,
+      name: raceNameOf(d.key), // nom personnalisé s'il y en a un (39-names.js)
+      cat: d.cat,
+      done: false,
+      winner: null,
+      stagesSpec: customStages(d.key, d.stages), // parcours importés (51-database.js)
+      ...(d.worlds ? { worlds: true } : {}),
+      ...(d.olympic ? { olympic: true, per: d.per } : {}),
+    }))
+    .sort((a, b) => a.w - b.w);
   // invitations : licences WorldTour (cycle de trois saisons) et invitations des ProTeams (35-officials)
   wtInit();
   for (const c of S.cal) c.inv = c.worlds ? [] : wtInvites(c);

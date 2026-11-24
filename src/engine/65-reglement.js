@@ -82,8 +82,13 @@ function dopeWeekly() {
           r.injury = 9;
           r.inj.w0 = 13;
           r.inj.why = 'contamination reconnue, faute légère';
-          if (r.team === 0) msg('⛔ Verdict', `${riderName(r)} : contamination reconnue, faute légère. Trois mois de suspension au total.`);
-        } else if (r.team === 0) msg('✅ Relaxé', `${riderName(r)} est relaxé : la contamination est prouvée. Il peut reprendre.`);
+          if (r.team === 0)
+            msg(
+              '⛔ Verdict',
+              `${riderName(r)} : contamination reconnue, faute légère. Trois mois de suspension au total.`
+            );
+        } else if (r.team === 0)
+          msg('✅ Relaxé', `${riderName(r)} est relaxé : la contamination est prouvée. Il peut reprendre.`);
         continue;
       }
       if (r.injury > 0) continue;
@@ -118,7 +123,10 @@ function dopeState() {
   const rs = S.teams[0].riders.map(id => S.riders[id]).filter(Boolean);
   return {
     tests: S.dopeTests && S.dopeTests.s === S.season ? S.dopeTests.n : 0,
-    watch: rs.filter(r => whMisses(r).length).map(r => ({ r, n: whMisses(r).length })).sort((a, b) => b.n - a.n),
+    watch: rs
+      .filter(r => whMisses(r).length)
+      .map(r => ({ r, n: whMisses(r).length }))
+      .sort((a, b) => b.n - a.n),
     susp: rs.filter(r => r.injury > 0 && r.inj && r.inj.k === 'suspension'),
   };
 }

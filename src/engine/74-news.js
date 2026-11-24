@@ -25,7 +25,13 @@ function newsFeed(n = 60, cat = null) {
   const a = (S.news || []).map(e => ({ ...e }));
   for (const m of S.merc || [])
     if (m.imp && m.k !== 'rumeur')
-      a.push({ s: m.s, w: m.w, c: 'mercato', txt: `${MERC_KIND[m.k] ? MERC_KIND[m.k].replace(/^\S+\s/, '') : m.k} : ${m.n} (${m.f} → ${m.t})`, my: m.my });
+      a.push({
+        s: m.s,
+        w: m.w,
+        c: 'mercato',
+        txt: `${MERC_KIND[m.k] ? MERC_KIND[m.k].replace(/^\S+\s/, '') : m.k} : ${m.n} (${m.f} → ${m.t})`,
+        my: m.my,
+      });
   return a
     .filter(e => !cat || e.c === cat)
     .sort((x, y) => y.s - x.s || y.w - x.w)
@@ -38,7 +44,10 @@ function newsAfterRace(rc, gcl) {
   if (w) {
     const T = teamOf(w);
     const gt = rc.cat === 0 && rc.specs.length >= 15;
-    newsAdd('course', `${gt ? '🟡 ' : ''}${riderName(w)} (${T ? T.short : '—'}) remporte ${rc.name}${rc.specs.length > 1 ? ' au classement général' : ''}.`);
+    newsAdd(
+      'course',
+      `${gt ? '🟡 ' : ''}${riderName(w)} (${T ? T.short : '—'}) remporte ${rc.name}${rc.specs.length > 1 ? ' au classement général' : ''}.`
+    );
   }
   rivalDuel(rc, gcl);
 }
@@ -58,7 +67,10 @@ function newsWeekly() {
       .sort((a, b) => b.stats.pts - a.stats.pts)[0];
     const T0 = uciRanking()[0];
     if (top && T0)
-      newsAdd('saison', `Le point : ${riderName(top)} (${teamOf(top) ? teamOf(top).short : '—'}) mène le classement individuel avec ${top.stats.pts} points ; ${T0.name} est en tête chez les équipes.`);
+      newsAdd(
+        'saison',
+        `Le point : ${riderName(top)} (${teamOf(top) ? teamOf(top).short : '—'}) mène le classement individuel avec ${top.stats.pts} points ; ${T0.name} est en tête chez les équipes.`
+      );
   }
 }
 
@@ -76,8 +88,18 @@ function rivalInit() {
   if (!c) return null;
   const T = c[0];
   const same = S.rival && S.rival.id === T.id;
-  S.rival = { id: T.id, s: S.season, me: 0, them: 0, heat: same ? Math.round((S.rival.heat || 0) * 0.6) : 10, last: null };
-  newsAdd('rival', `${same ? 'La rivalité continue' : 'Nouvelle rivalité'} : ${P.name} contre ${T.name}${dsName(T) ? ` de ${dsName(T)}` : ''}.`);
+  S.rival = {
+    id: T.id,
+    s: S.season,
+    me: 0,
+    them: 0,
+    heat: same ? Math.round((S.rival.heat || 0) * 0.6) : 10,
+    last: null,
+  };
+  newsAdd(
+    'rival',
+    `${same ? 'La rivalité continue' : 'Nouvelle rivalité'} : ${P.name} contre ${T.name}${dsName(T) ? ` de ${dsName(T)}` : ''}.`
+  );
   return S.rival;
 }
 function rivalTeam() {
@@ -127,7 +149,10 @@ function dsRankUpdate(rankArr) {
   S.dsSc = S.dsSc || {};
   const exp = S.teams
     .slice()
-    .sort((a, b) => ((S.lastRanks && S.lastRanks[b.id]) || b.tier * 100) - ((S.lastRanks && S.lastRanks[a.id]) || a.tier * 100));
+    .sort(
+      (a, b) =>
+        ((S.lastRanks && S.lastRanks[b.id]) || b.tier * 100) - ((S.lastRanks && S.lastRanks[a.id]) || a.tier * 100)
+    );
   const seen = new Set();
   for (const T of S.teams) {
     const k = dsKey(T);
@@ -154,5 +179,9 @@ function newsEndSeason(rankArr) {
   rivalEndSeason();
   dsRankUpdate(rankArr);
   const rk = dsRankOf('__me');
-  if (rk) newsAdd('saison', `Classement des directeurs sportifs : vous êtes ${rk === 1 ? '1er' : rk + 'e'} sur ${dsRanking().length}.`);
+  if (rk)
+    newsAdd(
+      'saison',
+      `Classement des directeurs sportifs : vous êtes ${rk === 1 ? '1er' : rk + 'e'} sur ${dsRanking().length}.`
+    );
 }

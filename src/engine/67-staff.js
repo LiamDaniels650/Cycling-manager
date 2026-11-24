@@ -11,11 +11,27 @@
    part. Rien ici ne tire au hasard du jeu. */
 
 const CREW_ROLES = {
-  coach: { lbl: 'Entraîneur principal', grp: 'Entraîneurs', d: 'Progression des coureurs et des jeunes, gestion de la forme.' },
-  doctor: { lbl: 'Responsable médical', grp: 'Médecins et kinés', d: 'Récupération entre les étapes, blessures moins longues.' },
-  scout: { lbl: 'Chef recruteur', grp: 'Recruteurs', d: 'Précision des estimations des coureurs adverses et des jeunes.' },
+  coach: {
+    lbl: 'Entraîneur principal',
+    grp: 'Entraîneurs',
+    d: 'Progression des coureurs et des jeunes, gestion de la forme.',
+  },
+  doctor: {
+    lbl: 'Responsable médical',
+    grp: 'Médecins et kinés',
+    d: 'Récupération entre les étapes, blessures moins longues.',
+  },
+  scout: {
+    lbl: 'Chef recruteur',
+    grp: 'Recruteurs',
+    d: 'Précision des estimations des coureurs adverses et des jeunes.',
+  },
   meca: { lbl: 'Chef mécanicien', grp: 'Mécaniciens', d: 'Moins d’ennuis mécaniques, dépannages plus rapides.' },
-  adjoint: { lbl: 'Directeur adjoint', grp: 'Direction sportive', d: 'Dirige les courses que vous lui confiez : ses coureurs appliquent mieux ses consignes.' },
+  adjoint: {
+    lbl: 'Directeur adjoint',
+    grp: 'Direction sportive',
+    d: 'Dirige les courses que vous lui confiez : ses coureurs appliquent mieux ses consignes.',
+  },
 };
 const CREW_TRAITS = {
   pedagogue: { lbl: 'Pédagogue', d: 'Apprend vite et transmet bien : progresse plus chaque saison.' },
@@ -51,7 +67,13 @@ function crewPerson(role, sk, salt) {
 function crewInit() {
   if (S.crew) return S.crew;
   S.crew = {};
-  const lv = { coach: S.staff.coach, doctor: S.staff.doctor, scout: S.staff.scout, meca: S.meca || 1, adjoint: S.adj || 2 };
+  const lv = {
+    coach: S.staff.coach,
+    doctor: S.staff.doctor,
+    scout: S.staff.scout,
+    meca: S.meca || 1,
+    adjoint: S.adj || 2,
+  };
   for (const k of Object.keys(CREW_ROLES)) S.crew[k] = crewPerson(k, lv[k] + 0.3, S.seed0 + ':init');
   crewSync();
   return S.crew;
@@ -112,7 +134,8 @@ function crewWeekly() {
   finAdd('staff', -c);
   // une proposition de débauchage sans réponse : l'adjoint tranche (il retient si le budget le permet)
   const A = S.crewAsk;
-  if (A && S.week > A.exp && S.season === A.s) msg('💼 Staff', crewAnswer(S.budget >= A.prime ? 'garder' : 'laisser', true));
+  if (A && S.week > A.exp && S.season === A.s)
+    msg('💼 Staff', crewAnswer(S.budget >= A.prime ? 'garder' : 'laisser', true));
 }
 // Bonus d'obéissance dans une course confiée au directeur adjoint.
 function adjObey(x, sim) {
@@ -135,8 +158,13 @@ function crewEndSeason() {
     p.age++;
     const base = p.age < 35 ? 0.25 : p.age < 50 ? 0.12 : p.age < 60 ? 0 : p.trait === 'rigoureux' ? 0 : -0.15;
     const l0 = crewLvl(p);
-    p.sk = +clamp(p.sk + base + (['pedagogue', 'ambitieux'].includes(p.trait) ? 0.15 : 0) + ((h % 21) - 10) / 100, 1, 5.9).toFixed(2);
-    if (crewLvl(p) > l0) out.push(`${crewName(p)} (${CREW_ROLES[role].lbl.toLowerCase()}) passe au niveau ${crewLvl(p)}.`);
+    p.sk = +clamp(
+      p.sk + base + (['pedagogue', 'ambitieux'].includes(p.trait) ? 0.15 : 0) + ((h % 21) - 10) / 100,
+      1,
+      5.9
+    ).toFixed(2);
+    if (crewLvl(p) > l0)
+      out.push(`${crewName(p)} (${CREW_ROLES[role].lbl.toLowerCase()}) passe au niveau ${crewLvl(p)}.`);
     if (p.age >= 64) {
       const n = crewPerson(role, Math.max(1, crewLvl(p) - 1) + 0.3, S.season + ':ret');
       out.push(`${crewName(p)} prend sa retraite ; ${crewName(n)} lui succède (niveau ${crewLvl(n)}).`);
@@ -153,8 +181,16 @@ function crewEndSeason() {
       if (dsHash('poach' + p.id + S.season) % 100 < pr) {
         const ai = S.teams.filter(T => !T.player);
         const T = ai[dsHash('poachT' + p.id + S.season) % ai.length];
-        S.crewAsk = { role, t: T.id, s: S.season + 1, exp: 4, prime: Math.round((crewCost(role, crewLvl(p)) * 0.25) / 5) * 5 };
-        out.push(`${T.name} veut débaucher ${crewName(p)}, votre ${CREW_ROLES[role].lbl.toLowerCase()} : décision à prendre (Gestion › Staff).`);
+        S.crewAsk = {
+          role,
+          t: T.id,
+          s: S.season + 1,
+          exp: 4,
+          prime: Math.round((crewCost(role, crewLvl(p)) * 0.25) / 5) * 5,
+        };
+        out.push(
+          `${T.name} veut débaucher ${crewName(p)}, votre ${CREW_ROLES[role].lbl.toLowerCase()} : décision à prendre (Gestion › Staff).`
+        );
         break;
       }
     }

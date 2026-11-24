@@ -20,7 +20,11 @@ const LOCK = {
 // --- Caractère et leadership ---
 function leadOf(r) {
   const tb = { modele: 20, leaderne: 10, tete: -15, fragile: -10, regulier: 4 }[r.trait] || 0;
-  return clamp(Math.round(30 + (r.age - 22) * 3 + (r.dis - 50) * 0.4 + tb + ((dsHash('lead' + r.id) % 21) - 10)), 5, 99);
+  return clamp(
+    Math.round(30 + (r.age - 22) * 3 + (r.dis - 50) * 0.4 + tb + ((dsHash('lead' + r.id) % 21) - 10)),
+    5,
+    99
+  );
 }
 const CHARS = {
   capitaine: { lbl: 'Capitaine né', ic: '🧭', d: 'Écouté du groupe ; calme les tensions.' },
@@ -263,7 +267,10 @@ function lockerAskRivals() {
     if (S.lockDone.includes(k) || !c || c.done || c.w - S.week > 10) continue;
     S.lockDone.push(k);
     S.lockAsk = { k: 'rivals', a: a.id, b: b.id, key: c.key, exp: S.week + 2, id: k };
-    msg('⚔️ Deux leaders pour une course', `${riderName(a)} et ${riderName(b)} veulent tous deux être leader à ${c.name}. À vous de trancher (onglet Équipe).`);
+    msg(
+      '⚔️ Deux leaders pour une course',
+      `${riderName(a)} et ${riderName(b)} veulent tous deux être leader à ${c.name}. À vous de trancher (onglet Équipe).`
+    );
     return;
   }
 }
@@ -297,9 +304,15 @@ function lockerAnswer(opt, auto) {
 
 // --- Réunions d'équipe ---
 const MEETS = {
-  remobiliser: { lbl: 'Remobiliser le groupe', d: 'Moral en hausse pour tous (plus avec un bon capitaine et un groupe confiant).' },
+  remobiliser: {
+    lbl: 'Remobiliser le groupe',
+    d: 'Moral en hausse pour tous (plus avec un bon capitaine et un groupe confiant).',
+  },
   recadrer: { lbl: 'Recadrer', d: 'Discipline en hausse ; les égoïstes et les têtes brûlées le prennent mal.' },
-  ecouter: { lbl: 'Écouter chacun', d: 'Les frustrés se sentent entendus (gros gain de moral) ; vous apprenez ce qu’ils veulent.' },
+  ecouter: {
+    lbl: 'Écouter chacun',
+    d: 'Les frustrés se sentent entendus (gros gain de moral) ; vous apprenez ce qu’ils veulent.',
+  },
 };
 function meetReady() {
   const wk = S.season * 100 + S.week;
@@ -338,7 +351,8 @@ function lockerWhy(r) {
   if (r.wantsOut) return 'veut partir';
   const bp = (S.proms || []).find(p => p.id === r.id && p.s === S.season && p.ok === false);
   if (bp) return 'promesse rompue';
-  if (r.goal && r.goal.s === S.season && r.goal.lead && r.goal.race) return `veut être leader à ${goalRaceTag(r).replace('leader à ', '')}`;
+  if (r.goal && r.goal.s === S.season && r.goal.lead && r.goal.race)
+    return `veut être leader à ${goalRaceTag(r).replace('leader à ', '')}`;
   if (r.stats && r.stats.days < 10 && S.week > 12) return 'court trop peu';
   if (relationsOf(r.id).some(a => a[1] <= -40)) return 'en froid avec un équipier';
   return '';
@@ -356,7 +370,8 @@ function lockerWeekly() {
     const r = S.riders[id];
     const ch = charOf(r);
     if (r.moral < 30 && r.amb >= 65 && (ch === 'egoiste' || ch === 'tete' || ch === 'ambitieux'))
-      if (dsHash('plainte' + id + S.season + ':' + S.week) % 100 < 12) lockerComplain(r, lockerWhy(r) || 'son rôle dans l’équipe');
+      if (dsHash('plainte' + id + S.season + ':' + S.week) % 100 < 12)
+        lockerComplain(r, lockerWhy(r) || 'son rôle dans l’équipe');
   }
   // la confiance revient doucement vers la normale
   S.trust = trustOf() + (LOCK.trust0 - trustOf()) * 0.02;

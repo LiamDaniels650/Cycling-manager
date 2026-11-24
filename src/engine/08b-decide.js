@@ -23,7 +23,8 @@ function decideRider(sim, x, ctx) {
       log(sim, `📻 ${riderName(x.r)} : « ${radioReply(x, 'legs')} »`, 'bad');
     return;
   }
-  const eo = effOrder(x);
+  // (un homme du podium en carte libre court comme un leader : ni échappée, ni attaques d'équipier)
+  const eo = effOrder(x) === 'free' && gcLead(sim, x) ? 'leader' : effOrder(x);
   // (attendre : le leader, ou le coureur désigné par le directeur sportif, le sprinteur par exemple)
   const wt = eo === 'wait' && x.waitFor != null ? sim.runners.find(y => y.id === x.waitFor && !y.fin && !y.dnf) : null;
   const ldr = wt || sim.teamLeader[x.team.id];

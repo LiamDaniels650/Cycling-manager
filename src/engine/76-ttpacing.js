@@ -10,11 +10,20 @@
    Les temps intermédiaires (au tiers et aux deux tiers) sont gardés pour le bilan. */
 
 const TT_PACE = {
-  prudent: { lbl: 'Prudent (économiser)', d: 'Bien sous sa limite : du temps perdu, des forces gardées pour la suite.' },
+  prudent: {
+    lbl: 'Prudent (économiser)',
+    d: 'Bien sous sa limite : du temps perdu, des forces gardées pour la suite.',
+  },
   gerer: { lbl: 'Régulier', d: 'Un effort constant, un peu sous la limite : sans risque.' },
   fond: { lbl: 'À bloc', d: 'Tout donner dès le départ : le plus rapide… si la limite tient jusqu’au bout.' },
-  negatif: { lbl: 'Départ prudent, fin à bloc', d: 'Se garder sur la première moitié, tout donner ensuite : sûr sur un long chrono.' },
-  montee: { lbl: 'Tout pour la montée', d: 'Récupérer sur le plat, tout donner dans la montée : pour un chrono qui finit en côte.' },
+  negatif: {
+    lbl: 'Départ prudent, fin à bloc',
+    d: 'Se garder sur la première moitié, tout donner ensuite : sûr sur un long chrono.',
+  },
+  montee: {
+    lbl: 'Tout pour la montée',
+    d: 'Récupérer sur le plat, tout donner dans la montée : pour un chrono qui finit en côte.',
+  },
 };
 // Intensité visée (part de la capacité) selon l'allure, l'avancement (0-1) et la pente.
 function ttIntensity(mode, frac, g) {

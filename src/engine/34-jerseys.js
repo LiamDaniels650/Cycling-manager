@@ -62,9 +62,7 @@ function jerseyOrder(G, kind, sim, c) {
       ? x =>
           cap(x, 6, 0) +
           // (les hommes du général, leaders ou non, laissent les points des cols de passage aux chasseurs)
-          (!summitFinish && x.aim !== 'kom' && (effOrder(x) === 'leader' || (sim.stageRace && gcTop(x)))
-            ? -12
-            : 0) +
+          (!summitFinish && x.aim !== 'kom' && (effOrder(x) === 'leader' || (sim.stageRace && gcTop(x))) ? -12 : 0) +
           (x.work > 0.5 ? 3 : 0)
       : x => x.r.s.spr + x.pos * 0.1;
   const sc = new Map(G.riders.map(x => [x, base(x) + (x.aim === kind ? 9 : 0) + gauss() * (kind === 'kom' ? 1.5 : 3)]));

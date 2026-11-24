@@ -62,7 +62,5 @@ function mfInBreak(r) {
 }
 // Mes coureurs les plus usés (pour l'accueil).
 function mfTired() {
-  return S.teams[0].riders
-    .map(id => S.riders[id])
-    .filter(r => r && mfOf(r) < 35 && !mfInBreak(r));
+  return S.teams[0].riders.map(id => S.riders[id]).filter(r => r && mfOf(r) < 35 && !mfInBreak(r));
 }

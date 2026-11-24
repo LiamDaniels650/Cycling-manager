@@ -19,12 +19,19 @@ function mentalOf(r) {
 }
 // Connaît-on son caractère ? 0 : non ; 1 : une idée (rapport de recruteur) ; 2 : précisément.
 function mentalKnown(r) {
-  if (r.team === 0) return (r.mtD || 0) >= 6 || (r.career || []).some(c => c.t === S.teams[0].short) ? 2 : (r.mtD || 0) >= 2 ? 1 : 0;
+  if (r.team === 0)
+    return (r.mtD || 0) >= 6 || (r.career || []).some(c => c.t === S.teams[0].short) ? 2 : (r.mtD || 0) >= 2 ? 1 : 0;
   const k = knowOf(r);
   return k >= 80 ? 2 : k >= 55 ? 1 : 0;
 }
 const MENTAL_LBL = {
-  pres: ['Craque sous la pression', 'Tendu dans les grands rendez-vous', 'Ni plus ni moins', 'Aime les grands rendez-vous', 'Se sublime dans les grands rendez-vous'],
+  pres: [
+    'Craque sous la pression',
+    'Tendu dans les grands rendez-vous',
+    'Ni plus ni moins',
+    'Aime les grands rendez-vous',
+    'Se sublime dans les grands rendez-vous',
+  ],
   prof: ['Manque de sérieux', 'Inégal à l’entraînement', 'Sérieux', 'Très professionnel', 'Professionnel exemplaire'],
 };
 function mentalBand(v) {
@@ -55,7 +62,13 @@ function mentalHint(r) {
 // Grand rendez-vous : grand tour, monument, Mondiaux, Jeux.
 function bigRace(rc) {
   const c = rc && S.cal[rc.calIdx];
-  return !!rc && (rc.worlds || (c && (c.worlds || c.olympic)) || MONUMENTS.includes(rc.key) || (rc.cat === 0 && rc.specs.length >= 15));
+  return (
+    !!rc &&
+    (rc.worlds ||
+      (c && (c.worlds || c.olympic)) ||
+      MONUMENTS.includes(rc.key) ||
+      (rc.cat === 0 && rc.specs.length >= 15))
+  );
 }
 // Effet sur la forme du jour (centré sur zéro sur l'ensemble du peloton).
 function mentalBig(rc, r) {

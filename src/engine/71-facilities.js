@@ -9,11 +9,46 @@
    l'académie reste à part (57-academy-plus.js). Rien ici ne tire au hasard. */
 
 const FAC = {
-  perf: { lbl: 'Centre de performance', ic: '🏋️', d: 'Progression de vos coureurs : +4 % par niveau.', cost: [0, 220, 420, 700], wk: [0, 10, 16, 24], upk: [0, 25, 50, 85] },
-  med: { lbl: 'Service médical', ic: '🩺', d: 'Blessures et maladies plus courtes : -8 % par niveau.', cost: [0, 150, 300, 500], wk: [0, 8, 12, 18], upk: [0, 20, 40, 65] },
-  bus: { lbl: 'Logistique et bus', ic: '🚌', d: 'Récupération entre les étapes : +1 point de réserve par niveau, chaque soir.', cost: [0, 180, 340, 560], wk: [0, 6, 10, 14], upk: [0, 25, 45, 70] },
-  wind: { lbl: 'Soufflerie', ic: '🌬️', d: 'Contre-la-montre : forme du jour +0,5 par niveau.', cost: [0, 200, 380, 620], wk: [0, 12, 18, 26], upk: [0, 20, 35, 55] },
-  data: { lbl: "Cellule d'analyse", ic: '📊', d: 'Estimations des coureurs adverses plus justes : -10 % d’erreur par niveau.', cost: [0, 120, 240, 400], wk: [0, 6, 10, 14], upk: [0, 15, 30, 50] },
+  perf: {
+    lbl: 'Centre de performance',
+    ic: '🏋️',
+    d: 'Progression de vos coureurs : +4 % par niveau.',
+    cost: [0, 220, 420, 700],
+    wk: [0, 10, 16, 24],
+    upk: [0, 25, 50, 85],
+  },
+  med: {
+    lbl: 'Service médical',
+    ic: '🩺',
+    d: 'Blessures et maladies plus courtes : -8 % par niveau.',
+    cost: [0, 150, 300, 500],
+    wk: [0, 8, 12, 18],
+    upk: [0, 20, 40, 65],
+  },
+  bus: {
+    lbl: 'Logistique et bus',
+    ic: '🚌',
+    d: 'Récupération entre les étapes : +1 point de réserve par niveau, chaque soir.',
+    cost: [0, 180, 340, 560],
+    wk: [0, 6, 10, 14],
+    upk: [0, 25, 45, 70],
+  },
+  wind: {
+    lbl: 'Soufflerie',
+    ic: '🌬️',
+    d: 'Contre-la-montre : forme du jour +0,5 par niveau.',
+    cost: [0, 200, 380, 620],
+    wk: [0, 12, 18, 26],
+    upk: [0, 20, 35, 55],
+  },
+  data: {
+    lbl: "Cellule d'analyse",
+    ic: '📊',
+    d: 'Estimations des coureurs adverses plus justes : -10 % d’erreur par niveau.',
+    cost: [0, 120, 240, 400],
+    wk: [0, 6, 10, 14],
+    upk: [0, 15, 30, 50],
+  },
 };
 const FAC_LVL = ['Aucun', 'Niveau 1', 'Niveau 2', 'Niveau 3'];
 function facInit() {

@@ -46,10 +46,16 @@ function legacyBackfill() {
     if (!c || c.key === 'natio' || c.worlds) continue;
     const r = S.riders[p.rid];
     if (p.e === 'Classement général')
-      add(p.s, c.cat === 0 ? LEG_PTS.gt : c.cat === 1 ? LEG_PTS.cat1Gc : LEG_PTS.cat2, `${p.r} : victoire au général (${riderName(r)})`);
-    else if (p.e === 'Course') add(p.s, c.cat === 1 ? LEG_PTS.cat1One : LEG_PTS.cat2, `${p.r} : victoire (${riderName(r)})`);
+      add(
+        p.s,
+        c.cat === 0 ? LEG_PTS.gt : c.cat === 1 ? LEG_PTS.cat1Gc : LEG_PTS.cat2,
+        `${p.r} : victoire au général (${riderName(r)})`
+      );
+    else if (p.e === 'Course')
+      add(p.s, c.cat === 1 ? LEG_PTS.cat1One : LEG_PTS.cat2, `${p.r} : victoire (${riderName(r)})`);
     else if (/^Étape/.test(p.e)) add(p.s, c.cat === 0 ? LEG_PTS.gtStage : LEG_PTS.stage, '');
-    else if (c.cat === 0 && (p.e === 'Maillot des points' || p.e === 'Meilleur grimpeur')) add(p.s, LEG_PTS.gtJersey, '');
+    else if (c.cat === 0 && (p.e === 'Maillot des points' || p.e === 'Meilleur grimpeur'))
+      add(p.s, LEG_PTS.gtJersey, '');
   }
   for (const h of S.teamHist || []) if (h.rank <= 3) add(h.s, LEG_PTS.uci[h.rank - 1], '');
   for (const h of S.teamHist || []) {
@@ -103,7 +109,15 @@ function legacyAfterRace(rc) {
 // Fin de saison : podium UCI des équipes, saison en WorldTour, point d'étape de la courbe de dynastie.
 function legacyEndSeason(rankArr) {
   if (S.car) return;
-  rankArr.slice(0, 3).forEach((T, i) => legCredit(T.id, LEG_PTS.uci[i], i === 0 && T.player ? `Saison ${S.season} : première équipe au classement UCI` : ''));
+  rankArr
+    .slice(0, 3)
+    .forEach((T, i) =>
+      legCredit(
+        T.id,
+        LEG_PTS.uci[i],
+        i === 0 && T.player ? `Saison ${S.season} : première équipe au classement UCI` : ''
+      )
+    );
   for (const T of S.teams) if (typeof isWT === 'function' && isWT(T.id)) legCredit(T.id, LEG_PTS.wt, '');
   const L = legacyInit();
   L.hist.push({ s: S.season, score: L.score, club: S.teams[0].name });
@@ -112,7 +126,13 @@ function legacyEndSeason(rankArr) {
 // Un directeur de l'ordinateur quitte son poste : il entre au panthéon.
 function legacyRetireDs(T, d) {
   if (!d || !(d.score > 0)) return;
-  (S.dsHall = S.dsHall || []).push({ n: `${d.fn} ${d.ln}`, team: T.name, score: Math.round(d.score), from: d.since || null, to: S.season });
+  (S.dsHall = S.dsHall || []).push({
+    n: `${d.fn} ${d.ln}`,
+    team: T.name,
+    score: Math.round(d.score),
+    from: d.since || null,
+    to: S.season,
+  });
   S.dsHall.sort((a, b) => b.score - a.score);
   if (S.dsHall.length > 30) S.dsHall.length = 30;
 }
@@ -145,7 +165,9 @@ function legacyBadges() {
   const gt = wins.filter(p => p.e === 'Classement général' && cat(p.r) === 0);
   const classics = wins.filter(p => p.e === 'Course' && cat(p.r) === 1);
   const gtStages = wins.filter(p => /^Étape/.test(p.e) && cat(p.r) === 0);
-  const alumniWins = (S.acaAlumni || []).filter(a => (S.riders[a.id] && S.riders[a.id].palm || []).some(p => p.k === 1 && p.my)).length;
+  const alumniWins = (S.acaAlumni || []).filter(a =>
+    ((S.riders[a.id] && S.riders[a.id].palm) || []).some(p => p.k === 1 && p.my)
+  ).length;
   const hist = S.teamHist || [];
   const top3 = hist.filter(h => h.rank <= 3).length;
   const B = [
@@ -157,7 +179,12 @@ function legacyBadges() {
     ['🥇', 'Numéro un', 'Terminer une saison première équipe au classement UCI', hist.some(h => h.rank === 1)],
     ['🏛️', 'Dynastie', 'Trois saisons sur le podium UCI des équipes', top3 >= 3],
     ['🔁', 'Bâtisseur', 'Dix saisons à la tête d’équipes', hist.length >= 10],
-    ['🚀', 'De rien au sommet', 'Une saison dans le top 3 UCI après une saison hors du top 12', hist.some((h, i) => i > 0 && h.rank <= 3 && hist.slice(0, i).some(p => p.rank > 12))],
+    [
+      '🚀',
+      'De rien au sommet',
+      'Une saison dans le top 3 UCI après une saison hors du top 12',
+      hist.some((h, i) => i > 0 && h.rank <= 3 && hist.slice(0, i).some(p => p.rank > 12)),
+    ],
   ];
   return B.map(([ic, n, d, ok]) => ({ ic, n, d, ok }));
 }

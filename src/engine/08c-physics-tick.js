@@ -164,7 +164,7 @@ function tickPhysics(sim) {
       // après une bordure par exemple ; ceux qui y ont perdu le contact chassent, même si leur groupe est « le peloton »)
       const gcAhead =
         sim.stageRace &&
-        sim.spec.type !== 'montagne' &&
+        (sim.spec.type === 'plat' || sim.spec.type === 'paves') &&
         G.riders.some(y => gcLead(sim, y)) &&
         gcGroups(sim).some(H => H !== G && H.pos > G.pos && gapSec(H, G) < 600);
       // (et, sur le plat abrité, un groupe coupé de moins de deux minutes à n'importe quel moment : il revient)
@@ -551,10 +551,19 @@ function tickMerges(sim) {
     const reach = ((pel.speed || 40) * 10) / 3600; // à portée : moins de 10 s environ
     for (const G of sim.groups.slice()) {
       if (G === pel || !G.riders.length) continue;
-      if (G.aheadPel && G.pos < pel.pos && G.riders.length < pel.riders.length) G.passedBy = pel;
+      if (G.pos >= pel.pos)
+        G.passedBy = null; // (de nouveau devant : plus « dépassé »)
+      else if (G.aheadPel && G.riders.length < pel.riders.length) G.passedBy = pel;
       // (la jonction passe par la fusion habituelle ci-dessous : reprise annoncée, échappée du jour relevée, nouvelle
       // bagarre si elle est reprise tôt ; le groupe repris est remis juste devant le peloton qui l'avale)
-      if (G.passedBy === pel && G.pos >= pel.pos - reach && G.riders.some(x => x.energy > 12)) {
+      // (sur le plat seulement : en côte, l'abri ne compte plus, être dépassé c'est être lâché)
+      if (
+        G.passedBy === pel &&
+        (G.g || 0) < 3 &&
+        G.pos < pel.pos &&
+        G.pos >= pel.pos - reach &&
+        G.riders.some(x => x.energy > 12)
+      ) {
         G.pos = pel.pos + 1e-6;
         G.noMerge = 0;
         // (seule l'échappée du jour compte comme une reprise : un groupe d'attaquants avalé ne relance pas les contres)

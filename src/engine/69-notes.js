@@ -74,7 +74,13 @@ function stageReview(rc, spec, res, dnfIds) {
 }
 // Verdict d'une note.
 function noteVerdict(n) {
-  return n == null ? '—' : n >= 7.5 ? 'au-dessus des attentes' : n <= 4.5 ? 'en dessous des attentes' : 'conforme aux attentes';
+  return n == null
+    ? '—'
+    : n >= 7.5
+      ? 'au-dessus des attentes'
+      : n <= 4.5
+        ? 'en dessous des attentes'
+        : 'conforme aux attentes';
 }
 // Moyenne des notes de chaque coureur sur toute la course (étapes notées).
 function raceReview(rc) {

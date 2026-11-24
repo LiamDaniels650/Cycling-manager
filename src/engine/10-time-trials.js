@@ -33,7 +33,16 @@ function runITT(rc) {
       const x = {
         r,
         energy: rc.energy[id],
-        dayForm: clamp(r.forme + gauss() * (r.trait === 'regulier' ? 2.5 : 6) + homeBoost(rc, r) + mentalBig(rc, r) + mfForm(r) + (r.team === 0 ? facTT() : 0), 25, 100),
+        dayForm: clamp(
+          r.forme +
+            gauss() * (r.trait === 'regulier' ? 2.5 : 6) +
+            homeBoost(rc, r) +
+            mentalBig(rc, r) +
+            mfForm(r) +
+            (r.team === 0 ? facTT() : 0),
+          25,
+          100
+        ),
       };
       // allure choisie, limite du jour, réserve (76-ttpacing.js)
       const mode = TT_PACE[o.itt] ? o.itt : 'gerer';
@@ -124,7 +133,16 @@ function runTTT(rc) {
         id,
         r,
         energy: rc.energy[id],
-        dayForm: clamp(r.forme + gauss() * (r.trait === 'regulier' ? 2.5 : 6) + homeBoost(rc, r) + mentalBig(rc, r) + mfForm(r) + (r.team === 0 ? facTT() : 0), 25, 100),
+        dayForm: clamp(
+          r.forme +
+            gauss() * (r.trait === 'regulier' ? 2.5 : 6) +
+            homeBoost(rc, r) +
+            mentalBig(rc, r) +
+            mfForm(r) +
+            (r.team === 0 ? facTT() : 0),
+          25,
+          100
+        ),
         with: true,
         t: 0,
         di: -1,

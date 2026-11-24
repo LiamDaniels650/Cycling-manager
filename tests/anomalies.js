@@ -262,13 +262,24 @@ function checkStage(seed, rc, cal, spec, out, gcBefore, ldrBefore, gc0) {
   for (const x of sim.runners) if (x.bonks) bt[x.team.id] = (bt[x.team.id] || 0) + 1; // (coureurs touchés)
   N.fringales_coureur++;
   const rb = sim.runners.filter(x => x.bonks >= 3);
-  if (rb.length) flag('fringales_coureur', ctx, rb.map(x => `${nm(x.id)} (${x.order}) : ${x.bonks} fringales`).join(', '), sim, null, rb.map(x => x.id));
+  if (rb.length)
+    flag(
+      'fringales_coureur',
+      ctx,
+      rb.map(x => `${nm(x.id)} (${x.order}) : ${x.bonks} fringales`).join(', '),
+      sim,
+      null,
+      rb.map(x => x.id)
+    );
   const worst = Object.entries(bt).sort((a, b) => b[1] - a[1])[0];
   if (worst && worst[1] >= 3)
     flag(
       'fringales_equipe',
       ctx,
-      `${S.teams[worst[0]].name} : ${worst[1]} coureurs en fringale (${sim.runners.filter(x => x.bonks && x.team.id == worst[0]).map(x => `${nm(x.id)} ${x.order} ${Math.round(x.st.kw)} km en tête, ${Math.round(x.st.kf)} km devant`).join(' ; ')})`,
+      `${S.teams[worst[0]].name} : ${worst[1]} coureurs en fringale (${sim.runners
+        .filter(x => x.bonks && x.team.id == worst[0])
+        .map(x => `${nm(x.id)} ${x.order} ${Math.round(x.st.kw)} km en tête, ${Math.round(x.st.kf)} km devant`)
+        .join(' ; ')})`,
       sim,
       null,
       sim.runners.filter(x => x.bonks && x.team.id == worst[0]).map(x => x.id)
