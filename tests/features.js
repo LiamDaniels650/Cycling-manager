@@ -583,7 +583,10 @@ check(
   });
   simA.t = ASK_TTL;
   radioTick(simA);
-  check(got === 'a' && !simA.ask && simA.log.some(l => /adjoint/.test(l.txt)), "radio : sans réponse, l'adjoint prend le micro et choisit");
+  check(
+    got === 'a' && !simA.ask && simA.log.some(l => /adjoint/.test(l.txt)),
+    "radio : sans réponse, l'adjoint prend le micro et choisit"
+  );
   const simB = { t: 0, log: [], hls: [], runners: [], groups: [], pacts: [], autoDS: true };
   askOpen(simB, {
     key: 'k',
@@ -1180,14 +1183,20 @@ check(
   endSeason();
   const hall = legacyHall();
   const ai = S.teams.filter(T => !T.player).reduce((a, T) => a + (dsOf(T).score || 0), 0);
-  check(S.legacy && S.legacy.hist.length === 1 && hall.some(x => x.me), 'héritage : courbe de dynastie et place au panthéon');
+  check(
+    S.legacy && S.legacy.hist.length === 1 && hall.some(x => x.me),
+    'héritage : courbe de dynastie et place au panthéon'
+  );
   check(ai > 200, `héritage : les directeurs de l'ordinateur marquent aussi (${Math.round(ai)} pts)`);
   check(legacyBadges().length >= 8, 'héritage : distinctions');
   // reconstruction d'une partie ancienne : même score à partir des résultats
   const sc = S.legacy.score;
   delete S.legacy;
   const L = legacyInit();
-  check(Math.abs(L.score - sc) <= sc * 0.25 + 10, `héritage reconstruit pour une partie ancienne (${L.score} contre ${sc})`);
+  check(
+    Math.abs(L.score - sc) <= sc * 0.25 + 10,
+    `héritage reconstruit pour une partie ancienne (${L.score} contre ${sc})`
+  );
 }
 {
   // vestiaire : capitaine, ambitions ciblées, promesses tenues ou rompues, parrainage, réunions, rivalités
@@ -1196,8 +1205,14 @@ check(
   const P = S.teams[0];
   check(captain() && captain().age >= 25, `capitaine de route désigné (${captain() && riderName(captain())})`);
   const rs = P.riders.map(id => S.riders[id]);
-  check(rs.every(r => CHARS[charOf(r)] && leadOf(r) >= 5), 'caractère et leadership de chaque coureur');
-  check(rs.some(r => r.goal.race), 'ambitions ciblées : une course visée');
+  check(
+    rs.every(r => CHARS[charOf(r)] && leadOf(r) >= 5),
+    'caractère et leadership de chaque coureur'
+  );
+  check(
+    rs.some(r => r.goal.race),
+    'ambitions ciblées : une course visée'
+  );
   const gt = S.cal.find(c => c.cat === 0 && c.stagesSpec.length > 1);
   const r0 = rs.sort((a, b) => overall(b.s) - overall(a.s))[0];
   const t0 = trustOf();
@@ -1214,7 +1229,10 @@ check(
   const sim = { runners: [{ player: true, id: S.captain, dnf: false, r: captain() }] };
   check(captainObey({ player: true, id: -1 }, sim) > 0, 'capitaine en course : consignes mieux appliquées');
   // négociation : agent, contre-proposition, clauses
-  const fr = S.free.map(id => S.riders[id]).filter(r => r.age > 21).sort((a, b) => overall(b.s) - overall(a.s))[0];
+  const fr = S.free
+    .map(id => S.riders[id])
+    .filter(r => r.age > 21)
+    .sort((a, b) => overall(b.s) - overall(a.s))[0];
   S.budget = 5000;
   let res = null;
   for (let k = 0; k < 6 && !(res && res.counter); k++) {
@@ -1242,22 +1260,38 @@ check(
   // préparation physique : plan de saison, laboratoire, santé, déplacements, chaleur
   newGame('Physio', 31);
   const r = S.teams[0].riders.map(id => S.riders[id]).sort((a, b) => overall(b.s) - overall(a.s))[0];
-  check(/construit/.test(periBuild(r.id, 'gb')) && periOf(r).blocks.length === 4, 'plan de saison : quatre blocs vers la Grande Boucle');
+  check(
+    /construit/.test(periBuild(r.id, 'gb')) && periOf(r).blocks.length === 4,
+    'plan de saison : quatre blocs vers la Grande Boucle'
+  );
   const gb = S.cal.find(c => c.key === 'gb');
-  check(periBlockNow(r, gb.w - 1).k === 'affutage' && periBlockNow(r, gb.w - 4).k === 'intensite', 'plan : intensité puis affûtage');
-  r.trn = { s: S.season, f: [gb.w - 10, gb.w - 9, gb.w - 8, gb.w - 7, gb.w - 6, gb.w - 5], i: [gb.w - 6, gb.w - 5, gb.w - 4, gb.w - 3] };
+  check(
+    periBlockNow(r, gb.w - 1).k === 'affutage' && periBlockNow(r, gb.w - 4).k === 'intensite',
+    'plan : intensité puis affûtage'
+  );
+  r.trn = {
+    s: S.season,
+    f: [gb.w - 10, gb.w - 9, gb.w - 8, gb.w - 7, gb.w - 6, gb.w - 5],
+    i: [gb.w - 6, gb.w - 5, gb.w - 4, gb.w - 3],
+  };
   r.peakW = gb.w;
   check(periBonus(r, 'pic') === 5, 'surcompensation : foncier et intensité donnent un pic plus haut');
   S.budget = 1000;
   const t1 = labTest(r.id);
-  check(/seuil \d+ W/.test(t1) && r.lab.length === 1 && /trop récent/.test(labTest(r.id)), `laboratoire : ${t1.slice(0, 60)}…`);
+  check(
+    /seuil \d+ W/.test(t1) && r.lab.length === 1 && /trop récent/.test(labTest(r.id)),
+    `laboratoire : ${t1.slice(0, 60)}…`
+  );
   const m = r.lab[0];
   check(m.p5s > m.p1 && m.p1 > m.p5 && m.p5 > m.p20 && m.vo2 > 50 && m.vo2 < 95, 'profil de puissance cohérent');
   // blessure typée, médecin spécialiste, reprise anticipée, rechute possible
   const q = S.teams[0].riders.map(id => S.riders[id])[3];
   injSet(q, 'fracture', 6);
   check(q.injury === 6 && q.inj.k === 'fracture', 'blessure typée');
-  check(/reprendra dans 4/.test(earlyReturn(q.id)) && relapseP(q) > 0.2, 'reprise anticipée : arrêt plus court, risque de rechute');
+  check(
+    /reprendra dans 4/.test(earlyReturn(q.id)) && relapseP(q) > 0.2,
+    'reprise anticipée : arrêt plus court, risque de rechute'
+  );
   S.doc = { k: 'traumato', n: 'X', s: S.season };
   const q2 = S.teams[0].riders.map(id => S.riders[id])[4];
   injSet(q2, 'fracture', 8);
@@ -1275,7 +1309,10 @@ check(
 }
 {
   // course plus vraie : délais selon la vitesse, repêchage, radio-course, abandons tactiques
-  check(cutPct('plat', 46) > cutPct('plat', 38) && cutPct('montagne', 34) > cutPct('plat', 38), 'délai : plus large quand le vainqueur va vite, et en montagne');
+  check(
+    cutPct('plat', 46) > cutPct('plat', 38) && cutPct('montagne', 34) > cutPct('plat', 38),
+    'délai : plus large quand le vainqueur va vite, et en montagne'
+  );
   newGame('Vrai', 41);
   const gi = S.cal.findIndex(c => c.key === 'gb');
   const rc = startRace(gi, aiSelect(S.teams[0], S.cal[gi], prepareRaceSpecs(S.cal[gi])));
@@ -1315,11 +1352,17 @@ check(
   Object.assign(rc.orders, autoOrders(0, rc.specs[0], rc));
   runStageAuto(rc);
   const tot = Object.values(rc.tv || {}).reduce((a, b) => a + b, 0);
-  check(tot > 30 && Object.keys(rc.tv).length >= 5, `visibilité TV : ${Math.round(tot)} min partagées entre ${Object.keys(rc.tv || {}).length} équipes`);
+  check(
+    tot > 30 && Object.keys(rc.tv).length >= 5,
+    `visibilité TV : ${Math.round(tot)} min partagées entre ${Object.keys(rc.tv || {}).length} équipes`
+  );
   check(S.tvs && S.tvs.races.length === 1 && S.tvs.races[0].pay >= 0, 'visibilité : prime du sponsor après la course');
   const bel = Object.values(S.riders).find(r => r.nat === 'BEL' && r.team != null);
   const ita = Object.values(S.riders).find(r => r.nat === 'ITA' && r.team != null);
-  check(homeBoost(rc, bel) > 0 && homeBoost(rc, ita) === 0, 'à domicile : un Belge motivé sur une classique flandrienne');
+  check(
+    homeBoost(rc, bel) > 0 && homeBoost(rc, ita) === 0,
+    'à domicile : un Belge motivé sur une classique flandrienne'
+  );
   check(isOlympicYear(2028) && !isOlympicYear(2027), 'Jeux olympiques tous les quatre ans');
   S.season = 2028;
   buildCalendar();
@@ -1327,7 +1370,10 @@ check(
   check(ji >= 0 && S.cal.some(c => c.key === 'jo'), 'Jeux olympiques au calendrier 2028');
   const orc = runWorlds(ji);
   const med = Object.values(S.riders).filter(r => (r.olymp || []).some(o => o.s === 2028));
-  check(med.length === 3 && Object.keys(orc.sel).every(k => orc.sel[k].length <= 2), 'JO : chrono à deux coureurs par pays, trois médaillés');
+  check(
+    med.length === 3 && Object.keys(orc.sel).every(k => orc.sel[k].length <= 2),
+    'JO : chrono à deux coureurs par pays, trois médaillés'
+  );
   check(worldsDone() === false, 'les JO ne comptent pas comme les Mondiaux');
 }
 {
@@ -1339,43 +1385,83 @@ check(
   check(/1er août/.test(negotiate(pre.id, 500, 2, false).txt), 'pré-contrat refusé avant le 1er août');
   const young = S.youth.map(id => S.riders[id])[0];
   check(neoPro(young) && /deux ans/.test(contractRule(young, 100, 1, 'free')), 'néo-pro : deux ans minimum');
-  check(/salaire minimum/.test(contractRule(Object.values(S.riders).find(r => r.team > 0), 5, 2, 'free')), 'salaire minimum UCI');
+  check(
+    /salaire minimum/.test(
+      contractRule(
+        Object.values(S.riders).find(r => r.team > 0),
+        5,
+        2,
+        'free'
+      )
+    ),
+    'salaire minimum UCI'
+  );
   const r = S.riders[S.teams[0].riders[0]];
-  r.wh = [{ s: S.season, w: 2 }, { s: S.season, w: 5 }];
+  r.wh = [
+    { s: S.season, w: 2 },
+    { s: S.season, w: 5 },
+  ];
   check(whMisses(r).length === 2, 'contrôles manqués comptés sur douze mois');
   r.wh.push({ s: S.season, w: 9 });
   r.wh = [];
   dopeSuspend(r, 26, 'test');
-  check(r.injury === 26 && r.inj.k === 'suspension' && /Pas de reprise/.test(earlyReturn(r.id)), 'suspension : coureur indisponible, pas de reprise anticipée');
-  check(/Cellule/.test(setWhOfficer(true)) && whMul(S.riders[S.teams[0].riders[1]]) < 1, 'cellule antidopage : moins de manquements');
+  check(
+    r.injury === 26 && r.inj.k === 'suspension' && /Pas de reprise/.test(earlyReturn(r.id)),
+    'suspension : coureur indisponible, pas de reprise anticipée'
+  );
+  check(
+    /Cellule/.test(setWhOfficer(true)) && whMul(S.riders[S.teams[0].riders[1]]) < 1,
+    'cellule antidopage : moins de manquements'
+  );
   // monde qui évolue
   newGame('Monde', 62);
   S.world = { gone: ['gpo'], added: [], cat: { omloop: 1 }, hist: [], pending: null, lastReform: null, teamNames: [] };
   buildCalendar();
-  check(!S.cal.some(c => c.key === 'gpo') && S.cal.find(c => c.key === 'omloop').cat === 1, 'monde : course disparue, course promue');
+  check(
+    !S.cal.some(c => c.key === 'gpo') && S.cal.find(c => c.key === 'omloop').cat === 1,
+    'monde : course disparue, course promue'
+  );
   const nd = newRaceDef(9, 12345);
   S.world.added.push(nd);
   buildCalendar();
-  check(S.cal.some(c => c.key === nd.key) && RACE_REG[nd.key] === nd.reg, `monde : nouvelle course au calendrier (${nd.name})`);
+  check(
+    S.cal.some(c => c.key === nd.key) && RACE_REG[nd.key] === nd.reg,
+    `monde : nouvelle course au calendrier (${nd.name})`
+  );
   const T = S.teams.find(U => !U.player && !isWT(U.id));
   const n0 = T.riders.length;
   const ch = bankruptcy(T, 999);
-  check(ch && T.name === ch.name && T.riders.length >= ROSTER.minAI && T.riders.length < n0 + 10, `faillite : ${ch.old} devient ${ch.name}`);
+  check(
+    ch && T.name === ch.name && T.riders.length >= ROSTER.minAI && T.riders.length < n0 + 10,
+    `faillite : ${ch.old} devient ${ch.name}`
+  );
   applyReform(S.world, { k: 'wtN', v: 14 });
   check(wtN() === 14, 'réforme : 14 licences WorldTour');
   S.world = null;
   buildCalendar();
-  check(S.cal.some(c => c.key === 'gpo'), 'nouvelle partie : calendrier de base rétabli');
+  check(
+    S.cal.some(c => c.key === 'gpo'),
+    'nouvelle partie : calendrier de base rétabli'
+  );
 }
 {
   // staff en personnages, équipe de développement
   newGame('Staff', 71);
   crewInit();
-  check(Object.keys(CREW_ROLES).every(k => S.crew[k] && S.crew[k].fn) && S.staff.coach === crewLvl(S.crew.coach), 'staff : une personne par poste, niveau synchronisé');
+  check(
+    Object.keys(CREW_ROLES).every(k => S.crew[k] && S.crew[k].fn) && S.staff.coach === crewLvl(S.crew.coach),
+    'staff : une personne par poste, niveau synchronisé'
+  );
   S.budget = 3000;
   const c = crewCandidates('coach')[0];
-  check(/devient/.test(crewHireCand('coach', 0)) && S.staff.coach === crewLvl(c), `staff : embauche de ${crewName(c)} (niveau ${crewLvl(c)})`);
-  check(setStaff('scout', 3) === null && S.staff.scout === 3 && S.crew.scout.sk >= 3, 'ancien réglage de niveau : embauche du bon niveau');
+  check(
+    /devient/.test(crewHireCand('coach', 0)) && S.staff.coach === crewLvl(c),
+    `staff : embauche de ${crewName(c)} (niveau ${crewLvl(c)})`
+  );
+  check(
+    setStaff('scout', 3) === null && S.staff.scout === 3 && S.crew.scout.sk >= 3,
+    'ancien réglage de niveau : embauche du bon niveau'
+  );
   const sk0 = S.crew.adjoint.sk;
   S.crew.adjoint.age = 30;
   crewEndSeason();
@@ -1383,13 +1469,26 @@ check(
   S.crew.doctor = { ...S.crew.doctor, sk: 4.5, trait: 'ambitieux' };
   S.crewAsk = { role: 'doctor', t: S.teams[3].id, s: S.season, exp: 4, prime: 100 };
   check(/part chez/.test(crewAnswer('laisser')) && S.staff.doctor === 1, 'débauchage : intérimaire de niveau 1');
-  check(adjObey({ player: true }, { rc: { delegated: true } }) === 0.01 * (S.adj - 3), 'directeur adjoint : obéissance dans ses courses');
+  check(
+    adjObey({ player: true }, { rc: { delegated: true } }) === 0.01 * (S.adj - 3),
+    'directeur adjoint : obéissance dans ses courses'
+  );
   // équipe de développement
   const m0 = acaMax();
-  check(/créée/.test(devCreate()) && acaMax() === m0 + DEV.places && acaAgeOut() === 24, 'réserve : places et âge limite');
+  check(
+    /créée/.test(devCreate()) && acaMax() === m0 + DEV.places && acaAgeOut() === 24,
+    'réserve : places et âge limite'
+  );
   const cat2 = S.cal.find(x => x.cat === 2 && !x.worlds);
   const y = { aca: true, age: 20 };
-  check(devEligible(y, cat2) && !devEligible(y, S.cal.find(x => x.cat === 0)), 'réserve : courses de deuxième catégorie seulement');
+  check(
+    devEligible(y, cat2) &&
+      !devEligible(
+        y,
+        S.cal.find(x => x.cat === 0)
+      ),
+    'réserve : courses de deuxième catégorie seulement'
+  );
 }
 {
   // directeur adjoint en course : il fait attendre le leader lâché et ramener le sprinteur isolé
@@ -1410,32 +1509,64 @@ check(
   // gestion à long terme : recrutement, installations, direction, mental, monde du vélo
   newGame('Fm', 5);
   S.budget = 5000;
-  check(/Mission lancée/.test(scmStart('monde', 'grimpeur', 'jeune', 0)) && /en mission/.test(scmStart('ouest', null, 'tous', 0)), 'recrutement : une mission à la fois (recruteur niveau 1)');
+  check(
+    /Mission lancée/.test(scmStart('monde', 'grimpeur', 'jeune', 0)) &&
+      /en mission/.test(scmStart('ouest', null, 'tous', 0)),
+    'recrutement : une mission à la fois (recruteur niveau 1)'
+  );
   for (let i = 0; i < 6; i++) scmWeekly();
   const rep = S.scm.rep[0];
-  check(rep && rep.items.length === 5 && rep.items.every(x => S.riders[x.id].arch === 'grimpeur' && S.riders[x.id].age <= 23), 'recrutement : rapport de cinq coureurs conformes');
-  check(rep.items.every(x => knowOf(S.riders[x.id]) >= 55), 'recrutement : coureurs du rapport mieux connus');
-  check(/ajouté/.test(scmWatchAll(rep.id)) || rep.items.every(x => x.rec === 'non'), 'recrutement : suivi des recommandés');
-  check(/Chantier lancé/.test(facBuild('perf')) && /déjà en cours/.test(facBuild('med')), 'installations : un chantier à la fois');
+  check(
+    rep &&
+      rep.items.length === 5 &&
+      rep.items.every(x => S.riders[x.id].arch === 'grimpeur' && S.riders[x.id].age <= 23),
+    'recrutement : rapport de cinq coureurs conformes'
+  );
+  check(
+    rep.items.every(x => knowOf(S.riders[x.id]) >= 55),
+    'recrutement : coureurs du rapport mieux connus'
+  );
+  check(
+    /ajouté/.test(scmWatchAll(rep.id)) || rep.items.every(x => x.rec === 'non'),
+    'recrutement : suivi des recommandés'
+  );
+  check(
+    /Chantier lancé/.test(facBuild('perf')) && /déjà en cours/.test(facBuild('med')),
+    'installations : un chantier à la fois'
+  );
   for (let i = 0; i < 10; i++) facWeekly();
   check(facL('perf') === 1 && facTrainMul() > 1 && !S.fac.b, 'installations : livraison et effet');
   boardInit();
-  check(/Projet validé/.test(boardChoose('comptes')) && boardStatus() && boardStatus().ok, 'direction : projet et suivi');
+  check(
+    /Projet validé/.test(boardChoose('comptes')) && boardStatus() && boardStatus().ok,
+    'direction : projet et suivi'
+  );
   S.board.t = 90;
-  check(boardChance('mercato') > 0.9 && /refuse|accepte/.test(boardAsk('mercato')) && /il y a peu/.test(boardAsk('fac', 'med')), 'direction : réunion espacée');
+  check(
+    boardChance('mercato') > 0.9 &&
+      /refuse|accepte/.test(boardAsk('mercato')) &&
+      /il y a peu/.test(boardAsk('fac', 'med')),
+    'direction : réunion espacée'
+  );
   const rs = Object.values(S.riders);
   const mp = rs.reduce((a, r) => a + mentalOf(r).pres, 0) / rs.length;
   check(Math.abs(mp - 10.5) < 1.2, `mental : centré sur le peloton (${mp.toFixed(2)})`);
   const gt = S.cal.findIndex(c => c.key === 'gb');
   const rcG = { calIdx: gt, key: 'gb', cat: 0, specs: new Array(21) };
   const strong = rs.find(r => mentalOf(r).pres >= 18);
-  check(strong && mentalBig(rcG, strong) > 1 && mentalBig({ calIdx: 0, key: 'x', cat: 2, specs: [1] }, strong) === 0, 'mental : effet dans les grands rendez-vous seulement');
+  check(
+    strong && mentalBig(rcG, strong) > 1 && mentalBig({ calIdx: 0, key: 'x', cat: 2, specs: [1] }, strong) === 0,
+    'mental : effet dans les grands rendez-vous seulement'
+  );
   const other = rs.find(r => r.team > 0);
   check(mentalKnown(other) === 0 || knowOf(other) >= 55, 'mental : inconnu tant qu’on ne le connaît pas');
   rivalInit();
   check(rivalTeam() && !rivalTeam().player, 'monde : une rivale de la saison');
   newsAdd('course', 'test');
-  check(newsFeed(5).some(e => e.txt === 'test'), "monde : fil d'actualité");
+  check(
+    newsFeed(5).some(e => e.txt === 'test'),
+    "monde : fil d'actualité"
+  );
   dsRankUpdate(uciRanking());
   check(dsRanking().length === S.teams.length && dsRankOf('__me') >= 1, 'monde : classement des directeurs');
 }
@@ -1443,7 +1574,10 @@ check(
   // moteur : identité des équipes, allure en chrono, fraîcheur mentale, bilan tactique
   newGame('Mot', 6);
   const sup = superTeam();
-  check(identOf(sup) === 'super' && S.teams.filter(T => !T.player && identOf(T) === 'super').length === 1, 'identité : une seule super-équipe');
+  check(
+    identOf(sup) === 'super' && S.teams.filter(T => !T.player && identOf(T) === 'super').length === 1,
+    'identité : une seule super-équipe'
+  );
   const gtT = S.teams.find(T => !T.player && identOf(T) === 'gt');
   const climber = Object.values(S.riders).find(r => r.arch === 'grimpeur');
   if (gtT) {
@@ -1452,7 +1586,11 @@ check(
     check(aiWant(gtT, climber) === 3, 'identité : une équipe de grands tours veut des grimpeurs');
     gtT.riders = save;
   }
-  check(ttIntensity('fond', 0.5, 0) > ttIntensity('gerer', 0.5, 0) && ttIntensity('montee', 0.9, 6) > ttIntensity('montee', 0.2, 0), 'chrono : allures');
+  check(
+    ttIntensity('fond', 0.5, 0) > ttIntensity('gerer', 0.5, 0) &&
+      ttIntensity('montee', 0.9, 6) > ttIntensity('montee', 0.2, 0),
+    'chrono : allures'
+  );
   const ri = S.cal.findIndex(c => c.stagesSpec.length >= 5 && c.stagesSpec.some(x => x[0] === 'clm'));
   S.week = S.cal[ri].w;
   const rcT = startRace(ri, aiSelect(S.teams[0], S.cal[ri], prepareRaceSpecs(S.cal[ri])));
@@ -1464,12 +1602,18 @@ check(
   for (const id of rcT.sel[0]) rcT.orders[id].itt = 'fond';
   runStageAuto(rcT);
   const stT = rcT.stageRes[rcT.stageRes.length - 1];
-  check(stT.tt && rcT.sel[0].every(id => !stT.tt[id] || (stT.tt[id].sp.length === 2 && stT.tt[id].pace === 'fond')), 'chrono : temps intermédiaires gardés');
+  check(
+    stT.tt && rcT.sel[0].every(id => !stT.tt[id] || (stT.tt[id].sp.length === 2 && stT.tt[id].pace === 'fond')),
+    'chrono : temps intermédiaires gardés'
+  );
   Object.assign(rcT.orders, autoOrders(0, rcT.specs[rcT.si], rcT));
   if (!isITT(rcT.specs[rcT.si]) && !isTTT(rcT.specs[rcT.si])) {
     runStageAuto(rcT);
     const st2 = rcT.stageRes[rcT.stageRes.length - 1];
-    check(st2.tac && Array.isArray(st2.tac.work) && gcStory(rcT) && gcStory(rcT).total >= 0, 'bilan tactique : consignes et général');
+    check(
+      st2.tac && Array.isArray(st2.tac.work) && gcStory(rcT) && gcStory(rcT).total >= 0,
+      'bilan tactique : consignes et général'
+    );
   }
   S.rc = null;
   const me = S.riders[S.teams[0].riders[0]];
@@ -1477,7 +1621,10 @@ check(
   let mfSum = 0;
   for (let k = 0; k < 400; k++) mfSum += mfForm(me);
   check(mfSum / 400 < -1.5, `fraîcheur : un coureur usé perd de la forme (${(mfSum / 400).toFixed(1)} en moyenne)`);
-  check(/coupure/.test(mfBreak(me.id)) && !availableRiders(S.teams[0], S.week).includes(me), 'fraîcheur : coupure, coureur indisponible');
+  check(
+    /coupure/.test(mfBreak(me.id)) && !availableRiders(S.teams[0], S.week).includes(me),
+    'fraîcheur : coupure, coureur indisponible'
+  );
   me.mf = 95;
   check(mfForm(me) > 0, 'fraîcheur : un coureur frais en gagne');
 }
@@ -1506,8 +1653,29 @@ check(
   // alimentation : métabolisme individuel (±15 %), consommation selon l'effort
   newGame('Ali', 8);
   const ms = Object.values(S.riders).map(r => foodMet(r));
-  check(Math.min(...ms) >= 0.85 && Math.max(...ms) <= 1.15 && new Set(ms).size > 10, 'alimentation : métabolisme individuel');
+  check(
+    Math.min(...ms) >= 0.85 && Math.max(...ms) <= 1.15 && new Set(ms).size > 10,
+    'alimentation : métabolisme individuel'
+  );
   check(R.foodDrain > 1, 'alimentation : consommation calibrée (fringales réalistes)');
+}
+{
+  // l'affichage ne touche pas au hasard de la partie : les fonctions appelées par les écrans de carrière
+  // (directeur sportif de l'équipe, consignes annoncées) n'avancent pas la série aléatoire
+  carNewGame({ seed: 77, name: 'Test Hasard', nat: 'FRA', arch: 'grimpeur' });
+  const sd0 = _sd;
+  const ids = S.teams.slice(1, 6).map(T => T.id);
+  const ds = ids.map(id => carDsOf(id));
+  check(_sd === sd0, 'carrière : le directeur sportif affiché ne consomme pas de hasard');
+  check(
+    new Set(ds.map(d => d.kind)).size > 1 && new Set(ds.map(d => d.name)).size > 2,
+    'carrière : directeurs sportifs variés'
+  );
+  const src = require('fs').readFileSync(__dirname + '/../src/react/career/Career.jsx', 'utf8');
+  check(
+    !/autoOrders\(/.test(src),
+    "carrière : l'écran de préparation n'appelle pas autoOrders (hasard) pendant l'affichage"
+  );
 }
 console.log(fails ? `\n${fails} échec(s)` : '\nTout est bon.');
 process.exit(fails ? 1 : 0);

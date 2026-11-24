@@ -572,6 +572,24 @@ node tests/calibrate.js 6 100        # réalisme sur 6 saisons, comparé aux fou
     qui perd plus de 2 min sur le plat (2 %, groupes de grimpeurs coupés d'un peloton lancé par les rouleurs), un
     vainqueur avec plus de 8 min d'avance et une étape plate à plus de 52 km/h (un cas chacun sur 1 632 étapes).
     Calibrage 45/45 sur deux séries de 60 saisons (échappées au sommet 0,37, vallonné 0,38, côte 0,25-0,27).
+  - Revue d'architecture (failles logiques corrigées) :
+    - mode carrière : l'écran de préparation d'étape tirait les consignes de l'équipe dans le hasard de la partie à
+      chaque affichage (la course dépendait du nombre de rafraîchissements, et la consigne annoncée pouvait différer
+      de celle donnée au départ) : elles sont tirées une fois par étape dans un hasard propre (carTeamOrders) et
+      appliquées telles quelles au départ, aperçu affiché ou non ; le nom du directeur sportif ne touche plus au
+      hasard ;
+    - hachage : mercHash attend un nombre ; deux appels lui passaient une chaîne (directeur sportif de l'équipe,
+      incertitude du potentiel en carrière), d'où une valeur constante : tous les directeurs avaient le même
+      caractère et l'estimation du potentiel le même biais (dsHash à la place) ;
+    - sauvegardes : pendant une course de jeunes en carrière, le monde est en configuration de course (équipes
+      temporaires) ; la sauvegarde automatique gardait la copie d'avant la course, mais pas la sauvegarde nommée,
+      l'export en fichier, la copie de début de saison ni le repli d'urgence : une partie enregistrée ainsi perdait
+      ses vraies équipes. Tous passent désormais par saveText() ;
+    - Web Worker : les définitions de courses dérivées de l'état (courses disparues ou créées, catégories, taille
+      des effectifs) sont recalculées dans le Worker et au retour (avant : calendrier d'origine dans le Worker) ;
+    - migration : l'état est vérifié avant d'être lu ;
+    - tests : l'affichage du directeur sportif ne consomme pas de hasard, les directeurs sont variés, l'écran de
+      préparation n'appelle plus de fonction aléatoire.
   - Détecteur d'anomalies, troisième série :
     - un groupe coupé ne revient plus d'office en montagne (un leader lâché dans un col s'épuisait à chasser) ; loin
       de l'arrivée, hors de la montée finale, un leader ne se met plus dans le rouge pour suivre : il monte à son

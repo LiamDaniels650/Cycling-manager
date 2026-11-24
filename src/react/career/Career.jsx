@@ -1415,7 +1415,8 @@ function CarStagePrep() {
   const Pf = buildProfile(spec);
   const tid = rc.carPro ? carMe().team : 0;
   // course pro : la consigne que le directeur sportif de l'équipe donnera au départ
-  const ord = rc.carPro ? autoOrders(tid, spec, rc) : rc.orders;
+  // (copie : l'aperçu ne modifie pas les consignes qui seront appliquées au départ)
+  const ord = rc.carPro ? JSON.parse(JSON.stringify(carTeamOrders(rc))) : rc.orders;
   if (rc.carPro && S.car.wish === 'free' && ord[S.car.id] && !['leader', 'sprint', 'itt'].includes(ord[S.car.id].o))
     ord[S.car.id].o = 'free';
   const my = ord[S.car.id] || { o: 'free' };
@@ -1658,7 +1659,9 @@ export function CarRail() {
         onClick={() => go(k)}
         className={
           'flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-[15px] font-medium ' +
-          (on ? 'bg-slate-800 text-slate-50 shadow-[inset_3px_0_0_#f2c94c]' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100')
+          (on
+            ? 'bg-slate-800 text-slate-50 shadow-[inset_3px_0_0_#f2c94c]'
+            : 'text-slate-400 hover:bg-slate-900 hover:text-slate-100')
         }
       >
         <Icon name={icon} size={19} />

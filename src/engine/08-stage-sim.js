@@ -35,7 +35,8 @@ function buildStageSim(rc) {
   rc.plan = rc.plan || {};
   for (const T of S.teams) {
     if (!T.player) {
-      const o = autoOrders(T.id, spec, rc);
+      // (carrière pro : l'équipe du coureur reçoit les consignes annoncées, aperçu affiché ou non)
+      const o = rc.carPro && S.car && S.riders[S.car.id].team === T.id ? carTeamOrders(rc) : autoOrders(T.id, spec, rc);
       Object.assign(rc.orders, o);
       rc.plan[T.id] = aiPlan(T, spec, rc);
     }

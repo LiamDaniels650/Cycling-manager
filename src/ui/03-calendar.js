@@ -63,12 +63,18 @@ function skipRace(i) {
   });
 }
 function runWorldsUI(i) {
-  workerOp('worlds', i, 'Simulation : ' + S.cal[i].name, () => ({ win: runWorlds(i).stageRes[0].res[0].id }), d => {
-    save();
-    const w = S.riders[d.win];
-    UI.flash = `🌈 ${riderName(w)} (${NAT_NAME[w.nat] || w.nat}) est champion du monde. Bilan dans la messagerie.`;
-    render();
-  });
+  workerOp(
+    'worlds',
+    i,
+    'Simulation : ' + S.cal[i].name,
+    () => ({ win: runWorlds(i).stageRes[0].res[0].id }),
+    d => {
+      save();
+      const w = S.riders[d.win];
+      UI.flash = `🌈 ${riderName(w)} (${NAT_NAME[w.nat] || w.nat}) est champion du monde. Bilan dans la messagerie.`;
+      render();
+    }
+  );
 }
 function advance() {
   if (UI.busy) return;
@@ -168,6 +174,9 @@ onmessage = e => {
   const d = e.data;
   try {
     S = d.state; _sd = d.sd; if (d.rid != null) _rid = d.rid;
+    // courses de la partie (disparues, créées, catégories, taille des effectifs) : dérivées de l'état, à
+    // recalculer ici comme au chargement, sinon le Worker simulait avec le calendrier d'origine
+    if (typeof worldApply === 'function') worldApply();
     if (d.op === 'worlds') {
       const rc = runWorlds(d.i);
       postMessage({ done: true, state: S, sd: _sd, rid: _rid, win: rc.stageRes[0].res[0].id });
@@ -225,6 +234,7 @@ function simulateRaceAsync(i, done, delegate) {
     S = d.state;
     _sd = d.sd;
     if (d.rid != null) _rid = d.rid;
+    worldApply(); // (définitions de courses dérivées de l'état repris)
     UI.busy = null;
     renderBusy();
     done(null);
@@ -258,6 +268,7 @@ function workerOp(op, i, txt, local, done) {
     S = d.state;
     _sd = d.sd;
     if (d.rid != null) _rid = d.rid;
+    worldApply(); // (définitions de courses dérivées de l'état repris)
     UI.busy = null;
     renderBusy();
     done(d);

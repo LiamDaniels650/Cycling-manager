@@ -7,7 +7,7 @@ function staff(k, d) {
 // Téléchargement d'un fichier de sauvegarde (repli : copie du texte si le navigateur l'interdit).
 // (dans la page publiée, par le service de téléchargement de Claude, qui demande confirmation au joueur)
 async function dlSave() {
-  const t = JSON.stringify({ S, sd: _sd, rid: _rid });
+  const t = saveText();
   const filename = `directeur-sportif-${S.season}-sem${S.week}.json`;
   try {
     const cl = /** @type {any} */ (window).claude;

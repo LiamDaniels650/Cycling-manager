@@ -5,7 +5,7 @@ import { Card, Btn, Html } from '../ui.jsx';
 
 const INPUT = 'min-h-11 w-full min-w-0 rounded-xl border border-slate-700 bg-slate-800 px-3 text-base text-slate-100';
 const AREA = 'w-full min-w-0 rounded-xl border border-slate-700 bg-slate-800 p-2 text-sm text-slate-100';
-const saveText = () => JSON.stringify({ S, sd: _sd, rid: _rid });
+// (saveText : 01-core.js, la copie d'avant la course pendant une course de carrière)
 
 // Bulle « Premiers pas » d'un écran : une seule ligne repliée (la première phrase), qu'on déplie pour lire la suite.
 export function TipCard({ view }) {
@@ -192,11 +192,18 @@ function Display() {
         ))}
       </div>
       <label className="mt-3 flex min-h-10 items-center gap-2 text-sm text-slate-200">
-        <input type="checkbox" className="h-5 w-5 accent-sky-500" checked={!!p.hc} onChange={e => setUiPref('hc', e.target.checked)} />
+        <input
+          type="checkbox"
+          className="h-5 w-5 accent-sky-500"
+          checked={!!p.hc}
+          onChange={e => setUiPref('hc', e.target.checked)}
+        />
         Contraste renforcé (textes secondaires plus clairs, contours visibles)
       </label>
       <details className="mt-2 text-sm text-slate-300">
-        <summary className="cursor-pointer py-1 underline decoration-dotted underline-offset-2">Raccourcis clavier</summary>
+        <summary className="cursor-pointer py-1 underline decoration-dotted underline-offset-2">
+          Raccourcis clavier
+        </summary>
         <ul className="mt-1 space-y-0.5 text-xs text-slate-400">
           <li>
             <b className="text-slate-200">1 à 5</b> : Aujourd'hui, Courses, Effectif, Marché, Club
@@ -205,8 +212,9 @@ function Display() {
             <b className="text-slate-200">Entrée</b> (sur Aujourd'hui) : avancer jusqu'à la prochaine course
           </li>
           <li>
-            En course : <b className="text-slate-200">Espace</b> pause ou reprise, <b className="text-slate-200">1 à 5</b>{' '}
-            vitesse, <b className="text-slate-200">F</b> aller à la fin de l'étape
+            En course : <b className="text-slate-200">Espace</b> pause ou reprise,{' '}
+            <b className="text-slate-200">1 à 5</b> vitesse, <b className="text-slate-200">F</b> aller à la fin de
+            l'étape
           </li>
           <li>
             <b className="text-slate-200">Échap</b> : fermer une fenêtre
@@ -248,7 +256,10 @@ function NamedSaves() {
       {L.length ? (
         <div className="mt-3">
           {L.map(e => (
-            <div key={e.key} className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 py-2 text-sm">
+            <div
+              key={e.key}
+              className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 py-2 text-sm"
+            >
               <span className="min-w-0">
                 <b className="text-slate-100">{e.name}</b>
                 <span className="block text-xs text-slate-400">
@@ -259,14 +270,19 @@ function NamedSaves() {
               <span className="flex gap-2">
                 <Btn
                   onClick={() =>
-                    confirmBox(`Charger « ${e.name} » ? La partie actuelle sera remplacée (enregistrez-la d'abord si besoin).`, () =>
-                      loadNamed(e.key).then(t => ((UI.view = 'home'), done(t)))
+                    confirmBox(
+                      `Charger « ${e.name} » ? La partie actuelle sera remplacée (enregistrez-la d'abord si besoin).`,
+                      () => loadNamed(e.key).then(t => ((UI.view = 'home'), done(t)))
                     )
                   }
                 >
                   Charger
                 </Btn>
-                <Btn onClick={() => confirmBox(`Supprimer « ${e.name} » ?`, () => (deleteNamed(e.key), done('Sauvegarde supprimée.')))}>
+                <Btn
+                  onClick={() =>
+                    confirmBox(`Supprimer « ${e.name} » ?`, () => (deleteNamed(e.key), done('Sauvegarde supprimée.')))
+                  }
+                >
                   Supprimer
                 </Btn>
               </span>

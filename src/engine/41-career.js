@@ -192,7 +192,7 @@ function carNewGame(o) {
 function carPotEst() {
   const r = carMe();
   const k = S.car.potKnow;
-  const noise = ((mercHash('pot' + r.id + S.season) % 1000) / 1000 - 0.5) * 2;
+  const noise = ((dsHash('pot' + r.id + S.season) % 1000) / 1000 - 0.5) * 2; // (dsHash : mercHash attend un nombre)
   const est = r.ceil + noise * (1 - k) * 9;
   const spread = Math.round((1 - k) * 7 + 1);
   return { lo: Math.round(est - spread), hi: Math.round(est + spread), k };

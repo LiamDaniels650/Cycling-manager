@@ -30,8 +30,8 @@ function initRiderExtras(r) {
 }
 // Met à niveau une ancienne sauvegarde (S.v) en complétant les nouvelles données.
 function migrate() {
-  if (S.lvl == null) S.lvl = worldLevel();
   if (!S) return;
+  if (S.lvl == null) S.lvl = worldLevel();
   if (!S.v || S.v < 2) {
     S.staff = S.staff || { coach: 1, doctor: 1, scout: 1 };
     S.academy = S.academy || [];

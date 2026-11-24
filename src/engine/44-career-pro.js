@@ -59,6 +59,17 @@ function carProStart(i) {
   carDreamBoost(rc.name, S.cal[i].key, 'pro');
   return rc;
 }
+// Consignes de l'équipe du coureur pour l'étape en cours, tirées une seule fois dans un hasard propre à l'étape :
+// l'écran de préparation les affiche sans toucher au hasard de la partie, et le départ applique exactement celles-là
+// (avant, l'aperçu tirait de nouvelles consignes à chaque affichage, dans le hasard général).
+function carTeamOrders(rc) {
+  const tid = S.riders[S.car.id].team;
+  if (!rc.carPrev || rc.carPrev.si !== rc.si || rc.carPrev.tid !== tid) {
+    const h = { sd: stageSeed(rc, rc.si) ^ 0x2c1b3c6d };
+    rc.carPrev = { si: rc.si, tid, o: withSeed(h, () => autoOrders(tid, rc.specs[rc.si], rc)) };
+  }
+  return rc.carPrev.o;
+}
 // Équipe 0 du monde (confiée à l'adjoint) : consignes, matériel et ravitaillement réglés automatiquement.
 function carProStageOrders(rc) {
   if (!rc.sel[0] || !rc.sel[0].length) return;

@@ -44,9 +44,14 @@ function carDsOf(tid) {
   const C = S.car;
   C.dsOf = C.dsOf || {};
   if (!C.dsOf[tid]) {
-    const h = mercHash('ds' + tid + S.seed0);
+    const h = dsHash('ds' + tid + S.seed0); // (mercHash attend un nombre : avec une chaîne, tous les directeurs se ressemblaient)
     const kinds = Object.keys(CAR_DS_KINDS);
-    C.dsOf[tid] = { name: `${pick(NATS.FRA.fn)} ${pick(NATS.FRA.ln)}`, kind: kinds[h % kinds.length] };
+    // (nom tiré du hachage, comme le caractère : appelé à l'affichage, il ne doit pas toucher au hasard de la partie)
+    const F = NATS.FRA;
+    C.dsOf[tid] = {
+      name: `${F.fn[(h >>> 4) % F.fn.length]} ${F.ln[(h >>> 11) % F.ln.length]}`,
+      kind: kinds[h % kinds.length],
+    };
   }
   return C.dsOf[tid];
 }

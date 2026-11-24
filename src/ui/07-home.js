@@ -17,17 +17,35 @@ function todoList() {
   const my = myRiders();
   const unread = S.inbox.filter(m => !m.read && (m.imp != null ? m.imp : msgImportant(m.title, m.body))).length;
   if (S.fired) L.push(['🚨', 'Vous êtes licencié : choisissez une offre', 'career']);
-  if (!S.car && S.board && !S.board.v && S.board.prop) L.push(['🏛️', 'La direction attend votre projet pour trois saisons', 'board']);
+  if (!S.car && S.board && !S.board.v && S.board.prop)
+    L.push(['🏛️', 'La direction attend votre projet pour trois saisons', 'board']);
   if (!S.car) {
     const tired = mfTired();
     if (tired.length)
-      L.push(['🧠', `Usé${tired.length > 1 ? 's' : ''} mentalement : ${tired.slice(0, 3).map(r => riderName(r)).join(', ')} (une coupure ?)`, 'team']);
+      L.push([
+        '🧠',
+        `Usé${tired.length > 1 ? 's' : ''} mentalement : ${tired
+          .slice(0, 3)
+          .map(r => riderName(r))
+          .join(', ')} (une coupure ?)`,
+        'team',
+      ]);
   }
-  if (!S.car && scmUnread()) L.push(['🔭', `${scmUnread()} rapport${scmUnread() > 1 ? 's' : ''} de recrutement à lire`, 'market', "UI.mkt='scout'"]);
+  if (!S.car && scmUnread())
+    L.push([
+      '🔭',
+      `${scmUnread()} rapport${scmUnread() > 1 ? 's' : ''} de recrutement à lire`,
+      'market',
+      "UI.mkt='scout'",
+    ]);
   if (S.crewAsk && S.crew && teamById(S.crewAsk.t))
     L.push(['💼', `${teamById(S.crewAsk.t).name} veut débaucher ${crewName(S.crew[S.crewAsk.role])} (staff)`, 'staff']);
   if (S.lockAsk && S.riders[S.lockAsk.a] && S.riders[S.lockAsk.b])
-    L.push(['⚔️', `${riderName(S.riders[S.lockAsk.a])} et ${riderName(S.riders[S.lockAsk.b])} veulent être leader sur la même course`, 'locker']);
+    L.push([
+      '⚔️',
+      `${riderName(S.riders[S.lockAsk.a])} et ${riderName(S.riders[S.lockAsk.b])} veulent être leader sur la même course`,
+      'locker',
+    ]);
   const sa = storyAsks().length;
   if (sa) L.push(['📖', `${sa} histoire${sa > 1 ? 's' : ''} : une décision vous attend`, 'stories']);
   if (S.jobOffers && S.jobOffers.length)

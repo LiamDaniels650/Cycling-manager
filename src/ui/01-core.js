@@ -61,13 +61,18 @@ function backupPrefix() {
 function idbMainKey() {
   return slotOf() === 'car' ? 'car' : 'main';
 }
+// Texte d'une sauvegarde. Mode carrière pendant une course : la copie d'avant la course (le monde est alors en
+// configuration de course, équipes du peloton des jeunes, et les vraies équipes ne sont pas dans l'état) ; une
+// course interrompue reprendra au départ. Toutes les sauvegardes (locale, nommée, copie de saison, fichier, copie
+// dans le presse-papiers) passent par ici.
+function saveText() {
+  return UI.carPre && S.car ? UI.carPre : JSON.stringify({ S, sd: _sd, rid: _rid });
+}
 // Sauvegarde locale (navigateur).
 function save() {
   // la date d'enregistrement départage la copie locale et la copie compressée au chargement
   S.savedAt = Date.now();
-  // mode carrière pendant une course : on garde la copie d'avant la course (le monde est en configuration de
-  // course : équipes du peloton des jeunes) ; une course interrompue reprendra au départ
-  const txt = UI.carPre && S.car ? UI.carPre : JSON.stringify({ S, sd: _sd, rid: _rid });
+  const txt = saveText();
   // 1) copie compressée (gzip) dans IndexedDB : pas de limite pratique de taille
   idbSave(txt);
   // 2) copie directe dans le stockage local tant qu'elle tient (repli si IndexedDB est indisponible)
@@ -89,7 +94,7 @@ function save() {
       // ni IndexedDB ni place locale : élagage d'urgence puis nouvel essai
       try {
         pruneWorld(true);
-        localStorage.setItem(SAVE_KEY, JSON.stringify({ S, sd: _sd, rid: _rid }));
+        localStorage.setItem(SAVE_KEY, saveText());
         UI.flash = 'Sauvegarde allégée : les coureurs retraités sans palmarès ont été oubliés.';
       } catch (e3) {
         UI.flash = '⚠️ Sauvegarde impossible : le stockage du navigateur est plein. Exportez votre partie (⚙ Options).';
@@ -182,7 +187,7 @@ async function lsGzLoad() {
 // Copies de sécurité de début de saison (les trois dernières), pour revenir en arrière en cas de souci.
 function idbBackup() {
   const key = (slotOf() === 'car' ? 'car-saison-' : 'saison-') + S.season;
-  const txt = JSON.stringify({ S, sd: _sd, rid: _rid });
+  const txt = saveText();
   return gzipText(txt)
     .then(v =>
       idbOpen().then(
@@ -247,9 +252,12 @@ function namedWrite(L) {
 function saveNamed(name) {
   const L = namedSaves();
   if (L.length >= NAMED_MAX) return Promise.resolve(`${NAMED_MAX} sauvegardes au plus : supprimez-en une.`);
-  const nm = String(name || '').trim().slice(0, 40) || `Saison ${S.season}, semaine ${S.week}`;
+  const nm =
+    String(name || '')
+      .trim()
+      .slice(0, 40) || `Saison ${S.season}, semaine ${S.week}`;
   const key = (slotOf() === 'car' ? 'car-nom-' : 'nom-') + Date.now();
-  const txt = JSON.stringify({ S, sd: _sd, rid: _rid });
+  const txt = saveText();
   return gzipText(txt)
     .then(v =>
       idbOpen().then(
