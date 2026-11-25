@@ -51,8 +51,12 @@ const cat = (dir, skip = []) =>
     .sort()
     .map(f => `// ---- ${dir}/${f} ----\n` + fs.readFileSync(path.join(ROOT, dir, f), 'utf8'))
     .join('\n');
-const engine = "'use strict';\n" + cat('src/engine');
-const appLayer = "'use strict';\n" + cat('src/ui', []); // couche d'application (src/ui)
+// moteur et couche d'application compactés (espaces, commentaires, syntaxe), sans renommer quoi que ce soit : tout
+// reste global et lisible par nom (le Web Worker reprend le texte du moteur tel quel) ; 950 → 570 Ko pour le moteur
+const compact = src =>
+  esbuild.transformSync(src, { minifyWhitespace: true, minifySyntax: true, target: 'es2020' }).code;
+const engine = compact("'use strict';\n" + cat('src/engine'));
+const appLayer = compact("'use strict';\n" + cat('src/ui', [])); // couche d'application (src/ui)
 
 const out = await esbuild.build({
   entryPoints: [path.join(ROOT, 'src/react/main.jsx')],

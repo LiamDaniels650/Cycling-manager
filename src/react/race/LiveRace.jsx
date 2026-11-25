@@ -23,7 +23,34 @@ function Fold({ title, children }) {
     </details>
   );
 }
+// Écran allumé pendant la course en direct (téléphone) : verrou de mise en veille demandé à l'entrée, repris quand
+// on revient sur l'onglet (le navigateur le relâche quand la page est masquée), relâché en quittant la course.
+// Sans effet si le navigateur ne le permet pas.
+function useWakeLock() {
+  useEffect(() => {
+    let lock = null,
+      alive = true;
+    const ask = () => {
+      if (!alive || document.visibilityState !== 'visible' || !navigator.wakeLock) return;
+      navigator.wakeLock.request('screen').then(
+        l => {
+          if (alive) lock = l;
+          else l.release().catch(() => {});
+        },
+        () => {}
+      );
+    };
+    ask();
+    document.addEventListener('visibilitychange', ask);
+    return () => {
+      alive = false;
+      document.removeEventListener('visibilitychange', ask);
+      if (lock) lock.release().catch(() => {});
+    };
+  }, []);
+}
 export function LiveRace() {
+  useWakeLock();
   // à l'entrée dans le final, l'écran change de disposition : on remonte en haut une seule fois
   const fin = UI.sim ? inFinale(UI.sim) : false;
   const photo = !!(UI.sim && UI.sim.photo);

@@ -341,6 +341,10 @@ function newGame(teamName, seed, diff, opts = {}) {
         : ''
     }. Consultez votre effectif, réglez les plans d'entraînement, jetez un œil au vivier de jeunes (onglet Académie) puis préparez la première course au calendrier.<br><br>Objectifs du sponsor :<br>${S.obj.map(o => '• ' + o.txt).join('<br>')}`
   );
+  // tout ce que le chargement d'une sauvegarde complète (équipement, héritage, encadrement en personnages) existe
+  // dès le départ : sinon le premier rechargement le créait, changeait les niveaux du staff, et la suite de la
+  // partie dépendait de ce rechargement (trouvé par tests/properties.js)
+  migrate();
   return S;
 }
 // Monde de départ : un coureur d'équipe reçoit le niveau qu'aurait un coureur du même âge formé par le jeu.

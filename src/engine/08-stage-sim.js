@@ -284,8 +284,15 @@ let SIMC = null; // étape en cours de simulation (temps de passage)
 function gapSec(a, b) {
   const d = a.pos - b.pos;
   if (d <= 0) return 0;
-  const ta = SIMC ? passAt(SIMC, a.pos) : null,
-    tb = SIMC ? passAt(SIMC, b.pos) : null;
+  // (au-delà du dernier relevé, de quelques mètres quand un regroupement avance un groupe après le relevé : le
+  // passage est prolongé à la vitesse du groupe, plutôt que de retomber sur distance ÷ vitesse pour tout l'écart)
+  const at = G => {
+    const t = passAt(SIMC, G.pos);
+    if (t != null || !SIMC.passT || G.pos < SIMC.passPos) return t;
+    return SIMC.passTime + ((G.pos - SIMC.passPos) / Math.max(15, G.speed || 40)) * 60;
+  };
+  const ta = SIMC ? at(a) : null,
+    tb = SIMC ? at(b) : null;
   if (ta != null && tb != null) return Math.max(0, (ta - tb) * 60);
   return (d / Math.max(15, b.speed)) * 3600;
 }

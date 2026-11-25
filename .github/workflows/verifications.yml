@@ -25,6 +25,8 @@ jobs:
         run: node tests/features.js
       - name: Web Worker (aller-retour de l'état)
         run: node tests/worker_roundtrip.js
+      - name: Propriétés (fast-check : cas tirés au hasard)
+        run: node tests/properties.js
       - name: Ordres de final (bancs d'essai du sprint et de la côte)
         run: node tests/finals.js
       - name: Non-régression

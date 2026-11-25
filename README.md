@@ -111,6 +111,8 @@ tests/
   ui_auto_react.py        chaque bouton « Auto » cliqué pour de vrai, appel radio, DS automatique
   ui_worker.py            simulation d'une course dans un Web Worker (même résultat qu'en direct)
   ui_rng_react.py         l'affichage ne touche pas au hasard (tous les écrans, en saison, en course, en carrière)
+  ui_visual.py            écrans comparés à leurs images de référence (tests/visual ; --update après un changement voulu)
+  properties.js           tests de propriétés (fast-check) : ordres au hasard, rejeu exact, sauvegarde rechargée
   ui_replay.py            une étape jouée avec des ordres, signalée puis rejouée hors du jeu : course identique
   worker_roundtrip.js     Web Worker : un calcul dans un contexte vierge donne exactement le même état qu'en direct
   anomalies.js            détecteur d'anomalies de course (./dev.sh anomalies)
@@ -603,6 +605,19 @@ node tools/replay.js signalement.json # rejoue l'étape d'un signalement du joue
     Les échappées, mieux suivies par des poursuivants qui voient le vrai écart, réussissaient un peu moins : marges
     réajustées (favChaseK 1,2 → 1,6 pour les favoris qui visent l'étape en côte et en vallonné, hillyChaseK 1,35 →
     1,6, nouveau punchChaseK 1,7 pour les équipes de sprinteur-puncheur sur une arrivée en côte, hillyFavK 1,15 pour les favoris en vallonné).
+  - Outils gratuits pour le jeu et sa fabrication :
+    - moteur et couche d'application compactés à l'assemblage (esbuild, sans renommer : tout reste global) : jeu de
+      1 849 à 1 458 Ko ;
+    - écran du téléphone gardé allumé pendant la course en direct (Screen Wake Lock), relâché en la quittant ;
+    - tests de propriétés (tests/properties.js, fast-check) : des cas tirés au hasard (graine, course, ordres du
+      joueur et leurs instants) et des règles qui doivent toujours tenir ; dès le premier passage, ils ont trouvé
+      deux défauts : un écart calculé à l'ancienne quand la tête dépassait de quelques mètres le dernier relevé
+      (un regroupement l'avance après le relevé : passage prolongé à la vitesse du groupe), et une partie neuve
+      sans encadrement en personnages, créé au premier rechargement (niveaux du staff modifiés : la suite de la
+      partie dépendait d'un rechargement ; newGame finit désormais comme un chargement, par migrate) ;
+    - comparaison des écrans (tests/ui_visual.py) : neuf écrans, sur téléphone et sur ordinateur, dans une partie
+      toujours identique (graine et horloge figées), comparés pixel par pixel à leurs références (tests/visual) ;
+      une différence de 0,2 % des pixels suffit à le signaler (vérifié avec un simple espacement de lettres).
   - Deux défauts révélés par le détecteur après la correction des écarts :
     - un groupe coupé où roule un leader du général, sur le plat, chassait à l'allure de son tiers le plus fort :
       dans le final, face à un peloton lancé par les trains, il perdait 7 s au km (maillot à plus d'une minute) ;
