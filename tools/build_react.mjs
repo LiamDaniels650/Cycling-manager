@@ -51,12 +51,23 @@ const cat = (dir, skip = []) =>
     .sort()
     .map(f => `// ---- ${dir}/${f} ----\n` + fs.readFileSync(path.join(ROOT, dir, f), 'utf8'))
     .join('\n');
-// moteur et couche d'application compactés (espaces, commentaires, syntaxe), sans renommer quoi que ce soit : tout
-// reste global et lisible par nom (le Web Worker reprend le texte du moteur tel quel) ; 950 → 570 Ko pour le moteur
-const compact = src =>
-  esbuild.transformSync(src, { minifyWhitespace: true, minifySyntax: true, target: 'es2020' }).code;
-const engine = compact("'use strict';\n" + cat('src/engine'));
-const appLayer = compact("'use strict';\n" + cat('src/ui', [])); // couche d'application (src/ui)
+// moteur et couche d'application compactés : espaces et commentaires seulement. Surtout pas minifySyntax : il
+// supprime les appels aux fonctions vides, or render() est vide ici et remplacée au démarrage par le pont React
+// (bridge.js) ; tous les appels internes à render() disparaissaient et l'écran ne se redessinait plus. Rien n'est
+// renommé : tout reste global et lisible par nom (le Web Worker reprend le texte du moteur tel quel).
+const compact = src => esbuild.transformSync(src, { minifyWhitespace: true, target: 'es2020' }).code;
+const engineSrc = "'use strict';\n" + cat('src/engine');
+const appSrc = "'use strict';\n" + cat('src/ui', []); // couche d'application (src/ui)
+const engine = compact(engineSrc);
+const appLayer = compact(appSrc);
+// garde-fou : la compaction ne doit retirer aucun appel (render() en particulier, remplacée au démarrage)
+for (const [nm, a, b] of [
+  ['moteur', engineSrc, engine],
+  ["couche d'application", appSrc, appLayer],
+]) {
+  const calls = t => (t.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '').match(/\brender\(\)/g) || []).length;
+  if (calls(b) < calls(a)) throw new Error(`compaction du ${nm} : des appels à render() ont disparu`);
+}
 
 const out = await esbuild.build({
   entryPoints: [path.join(ROOT, 'src/react/main.jsx')],

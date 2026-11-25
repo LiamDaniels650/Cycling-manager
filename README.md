@@ -111,6 +111,7 @@ tests/
   ui_auto_react.py        chaque bouton « Auto » cliqué pour de vrai, appel radio, DS automatique
   ui_worker.py            simulation d'une course dans un Web Worker (même résultat qu'en direct)
   ui_rng_react.py         l'affichage ne touche pas au hasard (tous les écrans, en saison, en course, en carrière)
+  ui_clicks.py            navigation par de vrais clics seulement : chaque clic doit changer l'écran
   ui_visual.py            écrans comparés à leurs images de référence (tests/visual ; --update après un changement voulu)
   properties.js           tests de propriétés (fast-check) : ordres au hasard, rejeu exact, sauvegarde rechargée
   ui_replay.py            une étape jouée avec des ordres, signalée puis rejouée hors du jeu : course identique
@@ -605,9 +606,15 @@ node tools/replay.js signalement.json # rejoue l'étape d'un signalement du joue
     Les échappées, mieux suivies par des poursuivants qui voient le vrai écart, réussissaient un peu moins : marges
     réajustées (favChaseK 1,2 → 1,6 pour les favoris qui visent l'étape en côte et en vallonné, hillyChaseK 1,35 →
     1,6, nouveau punchChaseK 1,9 pour les équipes de sprinteur-puncheur sur une arrivée en côte, hillyFavK 1,15 pour les favoris en vallonné).
+  - Correctif urgent (boutons sans effet) : la compaction du code avec minifySyntax supprimait les appels aux
+    fonctions vides ; or render() est vide dans la couche d'application et remplacée au démarrage par le pont
+    React : tous les appels internes à render() avaient disparu, l'état changeait mais l'écran ne se redessinait
+    plus. Compaction réduite aux espaces et commentaires (jeu à 1 475 Ko au lieu de 1 849) ; l'assemblage échoue
+    si des appels à render() disparaissent ; nouveau test tests/ui_clicks.py, qui ne navigue que par de vrais clics
+    (les autres tests appelaient render() de l'extérieur et n'avaient rien vu) : il échoue sur la version fautive.
   - Outils gratuits pour le jeu et sa fabrication :
-    - moteur et couche d'application compactés à l'assemblage (esbuild, sans renommer : tout reste global) : jeu de
-      1 849 à 1 458 Ko ;
+    - moteur et couche d'application compactés à l'assemblage (esbuild, espaces et commentaires seulement, sans
+      renommer : tout reste global) : jeu de 1 849 à 1 475 Ko ;
     - écran du téléphone gardé allumé pendant la course en direct (Screen Wake Lock), relâché en la quittant ;
     - tests de propriétés (tests/properties.js, fast-check) : des cas tirés au hasard (graine, course, ordres du
       joueur et leurs instants) et des règles qui doivent toujours tenir ; dès le premier passage, ils ont trouvé
