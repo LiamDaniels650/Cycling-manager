@@ -115,7 +115,7 @@ const R = {
   pavFinalPace: 0.9, // 30 derniers km d'une classique pavée : allure d'un groupe de tête où personne ne relaie
   noWorkAhead: 0.7,
   favChaseK: 1.6, // côte et vallonné : marge laissée à l'échappée par les favoris qui visent l'étape
-  punchChaseK: 1.7, // arrivée en côte : marge laissée à l'échappée par une équipe de sprinteur-puncheur
+  punchChaseK: 1.9, // arrivée en côte : marge laissée à l'échappée par une équipe de sprinteur-puncheur
   hillyChaseK: 1.6,
   hillyFavK: 1.15, // vallonné : marge supplémentaire laissée par les favoris (final moins sélectif qu'une côte) // vallonné : marge laissée à l'échappée par une équipe de sprinteur (× la marge du plat)
   hillyControlK: 1.9, // vallonné : marge laissée par une équipe qui contrôle la course (× celle du plat)

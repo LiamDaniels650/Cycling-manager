@@ -604,7 +604,7 @@ node tools/replay.js signalement.json # rejoue l'étape d'un signalement du joue
     incohérences avant, aucune après).
     Les échappées, mieux suivies par des poursuivants qui voient le vrai écart, réussissaient un peu moins : marges
     réajustées (favChaseK 1,2 → 1,6 pour les favoris qui visent l'étape en côte et en vallonné, hillyChaseK 1,35 →
-    1,6, nouveau punchChaseK 1,7 pour les équipes de sprinteur-puncheur sur une arrivée en côte, hillyFavK 1,15 pour les favoris en vallonné).
+    1,6, nouveau punchChaseK 1,9 pour les équipes de sprinteur-puncheur sur une arrivée en côte, hillyFavK 1,15 pour les favoris en vallonné).
   - Outils gratuits pour le jeu et sa fabrication :
     - moteur et couche d'application compactés à l'assemblage (esbuild, sans renommer : tout reste global) : jeu de
       1 849 à 1 458 Ko ;
