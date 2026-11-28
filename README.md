@@ -606,6 +606,10 @@ node tools/replay.js signalement.json # rejoue l'étape d'un signalement du joue
     Les échappées, mieux suivies par des poursuivants qui voient le vrai écart, réussissaient un peu moins : marges
     réajustées (favChaseK 1,2 → 1,6 pour les favoris qui visent l'étape en côte et en vallonné, hillyChaseK 1,35 →
     1,6, nouveau punchChaseK 1,9 pour les équipes de sprinteur-puncheur sur une arrivée en côte, hillyFavK 1,15 pour les favoris en vallonné).
+  - Changement d'équipe (offre acceptée ou licenciement) : les contrats d'équipementiers étaient recréés pour le
+    vélo et le chrono seulement (roues, pneus et nutrition, ajoutés plus tard, disparaissaient) ; la semaine
+    suivante, la génération des offres plantait et la partie était bloquée. Toutes les catégories sont reprises
+    (trouvé par le banc de difficulté : le joueur passif, licencié, plantait à sa 3e saison) ; test ajouté.
   - Correctif urgent (boutons sans effet) : la compaction du code avec minifySyntax supprimait les appels aux
     fonctions vides ; or render() est vide dans la couche d'application et remplacée au démarrage par le pont
     React : tous les appels internes à render() avaient disparu, l'état changeait mais l'écran ne se redessinait

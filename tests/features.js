@@ -92,6 +92,32 @@ check(
   S.academy.length === 0 && S.cal.every(c => !c.done) && S.obj.length > 0,
   'académie remise au club, calendrier et objectifs recalculés'
 );
+check(
+  Object.keys(EQ_CATS).every(c => S.eqDeal[c] && S.teams[0].eq[c]),
+  'contrats d’équipementiers repris dans toutes les catégories (vélo, chrono, roues, pneus, nutrition)'
+);
+{
+  // la suite de la saison tourne (avant : plantage à la semaine suivante, génération des offres d'équipementiers)
+  // (sur une copie de l'état : les vérifications suivantes repartent de juste après le changement d'équipe)
+  const keep = JSON.stringify({ S, sd: _sd, rid: _rid });
+  let ok = true;
+  try {
+    for (let k = 0; k < 3; k++) {
+      const i = advanceToNextRace();
+      if (i < 0) break;
+      simulateRaceAuto(i);
+    }
+    genEqOffers();
+  } catch (e) {
+    ok = e.message;
+  }
+  check(ok === true, 'la saison continue après le changement d’équipe' + (ok === true ? '' : ' : ' + ok));
+  const k0 = JSON.parse(keep);
+  S = k0.S;
+  _sd = k0.sd;
+  _rid = k0.rid;
+  stateRestored();
+}
 const allIds = S.teams.flatMap(T => T.riders);
 check(new Set(allIds).size === allIds.length, 'aucun coureur dans deux équipes');
 
