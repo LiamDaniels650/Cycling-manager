@@ -271,7 +271,7 @@ function tickPhysics(sim) {
       if (G.attacker === x && G.burst >= 0 && G.burstL === L) need = L;
       else if (x.work > 0) need = L * (d + (1 - d) / nw);
       else {
-        need = L * d * (effOrder(x) === 'save' ? 0.97 : 1);
+        need = L * d * (effOrder(x) === 'save' ? 0.94 : 1); // (gardé au chaud : bien abrité en queue de groupe)
         const eox = effOrder(x);
         if ((eox === 'leader' || eox === 'sprint') && mates.has(x.team))
           need *= 1 - Math.min(4, mates.get(x.team)) * shelterK;
@@ -355,9 +355,11 @@ function tickPhysics(sim) {
         (x.energy <= 1 && I > 0.92) ||
         (smart &&
           g >= 3 &&
-          I > (eoX === 'pace' ? 0.96 : 1.0) &&
+          // (« gardé au chaud » : il laisse filer dès que ça monte fort et grimpe à son rythme, comme dans un
+          // gruppetto ; sinon il suivait le groupe dans chaque côte et ne s'économisait presque pas)
+          I > (eoX === 'pace' ? 0.96 : eoX === 'save' ? 0.88 : 1.0) &&
           G.burst <= 0 &&
-          (x.punch < 35 || eoX === 'pace') &&
+          (x.punch < 35 || eoX === 'pace' || eoX === 'save') &&
           sim.dist - G.pos > 1.5)
       ) {
         drop.push(x);
